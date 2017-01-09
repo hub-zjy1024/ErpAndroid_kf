@@ -41,7 +41,7 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                     MyToast.showToast(SetCheckInfoActivity.this, msg.obj.toString());
                     break;
                 case 1:
-                    MyToast.showToast(SetCheckInfoActivity.this,"当前网络质量太差");
+                    MyToast.showToast(SetCheckInfoActivity.this, "当前网络质量太差");
                     break;
             }
         }

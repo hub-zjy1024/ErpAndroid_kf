@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -158,7 +159,7 @@ public class ImageWaterUtils {
     }
 
     /**
-     * 绘制文字到右上方
+     * 绘制文字到右上方(修改过)
      *
      * @param context
      * @param bitmap
@@ -172,7 +173,8 @@ public class ImageWaterUtils {
     public static Bitmap drawTextToRightTop(Context context, Bitmap bitmap, String text, int size, int color,
                                             int paddingRight, int paddingTop) {
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(color);
+        paint.setColor(Color.argb(100, 255, 0, 8));
+        paint.setShadowLayer(0.5f, 10, 0, Color.YELLOW);
         paint.setTextSize(dp2px(context, size));
         Rect bounds = new Rect();
         paint.getTextBounds(text, 0, text.length(), bounds);
@@ -235,7 +237,6 @@ public class ImageWaterUtils {
         }
         bitmap = bitmap.copy(bitmapConfig, true);
         Canvas canvas = new Canvas(bitmap);
-
         canvas.drawText(text, paddingLeft, paddingTop, paint);
         return bitmap;
     }

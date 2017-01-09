@@ -1,17 +1,23 @@
 package com.b1b.js.erpandroid_kf;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.OrientationEventListener;
@@ -68,8 +74,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 case 0:
                     btn_takepic.setEnabled(true);
                     //更新服务器信息
-//                    remoteName = remoteName + ".jpg";
-                    Log.e("zjy", "TakePicActivity.java->handleMessage(): 0==");
                     SharedPreferences sp = getSharedPreferences("UserInfo", 0);
                     final int cid = sp.getInt("cid", -1);
                     final int did = sp.getInt("did", -1);
@@ -136,7 +140,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         FtpUpFile ftp = new FtpUpFile("NEW_DYJ", "GY8Fy2Gx", "172.16.6.22", 21);
 //                  ftp = new FtpUpFile("zjy", "123", "192.168.25.53", 21);
         boolean isSuccess = ftp.upload(is, remoteDir, remoteName + ".jpg");
-
     }
 
 
@@ -159,7 +162,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_takepic_main);
-
         surfaceView = (SurfaceView) findViewById(R.id.surfaceview);
         btn_tryagain = (Button) findViewById(R.id.main_tryagain);
         btn_commit = (Button) findViewById(R.id.main_commit);
@@ -188,40 +190,47 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         mHolder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                int couts = Camera.getNumberOfCameras();
-                Log.e("zjy", "TakePicActivity-cameraCounts ==" + couts);
-                if (couts == 0) {
-                    MyToast.showToast(TakePicActivity.this, "设备无摄像头");
-                }
-                camera = Camera.open(); // 打开摄像头
-                if (camera == null) {
-                    MyToast.showToast(TakePicActivity.this, "检测不到摄像头");
-                    return;
-                }
-                try {
-                    // 设置用于显示拍照影像的SurfaceHolder对象
-                    camera.setPreviewDisplay(holder);
-                    //设置旋转角度
-                    camera.setDisplayOrientation(getPreviewDegree(TakePicActivity.this));
-                    camera.startPreview(); //开始预览
-                    //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
-                    parameters = camera.getParameters();
-                    setAutoFoucs(parameters);
-                    sp = getSharedPreferences("cameraInfo", 0);
-                    if (sp.getInt("width", -1) != -1) {
-                        int width = sp.getInt("width", -1);
-                        int height = sp.getInt("height", -1);
-                        parameters.setPictureSize(width, height);
-                        camera.setParameters(parameters);
-                    } else {
-                        showDialog(parameters);
+                if (ContextCompat.checkSelfPermission(TakePicActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    Log.e("zjy", "TakePicActivity.java->surfaceCreated(): no permission==");
+                    ActivityCompat.requestPermissions(TakePicActivity.this, new String[]{Manifest.permission.CAMERA}, 100);
+                } else {
+                    Log.e("zjy", "TakePicActivity.java->surfaceCreated(): has permission");
+                    int couts = Camera.getNumberOfCameras();
+                    Log.e("zjy", "TakePicActivity-cameraCounts ==" + couts);
+                    if (couts == 0) {
+                        MyToast.showToast(TakePicActivity.this, "设备无摄像头");
                     }
-                    toolbar.setVisibility(View.GONE);
-                    btn_takepic.setEnabled(true);
-                    isPreview = true;
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    camera = Camera.open(); // 打开摄像头
+                    if (camera == null) {
+                        MyToast.showToast(TakePicActivity.this, "检测不到摄像头");
+                        return;
+                    }
+                    try {
+                        // 设置用于显示拍照影像的SurfaceHolder对象
+                        camera.setPreviewDisplay(holder);
+                        //设置旋转角度
+                        camera.setDisplayOrientation(getPreviewDegree(TakePicActivity.this));
+                        camera.startPreview(); //开始预览
+                        //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
+                        parameters = camera.getParameters();
+                        setAutoFoucs(parameters);
+                        sp = getSharedPreferences("cameraInfo", 0);
+                        if (sp.getInt("width", -1) != -1) {
+                            int width = sp.getInt("width", -1);
+                            int height = sp.getInt("height", -1);
+                            parameters.setPictureSize(width, height);
+                            camera.setParameters(parameters);
+                        } else {
+                            showDialog(parameters);
+                        }
+                        toolbar.setVisibility(View.GONE);
+                        btn_takepic.setEnabled(true);
+                        isPreview = true;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
+
             }
 
             @Override
@@ -233,6 +242,16 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 releaseCamera();
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == 100) {
+
+        } else {
+            MyToast.showToast(TakePicActivity.this, "请检查相机权限");
+        }
     }
 
     /**
@@ -273,50 +292,55 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 picSize.remove(i);
             }
         }
-        String[] strs = new String[picSize.size()];
-        for (int i = 0; i < picSize.size(); i++) {
-            Camera.Size size = picSize.get(i);
-            String item = size.width + "X" + size.height;
-            strs[i] = item;
+        if (picSize.size() > 0) {
+            String[] strs = new String[picSize.size()];
+            for (int i = 0; i < picSize.size(); i++) {
+                Camera.Size size = picSize.get(i);
+                String item = size.width + "X" + size.height;
+                strs[i] = item;
+            }
+            AlertDialog.Builder dialog = new AlertDialog.Builder(TakePicActivity.this);
+            dialog.setIcon(android.R.drawable.ic_dialog_info);//窗口头图标
+            dialog.setTitle("选择照片大小");//窗口名
+            dialog.setSingleChoiceItems(strs, 0, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            itemPosition = which;
+                        }
+                    }
+            );
+            dialog.setNegativeButton("完成", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    int width = picSize.get(itemPosition).width;
+                    int height = picSize.get(itemPosition).height;
+                    Log.e("zjy", "TakePicActivity.java->onClick(): width==" + width + "\t" + height);
+                    parameters.setPictureSize(width, height);
+                    camera.setParameters(parameters);
+                }
+            });
+
+            dialog.setPositiveButton("设为默认尺寸", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Log.e("zjy", "TakePicActivity.java->onClick(): default==" + itemPosition);
+                    SharedPreferences.Editor editor = sp.edit();
+                    int width = picSize.get(itemPosition).width;
+                    int height = picSize.get(itemPosition).height;
+                    editor.putInt("width", width);
+                    editor.putInt("height", height);
+                    editor.apply();
+                    parameters.setPictureSize(width, height);
+                    camera.setParameters(parameters);
+                }
+            });
+            dialog.setCancelable(false);
+            dialog.show();
+        } else {
+            MyToast.showToast(TakePicActivity.this, "没有可选的尺寸");
+            return;
         }
 
-        AlertDialog.Builder dialog = new AlertDialog.Builder(TakePicActivity.this);
-        dialog.setIcon(android.R.drawable.ic_dialog_info);//窗口头图标
-        dialog.setTitle("选择照片大小");//窗口名
-        dialog.setSingleChoiceItems(strs, 0, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        itemPosition = which;
-                    }
-                }
-        );
-        dialog.setNegativeButton("完成", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                int width = picSize.get(itemPosition).width;
-                int height = picSize.get(itemPosition).height;
-                Log.e("zjy", "TakePicActivity.java->onClick(): width==" + width + "\t" + height);
-                parameters.setPictureSize(width, height);
-                camera.setParameters(parameters);
-            }
-        });
-
-        dialog.setPositiveButton("设为默认尺寸", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Log.e("zjy", "TakePicActivity.java->onClick(): default==" + itemPosition);
-                SharedPreferences.Editor editor = sp.edit();
-                int width = picSize.get(itemPosition).width;
-                int height = picSize.get(itemPosition).height;
-                editor.putInt("width", width);
-                editor.putInt("height", height);
-                editor.apply();
-                parameters.setPictureSize(width, height);
-                camera.setParameters(parameters);
-            }
-        });
-        dialog.setCancelable(false);
-        dialog.show();
 
     }
 
@@ -357,9 +381,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         matrixs.setRotate(90 + rotation);
                         try {
                             photo = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrixs, true);
-                            if (photo != null) {
-                                Log.e("zjy", "TakePicActivity.java->onPictureTaken(): takenotnull");
-                            }
                         } catch (OutOfMemoryError error) {
                             error.printStackTrace();
                             mHandler.sendEmptyMessage(1);
@@ -402,8 +423,10 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 //加水印后的图片
                 if (!photo.isRecycled()) {
                     Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicActivity.this, photo, bitmap, 0, 0);
+                    Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid, 50, Color.RED, 100, 100);
+
                     //储存加水印的图片
-                    MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", waterBitmap);
+                    MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", TextBitmap);
                     new Thread() {
                         @Override
                         public void run() {

@@ -5,6 +5,7 @@
     android:id="@+id/activity_check"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/first_shape"
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.CheckActivity">
 
@@ -19,14 +20,18 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="@drawable/ed_bg"
             android:hint="输入单据号"
             android:inputType="number"/>
 
         <EditText
             android:id="@+id/check_ed_partNo"
+
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:layout_weight="1"
+            android:background="@drawable/ed_bg"
             android:hint="输入型号"/>
 
     </LinearLayout>
@@ -34,8 +39,10 @@
     <RadioGroup
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="5dp">
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:background="@drawable/ed_bg"
+        android:orientation="horizontal">
 
         <RadioButton
             android:id="@+id/check_rdb_first"
@@ -56,12 +63,17 @@
             android:id="@+id/check_btn_search"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="开始搜索"/>
+            android:background="@null"
+            android:drawableLeft="@mipmap/map_ic_global_search_textbox_normal"
+            android:text="搜索"/>
 
         <Button
             android:id="@+id/check_btn_scancode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:background="@null"
+            android:drawableLeft="@mipmap/qrcode"
             android:text="扫码"/>
     </RadioGroup>
 
