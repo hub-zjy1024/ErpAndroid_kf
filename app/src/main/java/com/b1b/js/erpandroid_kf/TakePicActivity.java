@@ -129,18 +129,14 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
 
     /**
      * @param is
-     * @param remoteName 不带后缀名，默认后缀名为jpg
+     * @param remoteName 传入无后缀名的文件名
      * @param remoteDir
      */
     private void commit(final InputStream is, final String remoteName, final String remoteDir) throws IOException, FtpUpFile.RemoteDeleteException {
         FtpUpFile ftp = new FtpUpFile("NEW_DYJ", "GY8Fy2Gx", "172.16.6.22", 21);
 //                  ftp = new FtpUpFile("zjy", "123", "192.168.25.53", 21);
         boolean isSuccess = ftp.upload(is, remoteDir, remoteName + ".jpg");
-        if (isSuccess) {
-            canInsert = true;
-        } else {
-            mHandler.sendEmptyMessage(2);
-        }
+
     }
 
 
