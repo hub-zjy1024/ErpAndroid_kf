@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_kao_qin"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/first_shape"
+    android:orientation="vertical"
+    android:padding="5dp"
+    tools:context="com.b1b.js.erpandroid_kf.KaoQinActivity">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/kq_edTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="请输入查询日期4位年份2位月份"
+            android:inputType="number"
+            />
+
+        <EditText
+            android:id="@+id/kq_edId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="请输入查询员工号"
+            android:inputType="number"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/kq_serach"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/btn_click"
+                android:text="查询"/>
+
+            <Button
+                android:id="@+id/kq_saixuan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:background="@drawable/btn_click"
+                android:text="只看迟到和早退"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/kq_lv"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:divider="@drawable/listview_divider"
+        android:dividerHeight="1dp"
+        >
+    </ListView>
+
+
+</LinearLayout>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical"
+              android:padding="5dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/kqitems_id"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="id："
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/kqitems_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="考勤状态："
+            android:textSize="18sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/kqitems_name"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="姓名："
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/kqitems_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="考勤日期："
+            android:textSize="18sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/kqitems_startTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:text="上班时间："
+
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/kqitems_startIp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="上班ip："
+            android:textSize="18sp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+        <TextView
+            android:id="@+id/kqitems_endTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="下班时间："
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/kqitems_endIp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="下班ip："
+            android:textSize="18sp"/>
+    </LinearLayout>
+</LinearLayout>
