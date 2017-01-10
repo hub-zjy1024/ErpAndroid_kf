@@ -9,13 +9,6 @@
         android:layout_height="wrap_content">
 
         <EditText
-            android:id="@+id/frag_chukutongzhi_GoodNo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="输入型号"/>
-
-        <EditText
             android:id="@+id/frag_chukutongzhi_pid"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -23,12 +16,25 @@
             android:hint="输入单据号"
             android:inputType="number"/>
 
+        <EditText
+            android:id="@+id/frag_chukutongzhi_GoodNo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="输入型号"
+            android:maxLines="1"
+            android:singleLine="true"/>
+
+
         <Button
             android:id="@+id/frag_chukutongzhi_search"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="查询"/>
+            android:background="@null"
+            android:drawableLeft="@mipmap/map_ic_global_search_textbox_normal"
+            android:text="搜索"
+            />
     </LinearLayout>
 
     <LinearLayout
@@ -47,6 +53,7 @@
                 android:id="@+id/chukutongzhi_rbn_halfamonth"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:checked="true"
                 android:text="半月内"/>
 
             <RadioButton
@@ -59,7 +66,6 @@
                 android:id="@+id/chukutongzhi_rbn_halfayear"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:checked="true"
                 android:text="半年内"/>
         </RadioGroup>
 
@@ -94,6 +100,8 @@
             android:id="@+id/chukutongzhi_cleartime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@null"
+            android:drawableLeft="@drawable/btn_clear"
             android:text="清除时间"/>
 
     </LinearLayout>

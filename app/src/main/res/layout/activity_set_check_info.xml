@@ -6,12 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:padding="5dp"
     tools:context="com.b1b.js.erpandroid_kf.SetCheckInfoActivity">
 
     <TextView
         android:id="@+id/setcheckinfo_pid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textSize="18sp"
         android:padding="5dp"/>
 
     <EditText
@@ -26,6 +28,8 @@
         android:id="@+id/setcheckinfo_commit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@null"
+        android:drawableLeft="@mipmap/gc_deal_sign_ok"
         android:enabled="true"
         android:text="通过"/>
 
@@ -33,6 +37,8 @@
         android:id="@+id/setcheckinfo_fail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@null"
+        android:drawableLeft="@mipmap/gc_deal_sign_deny"
         android:enabled="true"
         android:text="不通过"/>
 
@@ -40,5 +46,7 @@
         android:id="@+id/setcheckinfo_photo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="上传图片"/>
+        android:background="@null"
+        android:drawableLeft="@mipmap/cipugc_icon_add_photo"
+        android:text="拍照上传"/>
 </LinearLayout>

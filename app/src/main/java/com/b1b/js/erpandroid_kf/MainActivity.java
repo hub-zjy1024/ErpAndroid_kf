@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +17,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
 import com.b1b.js.erpandroid_kf.utils.WcfUtils;
 
@@ -40,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sp;
     private ProgressDialog pd;
     String name;
-    private boolean ifStartIntent = true;
+    private boolean canStartIntent = true;
     private android.os.Handler handler = new android.os.Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -52,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 1:
                     //成功
-                    if (ifStartIntent) {
+                    if (canStartIntent) {
                         ifSavePwd();
                         if (!sp.getString("name", "").equals(msg.obj.toString())) {
                             sp.edit().clear().commit();
@@ -77,16 +80,15 @@ public class MainActivity extends AppCompatActivity {
                                         e.printStackTrace();
                                     }
                                 }
-
                             }
                         }.start();
                         startActivity(intent);
                         finish();
-                        ifStartIntent = true;
+                        canStartIntent = true;
                     }
                     break;
                 case 2:
-                    ifStartIntent = false;
+
                     MyToast.showToast(MainActivity.this, "网络状态不佳,请检查网络状态");
                     pd.cancel();
                     break;
@@ -123,10 +125,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 获取当前连接的wifi地址
+     *
+     * @return 获取当前连接的wifi地址
+     */
+    private String getLocalIpAddress() {
+        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        // 获取32位整型IP地址
+        int ipAddress = wifiInfo.getIpAddress();
+
+        //返回整型地址转换成“*.*.*.*”地址
+        return String.format("%d.%d.%d.%d",
+                (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+                (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.e("zjy", "MainActivity.java->onCreate(): ip==" + getLocalIpAddress());
         edUserName = (EditText) findViewById(R.id.login_username);
         edPwd = (EditText) findViewById(R.id.login_pwd);
         btnLogin = (Button) findViewById(R.id.login_btnlogin);
@@ -147,6 +167,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        btnScancode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
+                startActivityForResult(intent, 200);
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 200 && resultCode == RESULT_OK) {
+            MyToast.showToast(MainActivity.this, "得到扫码结果");
+        }
     }
 
     private void readCache() {
@@ -170,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
         pd.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                ifStartIntent = false;
+                canStartIntent = false;
             }
         });
         pd.show();
@@ -178,6 +213,17 @@ public class MainActivity extends AppCompatActivity {
         new Thread() {
             @Override
             public void run() {
+                SoapObject t1 = WcfUtils.getRequest(null, "GetClientIP");
+                try {
+                    SoapPrimitive sp = WcfUtils.getSoapPrimitiveResponse(t1, SoapEnvelope.VER11, "MartService.svc");
+                    Log.e("zjy", "MainActivity.java->run(): ssss==" + sp.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                }
+
+
                 LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
                 PackageManager pm = getPackageManager();
                 String version = "";
@@ -192,7 +238,6 @@ public class MainActivity extends AppCompatActivity {
                     SoapPrimitive result = null;
                     SoapObject loginReq = WcfUtils.getRequest(map, "AndroidLogin");
                     result = WcfUtils.getSoapPrimitiveResponse(loginReq, SoapEnvelope.VER11, WcfUtils.MartService);
-                    ifStartIntent = true;
                     String[] resArray = result.toString().split("-");
                     if (resArray[0].equals("SUCCESS")) {
                         Message msg1 = handler.obtainMessage();
@@ -208,7 +253,6 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("zjy", "MainActivity.java->run(): 1111==" + result.toString());
                 } catch (IOException e) {
                     handler.sendEmptyMessage(2);
-
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();

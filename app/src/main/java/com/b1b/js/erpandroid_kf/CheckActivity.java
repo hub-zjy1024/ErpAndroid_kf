@@ -56,6 +56,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                     MyToast.showToast(CheckActivity.this, "查询成功");
                     break;
                 case 1:
+                    adapter.notifyDataSetChanged();
                     MyToast.showToast(CheckActivity.this, "请输入正确的查询条件");
                     break;
             }
@@ -130,7 +131,6 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
         properties.put("partNo", partNo);
         SoapObject request = WcfUtils.getRequest(properties, "GetChuKuCheckInfoByTypeID");
         SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WcfUtils.ChuKuServer);
-        Log.e("zjy", "CheckActivity.java->getChuKuCheckInfoByTypeID(): result==" + response.toString());
         return response.toString();
     }
 
@@ -160,6 +160,8 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                 getData(checkId, pid, partNo);
                 break;
             case R.id.check_btn_scancode:
+                data.clear();
+                adapter.notifyDataSetChanged();
                 Intent intent = new Intent(CheckActivity.this, CaptureActivity.class);
                 startActivityForResult(intent, 100);
                 break;

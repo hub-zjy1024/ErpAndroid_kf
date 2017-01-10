@@ -5,7 +5,7 @@
     android:id="@+id/activity_check"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/first_shape"
+    android:background="@drawable/ed_bg"
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.CheckActivity">
 
@@ -20,28 +20,28 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/ed_bg"
+            android:background="@drawable/border_1"
             android:hint="输入单据号"
             android:inputType="number"/>
 
         <EditText
             android:id="@+id/check_ed_partNo"
-
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_weight="1"
-            android:background="@drawable/ed_bg"
-            android:hint="输入型号"/>
+            android:background="@drawable/border_1"
+            android:hint="输入型号"
+            android:maxLines="1"
+            android:singleLine="true"/>
 
     </LinearLayout>
 
     <RadioGroup
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
-        android:background="@drawable/ed_bg"
         android:orientation="horizontal">
 
         <RadioButton
@@ -80,8 +80,10 @@
 
     <ListView
         android:id="@+id/check_lv"
+        android:listSelector="@android:color/transparent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@drawable/border2"
         android:divider="@drawable/divider"
         android:dividerHeight="1dp"/>
 

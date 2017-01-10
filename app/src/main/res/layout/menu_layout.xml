@@ -3,7 +3,7 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
-              android:background="@drawable/first_shape"
+              android:background="@drawable/ed_bg"
               android:padding="10dp">
 
     <TextView
@@ -21,7 +21,7 @@
         android:layout_marginTop="20dp"
         android:background="@drawable/border2"
         android:dividerHeight="1dp"
-        android:divider="@drawable/listview_divider"
+        android:divider="@drawable/divider"
         />
 
 

@@ -7,7 +7,7 @@
         android:color="#dabf83"/>
     <!--<solid android:color="@android:color/transparent"/>-->
     <gradient
-        android:angle="45"
+        android:angle="180"
         android:endColor="#f7f7f7"
         android:startColor="#b9a164" />
     <padding
@@ -16,6 +16,6 @@
         android:right="7dp"
         android:top="7dp"/>
 
-    <corners android:radius="10dp"/>
+    <corners android:radius="5dp"/>
 
 </shape>

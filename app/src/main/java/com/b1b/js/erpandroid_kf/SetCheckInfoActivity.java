@@ -123,13 +123,14 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
     @Override
     public void onClick(View v) {
         String info = edInfo.getText().toString().trim();
-        if (info.equals("")) {
-            MyToast.showToast(SetCheckInfoActivity.this, "请输入审核信息");
-            return;
-        }
+
         switch (v.getId()) {
             case R.id.setcheckinfo_fail:
                 try {
+                    if (info.equals("")) {
+                        MyToast.showToast(SetCheckInfoActivity.this, "请输入审核信息");
+                        return;
+                    }
                     getSetCheckInfo(1, info, pid, 1, "", MyApp.id);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -139,6 +140,10 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                 break;
             case R.id.setcheckinfo_commit:
                 try {
+                    if (info.equals("")) {
+                        MyToast.showToast(SetCheckInfoActivity.this, "请输入审核信息");
+                        return;
+                    }
                     getSetCheckInfo(2, info, pid, 0, "", MyApp.id);
                 } catch (IOException e) {
                     e.printStackTrace();

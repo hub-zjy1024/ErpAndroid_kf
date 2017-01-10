@@ -173,8 +173,8 @@ public class ImageWaterUtils {
     public static Bitmap drawTextToRightTop(Context context, Bitmap bitmap, String text, int size, int color,
                                             int paddingRight, int paddingTop) {
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(Color.argb(100, 255, 0, 8));
-        paint.setShadowLayer(0.5f, 10, 0, Color.YELLOW);
+        paint.setColor(Color.argb(255, 255, 0, 0));
+//        paint.setShadowLayer(0.5f, 0, 0, Color.WHITE);
         paint.setTextSize(dp2px(context, size));
         Rect bounds = new Rect();
         paint.getTextBounds(text, 0, text.length(), bounds);

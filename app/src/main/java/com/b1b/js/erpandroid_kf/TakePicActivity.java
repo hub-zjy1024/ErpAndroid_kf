@@ -340,8 +340,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             MyToast.showToast(TakePicActivity.this, "没有可选的尺寸");
             return;
         }
-
-
     }
 
     /**
@@ -423,10 +421,13 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 //加水印后的图片
                 if (!photo.isRecycled()) {
                     Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicActivity.this, photo, bitmap, 0, 0);
-                    Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid, 50, Color.RED, 100, 100);
-
-                    //储存加水印的图片
-                    MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", TextBitmap);
+                    if (pid != null) {
+                        Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid, 50, Color.RED, 100, 100);
+                        //储存加水印的图片
+                        MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", TextBitmap);
+                    } else {
+                        MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", waterBitmap);
+                    }
                     new Thread() {
                         @Override
                         public void run() {

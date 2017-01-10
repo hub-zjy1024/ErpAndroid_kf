@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -71,6 +70,12 @@ public class KaoQinActivity extends AppCompatActivity {
 //                }
 //            }
 //        }.start();
+        new MyAsyncTask(new MyCallBack() {
+            @Override
+            public void postRes(List list) {
+
+            }
+        }).execute(new String[]{getCurrentMonth(), MyApp.id});
         btnSaixuan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -115,7 +120,6 @@ public class KaoQinActivity extends AppCompatActivity {
             @Override
             public void postRes(List list) {
                 if (list != null) {
-                    Log.e("zjy", "KaoQinActivity.java->postRes(): ==" + list.size());
                     data.addAll(list);
                     adapter.notifyDataSetChanged();
                 }
