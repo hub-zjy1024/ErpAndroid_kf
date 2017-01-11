@@ -21,6 +21,7 @@ import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
 import com.b1b.js.erpandroid_kf.utils.WcfUtils;
 
+import org.apache.commons.net.ftp.FTPClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,6 +31,7 @@ import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 public class MainActivity extends AppCompatActivity {
@@ -46,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean canStartIntent = true;
     private android.os.Handler handler = new android.os.Handler() {
         @Override
-        public void handleMessage(Message msg) {
+        public void handleMessage(final Message msg) {
             switch (msg.what) {
                 //失败
                 case 0:
@@ -55,51 +57,123 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 1:
                     //成功
-                    if (canStartIntent) {
-                        ifSavePwd();
-                        if (!sp.getString("name", "").equals(msg.obj.toString())) {
-                            sp.edit().clear().commit();
-                        }
-                        Intent intent = new Intent(MainActivity.this, MenuActivity.class);
-                        pd.cancel();
-                        handler.removeCallbacksAndMessages(null);
-                        MyApp.id = msg.obj.toString();
+                    ifSavePwd();
+                    HashMap<String, String> infoMap = (HashMap<String, String>) msg.obj;
+                    //每次登录检查userInfo是否有变动，以免数据库更新（流量允许）
+                    getUserInfoDetail(MyApp.id);
+                    MyApp.id = infoMap.get("name");
+                    if (!sp.getString("name", "").equals(MyApp.id)) {
+                        sp.edit().clear().apply();
+                        //登录成功之后调用，获取相关信息
+                        SharedPreferences.Editor edit = sp.edit();
+                        edit.putString("name", infoMap.get("name"));
+                        edit.putString("pwd", infoMap.get("pwd"));
+                        edit.apply();
+                    }
+                    pd.cancel();
+                    handler.removeCallbacksAndMessages(null);
+                    Intent intent = new Intent(MainActivity.this, MenuActivity.class);
+                    startActivity(intent);
+                    finish();
+                    canStartIntent = true;
+                    break;
+                case 2:
+                    MyToast.showToast(MainActivity.this, "网络状态不佳,请检查网络状态");
+                    pd.cancel();
+                    break;
+//                case 3:
+//                    MyToast.showToast(MainActivity.this, "用户不合法");
+//                    pd.cancel();
+//                    break;
+                case 4:
+                    try {
+                        JSONObject object1 = new JSONObject(msg.obj.toString());
+                        JSONArray main = object1.getJSONArray("表");
+                        JSONObject obj = main.getJSONObject(0);
+                        String url = obj.getString("PhotoFtpIP");
+                        Log.e("zjy", "MainActivity.java->handleMessage(): ftpUrl==" + url);
+                        String uid = obj.getString("UserID");
+                        MyApp.id = uid;
+                        String defUid = sp.getString("name", "");
+                        //换用户则清除缓冲
+//                        if (!defUid.equals(uid)) {
+//                            sp.edit().clear().apply();
+//                            getUserInfoDetail(MyApp.id);
+//                        } else {
+//                            SharedPreferences.Editor editor = sp.edit();
+//                            editor.putString("name", uid);
+//                            editor.putString("ftp", url);
+//                        }
+                        //"|"为特殊字符，需要用"\\"转义
+                        getUserInfoDetail(MyApp.id);
+//                        Intent intentScan = new Intent(MainActivity.this, MenuActivity.class);
+//                        startActivity(intentScan);
+//                        finish();
+                        final String[] urls = url.split("\\|");
                         new Thread() {
                             @Override
                             public void run() {
-                                boolean success = false;
-                                while (!success) {
+                                super.run();
+                                boolean isOver = false;
+                                FTPClient client = new FTPClient();
+                                for (int i = 0; i < urls.length && !isOver; i++) {
                                     try {
-                                        getUserInfo();
-                                        success = true;
+                                        Log.e("zjy", "MainActivity.java->run(): tryTimes==" + i);
+                                        client.connect(urls[i]);
+                                        MyApp.ftpUrl = urls[i];
+                                        isOver = true;
+                                        break;
                                     } catch (IOException e) {
-                                        e.printStackTrace();
-                                    } catch (XmlPullParserException e) {
-                                        e.printStackTrace();
-                                    } catch (JSONException e) {
+                                        Message msg = handler.obtainMessage(5);
+                                        msg.arg1 = i;
+                                        handler.sendMessage(msg);
                                         e.printStackTrace();
                                     }
                                 }
                             }
                         }.start();
-                        startActivity(intent);
-                        finish();
-                        canStartIntent = true;
+                    } catch (JSONException e) {
+                        handler.sendEmptyMessage(3);
+                        e.printStackTrace();
                     }
                     break;
-                case 2:
-
-                    MyToast.showToast(MainActivity.this, "网络状态不佳,请检查网络状态");
-                    pd.cancel();
+                //获取ftp地址
+                case 5:
+                    //两次连接ftp失败
+//                    if (msg.arg1 == 1) {
+//                        MyToast.showToast(MainActivity.this, "连接不到Ftp服务器");
+//                    }
                     break;
             }
         }
     };
 
-    private void getUserInfo() throws IOException, XmlPullParserException, JSONException {
+    private void getUserInfoDetail(final String uid) {
+
+        new Thread() {
+            @Override
+            public void run() {
+                boolean success = false;
+                while (!success) {
+                    try {
+                        getUserInfo(uid);
+                        success = true;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }.start();
+    }
+
+    private void getUserInfo(String uid) throws IOException, XmlPullParserException, JSONException {
         LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
         map.put("checker", "1");
-        map.put("uid", "101");
+        map.put("uid", uid);
         SoapObject request = WcfUtils.getRequest(map, "GetUserInfoByUID");
         SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WcfUtils.Login);
         Log.e("zjy", "MainActivity.java->run(): info==" + MyApp.id + "\t" + response.toString());
@@ -109,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
         String cid = info.getString("CorpID");
         String did = info.getString("DeptID");
         sp = getSharedPreferences("UserInfo", 0);
-        sp.edit().putInt("cid", Integer.parseInt(cid)).putInt("did", Integer.valueOf(did)).commit();
+        sp.edit().putInt("cid", Integer.parseInt(cid)).putInt("did", Integer.valueOf(did)).apply();
     }
 
     private void ifSavePwd() {
@@ -146,7 +220,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.e("zjy", "MainActivity.java->onCreate(): ip==" + getLocalIpAddress());
+        // TODO: 2017/1/11 delete test thread
+        new Thread() {
+            @Override
+            public void run() {
+                LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+                map.put("checkword", "");
+                map.put("code", "&_=_)&)3591");
+                SoapObject object = WcfUtils.getRequest(map, "BarCodeLogin");
+                try {
+                    SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(object, SoapEnvelope.VER11, WcfUtils.MartService);
+                    Message msg = handler.obtainMessage(4);
+                    msg.obj = response.toString();
+                    handler.sendMessage(msg);
+                } catch (IOException e) {
+                    handler.sendEmptyMessage(3);
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
         edUserName = (EditText) findViewById(R.id.login_username);
         edPwd = (EditText) findViewById(R.id.login_pwd);
         btnLogin = (Button) findViewById(R.id.login_btnlogin);
@@ -177,11 +271,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 200 && resultCode == RESULT_OK) {
             MyToast.showToast(MainActivity.this, "得到扫码结果");
+            readCode(data);
         }
+    }
+
+    /**
+     * 读取条码信息
+     *
+     * @param data onActivtyResult()回调的data
+     */
+    private void readCode(final Intent data) {
+        new Thread() {
+            @Override
+            public void run() {
+                String s = data.getStringExtra("result");
+                if (s != null) {
+                    LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+                    map.put("checkword", "");
+                    map.put("code", s);
+                    SoapObject object = WcfUtils.getRequest(map, "BarCodeLogin");
+                    try {
+                        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(object, SoapEnvelope.VER11, WcfUtils.MartService);
+                        Message msg = handler.obtainMessage(4);
+                        msg.obj = response.toString();
+                        handler.sendMessage(msg);
+                    } catch (IOException e) {
+                        handler.sendEmptyMessage(2);
+                        e.printStackTrace();
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+        }.start();
     }
 
     private void readCache() {
@@ -209,21 +336,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         pd.show();
-        //连接超时提示
         new Thread() {
             @Override
             public void run() {
-                SoapObject t1 = WcfUtils.getRequest(null, "GetClientIP");
-                try {
-                    SoapPrimitive sp = WcfUtils.getSoapPrimitiveResponse(t1, SoapEnvelope.VER11, "MartService.svc");
-                    Log.e("zjy", "MainActivity.java->run(): ssss==" + sp.toString());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                }
-
-
                 LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
                 PackageManager pm = getPackageManager();
                 String version = "";
@@ -241,16 +356,17 @@ public class MainActivity extends AppCompatActivity {
                     String[] resArray = result.toString().split("-");
                     if (resArray[0].equals("SUCCESS")) {
                         Message msg1 = handler.obtainMessage();
+                        HashMap<String, String> infoMap = new HashMap<String, String>();
+                        infoMap.put("name", name);
+                        infoMap.put("pwd", pwd);
                         msg1.what = 1;
-                        msg1.obj = name;
+                        msg1.obj = infoMap;
                         handler.sendMessage(msg1);
                     } else {
-                        Message msg = handler.obtainMessage();
-                        msg.what = 0;
+                        Message msg = handler.obtainMessage(0);
                         msg.obj = result.toString();
                         handler.sendMessage(msg);
                     }
-                    Log.e("zjy", "MainActivity.java->run(): 1111==" + result.toString());
                 } catch (IOException e) {
                     handler.sendEmptyMessage(2);
                     e.printStackTrace();
@@ -268,6 +384,10 @@ public class MainActivity extends AppCompatActivity {
     // 获取设备ID
     private void getMyPhoneNumber() {
         try {
+            PackageManager pm = getPackageManager();
+            PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
+            Log.e("zjy", "MainActivity.java->getMyPhoneNumber(): version==" + info.versionName);
+            Log.e("zjy", "MainActivity.java->getMyPhoneNumber(): versionCode==" + info.versionCode);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

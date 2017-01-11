@@ -68,14 +68,10 @@ public class FtpUpFile {
         }
         ftpClient.connect(ftpUrl, port);
         isConnected = ftpClient.login(name, password);
-        if (isConnected) {
-            Log.e("MyError", "FtpUpFile>>connectAndLogin()->>=connectSuccess");
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-            ftpClient.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
-            ftpClient.enterLocalPassiveMode();
-        } else {
-            Log.e("MyError", "FtpUpFile>>connectAndLogin()->>=connectFailed");
-        }
+        Log.e("MyError", "FtpUpFile>>connectAndLogin()->>=connectSuccess");
+        ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+        ftpClient.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
+        ftpClient.enterLocalPassiveMode();
     }
 
     /**

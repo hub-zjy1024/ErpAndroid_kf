@@ -137,11 +137,14 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
      * @param remoteDir
      */
     private void commit(final InputStream is, final String remoteName, final String remoteDir) throws IOException, FtpUpFile.RemoteDeleteException {
-        FtpUpFile ftp = new FtpUpFile("NEW_DYJ", "GY8Fy2Gx", "172.16.6.22", 21);
+        FtpUpFile ftp;
+        if (MyApp.ftpUrl != null) {
+            ftp = new FtpUpFile("NEW_DYJ", "GY8Fy2Gx", MyApp.ftpUrl, 21);
+        }
+        ftp = new FtpUpFile("NEW_DYJ", "GY8Fy2Gx", "172.16.6.22", 21);
 //                  ftp = new FtpUpFile("zjy", "123", "192.168.25.53", 21);
-        boolean isSuccess = ftp.upload(is, remoteDir, remoteName + ".jpg");
+        ftp.upload(is, remoteDir, remoteName + ".jpg");
     }
-
 
     public static String getRomoteName() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -250,7 +253,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == 100) {
 
         } else {
-            MyToast.showToast(TakePicActivity.this, "请检查相机权限");
+            MyToast.showToast(TakePicActivity.this, "建议允许相机权限");
         }
     }
 
@@ -425,6 +428,8 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid, 50, Color.RED, 100, 100);
                         //储存加水印的图片
                         MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", TextBitmap);
+                        Log.e("zjy", "TakePicActivity.java->onPictureTaken(): degree==" + MyImageUtls.readBitmapDegreeByExif(getFilesDir().getAbsolutePath() + "o_temp.jpg"));
+
                     } else {
                         MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", waterBitmap);
                     }

@@ -8,6 +8,8 @@ import android.app.Application;
 
 public class MyApp extends Application {
     public static String id;
+    public static String ftpUrl;
+
     @Override
     public void onCreate() {
         super.onCreate();

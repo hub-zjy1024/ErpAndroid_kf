@@ -9,8 +9,6 @@ import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
@@ -50,6 +48,7 @@ public class WcfUtils {
 
     /**
      * 获取Url
+     * 不能随意拼接，得自己根据wsdl文档
      *
      * @param serviceName 以svc结尾的service名称
      * @return
@@ -58,6 +57,13 @@ public class WcfUtils {
         return ROOT_URL + serviceName + "?singleWsdl";
     }
 
+    /**
+     * 不能随意拼接，得自己根据wsdl文档
+     *
+     * @param serviceName
+     * @param methodName
+     * @return
+     */
     private static String getSoapAcction(String serviceName, String methodName) {
         Log.e("zjy", "WcfUtils.java->getSoapAcction(): ==" + NAMESPACE + "I" + serviceName.substring(0, serviceName.indexOf(".")) + "/" + methodName);
         return NAMESPACE + "I" + serviceName.substring(0, serviceName.indexOf(".")) + "/" + methodName;
@@ -66,7 +72,7 @@ public class WcfUtils {
     /**
      * 获取SoapObject请求对象
      *
-     * @param properties 方法的参数，如果没有，可以传入null
+     * @param properties 方法的参数，有序，建议集合使用LinkedHashMap，如果没有，可以传入null
      * @param method     方法的名称
      * @return
      */
@@ -91,7 +97,7 @@ public class WcfUtils {
      * @throws IOException
      * @throws XmlPullParserException
      */
-    public static Object getObjResponse(SoapObject request, int EnvolopeVesion, String soapAction, String resultUrl) throws IOException, XmlPullParserException {
+    private static SoapSerializationEnvelope getEnvelope(SoapObject request, int EnvolopeVesion, String soapAction, String resultUrl) throws IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(EnvolopeVesion);
         envelope.dotNet = true;
 //       envelope.bodyOut = request;
@@ -100,8 +106,27 @@ public class WcfUtils {
         HttpTransportSE ht = new HttpTransportSE(resultUrl);
         //有些不需要传入soapAction，根据wsdl文档
         ht.call(soapAction, envelope);
-        Object sob = envelope.getResponse();
-        return sob;
+        return envelope;
+    }
+
+    /**
+     * @param request        返回Envelope对象
+     * @param EnvolopeVesion {@link org.ksoap2.SoapEnvelope}
+     * @param serviceName
+     * @return
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
+    private static SoapSerializationEnvelope getEnvelope(SoapObject request, int EnvolopeVesion, String serviceName) throws IOException, XmlPullParserException {
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(EnvolopeVesion);
+        envelope.dotNet = true;
+//       envelope.bodyOut = request;
+        envelope.setOutputSoapObject(request);
+        //创建HttpTransportSE对象
+        HttpTransportSE ht = new HttpTransportSE(getTransportSEtUrl(serviceName));
+        //有些不需要传入soapAction，根据wsdl文档
+        ht.call(getSoapAcction(serviceName, request.getName()), envelope);
+        return envelope;
     }
 
     /**
@@ -112,22 +137,8 @@ public class WcfUtils {
      * @throws IOException
      * @throws XmlPullParserException
      */
-    public static Object getObjResponse(SoapObject request, int EnvolopeVesion, String serviceName) throws IOException, XmlPullParserException {
-        //创建HttpTransportSE对象
-        HttpTransportSE ht = new HttpTransportSE(getTransportSEtUrl(serviceName));
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(EnvolopeVesion);
-        envelope.dotNet = true;
-        envelope.setOutputSoapObject(request);
-        String soapAction = getSoapAcction(serviceName, request.getName());
-        //有些不需要传入soapAction，根据wsdl文档
-        ht.call(soapAction, envelope);
-        Object sob = envelope.bodyIn;
-//      Object sob = envelope.getResponse();
-        return sob;
-    }
-
     public static SoapObject getSoapObjResponse(SoapObject request, int EnvolopeVesion, String serviceName) throws IOException, XmlPullParserException {
-        SoapObject sob = (SoapObject) getObjResponse(request, EnvolopeVesion, serviceName);
+        SoapObject sob = (SoapObject) getEnvelope(request, EnvolopeVesion, serviceName).bodyIn;
         return sob;
     }
 
@@ -140,29 +151,9 @@ public class WcfUtils {
      * @throws XmlPullParserException
      */
     public static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, int EnvolopeVesion, String serviceName) throws IOException, XmlPullParserException {
-        //创建HttpTransportSE对象
-        HttpTransportSE ht = new HttpTransportSE(getTransportSEtUrl(serviceName));
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(EnvolopeVesion);
-        envelope.dotNet = true;
-        envelope.bodyOut = request;
-//        envelope.setOutputSoapObject(request);
-        String soapAction = getSoapAcction(serviceName, request.getName());
-        //有些不需要传入soapAction，根据wsdl文档
-        ht.call(soapAction, envelope);
-//      Object sob = envelope.bodyIn;
+        SoapSerializationEnvelope envelope = getEnvelope(request, EnvolopeVesion, serviceName);
         SoapPrimitive sob = (SoapPrimitive) envelope.getResponse();
         return sob;
-    }
-
-    public static void getUserInfo(String uid) {
-        LinkedHashMap map = new LinkedHashMap<String, Object>();
-        map.put("uid", uid);
-        SoapObject request = WcfUtils.getRequest(map, "getUserInfo");
-    }
-
-    public static String getStringTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
-        return sdf.format(new Date());
     }
 
 }
