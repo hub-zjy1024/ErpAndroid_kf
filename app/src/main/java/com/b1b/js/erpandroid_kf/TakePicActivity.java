@@ -428,8 +428,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid, 50, Color.RED, 100, 100);
                         //储存加水印的图片
                         MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", TextBitmap);
-                        Log.e("zjy", "TakePicActivity.java->onPictureTaken(): degree==" + MyImageUtls.readBitmapDegreeByExif(getFilesDir().getAbsolutePath() + "o_temp.jpg"));
-
                     } else {
                         MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", waterBitmap);
                     }
