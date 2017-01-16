@@ -25,12 +25,11 @@ import java.util.LinkedHashMap;
 public class SetCheckInfoActivity extends AppCompatActivity implements View.OnClickListener {
 
     private TextView tv;
-
     private Button btnCommit;
     private Button btnFail;
     private EditText edInfo;
     private Button btnAddPhoto;
-    String pid;
+    private String pid;
 
     private Handler mHandler = new Handler() {
         @Override
@@ -68,23 +67,16 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
             tv.setText("单据号：" + pid);
         }
     }
-//    <xs:element minOccurs="0" name="checkWord" nillable="true" type="xs:string" />
-//    <xs:element minOccurs="0" name="t" type="xs:int" />
-//    <xs:element minOccurs="0" name="info" nillable="true" type="xs:string" />
-//    <xs:element minOccurs="0" name="pid" nillable="true" type="xs:string" />
-//    <xs:element minOccurs="0" name="tp" type="xs:int" />
-//    <xs:element minOccurs="0" name="uname" nillable="true" type="xs:string" />
-//    <xs:element minOccurs="0" name="uid" nillable="true" type="xs:string" />
 
     /**
-     * @param t
-     * @param info
-     * @param pid
-     * @param tp
-     * @param uname 允许为""
-     * @param uid
-     * @throws IOException
-     * @throws XmlPullParserException
+     @param t
+     @param info
+     @param pid
+     @param tp
+     @param uname 允许为""
+     @param uid
+     @throws IOException
+     @throws XmlPullParserException
      */
     public void getSetCheckInfo(int t, String info, String pid, int tp, String uname, String uid) throws IOException, XmlPullParserException {
 

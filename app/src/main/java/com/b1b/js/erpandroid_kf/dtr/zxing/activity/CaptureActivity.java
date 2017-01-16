@@ -44,14 +44,12 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 
 /**
- * This activity opens the camera and does the actual scanning on a background
- * thread. It draws a viewfinder to help the user place the barcode correctly,
- * shows feedback as the image processing is happening, and then overlays the
- * results when a scan is successful.
- *
- * @author dswitkin@google.com (Daniel Switkin)
- * @author Sean Owen
- */
+ This activity opens the camera and does the actual scanning on a background
+ thread. It draws a viewfinder to help the user place the barcode correctly,
+ shows feedback as the image processing is happening, and then overlays the
+ results when a scan is successful.
+ @author dswitkin@google.com (Daniel Switkin)
+ @author Sean Owen */
 public final class CaptureActivity extends Activity implements SurfaceHolder.Callback {
 
     private static final String TAG = CaptureActivity.class.getSimpleName();
@@ -166,6 +164,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         isHasSurface = false;
+        cameraManager.closeDriver();
     }
 
     @Override
@@ -174,11 +173,10 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     }
 
     /**
-     * A valid barcode has been found, so give an indication of success and show
-     * the results.
-     *
-     * @param rawResult The contents of the barcode.
-     * @param bundle    The extras
+     A valid barcode has been found, so give an indication of success and show
+     the results.
+     @param rawResult The contents of the barcode.
+     @param bundle    The extras
      */
     public void handleDecode(Result rawResult, Bundle bundle) {
         inactivityTimer.onActivity();
@@ -191,8 +189,8 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         Log.e("zjy", "CaptureActivity.java->handleDecode(): result==" + rawResult.getText());
         setResult(RESULT_OK, intent.putExtra("result", rawResult.getText()));
         finish();
-//关闭自带的跳转
-//		startActivity(new Intent(CaptureActivity.this, ResultActivity.class).putExtras(bundle));
+        //关闭自带的跳转
+        //		startActivity(new Intent(CaptureActivity.this, ResultActivity.class).putExtras(bundle));
     }
 
     private void initCamera(SurfaceHolder surfaceHolder) {
@@ -257,7 +255,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     }
 
     /**
-     * 初始化截取的矩形区域
+     初始化截取的矩形区域
      */
     private void initCrop() {
         int cameraWidth = cameraManager.getCameraResolution().y;

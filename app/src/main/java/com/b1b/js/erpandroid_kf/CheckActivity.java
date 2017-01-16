@@ -157,7 +157,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                 partNo = edPartno.getText().toString().trim();
                 data.clear();
                 adapter.notifyDataSetChanged();
-                getData(checkId, pid, partNo);
+                getData(2, pid, partNo);
                 break;
             case R.id.check_btn_scancode:
                 data.clear();

@@ -5,7 +5,7 @@
     android:id="@+id/activity_check"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/ed_bg"
+    android:background="@mipmap/bg_main"
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.CheckActivity">
 
@@ -83,7 +83,6 @@
         android:listSelector="@android:color/transparent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/border2"
         android:divider="@drawable/divider"
         android:dividerHeight="1dp"/>
 

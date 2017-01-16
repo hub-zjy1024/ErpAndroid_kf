@@ -39,6 +39,8 @@ import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -67,6 +69,8 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     private boolean canInsert = true;
     private long timeOut = 10000;
     private String remoteName;
+    private int commitTimes = 0;
+    FtpUpFile ftp;
     private android.os.Handler mHandler = new android.os.Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -81,8 +85,10 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         @Override
                         public void run() {
                             try {
+                                String insertPath = "ftp://" + MyApp.ftpUrl + "/" + getRemoteDir() + "/" + remoteName + ".jpg";
                                 Log.e("zjy", "TakePicActivity.java->run(): ==" + cid + "\t" + did + "\t" + pid + "\t" + MyApp.id);
-                                String res = setInsertPicInfo(WcfUtils.WebServiceCheckWord, cid, did, Integer.parseInt(MyApp.id), pid, remoteName + ".jpg", "ftp://172.16.6.22/" + getRemoteDir() + "/" + remoteName + ".jpg", "CKTZ");
+                                Log.e("zjy", "TakePicActivity.java->run(): insertPath==" + insertPath);
+                                String res = setInsertPicInfo(WcfUtils.WebServiceCheckWord, cid, did, Integer.parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "CKTZ");
                                 Message msg = mHandler.obtainMessage();
                                 msg.what = 6;
                                 msg.obj = res;
@@ -101,11 +107,13 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                     MyToast.showToast(TakePicActivity.this, "当前尺寸太大，请选择合适的尺寸");
                     photo.recycle();
                     camera.startPreview();
+                    isPreview = true;
                     showDialog(parameters);
                     toolbar.setVisibility(View.GONE);
                     break;
                 case 2:
                     MyToast.showToast(TakePicActivity.this, "上传图片失败，请重新拍摄或检查网络");
+                    pd.cancel();
                     toolbar.setVisibility(View.GONE);
                     break;
                 //处理上传信息
@@ -115,6 +123,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         MyToast.showToast(TakePicActivity.this, "上传信息出错");
                         pd.cancel();
+                        toolbar.setVisibility(View.GONE);
                     }
                     break;
 
@@ -125,6 +134,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                     break;
                 case 9:
                     MyToast.showToast(TakePicActivity.this, "当前网络质量较差,操作失败");
+                    toolbar.setVisibility(View.GONE);
                     pd.cancel();
                     break;
             }
@@ -132,17 +142,12 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     };
 
     /**
-     * @param is
-     * @param remoteName 传入无后缀名的文件名
-     * @param remoteDir
+     @param is
+     @param remoteName 传入无后缀名的文件名
+     @param remoteDir
      */
     private void commit(final InputStream is, final String remoteName, final String remoteDir) throws IOException, FtpUpFile.RemoteDeleteException {
-        FtpUpFile ftp;
-        if (MyApp.ftpUrl != null) {
-            ftp = new FtpUpFile("NEW_DYJ", "GY8Fy2Gx", MyApp.ftpUrl, 21);
-        }
-        ftp = new FtpUpFile("NEW_DYJ", "GY8Fy2Gx", "172.16.6.22", 21);
-//                  ftp = new FtpUpFile("zjy", "123", "192.168.25.53", 21);
+        Log.e("zjy", "TakePicActivity.java->commit(): Myapp==" + MyApp.ftpUrl);
         ftp.upload(is, remoteDir, remoteName + ".jpg");
     }
 
@@ -176,6 +181,15 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         btn_tryagain.setOnClickListener(this);
         btn_commit.setOnClickListener(this);
         pid = getIntent().getStringExtra("pid");
+        if (MyApp.ftpUrl == null) {
+            MyApp.ftpUrl = "172.16.6.22";
+            ftp = new FtpUpFile("NEW_DYJ", "GY8Fy2Gx", MyApp.ftpUrl);
+        } else {
+            ftp = new FtpUpFile("dyjftp", "dyjftp", MyApp.ftpUrl);
+        }
+        if (pid == null) {
+            pid = MyApp.id;
+        }
         mOrientationListener = new OrientationEventListener(this,
                 SensorManager.SENSOR_DELAY_NORMAL) {
             @Override
@@ -185,7 +199,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         };
 
         attachToSensor();
-
         //获取surfaceholder
         mHolder = surfaceView.getHolder();
         mHolder.setKeepScreenOn(true);
@@ -198,22 +211,21 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                     ActivityCompat.requestPermissions(TakePicActivity.this, new String[]{Manifest.permission.CAMERA}, 100);
                 } else {
                     Log.e("zjy", "TakePicActivity.java->surfaceCreated(): has permission");
-                    int couts = Camera.getNumberOfCameras();
-                    Log.e("zjy", "TakePicActivity-cameraCounts ==" + couts);
-                    if (couts == 0) {
+                    int counts = Camera.getNumberOfCameras();
+                    Log.e("zjy", "TakePicActivity-cameraCounts ==" + counts);
+                    if (counts == 0) {
                         MyToast.showToast(TakePicActivity.this, "设备无摄像头");
                     }
-                    camera = Camera.open(); // 打开摄像头
-                    if (camera == null) {
-                        MyToast.showToast(TakePicActivity.this, "检测不到摄像头");
-                        return;
-                    }
                     try {
+                        camera = Camera.open(0); // 打开摄像头
+                        if (camera == null) {
+                            MyToast.showToast(TakePicActivity.this, "检测不到摄像头");
+                            return;
+                        }
                         // 设置用于显示拍照影像的SurfaceHolder对象
                         camera.setPreviewDisplay(holder);
                         //设置旋转角度
                         camera.setDisplayOrientation(getPreviewDegree(TakePicActivity.this));
-                        camera.startPreview(); //开始预览
                         //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                         parameters = camera.getParameters();
                         setAutoFoucs(parameters);
@@ -226,14 +238,12 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         } else {
                             showDialog(parameters);
                         }
-                        toolbar.setVisibility(View.GONE);
-                        btn_takepic.setEnabled(true);
+                        camera.startPreview(); //初始化操作在开始预览之前完成
                         isPreview = true;
-                    } catch (IOException e) {
+                    } catch (Throwable e) {
                         e.printStackTrace();
                     }
                 }
-
             }
 
             @Override
@@ -258,13 +268,13 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     * 如果相机支持设置自动聚焦
-     *
-     * @param parameters
+     如果相机支持设置自动聚焦
+     @param parameters
      */
     private void setAutoFoucs(Camera.Parameters parameters) {
         List<String> supportedFocusModes = parameters.getSupportedFocusModes();
         for (int i = 0; i < supportedFocusModes.size(); i++) {
+            Log.e("zjy", "TakePicActivity.java->setAutoFoucs(): mods==" + supportedFocusModes.get(i));
             if (supportedFocusModes.get(i).equals(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
                 //如果支持自动聚焦，必须设定回调
@@ -283,8 +293,8 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     * 弹出尺寸选择对话框
-     * 防止照出的图片太大，内存溢出
+     弹出尺寸选择对话框
+     防止照出的图片太大，内存溢出
      */
     private void showDialog(final Camera.Parameters parameters) {
         picSize = parameters.getSupportedPictureSizes();
@@ -346,7 +356,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     * 添加屏幕旋转监听
+     添加屏幕旋转监听
      */
     private void attachToSensor() {
         if (mOrientationListener.canDetectOrientation()) {
@@ -358,9 +368,17 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
 
     private void releaseCamera() {
         if (camera != null) {
+            camera.stopPreview();
             camera.release();
             camera = null;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        releaseCamera();
+
     }
 
     @Override
@@ -370,18 +388,18 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.btn_takepic:
                 //禁止点击拍照按钮
                 btn_takepic.setEnabled(false);
-                //显示工具栏
-                toolbar.setVisibility(View.VISIBLE);
                 camera.takePicture(null, null, new Camera.PictureCallback() {
                     @Override
                     public void onPictureTaken(byte[] data, Camera camera) {
                         Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
-                        camera.stopPreview();
+                        //                        camera.stopPreview();
+                        //显示工具栏
                         toolbar.setVisibility(View.VISIBLE);
                         Matrix matrixs = new Matrix();
                         matrixs.setRotate(90 + rotation);
                         try {
                             photo = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrixs, true);
+                            commitTimes = 0;
                         } catch (OutOfMemoryError error) {
                             error.printStackTrace();
                             mHandler.sendEmptyMessage(1);
@@ -399,47 +417,23 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 btn_takepic.setEnabled(true);
                 toolbar.setVisibility(View.GONE);
                 break;
-            //预览
+            //提交
             case R.id.main_commit:
-                if (photo == null) {
-                    MyToast.showToast(TakePicActivity.this, "请稍等，等图像稳定再上传");
-                    return;
-                }
+                commitTimes++;
                 if (pid == null) {
                     MyToast.showToast(TakePicActivity.this, "当前单据号为空");
+                    pid = MyApp.id;
                 }
-                pd = new ProgressDialog(this);
-                pd.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        photo.recycle();
-                        camera.startPreview();
-                    }
-                });
-                pd.setMessage("正在上传");
-                pd.show();
-                pd.setCancelable(false);
-                //水印的原图
-                Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.waterpic1);
-                //加水印后的图片
-                if (!photo.isRecycled()) {
-                    Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicActivity.this, photo, bitmap, 0, 0);
-                    if (pid != null) {
-                        Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid, 50, Color.RED, 100, 100);
-                        //储存加水印的图片
-                        MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", TextBitmap);
-                    } else {
-                        MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", waterBitmap);
-                    }
+                if (commitTimes > 1) {
+                    showProgressDialog();
                     new Thread() {
                         @Override
                         public void run() {
                             try {
-                                //压缩处理过的图片，并存储
-                                MyImageUtls.compressBitmapAtsize(getFilesDir().getAbsolutePath() + "/o_temp.jpg", openFileOutput("compress.jpg", 0), 0.5f);
                                 //上传
                                 remoteName = "android_" + pid + "_" + getRomoteName();
-                                commit(openFileInput("compress.jpg"), remoteName, "/" + getRemoteDir());
+                                FileInputStream fis = openFileInput("compress.jpg");
+                                ftp.upload(fis, "/" + getRemoteDir(), remoteName + ".jpg");
                                 mHandler.sendEmptyMessage(0);
                             } catch (IOException e) {
                                 mHandler.sendEmptyMessage(9);
@@ -449,6 +443,53 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                             }
                         }
                     }.start();
+                } else {
+                    if (photo == null) {
+                        MyToast.showToast(TakePicActivity.this, "请稍等，等图像稳定再上传");
+                        return;
+                    }
+                    if (pid == null) {
+                        MyToast.showToast(TakePicActivity.this, "当前单据号为空");
+                    }
+                    showProgressDialog();
+                    //载入水印图
+                    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.waterpic);
+                    if (!photo.isRecycled()) {
+                        //加水印后的图片
+                        Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicActivity.this, photo, bitmap, 0, 0);
+                        if (pid != null) {
+                            Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid, 30, Color.RED, 20, 20);
+                            //储存加水印的图片
+                            MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", TextBitmap);
+                        } else {
+                            MyImageUtls.saveBitmapToInternal(TakePicActivity.this, "o_temp.jpg", waterBitmap);
+                        }
+                        //压缩处理过的图片，并存储
+                        try {
+                            MyImageUtls.compressBitmapAtsize(getFilesDir().getAbsolutePath() + "/o_temp.jpg", openFileOutput("compress.jpg", 0), 0.5f);
+
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        //上传
+                                        remoteName = "android_" + pid + "_" + getRomoteName();
+                                        FileInputStream fis = openFileInput("compress.jpg");
+                                        ftp.upload(fis, "/" + getRemoteDir(), remoteName + ".jpg");
+                                        mHandler.sendEmptyMessage(0);
+                                    } catch (IOException e) {
+                                        mHandler.sendEmptyMessage(9);
+                                        e.printStackTrace();
+                                    } catch (FtpUpFile.RemoteDeleteException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }.start();
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
                 }
                 break;
             //设置照片大小
@@ -458,11 +499,24 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    private void showProgressDialog() {
+        pd = new ProgressDialog(this);
+        pd.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                photo.recycle();
+                camera.startPreview();
+            }
+        });
+        pd.setMessage("正在上传");
+        pd.show();
+        pd.setCancelable(false);
+    }
+
     /**
-     * 获取相机预览的画面旋转角度
-     *
-     * @param activity 当前Activity
-     * @return
+     获取相机预览的画面旋转角度
+     @param activity 当前Activity
+     @return
      */
     public static int getPreviewDegree(Activity activity) {
         // 获得手机的方向
@@ -488,10 +542,9 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     * 此方法配合OrientationEventListener使用
-     *
-     * @param rot 传感器的角度
-     * @return 成像图片应该旋转的角度
+     此方法配合OrientationEventListener使用
+     @param rot 传感器的角度
+     @return 成像图片应该旋转的角度
      */
     public static int getProperRotation(int rot) {
         int degree = 0;
@@ -503,10 +556,10 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         }
         return degree;
     }
-//    <xs:element minOccurs="0" name="checkWord" nillable="true" type="xs:string" />
-//    <xs:element minOccurs="0" name="cid" type="xs:int" />  分公司id
-//    <xs:element minOccurs="0" name="did" type="xs:int" />   部门id
-//    <xs:element minOccurs="0" name="uid" type="xs:int" />  用户id
+    //    <xs:element minOccurs="0" name="checkWord" nillable="true" type="xs:string" />
+    //    <xs:element minOccurs="0" name="cid" type="xs:int" />  分公司id
+    //    <xs:element minOccurs="0" name="did" type="xs:int" />   部门id
+    //    <xs:element minOccurs="0" name="uid" type="xs:int" />  用户id
 
     public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath, String stypeID) throws IOException, XmlPullParserException {
         String str = "";

@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
@@ -31,6 +32,7 @@ import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
@@ -60,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
                     ifSavePwd();
                     HashMap<String, String> infoMap = (HashMap<String, String>) msg.obj;
                     //每次登录检查userInfo是否有变动，以免数据库更新（流量允许）
-                    getUserInfoDetail(MyApp.id);
                     MyApp.id = infoMap.get("name");
+                    getUserInfoDetail(MyApp.id);
                     if (!sp.getString("name", "").equals(MyApp.id)) {
                         sp.edit().clear().apply();
                         //登录成功之后调用，获取相关信息
@@ -71,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
                         edit.apply();
                     }
                     pd.cancel();
-                    handler.removeCallbacksAndMessages(null);
                     Intent intent = new Intent(MainActivity.this, MenuActivity.class);
                     startActivity(intent);
                     finish();
@@ -81,10 +82,10 @@ public class MainActivity extends AppCompatActivity {
                     MyToast.showToast(MainActivity.this, "网络状态不佳,请检查网络状态");
                     pd.cancel();
                     break;
-//                case 3:
-//                    MyToast.showToast(MainActivity.this, "用户不合法");
-//                    pd.cancel();
-//                    break;
+                //                case 3:
+                //                    MyToast.showToast(MainActivity.this, "用户不合法");
+                //                    pd.cancel();
+                //                    break;
                 case 4:
                     try {
                         JSONObject object1 = new JSONObject(msg.obj.toString());
@@ -96,19 +97,19 @@ public class MainActivity extends AppCompatActivity {
                         MyApp.id = uid;
                         String defUid = sp.getString("name", "");
                         //换用户则清除缓冲
-//                        if (!defUid.equals(uid)) {
-//                            sp.edit().clear().apply();
-//                            getUserInfoDetail(MyApp.id);
-//                        } else {
-//                            SharedPreferences.Editor editor = sp.edit();
-//                            editor.putString("name", uid);
-//                            editor.putString("ftp", url);
-//                        }
+                        //                        if (!defUid.equals(uid)) {
+                        //                            sp.edit().clear().apply();
+                        //                            getUserInfoDetail(MyApp.id);
+                        //                        } else {
+                        //                            SharedPreferences.Editor editor = sp.edit();
+                        //                            editor.putString("name", uid);
+                        //                            editor.putString("ftp", url);
+                        //                        }
                         //"|"为特殊字符，需要用"\\"转义
                         getUserInfoDetail(MyApp.id);
-//                        Intent intentScan = new Intent(MainActivity.this, MenuActivity.class);
-//                        startActivity(intentScan);
-//                        finish();
+                        Intent intentScan = new Intent(MainActivity.this, MenuActivity.class);
+                        //                        startActivity(intentScan);
+                        //                        finish();
                         final String[] urls = url.split("\\|");
                         new Thread() {
                             @Override
@@ -116,17 +117,22 @@ public class MainActivity extends AppCompatActivity {
                                 super.run();
                                 boolean isOver = false;
                                 FTPClient client = new FTPClient();
+                                int counts = urls.length;
                                 for (int i = 0; i < urls.length && !isOver; i++) {
                                     try {
                                         Log.e("zjy", "MainActivity.java->run(): tryTimes==" + i);
                                         client.connect(urls[i]);
                                         MyApp.ftpUrl = urls[i];
                                         isOver = true;
+                                        handler.sendEmptyMessage(6);
                                         break;
+                                    } catch (SocketException e) {
+                                        Log.e("zjy", "MainActivity.java->run(): i==" + i);
+                                        if (counts - 1 == i) {
+                                            handler.sendEmptyMessage(5);
+                                        }
+                                        e.printStackTrace();
                                     } catch (IOException e) {
-                                        Message msg = handler.obtainMessage(5);
-                                        msg.arg1 = i;
-                                        handler.sendMessage(msg);
                                         e.printStackTrace();
                                     }
                                 }
@@ -139,10 +145,13 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 //获取ftp地址
                 case 5:
-                    //两次连接ftp失败
-//                    if (msg.arg1 == 1) {
-//                        MyToast.showToast(MainActivity.this, "连接不到Ftp服务器");
-//                    }
+                    //连接ftp失败
+                    MyToast.showToast(MainActivity.this, "连接不到Ftp服务器");
+                    Toast.makeText(MainActivity.this, "连接不到ftp服务器", Toast.LENGTH_SHORT).show();
+
+                    break;
+                case 6:
+                    MyToast.showToast(MainActivity.this, "获取ftp地址成功");
                     break;
             }
         }
@@ -200,9 +209,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 获取当前连接的wifi地址
-     *
-     * @return 获取当前连接的wifi地址
+     获取当前连接的wifi地址
+     @return 获取当前连接的wifi地址
      */
     private String getLocalIpAddress() {
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
@@ -220,27 +228,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // TODO: 2017/1/11 delete test thread
-        new Thread() {
-            @Override
-            public void run() {
-                LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
-                map.put("checkword", "");
-                map.put("code", "&_=_)&)3591");
-                SoapObject object = WcfUtils.getRequest(map, "BarCodeLogin");
-                try {
-                    SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(object, SoapEnvelope.VER11, WcfUtils.MartService);
-                    Message msg = handler.obtainMessage(4);
-                    msg.obj = response.toString();
-                    handler.sendMessage(msg);
-                } catch (IOException e) {
-                    handler.sendEmptyMessage(3);
-                    e.printStackTrace();
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
         edUserName = (EditText) findViewById(R.id.login_username);
         edPwd = (EditText) findViewById(R.id.login_pwd);
         btnLogin = (Button) findViewById(R.id.login_btnlogin);
@@ -280,9 +267,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 读取条码信息
-     *
-     * @param data onActivtyResult()回调的data
+     读取条码信息
+     @param data onActivtyResult()回调的data
      */
     private void readCode(final Intent data) {
         new Thread() {
@@ -324,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 登录
+     登录
      */
     private void login(final String name, final String pwd) {
         pd = new ProgressDialog(MainActivity.this);

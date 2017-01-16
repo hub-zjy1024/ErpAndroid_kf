@@ -7,19 +7,36 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     >
+
     <android.support.design.widget.TabLayout
         android:id="@+id/tabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:tabIndicatorColor="@android:color/holo_red_light"
-        app:tabSelectedTextColor="@android:color/holo_red_light"
-        app:tabTextColor="@android:color/black"/>
+        android:background="#8080c0"
+        app:tabIndicatorColor="@android:color/holo_orange_dark"
+        app:tabSelectedTextColor="@android:color/white"
+        app:tabTextColor="@android:color/black"
+
+        >
+
+        <android.support.design.widget.TabItem
+            android:layout_width="50dp"
+            android:layout_height="20dp"
+            android:text="啊是的金粉世家地方"/>
+
+        <android.support.design.widget.TabItem
+            android:layout_width="50dp"
+            android:layout_height="20dp"
+            android:text="啊是的金粉世家地方"/>
+    </android.support.design.widget.TabLayout>
+
     <android.support.v4.view.ViewPager
         android:id="@+id/ck_viewpager"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
     </android.support.v4.view.ViewPager>
+
     <ListView
         android:id="@+id/ck_lv"
         android:layout_width="match_parent"

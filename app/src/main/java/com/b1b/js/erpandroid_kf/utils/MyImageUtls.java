@@ -19,12 +19,11 @@ import java.io.OutputStream;
 
 public class MyImageUtls {
     /**
-     * 压缩从文件加载的Bitmap
-     *
-     * @param filePath
-     * @param targetWidth
-     * @param targetHeight
-     * @return
+     压缩从文件加载的Bitmap
+     @param filePath
+     @param targetWidth
+     @param targetHeight
+     @return
      */
     public static Bitmap getSmallBitmap(String filePath, int targetWidth, int targetHeight) {
         Options opt = new Options();
@@ -46,11 +45,10 @@ public class MyImageUtls {
     }
 
     /**
-     * 计算合适的缩放比例
-     *
-     * @param opt          BitmapFactory.Options
-     * @param targetWidth  期望的高度
-     * @param targetHeight 期望的宽度
+     计算合适的缩放比例
+     @param opt          BitmapFactory.Options
+     @param targetWidth  期望的高度
+     @param targetHeight 期望的宽度
      */
 
     private static int getSimpleSize(Options opt, int targetWidth, int targetHeight) {
@@ -66,10 +64,10 @@ public class MyImageUtls {
     }
 
     /**
-     * @param imagePath
-     * @param requestWidth  期望的图片宽度
-     * @param requestHeight 期望的图片高度
-     * @return
+     @param imagePath
+     @param requestWidth  期望的图片宽度
+     @param requestHeight 期望的图片高度
+     @return
      */
     public static Bitmap decodeBitmapFromFile(String imagePath, int requestWidth, int requestHeight) {
         if (!TextUtils.isEmpty(imagePath)) {
@@ -125,11 +123,10 @@ public class MyImageUtls {
     }
 
     /**
-     * 保存图片到内部存储空间
-     *
-     * @param context
-     * @param fileName
-     * @param bitmap
+     保存图片到内部存储空间
+     @param context
+     @param fileName
+     @param bitmap
      */
     // 存储图片
     public static void saveBitmapToInternal(Context context, String fileName, Bitmap bitmap) {
@@ -145,17 +142,16 @@ public class MyImageUtls {
     }
 
     /**
-     * 图片质量压缩
-     *
-     * @param path 图片路径
-     * @param out  压缩后的输出流
-     * @param size 期望压缩后的大小（MB）
-     * @return
+     图片质量压缩
+     @param orginPath 图片路径
+     @param out       压缩后的输出流
+     @param size      期望压缩后的大小（MB）
+     @return
      */
-    public static boolean compressBitmapAtsize(String path, OutputStream out, float size) {
+    public static boolean compressBitmapAtsize(String orginPath, OutputStream out, float size) {
         boolean res = false;
         try {
-            Bitmap bitmap = BitmapFactory.decodeFile(path);
+            Bitmap bitmap = BitmapFactory.decodeFile(orginPath);
             if (bitmap != null) {
                 int i = 100;
                 ByteArrayOutputStream bao = new ByteArrayOutputStream();
@@ -178,10 +174,9 @@ public class MyImageUtls {
     }
 
     /**
-     * 获取拍摄图片的旋转角度
-     *
-     * @param path 图片路径
-     * @return 图片旋转角度
+     获取拍摄图片的旋转角度
+     @param path 图片路径
+     @return 图片旋转角度
      */
     public static int readBitmapDegreeByExif(String path) {
         int degree = 0;
@@ -219,12 +214,11 @@ public class MyImageUtls {
     }
 
     /**
-     * 缩放Bitmap
-     *
-     * @param src
-     * @param w
-     * @param h
-     * @return
+     缩放Bitmap
+     @param src
+     @param w
+     @param h
+     @return
      */
     public static Bitmap scaleWithWH(Bitmap src, float w, float h) {
         if (w == 0 || h == 0 || src == null) {
@@ -246,11 +240,10 @@ public class MyImageUtls {
     }
 
     /**
-     * 得到透明的bitmap
-     *
-     * @param sourceImg 源图片
-     * @param number    透明度
-     * @return
+     得到透明的bitmap
+     @param sourceImg 源图片
+     @param number    透明度
+     @return
      */
     public static Bitmap getTransparentBitmap(Bitmap sourceImg, int number) {
         int[] argb = new int[sourceImg.getWidth() * sourceImg.getHeight()];

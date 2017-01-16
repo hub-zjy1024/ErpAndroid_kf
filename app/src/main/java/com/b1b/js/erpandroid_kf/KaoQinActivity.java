@@ -22,9 +22,6 @@ import java.util.List;
 
 public class KaoQinActivity extends AppCompatActivity {
 
-    private ListView listView;
-    private Button btnSearch;
-    private Button btnSaixuan;
     private List<KaoqinInfo> data = new ArrayList<>();
     private KqAdapter adapter;
     private EditText inputDate;
@@ -46,36 +43,30 @@ public class KaoQinActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kao_qin);
-        listView = (ListView) findViewById(R.id.kq_lv);
-        btnSearch = (Button) findViewById(R.id.kq_serach);
+        ListView listView = (ListView) findViewById(R.id.kq_lv);
+        Button btnSearch = (Button) findViewById(R.id.kq_serach);
         inputId = (EditText) findViewById(R.id.kq_edId);
         inputDate = (EditText) findViewById(R.id.kq_edTime);
-        btnSaixuan = (Button) findViewById(R.id.kq_saixuan);
+        Button btnSaixuan = (Button) findViewById(R.id.kq_saixuan);
 
         adapter = new KqAdapter(KaoQinActivity.this, data);
         listView.setAdapter(adapter);
-//        new Thread() {
-//            @Override
-//            public void run() {
-//                super.run();
-//                SoapObject requst = WcfUtils.getRequest(null, "GetCCInfoAll");
-//                try {
-//                    SoapObject response = WcfUtils.getSoapObjResponse(requst, SoapEnvelope.VER11, WcfUtils.Login);
-//                    Log.e("zjy", "KaoQinActivity.java->run(): re==" + response.toString());
-//
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                } catch (XmlPullParserException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }.start();
-        new MyAsyncTask(new MyCallBack() {
-            @Override
-            public void postRes(List list) {
-
-            }
-        }).execute(new String[]{getCurrentMonth(), MyApp.id});
+        //        new Thread() {
+        //            @Override
+        //            public void run() {
+        //                super.run();
+        //                SoapObject requst = WcfUtils.getRequest(null, "GetCCInfoAll");
+        //                try {
+        //                    SoapObject response = WcfUtils.getSoapObjResponse(requst, SoapEnvelope.VER11, WcfUtils.Login);
+        //                    Log.e("zjy", "KaoQinActivity.java->run(): re==" + response.toString());
+        //
+        //                } catch (IOException e) {
+        //                    e.printStackTrace();
+        //                } catch (XmlPullParserException e) {
+        //                    e.printStackTrace();
+        //                }
+        //            }
+        //        }.start();
         btnSaixuan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
