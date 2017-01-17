@@ -15,6 +15,19 @@ import java.io.InputStream;
  ftp上传文件工具类
  Created by 张建宇 on 2016/12/19. */
 public class FtpUpFile {
+    private static FtpUpFile ftpUpFile;
+
+    private FtpUpFile() {
+
+    }
+
+    public static FtpUpFile getFtpUpFile(String name, String password, String ftpUrl, int port) {
+        if (ftpUpFile == null) {
+            ftpUpFile = new FtpUpFile(name, password, ftpUrl, port);
+        }
+        return ftpUpFile;
+    }
+
     /**
      ftp默认端口
      */
@@ -43,7 +56,7 @@ public class FtpUpFile {
      @param password 密码
      @param ftpUrl   Ftp地址
      */
-    public FtpUpFile(String name, String password, String ftpUrl) {
+    private FtpUpFile(String name, String password, String ftpUrl) {
         this.password = password;
         this.name = name;
         this.ftpUrl = ftpUrl;
@@ -56,7 +69,7 @@ public class FtpUpFile {
      @param ftpUrl   Ftp地址
      @param port     端口（默认21可以直接使用不带port参数的构造方法）
      */
-    public FtpUpFile(String name, String password, String ftpUrl, int port) {
+    private FtpUpFile(String name, String password, String ftpUrl, int port) {
         this(name, password, ftpUrl);
         this.defaultPort = port;
     }
@@ -80,11 +93,19 @@ public class FtpUpFile {
      */
     public boolean upload(File file, String remotePathName,
                           String remoteName) throws Exception {
+        if (ftpClient.isConnected()) {
+            Log.e("zjy", "FtpUpFile.java->upload(): last not finish==");
+            ftpClient.disconnect();
+        }
         connectAndLogin(name, password, ftpUrl);
         changeDirectory(remotePathName);
         boolean isSuccess = uploadFile(file, remoteName);
         backToRootDirectory();
-        ftpClient.disconnect();
+        ftpClient.logout();
+        if (ftpClient.isConnected()) {
+            Log.e("zjy", "FtpUpFile.java->upload(): conn==");
+            ftpClient.disconnect();
+        }
         return isSuccess;
     }
 
@@ -98,12 +119,19 @@ public class FtpUpFile {
      */
     public boolean upload(InputStream inputStream, String remotePathName,
                           String remoteName) throws IOException, RemoteDeleteException {
+        if (ftpClient.isConnected()) {
+            Log.e("zjy", "FtpUpFile.java->upload(): last not finish==");
+            ftpClient.disconnect();
+        }
         connectAndLogin(name, password, ftpUrl);
         changeDirectory(remotePathName);
         boolean isSuccess = uploadFile(inputStream, remoteName);
         backToRootDirectory();
-                ftpClient.disconnect();
-//        ftpClient.logout();
+        ftpClient.logout();
+        if (ftpClient.isConnected()) {
+            Log.e("zjy", "FtpUpFile.java->upload(): conn==");
+            ftpClient.disconnect();
+        }
         return isSuccess;
     }
 

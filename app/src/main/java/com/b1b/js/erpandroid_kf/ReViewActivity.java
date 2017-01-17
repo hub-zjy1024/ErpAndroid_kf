@@ -1,7 +1,6 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -125,7 +124,7 @@ public class ReViewActivity extends AppCompatActivity implements View.OnClickLis
             @Override
             public void run() {
                 try {
-                    ftp = new FtpUpFile("NEW_DYJ", "GY8Fy2Gx", "172.16.6.22", 21);
+                    ftp = FtpUpFile.getFtpUpFile("NEW_DYJ", "GY8Fy2Gx", "172.16.6.22", 21);
 //                  ftp = new FtpUpFile("zjy", "123", "192.168.25.53", 21);
                     boolean isSuccess = ftp.upload(is, remoteDir, remoteName + ".jpg");
                     if (isSuccess) {

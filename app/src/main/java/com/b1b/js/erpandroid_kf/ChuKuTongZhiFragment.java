@@ -31,6 +31,7 @@ import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -40,8 +41,7 @@ import java.util.List;
 
 
 /**
- * A simple {@link Fragment} subclass.
- */
+ A simple {@link Fragment} subclass. */
 public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListener {
 
     private Button btnSearch;
@@ -100,7 +100,7 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
         tvEtime.setOnClickListener(this);
         btnSearch.setOnClickListener(this);
         btnCleartime.setOnClickListener(this);
-//        getData("2309", "", "", getStringDateBefore(180), getFormatDate(new Date()));
+        //        getData("2309", "", "", getStringDateBefore(180), getFormatDate(new Date()));
         return view;
     }
 
@@ -142,7 +142,7 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
                 setTvTime(tvEtime);
                 break;
             case R.id.frag_chukutongzhi_search:
-//                if (isFinish) {
+                //                if (isFinish) {
                 data.clear();
                 adapter.notifyDataSetChanged();
                 pid = edPid.getText().toString().trim();
@@ -174,9 +174,9 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
                 }
                 Log.e("zjy", "ChuKuTongZhiFragment.java->onClick(): stime==" + sttime + "\t" + endtime);
                 getData(MyApp.id, partNo, pid, sttime, endtime);
-//                } else {
-//                    MyToast.showToast(getActivity(), "请稍后，上次查询还未完成");
-//                }
+                //                } else {
+                //                    MyToast.showToast(getActivity(), "请稍后，上次查询还未完成");
+                //                }
                 break;
 
         }
@@ -191,14 +191,17 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
                     List<ChukuTongZhiInfo> list = MyJsonUtils.getCKTZList(json);
                     if (list != null && list.size() > 0) {
                         data.addAll(list);
+                        adapter.notifyDataSetChanged();
                         mHandler.sendEmptyMessage(0);
                     }
+                } catch (SocketException e) {
+                    mHandler.sendEmptyMessage(1);
+                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
-                    mHandler.sendEmptyMessage(1);
                     e.printStackTrace();
                 }
             }

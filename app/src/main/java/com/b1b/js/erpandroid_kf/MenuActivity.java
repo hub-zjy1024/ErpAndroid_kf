@@ -7,7 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
@@ -29,9 +28,6 @@ public class MenuActivity extends AppCompatActivity {
         setContentView(R.layout.menu_layout);
         menuList = (ListView) findViewById(R.id.lv);
         simpleAdapter = new SimpleAdapter(this, listItems, R.layout.menu_items, new String[]{"title"}, new int[]{R.id.menu_title});
-        ArrayList<String> arrayList = new ArrayList<>();
-        arrayList.add("111");
-        ArrayAdapter<String> arrAdapter = new ArrayAdapter<String>(this, R.layout.menu_items, R.id.menu_title, arrayList);
         // 为菜单项设置点击事件
         setItemOnclickListener();
         addItem();
@@ -87,13 +83,20 @@ public class MenuActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        System.exit(0);
+
+    }
+
     // 添加菜单项
     private void addItem() {
         Map<String, String> map = new HashMap<>();
         map.put("title", "出库单");
         listItems.add(map);
         map = new HashMap<>();
-        map.put("title", "预出库");
+        map.put("title", "出库审核");
         listItems.add(map);
 //        map = new HashMap<>();
 //        map.put("title", "采购");

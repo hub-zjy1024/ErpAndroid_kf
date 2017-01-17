@@ -183,9 +183,9 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         pid = getIntent().getStringExtra("pid");
         if (MyApp.ftpUrl == null) {
             MyApp.ftpUrl = "172.16.6.22";
-            ftp = new FtpUpFile("NEW_DYJ", "GY8Fy2Gx", MyApp.ftpUrl);
+            ftp = FtpUpFile.getFtpUpFile("NEW_DYJ", "GY8Fy2Gx", MyApp.ftpUrl, 21);
         } else {
-            ftp = new FtpUpFile("dyjftp", "dyjftp", MyApp.ftpUrl);
+            ftp = FtpUpFile.getFtpUpFile("dyjftp", "dyjftp", MyApp.ftpUrl, 21);
         }
         if (pid == null) {
             pid = MyApp.id;
@@ -229,6 +229,13 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                         parameters = camera.getParameters();
                         setAutoFoucs(parameters);
+                        List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();
+                        int len = supportedPreviewSizes.size();
+                        if (supportedPreviewSizes.get(0).width > supportedPreviewSizes.get(len - 1).width) {
+                            parameters.setPreviewSize(supportedPreviewSizes.get(0).width, supportedPreviewSizes.get(0).height);
+                        } else {
+                            parameters.setPreviewSize(supportedPreviewSizes.get(len - 1).width, supportedPreviewSizes.get(len - 1).height);
+                        }
                         sp = getSharedPreferences("cameraInfo", 0);
                         if (sp.getInt("width", -1) != -1) {
                             int width = sp.getInt("width", -1);

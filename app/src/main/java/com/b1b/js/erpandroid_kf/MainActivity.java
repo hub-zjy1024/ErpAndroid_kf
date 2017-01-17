@@ -16,7 +16,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
@@ -59,11 +58,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 1:
                     //成功
-                    ifSavePwd();
                     HashMap<String, String> infoMap = (HashMap<String, String>) msg.obj;
                     //每次登录检查userInfo是否有变动，以免数据库更新（流量允许）
                     MyApp.id = infoMap.get("name");
-                    getUserInfoDetail(MyApp.id);
                     if (!sp.getString("name", "").equals(MyApp.id)) {
                         sp.edit().clear().apply();
                         //登录成功之后调用，获取相关信息
@@ -71,7 +68,11 @@ public class MainActivity extends AppCompatActivity {
                         edit.putString("name", infoMap.get("name"));
                         edit.putString("pwd", infoMap.get("pwd"));
                         edit.apply();
+                        getUserInfoDetail(MyApp.id);
+                    } else {
+                        MyApp.ftpUrl = sp.getString("ftp", "");
                     }
+                    ifSavePwd();
                     pd.cancel();
                     Intent intent = new Intent(MainActivity.this, MenuActivity.class);
                     startActivity(intent);
@@ -82,10 +83,9 @@ public class MainActivity extends AppCompatActivity {
                     MyToast.showToast(MainActivity.this, "网络状态不佳,请检查网络状态");
                     pd.cancel();
                     break;
-                //                case 3:
-                //                    MyToast.showToast(MainActivity.this, "用户不合法");
-                //                    pd.cancel();
-                //                    break;
+                case 3:
+                    MyToast.showToast(MainActivity.this, "用户不合法");
+                    break;
                 case 4:
                     try {
                         JSONObject object1 = new JSONObject(msg.obj.toString());
@@ -97,47 +97,50 @@ public class MainActivity extends AppCompatActivity {
                         MyApp.id = uid;
                         String defUid = sp.getString("name", "");
                         //换用户则清除缓冲
-                        //                        if (!defUid.equals(uid)) {
-                        //                            sp.edit().clear().apply();
-                        //                            getUserInfoDetail(MyApp.id);
-                        //                        } else {
-                        //                            SharedPreferences.Editor editor = sp.edit();
-                        //                            editor.putString("name", uid);
-                        //                            editor.putString("ftp", url);
-                        //                        }
+                        if (!defUid.equals(uid)) {
+                            sp.edit().clear().apply();
+                            getUserInfoDetail(MyApp.id);
+                            SharedPreferences.Editor editor = sp.edit();
+                            editor.putString("name", uid).commit();
+                        }
                         //"|"为特殊字符，需要用"\\"转义
-                        getUserInfoDetail(MyApp.id);
                         Intent intentScan = new Intent(MainActivity.this, MenuActivity.class);
-                        //                        startActivity(intentScan);
-                        //                        finish();
-                        final String[] urls = url.split("\\|");
-                        new Thread() {
-                            @Override
-                            public void run() {
-                                super.run();
-                                boolean isOver = false;
-                                FTPClient client = new FTPClient();
-                                int counts = urls.length;
-                                for (int i = 0; i < urls.length && !isOver; i++) {
-                                    try {
-                                        Log.e("zjy", "MainActivity.java->run(): tryTimes==" + i);
-                                        client.connect(urls[i]);
-                                        MyApp.ftpUrl = urls[i];
-                                        isOver = true;
-                                        handler.sendEmptyMessage(6);
-                                        break;
-                                    } catch (SocketException e) {
-                                        Log.e("zjy", "MainActivity.java->run(): i==" + i);
-                                        if (counts - 1 == i) {
-                                            handler.sendEmptyMessage(5);
+                        startActivity(intentScan);
+                        finish();
+                        if (sp.getString("ftp", "").equals("")) {
+                            final String[] urls = url.split("\\|");
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    super.run();
+                                    boolean isOver = false;
+                                    FTPClient client = new FTPClient();
+                                    int counts = urls.length;
+                                    for (int i = 0; i < urls.length && !isOver; i++) {
+                                        try {
+                                            Log.e("zjy", "MainActivity.java->run(): tryTimes==" + i);
+                                            client.connect(urls[i]);
+                                            MyApp.ftpUrl = urls[i];
+                                            isOver = true;
+                                            sp.edit().putString("ftp", MyApp.ftpUrl).commit();
+                                            handler.sendEmptyMessage(6);
+                                            break;
+                                        } catch (SocketException e) {
+                                            Log.e("zjy", "MainActivity.java->run(): i==" + i);
+                                            if (counts - 1 == i) {
+                                                handler.sendEmptyMessage(5);
+                                            }
+                                            e.printStackTrace();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
                                         }
-                                        e.printStackTrace();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
                                     }
                                 }
-                            }
-                        }.start();
+                            }.start();
+                        } else {
+                            MyApp.ftpUrl = sp.getString("ftp", "");
+                        }
+
                     } catch (JSONException e) {
                         handler.sendEmptyMessage(3);
                         e.printStackTrace();
@@ -147,11 +150,9 @@ public class MainActivity extends AppCompatActivity {
                 case 5:
                     //连接ftp失败
                     MyToast.showToast(MainActivity.this, "连接不到Ftp服务器");
-                    Toast.makeText(MainActivity.this, "连接不到ftp服务器", Toast.LENGTH_SHORT).show();
-
                     break;
                 case 6:
-                    MyToast.showToast(MainActivity.this, "获取ftp地址成功");
+                    MyToast.showToast(MainActivity.this, "获取ftp地址成功:" + MyApp.ftpUrl);
                     break;
             }
         }
@@ -205,6 +206,8 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean("remp", true);
             editor.putBoolean("autol", cboAutol.isChecked());
             editor.apply();
+        } else {
+            sp.edit().clear().commit();
         }
     }
 

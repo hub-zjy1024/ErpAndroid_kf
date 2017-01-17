@@ -94,6 +94,7 @@ public class KaoQinActivity extends AppCompatActivity {
                                 data.clear();
                                 data.addAll(list);
                                 adapter.notifyDataSetChanged();
+                                MyToast.showToast(KaoQinActivity.this,"查询到"+list.size()+"条考勤记录");
                             } else {
                                 mHandler.sendEmptyMessage(0);
                             }
@@ -113,6 +114,7 @@ public class KaoQinActivity extends AppCompatActivity {
                 if (list != null) {
                     data.addAll(list);
                     adapter.notifyDataSetChanged();
+                    MyToast.showToast(KaoQinActivity.this,"查询到"+list.size()+"条考勤记录");
                 }
             }
         }).execute(arr);
