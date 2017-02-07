@@ -61,6 +61,7 @@
         android:layout_marginTop="10dp"
         android:background="@drawable/border2"
         android:divider="@drawable/listview_divider"
+        android:listSelector="@android:color/transparent"
         android:dividerHeight="1dp"
         >
     </ListView>

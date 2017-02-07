@@ -5,7 +5,7 @@ import android.os.AsyncTask;
 import com.b1b.js.erpandroid_kf.entity.KaoqinInfo;
 import com.b1b.js.erpandroid_kf.utils.MyCallBack;
 import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
-import com.b1b.js.erpandroid_kf.utils.WcfUtils;
+import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONException;
 import org.ksoap2.SoapEnvelope;
@@ -57,9 +57,9 @@ public class MyAsyncTask extends AsyncTask<String, Void, List> {
         map.put("month", params[0]);
         map.put("uid", params[1]);
         map.put("checkWord", "");
-        SoapObject request = WcfUtils.getRequest(map, "GetMyKaoQinInfoJson");
+        SoapObject request = WebserviceUtils.getRequest(map, "GetMyKaoQinInfoJson");
         try {
-            SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "MyBasicServer.svc");
+            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "MyBasicServer.svc");
             if (response != null) {
                 List<KaoqinInfo> kqList = MyJsonUtils.getKaoQinList(response.toString());
                 return kqList;

@@ -22,7 +22,7 @@ import com.b1b.js.erpandroid_kf.adapter.ChuKuTongZhiAdapter;
 import com.b1b.js.erpandroid_kf.entity.ChukuTongZhiInfo;
 import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WcfUtils;
+import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONException;
 import org.ksoap2.SoapEnvelope;
@@ -70,6 +70,10 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
                 case 1:
                     isFinish = true;
                     MyToast.showToast(getActivity(), "查询条件有误");
+                    break;
+                case 2:
+                    isFinish = true;
+                    MyToast.showToast(getActivity(), "当前网络质量较差，请稍后尝试");
                     break;
             }
         }
@@ -195,13 +199,14 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
                         mHandler.sendEmptyMessage(0);
                     }
                 } catch (SocketException e) {
-                    mHandler.sendEmptyMessage(1);
-                    e.printStackTrace();
-                } catch (IOException e) {
+                    mHandler.sendEmptyMessage(2);
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
+                    mHandler.sendEmptyMessage(1);
+                    e.printStackTrace();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -216,8 +221,8 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
         properties.put("etime", etime);
         properties.put("pid", pid);
         properties.put("partNo", partNo);
-        SoapObject request = WcfUtils.getRequest(properties, "GetChuKuTongZhiInfoList");
-        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WcfUtils.ChuKuServer);
+        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuTongZhiInfoList");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
         Log.e("zjy", "ChuKuActivity.java->GetChuKuTongZhiInfoList(): re==" + response.toString());
         return response.toString();
     }

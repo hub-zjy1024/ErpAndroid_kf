@@ -50,11 +50,10 @@ public class ChuKuTongZhiAdapter extends BaseAdapter {
             mHolder = new ViewHolder();
             mHolder.tv = (TextView) convertView.findViewById(R.id.chukudan_items_tv);
             convertView.setTag(mHolder);
-
         } else {
             mHolder = (ViewHolder) convertView.getTag();
         }
-        if (getCount() != 0) {
+        if (getCount() >=position) {
             ChukuTongZhiInfo info = list.get(position);
             mHolder.tv.setText(info.toString());
         }

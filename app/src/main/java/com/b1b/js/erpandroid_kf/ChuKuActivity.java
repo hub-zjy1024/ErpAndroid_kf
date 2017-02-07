@@ -12,7 +12,7 @@ import android.util.Log;
 import android.widget.ListView;
 
 import com.b1b.js.erpandroid_kf.entity.ChukuTongZhiInfo;
-import com.b1b.js.erpandroid_kf.utils.WcfUtils;
+import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
@@ -62,8 +62,8 @@ public class ChuKuActivity extends AppCompatActivity {
         properties.put("etime", etime);
         properties.put("pid", pid);
         properties.put("partNo", partNo);
-        SoapObject request = WcfUtils.getRequest(properties, "GetChuKuTongZhiInfoList");
-        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
+        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuTongZhiInfoList");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
         return response.toString();
     }
 
@@ -75,8 +75,8 @@ public class ChuKuActivity extends AppCompatActivity {
         properties.put("etime", etime);
         properties.put("pid", pid);
         properties.put("partNo", partNo);
-        SoapObject request = WcfUtils.getRequest(properties, "GetChuKuInfoList");
-        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
+        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuInfoList");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
         Log.e("zjy", "ChuKuActivity.java->GetChuKuInfoList(): re==" + response.toString());
         return response.toString();
     }
@@ -85,8 +85,8 @@ public class ChuKuActivity extends AppCompatActivity {
         LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
         properties.put("checkWord", checkWord);
         properties.put("pid", pid);
-        SoapObject request = WcfUtils.getRequest(properties, "GetChuKuInfo");
-        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
+        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuInfo");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
         Log.e("zjy", "ChuKuActivity.java->GetChuKuInfo(): re==" + response.toString());
         return response.toString();
     }
@@ -102,8 +102,8 @@ public class ChuKuActivity extends AppCompatActivity {
         properties.put("typeid", typeid);
         properties.put("pid", pid);
         properties.put("partNo", partNo);
-        SoapObject request = WcfUtils.getRequest(properties, "GetChuKuCheckInfoByTypeID");
-        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
+        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuCheckInfoByTypeID");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
         Log.e("zjy", "ChuKuActivity.java->GetChuKuCheckInfoByTypeID(): re==" + response.toString());
         return response.toString();
     }

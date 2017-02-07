@@ -12,7 +12,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WcfUtils;
+import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
@@ -88,13 +88,13 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
         map.put("tp", tp);
         map.put("uname", uname);
         map.put("uid", uid);
-        final SoapObject request = WcfUtils.getRequest(map, "GetSetCheckInfo");
+        final SoapObject request = WebserviceUtils.getRequest(map, "GetSetCheckInfo");
         new Thread() {
             @Override
             public void run() {
                 super.run();
                 try {
-                    SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WcfUtils.ChuKuServer);
+                    SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
                     Log.e("zjy", "SetCheckInfoActivity.java->run(): response==" + response.toString());
                     Message msg = mHandler.obtainMessage();
                     msg.obj = response.toString();

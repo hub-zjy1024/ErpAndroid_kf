@@ -2,6 +2,7 @@ package com.b1b.js.erpandroid_kf.utils;
 
 import android.util.Log;
 
+import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
@@ -9,13 +10,14 @@ import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
 /**
  Created by 张建宇 on 2016/12/20. */
 
-public class WcfUtils {
+public class WebserviceUtils {
 
 
     public static final String NAMESPACE = "http://tempuri.org/";
@@ -52,7 +54,8 @@ public class WcfUtils {
      @return
      */
     private static String getTransportSEtUrl(String serviceName) {
-        return ROOT_URL + serviceName + "?singleWsdl";
+        //        return ROOT_URL + serviceName + "?singleWsdl";
+        return ROOT_URL + serviceName;
     }
 
     /**
@@ -62,7 +65,7 @@ public class WcfUtils {
      @return
      */
     private static String getSoapAcction(String serviceName, String methodName) {
-        Log.e("zjy", "WcfUtils.java->getSoapAcction(): ==" + NAMESPACE + "I" + serviceName.substring(0, serviceName.indexOf(".")) + "/" + methodName);
+        Log.e("zjy", "WebserviceUtils.java->getSoapAcction(): ==" + NAMESPACE + "I" + serviceName.substring(0, serviceName.indexOf(".")) + "/" + methodName);
         return NAMESPACE + "I" + serviceName.substring(0, serviceName.indexOf(".")) + "/" + methodName;
     }
 
@@ -73,7 +76,7 @@ public class WcfUtils {
      @return
      */
     public static SoapObject getRequest(LinkedHashMap<String, Object> properties, String method) {
-        SoapObject request = new SoapObject(WcfUtils.NAMESPACE, method);
+        SoapObject request = new SoapObject(WebserviceUtils.NAMESPACE, method);
         if (properties != null) {
             // 设定参数
             Set<String> set = properties.keySet();
@@ -93,7 +96,7 @@ public class WcfUtils {
      @throws IOException
      @throws XmlPullParserException
      */
-    private static SoapSerializationEnvelope getEnvelope(SoapObject request, int EnvolopeVesion, String soapAction, String resultUrl) throws IOException, XmlPullParserException {
+    public static SoapSerializationEnvelope getEnvelope(SoapObject request, int EnvolopeVesion, String soapAction, String resultUrl) throws IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(EnvolopeVesion);
         envelope.dotNet = true;
         //       envelope.bodyOut = request;
@@ -150,6 +153,51 @@ public class WcfUtils {
         SoapSerializationEnvelope envelope = getEnvelope(request, EnvolopeVesion, serviceName);
         SoapPrimitive sob = (SoapPrimitive) envelope.getResponse();
         return sob;
+    }
+
+    private static SoapSerializationEnvelope getEnvelope(String namespace, String method, String soapAction, String transUrl, LinkedHashMap<String, Object> properties, int envolopeVersion) throws IOException, XmlPullParserException {
+        SoapObject request = new SoapObject(namespace, method);
+        //设置方法参数，无参数直接传入null值
+        if (properties != null) {
+            Iterator<String> iterator = properties.keySet().iterator();
+            while (iterator.hasNext()) {
+                String s = iterator.next();
+                String value = (String) properties.get(s);
+                request.addProperty(s, value);
+            }
+        }
+
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVersion);
+        envelope.setOutputSoapObject(request);
+        envelope.dotNet = true;
+        HttpTransportSE se = new HttpTransportSE(transUrl);
+        if (envolopeVersion == SoapEnvelope.VER11 && soapAction != null) {
+            se.call(soapAction, envelope);
+        } else if (envolopeVersion == SoapEnvelope.VER12) {
+            se.call(null, envelope);
+        } else {
+            //协议版本和soapAction不匹配
+            return null;
+        }
+        return envelope;
+    }
+
+    public static SoapObject getSoapObjectData(String namespace, String method, String soapAction, String transUrl, LinkedHashMap<String, Object> properties, int envolopeVersion) throws IOException, XmlPullParserException {
+        SoapSerializationEnvelope envelope = getEnvelope(namespace, method, soapAction, transUrl, properties, envolopeVersion);
+        SoapObject sObj = null;
+        if (envelope != null) {
+            sObj = (SoapObject) envelope.bodyIn;
+        }
+        return sObj;
+    }
+
+    public static SoapPrimitive getSoapPrimitiveData(String namespace, String method, String soapAction, String transUrl, LinkedHashMap<String, Object> properties, int envolopeVersion) throws IOException, XmlPullParserException {
+        SoapSerializationEnvelope envelope = getEnvelope(namespace, method, soapAction, transUrl, properties, envolopeVersion);
+        SoapPrimitive soapPrimitive = null;
+        if (envelope != null) {
+            soapPrimitive = (SoapPrimitive) envelope.getResponse();
+        }
+        return soapPrimitive;
     }
 
 }

@@ -32,7 +32,7 @@ import com.b1b.js.erpandroid_kf.utils.FtpUpFile;
 import com.b1b.js.erpandroid_kf.utils.ImageWaterUtils;
 import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WcfUtils;
+import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
@@ -42,7 +42,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -85,10 +84,11 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         @Override
                         public void run() {
                             try {
-                                String insertPath = "ftp://" + MyApp.ftpUrl + "/" + getRemoteDir() + "/" + remoteName + ".jpg";
+                                String insertPath = "ftp://" + MyApp.ftpUrl +  "/" + getRemoteDir() + "/" + remoteName + ".jpg";
                                 Log.e("zjy", "TakePicActivity.java->run(): ==" + cid + "\t" + did + "\t" + pid + "\t" + MyApp.id);
                                 Log.e("zjy", "TakePicActivity.java->run(): insertPath==" + insertPath);
-                                String res = setInsertPicInfo(WcfUtils.WebServiceCheckWord, cid, did, Integer.parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "CKTZ");
+                                Log.e("zjy", "TakePicActivity.java->run(): fileName==" + remoteName + ".jpg");
+                                String res = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer.parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "CKTZ");
                                 Message msg = mHandler.obtainMessage();
                                 msg.what = 6;
                                 msg.obj = res;
@@ -141,19 +141,10 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         }
     };
 
-    /**
-     @param is
-     @param remoteName 传入无后缀名的文件名
-     @param remoteDir
-     */
-    private void commit(final InputStream is, final String remoteName, final String remoteDir) throws IOException, FtpUpFile.RemoteDeleteException {
-        Log.e("zjy", "TakePicActivity.java->commit(): Myapp==" + MyApp.ftpUrl);
-        ftp.upload(is, remoteDir, remoteName + ".jpg");
-    }
 
-    public static String getRomoteName() {
+    public static String getRomoteName(String id) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        return sdf.format(new Date());
+        return "android_" + id + "_" + sdf.format(new Date());
     }
 
     public static String getRemoteDir() {
@@ -181,7 +172,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         btn_tryagain.setOnClickListener(this);
         btn_commit.setOnClickListener(this);
         pid = getIntent().getStringExtra("pid");
-        if (MyApp.ftpUrl == null) {
+        if (MyApp.ftpUrl == null || MyApp.ftpUrl.equals("")) {
             MyApp.ftpUrl = "172.16.6.22";
             ftp = FtpUpFile.getFtpUpFile("NEW_DYJ", "GY8Fy2Gx", MyApp.ftpUrl, 21);
         } else {
@@ -308,6 +299,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         //剔除出尺寸太小的，和尺寸太大的，宽度（1280-2048)
         for (int i = picSize.size() - 1; i >= 0; i--) {
             int width = picSize.get(i).width;
+            Log.e("zjy", "TakePicActivity.java->showDialog(): size==" + picSize.get(i).width + "\t" + picSize.get(i).height);
             if (width < 1280 || width > 2048) {
                 picSize.remove(i);
             }
@@ -320,7 +312,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 strs[i] = item;
             }
             AlertDialog.Builder dialog = new AlertDialog.Builder(TakePicActivity.this);
-            dialog.setIcon(android.R.drawable.ic_dialog_info);//窗口头图标
+            //            dialog.setIcon(android.R.drawable.ic_dialog_info);//窗口头图标
             dialog.setTitle("选择照片大小");//窗口名
             dialog.setSingleChoiceItems(strs, 0, new DialogInterface.OnClickListener() {
                         @Override
@@ -399,13 +391,12 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                     @Override
                     public void onPictureTaken(byte[] data, Camera camera) {
                         Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
-                        //                        camera.stopPreview();
-                        //显示工具栏
-                        toolbar.setVisibility(View.VISIBLE);
                         Matrix matrixs = new Matrix();
                         matrixs.setRotate(90 + rotation);
                         try {
                             photo = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrixs, true);
+                            //显示工具栏
+                            toolbar.setVisibility(View.VISIBLE);
                             commitTimes = 0;
                         } catch (OutOfMemoryError error) {
                             error.printStackTrace();
@@ -427,10 +418,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             //提交
             case R.id.main_commit:
                 commitTimes++;
-                if (pid == null) {
-                    MyToast.showToast(TakePicActivity.this, "当前单据号为空");
-                    pid = MyApp.id;
-                }
                 if (commitTimes > 1) {
                     showProgressDialog();
                     new Thread() {
@@ -438,7 +425,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         public void run() {
                             try {
                                 //上传
-                                remoteName = "android_" + pid + "_" + getRomoteName();
+                                remoteName = getRomoteName(pid);
                                 FileInputStream fis = openFileInput("compress.jpg");
                                 ftp.upload(fis, "/" + getRemoteDir(), remoteName + ".jpg");
                                 mHandler.sendEmptyMessage(0);
@@ -454,9 +441,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                     if (photo == null) {
                         MyToast.showToast(TakePicActivity.this, "请稍等，等图像稳定再上传");
                         return;
-                    }
-                    if (pid == null) {
-                        MyToast.showToast(TakePicActivity.this, "当前单据号为空");
                     }
                     showProgressDialog();
                     //载入水印图
@@ -480,7 +464,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                                 public void run() {
                                     try {
                                         //上传
-                                        remoteName = "android_" + pid + "_" + getRomoteName();
+                                        remoteName = getRomoteName(pid);
                                         FileInputStream fis = openFileInput("compress.jpg");
                                         ftp.upload(fis, "/" + getRemoteDir(), remoteName + ".jpg");
                                         mHandler.sendEmptyMessage(0);
@@ -579,11 +563,8 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         map.put("filename", fileName);
         map.put("filepath", filePath);
         map.put("stypeID", stypeID);//标记，固定为"CKTZ"
-        Log.e("zjy", "TakePicActivity.java->setInsertPicInfo(): file==" + fileName);
-        Log.e("zjy", "TakePicActivity.java->setInsertPicInfo(): filepath==" + filePath);
-
-        SoapObject request = WcfUtils.getRequest(map, "SetInsertPicInfo");
-        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WcfUtils.ChuKuServer);
+        SoapObject request = WebserviceUtils.getRequest(map, "SetInsertPicInfo");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
         str = response.toString();
         return str;
     }

@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_re_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.js.uploadimage.com.b1b.js.uploadimage.ReViewActivity">
+    >
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,6 +13,7 @@
         android:orientation="horizontal">
 
         <EditText
+            android:id="@+id/review_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:hint="输入文件名信息"/>
@@ -22,13 +22,15 @@
             android:id="@+id/review_commit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:enabled="false"
             android:text="提交"/>
 
         <Button
-            android:id="@+id/review_commitorigin"
+            android:id="@+id/review_getFromPhone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="提交原图"/>
+            android:text="从相册选取"/>
+
     </LinearLayout>
 
     <ImageView

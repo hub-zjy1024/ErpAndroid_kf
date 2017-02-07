@@ -1,14 +1,19 @@
 package com.b1b.js.erpandroid_kf;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -19,7 +24,7 @@ import android.widget.EditText;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WcfUtils;
+import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.json.JSONArray;
@@ -30,8 +35,16 @@ import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
@@ -45,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private CheckBox cboAutol;
     private SharedPreferences sp;
     private ProgressDialog pd;
+    private ProgressDialog downPd;
     String name;
     private boolean canStartIntent = true;
     private android.os.Handler handler = new android.os.Handler() {
@@ -81,11 +95,15 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 2:
                     MyToast.showToast(MainActivity.this, "网络状态不佳,请检查网络状态");
-                    pd.cancel();
+                    if (pd != null) {
+                        pd.cancel();
+                    }
+
                     break;
                 case 3:
                     MyToast.showToast(MainActivity.this, "用户不合法");
                     break;
+                //扫码登录处理
                 case 4:
                     try {
                         JSONObject object1 = new JSONObject(msg.obj.toString());
@@ -140,9 +158,7 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             MyApp.ftpUrl = sp.getString("ftp", "");
                         }
-
                     } catch (JSONException e) {
-                        handler.sendEmptyMessage(3);
                         e.printStackTrace();
                     }
                     break;
@@ -153,6 +169,53 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 6:
                     MyToast.showToast(MainActivity.this, "获取ftp地址成功:" + MyApp.ftpUrl);
+                    break;
+                case 8:
+                    int percent = msg.arg1;
+                    if (percent < 0) {
+                        return;
+                    }
+                    downPd.setProgress(percent);
+                    if (percent == 100) {
+                        downPd.dismiss();
+                        MyToast.showToast(MainActivity.this, "下载完成");
+                    }
+                    break;
+                case 7:
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("提示");
+                    builder.setMessage("当前有新版本可用，是否更新");
+                    builder.setCancelable(false);
+                    builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            downPd = new ProgressDialog(MainActivity.this);
+                            //必须设定进图条样式
+                            downPd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                            downPd.setTitle("更新");
+                            downPd.setMax(100);
+                            downPd.setMessage("下载中");
+                            downPd.setProgress(0);
+                            downPd.show();
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        update(MainActivity.this, handler);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }.start();
+                        }
+                    });
+                    builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });
+                    builder.show();
                     break;
             }
         }
@@ -184,8 +247,8 @@ public class MainActivity extends AppCompatActivity {
         LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
         map.put("checker", "1");
         map.put("uid", uid);
-        SoapObject request = WcfUtils.getRequest(map, "GetUserInfoByUID");
-        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WcfUtils.Login);
+        SoapObject request = WebserviceUtils.getRequest(map, "GetUserInfoByUID");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.Login);
         Log.e("zjy", "MainActivity.java->run(): info==" + MyApp.id + "\t" + response.toString());
         JSONObject object = new JSONObject(response.toString());
         JSONArray jarr = object.getJSONArray("表");
@@ -238,6 +301,28 @@ public class MainActivity extends AppCompatActivity {
         cboRemp = (CheckBox) findViewById(R.id.login_rpwd);
         cboAutol = (CheckBox) findViewById(R.id.login_autol);
         sp = getSharedPreferences("UserInfo", 0);
+        //        getMyPhoneNumber();
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    PackageManager pm = getPackageManager();
+                    PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
+                    boolean ifUpdate = checkVersion(info.versionCode);
+                    if (ifUpdate) {
+                        handler.sendEmptyMessage(7);
+                    }
+                } catch (SocketException e) {
+                    handler.sendEmptyMessage(2);
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    handler.sendEmptyMessage(2);
+                    e.printStackTrace();
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
         readCache();
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -282,9 +367,9 @@ public class MainActivity extends AppCompatActivity {
                     LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
                     map.put("checkword", "");
                     map.put("code", s);
-                    SoapObject object = WcfUtils.getRequest(map, "BarCodeLogin");
+                    SoapObject object = WebserviceUtils.getRequest(map, "BarCodeLogin");
                     try {
-                        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(object, SoapEnvelope.VER11, WcfUtils.MartService);
+                        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(object, SoapEnvelope.VER11, WebserviceUtils.MartService);
                         Message msg = handler.obtainMessage(4);
                         msg.obj = response.toString();
                         handler.sendMessage(msg);
@@ -337,11 +422,11 @@ public class MainActivity extends AppCompatActivity {
                     map.put("checkWord", "sdr454fgtre6e655t5rt4");
                     map.put("userID", name);
                     map.put("passWord", pwd);
-                    map.put("DeviceID", WcfUtils.DeviceID + "," + WcfUtils.DeviceNo);
+                    map.put("DeviceID", WebserviceUtils.DeviceID + "," + WebserviceUtils.DeviceNo);
                     map.put("version", version);
                     SoapPrimitive result = null;
-                    SoapObject loginReq = WcfUtils.getRequest(map, "AndroidLogin");
-                    result = WcfUtils.getSoapPrimitiveResponse(loginReq, SoapEnvelope.VER11, WcfUtils.MartService);
+                    SoapObject loginReq = WebserviceUtils.getRequest(map, "AndroidLogin");
+                    result = WebserviceUtils.getSoapPrimitiveResponse(loginReq, SoapEnvelope.VER11, WebserviceUtils.MartService);
                     String[] resArray = result.toString().split("-");
                     if (resArray[0].equals("SUCCESS")) {
                         Message msg1 = handler.obtainMessage();
@@ -375,10 +460,99 @@ public class MainActivity extends AppCompatActivity {
         try {
             PackageManager pm = getPackageManager();
             PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
-            Log.e("zjy", "MainActivity.java->getMyPhoneNumber(): version==" + info.versionName);
             Log.e("zjy", "MainActivity.java->getMyPhoneNumber(): versionCode==" + info.versionCode);
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+
+    public static boolean checkVersion(int localVersion) throws SocketTimeoutException, IOException {
+        boolean ifUpdate = false;
+        String url = "http://192.168.10.127:8080/AppUpdate/download/readme.txt";
+        URL urll = new URL(url);
+        HttpURLConnection conn = (HttpURLConnection) urll.openConnection();
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(10000);
+        if (conn.getResponseCode() == 200) {
+            InputStream is = conn.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String len = reader.readLine();
+            StringBuilder stringBuilder = new StringBuilder();
+            while (len != null) {
+                stringBuilder.append(len);
+                len = reader.readLine();
+            }
+            //            byte[] bytes = stringBuilder.toString().getBytes();
+            //            String s = new String(bytes, 0, bytes.length, "GB2312");
+            //            Log.e("zjy", "MainActivity.java->checkVersion(): s==" + s);
+
+            String[] info = stringBuilder.toString().split("&");
+            //            String[] info = s.split("&");
+            if (info.length > 0) {
+                try {
+                    if (Integer.parseInt(info[1]) > localVersion) {
+                        ifUpdate = true;
+                    }
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+            is.close();
+            Log.e("zjy", "MainActivity.java->checkVersion(): readme==" + stringBuilder.toString());
+        }
+        return ifUpdate;
+    }
+
+    public static void update(Context context, Handler mHandler) throws IOException {
+        String url = "http://192.168.10.127:8080/AppUpdate/download/dyjkf.apk";
+        URL urll = new URL(url);
+        HttpURLConnection conn = (HttpURLConnection) urll.openConnection();
+        conn.setConnectTimeout(60000);
+        conn.setReadTimeout(60000);
+        if (conn.getResponseCode() == 200) {
+            InputStream is = conn.getInputStream();
+            int size = conn.getContentLength();
+            File sdDir = Environment.getExternalStorageDirectory();
+            if (!sdDir.exists()) {
+                Log.e("zjy", "MainActivity.java->update(): no sd==");
+            }
+            Log.e("zjy", "MainActivity.java->update(): online==" + size);
+            File file1 = new File(sdDir, "/dyjkfapp.apk");
+            FileOutputStream fos = new FileOutputStream(file1);
+            int len = 0;
+            int hasRead = 0;
+            int percent = 0;
+            byte[] buf = new byte[1024];
+
+            while ((len = is.read(buf)) > 0) {
+                hasRead = hasRead + len;
+                percent = (hasRead * 100) / size;
+                if (hasRead < 0) {
+                    Log.e("zjy", "MainActivity.java->update(): hasRead==" + hasRead);
+                }
+                if (percent < 0) {
+                    //                    Log.e("zjy", "MainActivity.java->update(): percent=="+percent);
+                }
+                Message msg = new Message();
+                msg.what = 8;
+                msg.arg1 = percent;
+                mHandler.sendMessage(msg);
+                //写入时第三个参数使用len
+                fos.write(buf, 0, len);
+            }
+            fos.flush();
+            is.close();
+            fos.close();
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            File file = new File(sdDir, "/dyjkfapp.apk");
+            Log.e("zjy", "MainActivity.java->update(): local==" + file.length());
+            if (file.exists()) {
+                intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
+                //                intent.setData(Uri.fromFile(file));
+                context.startActivity(intent);
+            } else {
+                Log.e("zjy", "MainActivity.java->update(): download==not exists");
+            }
         }
     }
 }

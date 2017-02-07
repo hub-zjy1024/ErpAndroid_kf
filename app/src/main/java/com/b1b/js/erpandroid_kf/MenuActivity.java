@@ -1,5 +1,7 @@
 package com.b1b.js.erpandroid_kf;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -44,30 +46,48 @@ public class MenuActivity extends AppCompatActivity {
                 if (position == 0) {
                     Intent intent = new Intent(MenuActivity.this, ChuKuActivity.class);
                     startActivity(intent);
-//                    WcfUtils.getRequest();
+                    //                    WebserviceUtils.getRequest();
                 }
                 // 预出库
                 if (position == 1) {
                     Intent intent = new Intent(MenuActivity.this, CheckActivity.class);
                     startActivity(intent);
                 }
-                // 扫码
-//                if (position == 2) {
-//                    Intent intent = new Intent(MenuActivity.this, CaptureActivity.class);
-//                    startActivityForResult(intent, 0);
-//                }
-//                 考勤
+                //                 采购
                 if (position == 2) {
+                    Intent intent = new Intent(MenuActivity.this, CaigouActivity.class);
+                    startActivity(intent);
+                }
+                //                                 考勤
+                if (position == 3) {
                     Intent intent = new Intent(MenuActivity.this, KaoQinActivity.class);
                     startActivity(intent);
                 }
-//                拍照
-                if (position == 3) {
-                    Intent intent = new Intent(MenuActivity.this, TakePicActivity.class);
-                    startActivity(intent);
+                //                拍照
+                if (position == 4) {
+                    //                    Intent intent = new Intent(MenuActivity.this, TakePicActivity.class);
+                    //                    AlertDialog alertDialog = new AlertDialog(MenuActivity.this);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MenuActivity.this);
+                    builder.setItems(new String[]{"拍照", "从手机选择"}, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            switch (which) {
+                                case 0:
+                                    Intent intent1 = new Intent(MenuActivity.this, TakePicActivity.class);
+                                    startActivity(intent1);
+                                    break;
+                                case 1:
+                                    Intent intent2 = new Intent(MenuActivity.this, ObtainPicFromPhone.class);
+                                    startActivity(intent2);
+                                    break;
+                            }
+                        }
+                    });
+                    builder.create().show();
+
                 }
                 // 取消登录
-                if (position == 4) {
+                if (position == 5) {
                     SharedPreferences sp = getSharedPreferences("UserInfo", 0);
                     boolean al = sp.getBoolean("autol", false);
                     if (!al) {
@@ -86,8 +106,8 @@ public class MenuActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        //防止ftp不销毁，会默认使用上一次的ftp
         System.exit(0);
-
     }
 
     // 添加菜单项
@@ -98,17 +118,17 @@ public class MenuActivity extends AppCompatActivity {
         map = new HashMap<>();
         map.put("title", "出库审核");
         listItems.add(map);
-//        map = new HashMap<>();
-//        map.put("title", "采购");
-//        listItems.add(map);
-//        map = new HashMap<>();
-//        map.put("title", "入库");
-//        listItems.add(map);
+        map = new HashMap<>();
+        map.put("title", "采购");
+        listItems.add(map);
+        //        map = new HashMap<>();
+        //        map.put("title", "入库");
+        //        listItems.add(map);
         map = new HashMap<>();
         map.put("title", "考勤");
         listItems.add(map);
         map = new HashMap<>();
-        map.put("title", "拍照");
+        map.put("title", "上传图片");
         listItems.add(map);
         map = new HashMap<>();
         map.put("title", "取消登录");

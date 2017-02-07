@@ -54,7 +54,7 @@ public class ChuKuDanAdapter extends BaseAdapter {
         } else {
             mHolder = (ViewHolder) convertView.getTag();
         }
-        if (getCount() != 0) {
+        if (getCount() >=position) {
             ChuKuDanInfo info = list.get(position);
             mHolder.tv.setText(info.toString());
         }

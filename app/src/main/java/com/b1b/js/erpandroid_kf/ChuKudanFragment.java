@@ -22,7 +22,7 @@ import com.b1b.js.erpandroid_kf.adapter.ChuKuDanAdapter;
 import com.b1b.js.erpandroid_kf.entity.ChuKuDanInfo;
 import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WcfUtils;
+import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONException;
 import org.ksoap2.SoapEnvelope;
@@ -155,8 +155,8 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
         properties.put("etime", etime);
         properties.put("pid", pid);
         properties.put("partNo", partNo);
-        SoapObject request = WcfUtils.getRequest(properties, "GetChuKuInfoList");
-        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
+        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuInfoList");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
         return response.toString();
     }
 

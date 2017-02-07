@@ -12,9 +12,11 @@ import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 public class MyImageUtls {
@@ -149,9 +151,37 @@ public class MyImageUtls {
      @return
      */
     public static boolean compressBitmapAtsize(String orginPath, OutputStream out, float size) {
+        try {
+            FileInputStream fis = new FileInputStream(orginPath);
+            return compressBitmapAtsize(fis, out, size);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     图片质量压缩
+     @param inputStream 图片流
+     @param out         压缩后的输出流
+     @param size        期望压缩后的大小（MB）
+     @return
+     */
+    public static boolean compressBitmapAtsize(InputStream inputStream, OutputStream out, float size) {
+        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+        return compressBitmapAtsize(bitmap, out, size);
+    }
+
+    /**
+     图片质量压缩
+     @param bitmap 图片
+     @param out    压缩后的输出流
+     @param size   期望压缩后的大小（MB）
+     @return
+     */
+    public static boolean compressBitmapAtsize(Bitmap bitmap, OutputStream out, float size) {
         boolean res = false;
         try {
-            Bitmap bitmap = BitmapFactory.decodeFile(orginPath);
             if (bitmap != null) {
                 int i = 100;
                 ByteArrayOutputStream bao = new ByteArrayOutputStream();
@@ -206,15 +236,14 @@ public class MyImageUtls {
             return null;
         int w = bitmap.getWidth();
         int h = bitmap.getHeight();
-
-        // Setting post rotate to 90
         Matrix mtx = new Matrix();
+        //设置旋转角度
         mtx.postRotate(rotate);
         return Bitmap.createBitmap(bitmap, 0, 0, w, h, mtx, true);
     }
 
     /**
-     缩放Bitmap
+     按固定宽高缩放Bitmap(会失真)
      @param src
      @param w
      @param h
@@ -247,17 +276,12 @@ public class MyImageUtls {
      */
     public static Bitmap getTransparentBitmap(Bitmap sourceImg, int number) {
         int[] argb = new int[sourceImg.getWidth() * sourceImg.getHeight()];
-
         sourceImg.getPixels(argb, 0, sourceImg.getWidth(), 0, 0, sourceImg.getWidth(), sourceImg.getHeight());// 获得图片的ARGB值
         number = number * 255 / 100;
         for (int i = 0; i < argb.length; i++) {
             argb[i] = (number << 24) | (argb[i] & 0x00FFFFFF);
         }
-
-        sourceImg = Bitmap.createBitmap(argb, sourceImg.getWidth(), sourceImg
-
-                .getHeight(), Config.ARGB_8888);
-
+        sourceImg = Bitmap.createBitmap(argb, sourceImg.getWidth(), sourceImg.getHeight(), Config.ARGB_8888);
         return sourceImg;
     }
 }

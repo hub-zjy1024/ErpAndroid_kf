@@ -20,7 +20,7 @@ import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
 import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WcfUtils;
+import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONException;
 import org.ksoap2.SoapEnvelope;
@@ -129,8 +129,8 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
         properties.put("typeid", typeId);
         properties.put("pid", pid);
         properties.put("partNo", partNo);
-        SoapObject request = WcfUtils.getRequest(properties, "GetChuKuCheckInfoByTypeID");
-        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WcfUtils.ChuKuServer);
+        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuCheckInfoByTypeID");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
         return response.toString();
     }
 
@@ -143,8 +143,8 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
         properties.put("tp", pid);//pass，0不通过，1通过
         properties.put("uname", partNo);
         properties.put("uid", partNo);
-        SoapObject request = WcfUtils.getRequest(properties, "GetSetCheckInfo");
-        SoapPrimitive response = WcfUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
+        SoapObject request = WebserviceUtils.getRequest(properties, "GetSetCheckInfo");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
         Log.e("zjy", "ChuKuActivity.java->GetChuKuTongZhiInfoList(): re" + response.toString());
         return response.toString();
     }
@@ -175,7 +175,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
         if (requestCode == 100 && resultCode == RESULT_OK) {
             pid = data.getStringExtra("result");
             edPid.setText(pid);
-            getData(1, pid, partNo);
+            getData(2, pid, partNo);
         }
     }
 }
