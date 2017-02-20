@@ -39,14 +39,14 @@
             <Button
                 android:id="@+id/kq_serach"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="30dp"
                 android:background="@drawable/btn_click"
                 android:text="查询"/>
 
             <Button
                 android:id="@+id/kq_saixuan"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="30dp"
                 android:layout_marginLeft="20dp"
                 android:background="@drawable/btn_click"
                 android:text="只看迟到和早退"/>
@@ -61,8 +61,8 @@
         android:layout_marginTop="10dp"
         android:background="@drawable/border2"
         android:divider="@drawable/listview_divider"
-        android:listSelector="@android:color/transparent"
         android:dividerHeight="1dp"
+        android:listSelector="@android:color/transparent"
         >
     </ListView>
 

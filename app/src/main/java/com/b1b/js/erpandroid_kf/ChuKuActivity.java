@@ -90,11 +90,6 @@ public class ChuKuActivity extends AppCompatActivity {
         Log.e("zjy", "ChuKuActivity.java->GetChuKuInfo(): re==" + response.toString());
         return response.toString();
     }
-//
-//    <xs:element minOccurs="0" name="checkWord" nillable="true" type="xs:string" />
-//    <xs:element minOccurs="0" name="typeid" type="xs:int" />
-//    <xs:element minOccurs="0" name="pid" nillable="true" type="xs:string" />
-//    <xs:element minOccurs="0" name="partNo" nillable="true" type="xs:string" />
 
     public static String getChuKuCheckInfoByTypeIDResult(String checkWord, int typeid, String pid, String partNo) throws IOException, XmlPullParserException {
         LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();

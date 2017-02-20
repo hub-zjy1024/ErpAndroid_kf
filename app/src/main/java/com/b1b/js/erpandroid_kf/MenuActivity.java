@@ -130,8 +130,8 @@ public class MenuActivity extends AppCompatActivity {
         map = new HashMap<>();
         map.put("title", "上传图片");
         listItems.add(map);
-        map = new HashMap<>();
-        map.put("title", "取消登录");
-        listItems.add(map);
+//        map = new HashMap<>();
+//        map.put("title", "取消登录");
+//        listItems.add(map);
     }
 }

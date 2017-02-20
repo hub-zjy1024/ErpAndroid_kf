@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/dialog_caigou_serachEt"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:hint="输入类别"/>
+
+        <Button
+            android:id="@+id/dialog_caigou_serachBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="查询"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        >
+        <RadioGroup
+            android:id="@+id/dialog_caigou_rg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/dialog_caigou_finish"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="选择完成"/>
+</LinearLayout>
+

@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sp;
     private ProgressDialog pd;
     private ProgressDialog downPd;
+    private String updateLog;
     String name;
     private boolean canStartIntent = true;
     private android.os.Handler handler = new android.os.Handler() {
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
                     HashMap<String, String> infoMap = (HashMap<String, String>) msg.obj;
                     //每次登录检查userInfo是否有变动，以免数据库更新（流量允许）
                     MyApp.id = infoMap.get("name");
+                    //登陆用户名改变，清除缓存
                     if (!sp.getString("name", "").equals(MyApp.id)) {
                         sp.edit().clear().apply();
                         //登录成功之后调用，获取相关信息
@@ -184,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                 case 7:
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle("提示");
-                    builder.setMessage("当前有新版本可用，是否更新");
+                    builder.setMessage("当前有新版本可用，是否更新?\n更新内容：\n" + updateLog);
                     builder.setCancelable(false);
                     builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
                         @Override
@@ -217,9 +219,68 @@ public class MainActivity extends AppCompatActivity {
                     });
                     builder.show();
                     break;
+                case 9:
+                    MyToast.showToast(MainActivity.this, "连接更新服务器失败");
+                    break;
+
             }
         }
     };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        edUserName = (EditText) findViewById(R.id.login_username);
+        edPwd = (EditText) findViewById(R.id.login_pwd);
+        btnLogin = (Button) findViewById(R.id.login_btnlogin);
+        btnScancode = (Button) findViewById(R.id.login_scancode);
+        cboRemp = (CheckBox) findViewById(R.id.login_rpwd);
+        cboAutol = (CheckBox) findViewById(R.id.login_autol);
+        sp = getSharedPreferences("UserInfo", 0);
+        //        getMyPhoneNumber();
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    PackageManager pm = getPackageManager();
+                    PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
+                    boolean ifUpdate = checkVersion(info.versionCode);
+                    if (ifUpdate) {
+                        handler.sendEmptyMessage(7);
+                    }
+                } catch (SocketException e) {
+                    handler.sendEmptyMessage(9);
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    handler.sendEmptyMessage(9);
+                    e.printStackTrace();
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+        readCache();
+        btnLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = edUserName.getText().toString().trim();
+                String pwd = edPwd.getText().toString().trim();
+                if (pwd.equals("") || name.equals("")) {
+                    MyToast.showToast(MainActivity.this, "请填写完整信息后再登录");
+                } else {
+                    login(name, pwd);
+                }
+            }
+        });
+        btnScancode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
+                startActivityForResult(intent, 200);
+            }
+        });
+    }
 
     private void getUserInfoDetail(final String uid) {
 
@@ -255,8 +316,9 @@ public class MainActivity extends AppCompatActivity {
         JSONObject info = jarr.getJSONObject(0);
         String cid = info.getString("CorpID");
         String did = info.getString("DeptID");
+        String name = info.getString("Name");
         sp = getSharedPreferences("UserInfo", 0);
-        sp.edit().putInt("cid", Integer.parseInt(cid)).putInt("did", Integer.valueOf(did)).apply();
+        sp.edit().putInt("cid", Integer.parseInt(cid)).putInt("did", Integer.valueOf(did)).putString("oprName", name).apply();
     }
 
     private void ifSavePwd() {
@@ -288,61 +350,6 @@ public class MainActivity extends AppCompatActivity {
         return String.format("%d.%d.%d.%d",
                 (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
                 (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        edUserName = (EditText) findViewById(R.id.login_username);
-        edPwd = (EditText) findViewById(R.id.login_pwd);
-        btnLogin = (Button) findViewById(R.id.login_btnlogin);
-        btnScancode = (Button) findViewById(R.id.login_scancode);
-        cboRemp = (CheckBox) findViewById(R.id.login_rpwd);
-        cboAutol = (CheckBox) findViewById(R.id.login_autol);
-        sp = getSharedPreferences("UserInfo", 0);
-        //        getMyPhoneNumber();
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    PackageManager pm = getPackageManager();
-                    PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
-                    boolean ifUpdate = checkVersion(info.versionCode);
-                    if (ifUpdate) {
-                        handler.sendEmptyMessage(7);
-                    }
-                } catch (SocketException e) {
-                    handler.sendEmptyMessage(2);
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    handler.sendEmptyMessage(2);
-                    e.printStackTrace();
-                } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-        readCache();
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String name = edUserName.getText().toString().trim();
-                String pwd = edPwd.getText().toString().trim();
-                if (pwd.equals("") || name.equals("")) {
-                    MyToast.showToast(MainActivity.this, "请填写完整信息后再登录");
-                } else {
-                    login(name, pwd);
-                }
-            }
-        });
-        btnScancode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
-                startActivityForResult(intent, 200);
-            }
-        });
     }
 
     @Override
@@ -466,7 +473,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public static boolean checkVersion(int localVersion) throws SocketTimeoutException, IOException {
+    /**
+     @param localVersion 当前应用的版本号
+     @return
+     @throws SocketTimeoutException
+     @throws IOException             */
+    public boolean checkVersion(int localVersion) throws SocketTimeoutException, IOException {
         boolean ifUpdate = false;
         String url = "http://192.168.10.127:8080/AppUpdate/download/readme.txt";
         URL urll = new URL(url);
@@ -482,16 +494,12 @@ public class MainActivity extends AppCompatActivity {
                 stringBuilder.append(len);
                 len = reader.readLine();
             }
-            //            byte[] bytes = stringBuilder.toString().getBytes();
-            //            String s = new String(bytes, 0, bytes.length, "GB2312");
-            //            Log.e("zjy", "MainActivity.java->checkVersion(): s==" + s);
-
             String[] info = stringBuilder.toString().split("&");
-            //            String[] info = s.split("&");
             if (info.length > 0) {
                 try {
                     if (Integer.parseInt(info[1]) > localVersion) {
                         ifUpdate = true;
+                        updateLog = info[2];
                     }
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
@@ -523,7 +531,6 @@ public class MainActivity extends AppCompatActivity {
             int hasRead = 0;
             int percent = 0;
             byte[] buf = new byte[1024];
-
             while ((len = is.read(buf)) > 0) {
                 hasRead = hasRead + len;
                 percent = (hasRead * 100) / size;

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    >
+
+    <TextView
+        android:id="@+id/caigouedit_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="采购单审核"
+        android:textSize="25sp"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="当前单据："
+            android:textSize="20sp"
+            />
+
+        <TextView
+            android:id="@+id/caigouedit_partno"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="供应商："
+            android:textSize="20sp"
+            />
+
+        <Button
+            android:id="@+id/caigouedit_provider"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="点击选择供应商"
+            android:textSize="20sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="是否取得发票："
+            android:textSize="20sp"
+            />
+
+        <CheckBox
+            android:id="@+id/caigouedit_fapiao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="入库库房选择："
+            android:textSize="20sp"
+            />
+
+        <Spinner
+            android:id="@+id/caigouedit_kufang"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/caigouedit_lv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/border2"/>
+
+    <Button
+        android:id="@+id/caigouedit_finish"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        style="@style/myButton"
+        android:text="提交所有"
+        />
+</LinearLayout>

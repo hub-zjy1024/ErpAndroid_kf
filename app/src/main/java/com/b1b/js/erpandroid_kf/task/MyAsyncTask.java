@@ -1,6 +1,7 @@
 package com.b1b.js.erpandroid_kf.task;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.entity.KaoqinInfo;
 import com.b1b.js.erpandroid_kf.utils.MyCallBack;
@@ -61,6 +62,7 @@ public class MyAsyncTask extends AsyncTask<String, Void, List> {
         try {
             SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "MyBasicServer.svc");
             if (response != null) {
+                Log.e("zjy", "MyAsyncTask.java->doInBackground(): res==" + response);
                 List<KaoqinInfo> kqList = MyJsonUtils.getKaoQinList(response.toString());
                 return kqList;
             }

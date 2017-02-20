@@ -13,11 +13,17 @@
     </style>
 
     <style name="dialog_coustom" parent="android:Theme.Dialog">
+        <item name="android:background">#E8E8E8</item>
         <item name="android:backgroundDimAmount">0.5</item>
         <item name="android:backgroundDimEnabled">true</item>
         <item name="android:windowFrame">@null</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowIsFloating">true</item>
+    </style>
+    <style name="myButton">
+        <item name="android:background">@drawable/btn_click</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">35dp</item>
     </style>
 
 </resources>

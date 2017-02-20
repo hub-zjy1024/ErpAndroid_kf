@@ -3,4 +3,18 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <array name="storage_name">
+        <item>测试</item>
+        <item>云岗库房</item>
+        <item>深圳赛格</item>
+        <item>香港库房</item>
+        <item>北京中转库</item>
+    </array>
+    <array name="storage_id">
+        <item>1</item>
+        <item>100</item>
+        <item>102</item>
+        <item>110</item>
+        <item>123</item>
+    </array>
 </resources>

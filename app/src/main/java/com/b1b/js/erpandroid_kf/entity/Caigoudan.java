@@ -11,13 +11,22 @@ public class Caigoudan {
     //            "采购员": "管理员",
     //            "型号": "TEST20170206003【10】"
     private String state;
-
-
     private String pid;
     private String createdDate;
     private String yewuName;
     private String caigouName;
     private String partNo;
+
+    @Override
+    public String toString() {
+        return
+                " 单据号=" + pid + "\n" +
+                        " 单据状态=" + state + "\n" +
+                        " 制单时间=" + createdDate + "\n" +
+                        " 业务员=" + yewuName + "\n" +
+                        " 采购员=" + caigouName + "\n" +
+                        " 型号=" + partNo;
+    }
 
     public Caigoudan() {
     }

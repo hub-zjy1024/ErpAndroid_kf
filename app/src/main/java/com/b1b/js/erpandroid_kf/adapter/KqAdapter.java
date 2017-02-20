@@ -63,7 +63,6 @@ public class KqAdapter extends BaseAdapter {
         //记得检查list集合中是否有数据
         if (getCount() != 0) {
             KaoqinInfo kqi = list.get(position);
-
             holder.id.setText("id:" + kqi.getEmpId());
             holder.name.setText("姓名:" + kqi.getEmpName());
             holder.date.setText("日期:" + kqi.getDate());

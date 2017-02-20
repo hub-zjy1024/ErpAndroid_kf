@@ -89,15 +89,15 @@ public class WebserviceUtils {
 
     /**
      @param request
-     @param EnvolopeVesion {@link org.ksoap2.SoapEnvelope}
+     @param envolopeVesion {@link org.ksoap2.SoapEnvelope}
      @param soapAction
      @param resultUrl      HttpTransportSE中的url
      @return
      @throws IOException
      @throws XmlPullParserException
      */
-    public static SoapSerializationEnvelope getEnvelope(SoapObject request, int EnvolopeVesion, String soapAction, String resultUrl) throws IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(EnvolopeVesion);
+    public static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String soapAction, String resultUrl) throws IOException, XmlPullParserException {
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVesion);
         envelope.dotNet = true;
         //       envelope.bodyOut = request;
         envelope.setOutputSoapObject(request);
@@ -110,14 +110,14 @@ public class WebserviceUtils {
 
     /**
      @param request        返回Envelope对象
-     @param EnvolopeVesion {@link org.ksoap2.SoapEnvelope}
+     @param envolopeVesion {@link org.ksoap2.SoapEnvelope}
      @param serviceName
      @return
      @throws IOException
      @throws XmlPullParserException
      */
-    private static SoapSerializationEnvelope getEnvelope(SoapObject request, int EnvolopeVesion, String serviceName) throws IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(EnvolopeVesion);
+    private static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String serviceName) throws IOException, XmlPullParserException {
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVesion);
         envelope.dotNet = true;
         //       envelope.bodyOut = request;
         envelope.setOutputSoapObject(request);
@@ -130,27 +130,27 @@ public class WebserviceUtils {
 
     /**
      @param request
-     @param EnvolopeVesion {@link org.ksoap2.SoapEnvelope}
+     @param envolopeVesion {@link org.ksoap2.SoapEnvelope}
      @param serviceName    以svc结尾的service名称
      @return
      @throws IOException
      @throws XmlPullParserException
      */
-    public static SoapObject getSoapObjResponse(SoapObject request, int EnvolopeVesion, String serviceName) throws IOException, XmlPullParserException {
-        SoapObject sob = (SoapObject) getEnvelope(request, EnvolopeVesion, serviceName).bodyIn;
+    public static SoapObject getSoapObjResponse(SoapObject request, int envolopeVesion, String serviceName) throws IOException, XmlPullParserException {
+        SoapObject sob = (SoapObject)( getEnvelope(request, envolopeVesion, serviceName).bodyIn);
         return sob;
     }
 
     /**
      @param request
-     @param EnvolopeVesion {@link org.ksoap2.SoapEnvelope}
+     @param envolopeVesion {@link org.ksoap2.SoapEnvelope}
      @param serviceName    以svc结尾的service名称
      @return
      @throws IOException
      @throws XmlPullParserException
      */
-    public static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, int EnvolopeVesion, String serviceName) throws IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = getEnvelope(request, EnvolopeVesion, serviceName);
+    public static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, int envolopeVesion, String serviceName) throws IOException, XmlPullParserException {
+        SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName);
         SoapPrimitive sob = (SoapPrimitive) envelope.getResponse();
         return sob;
     }

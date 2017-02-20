@@ -88,7 +88,7 @@ public class FtpUpFile {
     private void connectAndLogin(String name, String password, String ftpUrl) throws IOException {
         ftpClient.connect(ftpUrl, defaultPort);
         isConnected = ftpClient.login(name, password);
-        Log.e("MyError", "FtpUpFile>>connectAndLogin()->>=connectSuccess");
+        Log.e("zjy", "FtpUpFile.java->connectAndLogin(): connSuccess");
         ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
         ftpClient.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
         ftpClient.enterLocalPassiveMode();

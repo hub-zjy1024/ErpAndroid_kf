@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/dialog_insert_leibie"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:hint="输入类别过滤"/>
+
+        <Button
+            android:id="@+id/dialog_insert_search"
+            style="@style/myButton"
+            android:text="搜索"/>
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/dialog_insert_lv"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="1dp"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/dialog_insert_money"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="请输入进价"
+                />
+
+            <EditText
+                android:id="@+id/dialog_insert_pihao"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="请输入批号"
+                />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/dialog_insert_commit"
+            style="@style/myButton"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="50dp"
+            android:text="完成"/>
+    </LinearLayout>
+</LinearLayout>

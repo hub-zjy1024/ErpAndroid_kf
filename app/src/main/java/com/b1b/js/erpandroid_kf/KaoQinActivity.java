@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,18 +14,10 @@ import com.b1b.js.erpandroid_kf.entity.KaoqinInfo;
 import com.b1b.js.erpandroid_kf.task.MyAsyncTask;
 import com.b1b.js.erpandroid_kf.utils.MyCallBack;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 public class KaoQinActivity extends AppCompatActivity {
@@ -66,23 +57,8 @@ public class KaoQinActivity extends AppCompatActivity {
         inputDate.setText(getCurrentDate());
         adapter = new KqAdapter(KaoQinActivity.this, data);
         listView.setAdapter(adapter);
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
-                map.put("selValue", "10");
-                SoapObject request = WebserviceUtils.getRequest(map, "GetXinHaoManageInfo");
-                try {
-                    SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.MartService);
-                    Log.e("zjy", "KaoQinActivity.java->run(): ==" + response.toString());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
+        //GetXinHaoManageInfo
+
         btnSaixuan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

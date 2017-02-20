@@ -7,7 +7,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -204,7 +203,6 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
                         sttime = tvStime.getText().toString();
                         endtime = tvStime.getText().toString();
                     }
-                    Log.e("zjy", "ChuKudanFragment.java->onClick(): stime==" + sttime + "\tetime" + endtime);
                     getData(MyApp.id, partNo, pid, sttime, endtime);
                 } else {
                     MyToast.showToast(getActivity(), "请稍后，上次查询还未完成");

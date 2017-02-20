@@ -189,7 +189,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             }
         };
 
-        attachToSensor();
+        attachToSensor(mOrientationListener);
         //获取surfaceholder
         mHolder = surfaceView.getHolder();
         mHolder.setKeepScreenOn(true);
@@ -312,7 +312,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 strs[i] = item;
             }
             AlertDialog.Builder dialog = new AlertDialog.Builder(TakePicActivity.this);
-            //            dialog.setIcon(android.R.drawable.ic_dialog_info);//窗口头图标
             dialog.setTitle("选择照片大小");//窗口名
             dialog.setSingleChoiceItems(strs, 0, new DialogInterface.OnClickListener() {
                         @Override
@@ -326,7 +325,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 public void onClick(DialogInterface dialog, int which) {
                     int width = picSize.get(itemPosition).width;
                     int height = picSize.get(itemPosition).height;
-                    Log.e("zjy", "TakePicActivity.java->onClick(): width==" + width + "\t" + height);
+                    Log.e("zjy", "TakePicActivity.java->selectSize: width==" + width + "\t" + height);
                     parameters.setPictureSize(width, height);
                     camera.setParameters(parameters);
                 }
@@ -356,8 +355,9 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
 
     /**
      添加屏幕旋转监听
+     * @param mOrientationListener
      */
-    private void attachToSensor() {
+    private void attachToSensor(OrientationEventListener mOrientationListener) {
         if (mOrientationListener.canDetectOrientation()) {
             mOrientationListener.enable();
         } else {
@@ -578,6 +578,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onResume() {
         super.onResume();
-        attachToSensor();
+        attachToSensor(mOrientationListener);
     }
 }
