@@ -7,9 +7,9 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
+
     <style name="AppSplash" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@mipmap/appsplash</item>
-        <item name="android:windowNoTitle">true</item>
     </style>
 
     <style name="dialog_coustom" parent="android:Theme.Dialog">
@@ -20,10 +20,15 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowIsFloating">true</item>
     </style>
+
     <style name="myButton">
         <item name="android:background">@drawable/btn_click</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">35dp</item>
     </style>
 
+    <style name="anim_popup_dir">
+        <item name="android:windowEnterAnimation">@anim/slide_in</item>
+        <item name="android:windowExitAnimation">@anim/slide_out</item>
+    </style>
 </resources>

@@ -30,19 +30,45 @@ public class MyImageUtls {
     public static Bitmap getSmallBitmap(String filePath, int targetWidth, int targetHeight) {
         Options opt = new Options();
         opt.inJustDecodeBounds = true;
-
-        Bitmap temp = BitmapFactory.decodeFile(filePath, opt);
-
+        BitmapFactory.decodeFile(filePath, opt);
         int sampleSize = getSimpleSize(opt, targetWidth, targetHeight);
         opt.inSampleSize = sampleSize;
         opt.inJustDecodeBounds = false;
         Bitmap newBitmap = BitmapFactory.decodeFile(filePath, opt);
-        Log.e("zjy", "MyImageUtls,getSmallBitmap(): scal==" + opt.inSampleSize);
+        Log.e("zjy", "MyImageUtls,getMySmallBitmap(): scal==" + opt.inSampleSize);
         if (newBitmap == null) {
             return null;
         }
         int degree = readBitmapDegreeByExif(filePath);
         Bitmap bm = rotateBitmap(newBitmap, degree);
+        return newBitmap;
+    }
+    public static Bitmap getSmallBitmap(InputStream inputStream, int targetWidth, int targetHeight) {
+        Options opt = new Options();
+        opt.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(inputStream,null,opt);
+        int sampleSize = getSimpleSize(opt, targetWidth, targetHeight);
+        opt.inSampleSize = sampleSize;
+        opt.inJustDecodeBounds = false;
+        Bitmap newBitmap = BitmapFactory.decodeStream(inputStream,null, opt);
+        Log.e("zjy", "MyImageUtls,getMySmallBitmap(): scal==" + opt.inSampleSize);
+        if (newBitmap == null) {
+            return null;
+        }
+        return newBitmap;
+    }
+
+    public static Bitmap getMySmallBitmap(String filePath, int targetWidth, int targetHeight) throws OutOfMemoryError {
+        Options opt = new Options();
+        opt.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filePath, opt);
+        int sampleSize = getSimpleSize(opt, targetWidth, targetHeight);
+        opt.inSampleSize = sampleSize;
+        opt.inJustDecodeBounds = false;
+        Bitmap newBitmap = BitmapFactory.decodeFile(filePath, opt);
+        if (newBitmap == null) {
+            return null;
+        }
         return newBitmap;
     }
 
@@ -62,6 +88,7 @@ public class MyImageUtls {
             float heightScale = (float) defHeight / targetWidth;
             resultScale = Math.min(widthScale, heightScale);
         }
+        Log.e("zjy", "MyImageUtls.java->getSimpleSize(): scale==" + Math.round(resultScale));
         return Math.round(resultScale);
     }
 
@@ -150,14 +177,9 @@ public class MyImageUtls {
      @param size      期望压缩后的大小（MB）
      @return
      */
-    public static boolean compressBitmapAtsize(String orginPath, OutputStream out, float size) {
-        try {
-            FileInputStream fis = new FileInputStream(orginPath);
-            return compressBitmapAtsize(fis, out, size);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        return false;
+    public static boolean compressBitmapAtsize(String orginPath, OutputStream out, float size) throws IOException {
+        FileInputStream fis = new FileInputStream(orginPath);
+        return compressBitmapAtsize(fis, out, size);
     }
 
     /**
@@ -167,7 +189,7 @@ public class MyImageUtls {
      @param size        期望压缩后的大小（MB）
      @return
      */
-    public static boolean compressBitmapAtsize(InputStream inputStream, OutputStream out, float size) {
+    public static boolean compressBitmapAtsize(InputStream inputStream, OutputStream out, float size) throws IOException, OutOfMemoryError {
         Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
         return compressBitmapAtsize(bitmap, out, size);
     }
@@ -179,28 +201,38 @@ public class MyImageUtls {
      @param size   期望压缩后的大小（MB）
      @return
      */
-    public static boolean compressBitmapAtsize(Bitmap bitmap, OutputStream out, float size) {
+    public static boolean compressBitmapAtsize(Bitmap bitmap, OutputStream out, float size) throws IOException {
         boolean res = false;
-        try {
-            if (bitmap != null) {
-                int i = 100;
-                ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        if (bitmap != null) {
+            int i = 100;
+            ByteArrayOutputStream bao = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, i, bao);
+            while ((float) (bao.toByteArray().length) / 1024 / 1024 > size) {
+                bao.reset();
+                i -= 10;
                 bitmap.compress(Bitmap.CompressFormat.JPEG, i, bao);
-                while ((float) (bao.toByteArray().length) / 1024 / 1024 > size) {
-                    bao.reset();
-                    i -= 10;
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, i, bao);
-                }
-                out.write(bao.toByteArray());
-                res = true;
             }
-            return res;
-        } catch (OutOfMemoryError e) {
-            Log.e("zjy", "MyImageUtls.java->compressBitmapAtsize(): oom==" + e.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("zjy", "MyImageUtls.java->compressBitmapAtsize(): rate==" + i);
+            out.write(bao.toByteArray());
+            res = true;
         }
-        return false;
+        return res;
+    }
+
+    public static byte[] compressBitmapAtsize(Bitmap bitmap, float size) {
+        if (bitmap != null) {
+            int i = 100;
+            ByteArrayOutputStream bao = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, i, bao);
+            while ((float) (bao.toByteArray().length) / 1024 / 1024 > size) {
+                bao.reset();
+                i -= 10;
+                bitmap.compress(Bitmap.CompressFormat.JPEG, i, bao);
+            }
+            Log.e("zjy", "MyImageUtls.java->compressBitmapAtsize(): rate==" + i);
+            return bao.toByteArray();
+        }
+        return null;
     }
 
     /**
@@ -283,5 +315,14 @@ public class MyImageUtls {
         }
         sourceImg = Bitmap.createBitmap(argb, sourceImg.getWidth(), sourceImg.getHeight(), Config.ARGB_8888);
         return sourceImg;
+    }
+
+    public static int px2dp(Context mContext, float px) {
+        float scale = mContext.getResources().getDisplayMetrics().density;
+        return (int) (px / scale + 0.5f);
+    }
+    public static int dp2px(Context context, float dp) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (dp * scale + 0.5f);
     }
 }

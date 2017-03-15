@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -40,7 +39,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
     private EditText edPartno;
     private String pid;
     private String partNo;
-    private CheckInfoAdapter adapter;
+    private CheckInfoAdapter mAdapter;
     private List<CheckInfo> data = new ArrayList<>();
     private int checkId = 1;
     private Button btnSearch;
@@ -52,12 +51,16 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case 0:
-                    adapter.notifyDataSetChanged();
-                    MyToast.showToast(CheckActivity.this, "查询成功");
+                    mAdapter.notifyDataSetChanged();
+                    MyToast.showToast(CheckActivity.this, "查询到" + data.size() + "条数据");
                     break;
                 case 1:
-                    adapter.notifyDataSetChanged();
+                    mAdapter.notifyDataSetChanged();
                     MyToast.showToast(CheckActivity.this, "请输入正确的查询条件");
+                    break;
+                case 2:
+                    mAdapter.notifyDataSetChanged();
+                    MyToast.showToast(CheckActivity.this, "查询失败，网络状态不佳");
                     break;
             }
         }
@@ -85,7 +88,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                 }
             }
         });
-        adapter = new CheckInfoAdapter(data, this);
+        mAdapter = new CheckInfoAdapter(data, this);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -94,8 +97,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                 startActivity(intent);
             }
         });
-        lv.setAdapter(adapter);
-//      getData(1, "", "");
+        lv.setAdapter(mAdapter);
     }
 
     public void getData(final int typeId, final String pid, final String partNo) {
@@ -104,14 +106,14 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void run() {
                 try {
-                    String json = getChuKuCheckInfoByTypeID(typeId, pid, partNo);
+                    String json = getChuKuCheckInfoByTypeID(typeId, pid, partNo,MyApp.id);
                     List<CheckInfo> list = MyJsonUtils.getCheckInfo(json);
                     if (list != null && list.size() > 0) {
                         data.addAll(list);
                         mHandler.sendEmptyMessage(0);
                     }
                 } catch (IOException e) {
-                    mHandler.sendEmptyMessage(1);
+                    mHandler.sendEmptyMessage(2);
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
@@ -123,29 +125,15 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
         }.start();
     }
 
-    private String getChuKuCheckInfoByTypeID(int typeId, String pid, String partNo) throws IOException, XmlPullParserException {
+    private String getChuKuCheckInfoByTypeID(int typeId, String pid, String partNo,String uid) throws IOException, XmlPullParserException {
         LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
         properties.put("checkWord", "");
         properties.put("typeid", typeId);
         properties.put("pid", pid);
         properties.put("partNo", partNo);
+        properties.put("uid", uid);
         SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuCheckInfoByTypeID");
         SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
-        return response.toString();
-    }
-
-    private String GetSetCheckInfo(String checkWord, String uid, String stime, String etime, String pid, String partNo) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
-        properties.put("checkWord", checkWord);
-        properties.put("t", uid);
-        properties.put("info", stime);
-        properties.put("pid", etime);
-        properties.put("tp", pid);//pass，0不通过，1通过
-        properties.put("uname", partNo);
-        properties.put("uid", partNo);
-        SoapObject request = WebserviceUtils.getRequest(properties, "GetSetCheckInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, "ChuKuServer.svc");
-        Log.e("zjy", "ChuKuActivity.java->GetChuKuTongZhiInfoList(): re" + response.toString());
         return response.toString();
     }
 
@@ -156,12 +144,12 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                 pid = edPid.getText().toString().trim();
                 partNo = edPartno.getText().toString().trim();
                 data.clear();
-                adapter.notifyDataSetChanged();
+                mAdapter.notifyDataSetChanged();
                 getData(2, pid, partNo);
                 break;
             case R.id.check_btn_scancode:
                 data.clear();
-                adapter.notifyDataSetChanged();
+                mAdapter.notifyDataSetChanged();
                 Intent intent = new Intent(CheckActivity.this, CaptureActivity.class);
                 startActivityForResult(intent, 100);
                 break;
@@ -175,6 +163,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
         if (requestCode == 100 && resultCode == RESULT_OK) {
             pid = data.getStringExtra("result");
             edPid.setText(pid);
+            partNo = edPartno.getText().toString().trim();
             getData(2, pid, partNo);
         }
     }

@@ -1,7 +1,5 @@
 <resources>
     <string name="app_name">大赢家kf</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <array name="storage_name">
         <item>测试</item>
@@ -17,4 +15,13 @@
         <item>110</item>
         <item>123</item>
     </array>
+    <array name="jiezhang_type">
+        <item>现金</item>
+        <item>支票</item>
+        <item>现金电汇</item>
+        <item>账号电汇</item>
+        <item>美金</item>
+    </array>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
 </resources>

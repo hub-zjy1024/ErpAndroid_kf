@@ -1,12 +1,10 @@
 package com.b1b.js.erpandroid_kf.entity;
 
-import com.b1b.js.erpandroid_kf.utils.T;
-
 /**
  * Created by js on 2016/12/27.
  */
 
-public class KaoqinInfo extends T{
+public class KaoqinInfo{
     //    "EmployeeID": "100",
 //            "员工": "朱强",
 //            "考勤年月": "20161101",

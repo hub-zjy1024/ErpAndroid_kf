@@ -83,6 +83,7 @@
         android:listSelector="@android:color/transparent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@drawable/border2"
         android:divider="@drawable/divider"
         android:dividerHeight="1dp"/>
 

@@ -1,5 +1,7 @@
 package com.b1b.js.erpandroid_kf;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,7 +32,7 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
     private EditText edInfo;
     private Button btnAddPhoto;
     private String pid;
-
+    private Button btnViewPic;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -56,11 +58,11 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
         btnFail = (Button) findViewById(R.id.setcheckinfo_fail);
         edInfo = (EditText) findViewById(R.id.setcheckinfo_ed_info);
         btnAddPhoto = (Button) findViewById(R.id.setcheckinfo_photo);
-
+        btnViewPic = (Button) findViewById(R.id.setcheckinfo_viewpic);
+        btnViewPic.setOnClickListener(this);
         btnAddPhoto.setOnClickListener(this);
         btnCommit.setOnClickListener(this);
         btnFail.setOnClickListener(this);
-
         Intent intent = getIntent();
         pid = intent.getStringExtra("pid");
         if (pid != null) {
@@ -101,9 +103,10 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                     msg.what = 0;
                     mHandler.sendMessage(msg);
                 } catch (IOException e) {
-                    mHandler.sendEmptyMessage(0);
+                    mHandler.sendEmptyMessage(1);
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
+                    mHandler.sendEmptyMessage(1);
                     e.printStackTrace();
                 }
 
@@ -119,8 +122,8 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
         switch (v.getId()) {
             case R.id.setcheckinfo_fail:
                 try {
-                    if (info.equals("")) {
-                        MyToast.showToast(SetCheckInfoActivity.this, "请输入审核信息");
+                    if ("".equals(info)) {
+                        MyToast.showToast(SetCheckInfoActivity.this, "请输入不通过原因");
                         return;
                     }
                     getSetCheckInfo(1, info, pid, 1, "", MyApp.id);
@@ -132,9 +135,8 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                 break;
             case R.id.setcheckinfo_commit:
                 try {
-                    if (info.equals("")) {
-                        MyToast.showToast(SetCheckInfoActivity.this, "请输入审核信息");
-                        return;
+                    if ("".equals(info)) {
+                        info = "通过";
                     }
                     getSetCheckInfo(2, info, pid, 0, "", MyApp.id);
                 } catch (IOException e) {
@@ -144,11 +146,31 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                 }
                 break;
             case R.id.setcheckinfo_photo:
-                Intent intent = new Intent(SetCheckInfoActivity.this, TakePicActivity.class);
+                AlertDialog.Builder builder = new AlertDialog.Builder(SetCheckInfoActivity.this);
+                builder.setItems(new String[]{"拍照", "从手机选择"}, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0:
+                                Intent intent1 = new Intent(SetCheckInfoActivity.this, TakePicActivity.class);
+                                intent1.putExtra("pid", pid);
+                                startActivity(intent1);
+                                break;
+                            case 1:
+                                Intent intent2 = new Intent(SetCheckInfoActivity.this, ObtainPicFromPhone.class);
+                                intent2.putExtra("pid", pid);
+                                startActivity(intent2);
+                                break;
+                        }
+                    }
+                });
+                builder.create().show();
+                break;
+            case R.id.setcheckinfo_viewpic:
+                Intent intent = new Intent(SetCheckInfoActivity.this, ViewPicByPidActivity.class);
                 intent.putExtra("pid", pid);
                 startActivity(intent);
                 break;
-
         }
     }
 }

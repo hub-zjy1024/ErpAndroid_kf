@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/activity_view_pic_by_pid"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/view_pic_edpid"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:hint="请输入单据号"
+            android:inputType="date"
+            android:maxLines="1"/>
+
+        <Button
+            android:id="@+id/view_pic_btn_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="搜索"/>
+    </LinearLayout>
+
+    <GridView
+        android:id="@+id/view_pic_gv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:columnWidth="200dp"
+        android:gravity="center"
+        android:numColumns="2"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="2dp">
+    </GridView>
+</LinearLayout>

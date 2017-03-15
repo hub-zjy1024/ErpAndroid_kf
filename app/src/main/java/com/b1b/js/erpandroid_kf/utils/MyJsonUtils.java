@@ -17,32 +17,6 @@ import java.util.List;
  */
 
 public class MyJsonUtils {
-    public static List<? extends T> json2Array(String json, T entity, String[] strs) throws JSONException {
-        JSONObject object = new JSONObject(json);
-        JSONArray array = object.getJSONArray("表");
-        if (entity instanceof KaoqinInfo) {
-            KaoqinInfo kqi = (KaoqinInfo) entity;
-            List<KaoqinInfo> list = new ArrayList<>();
-            for (int i = 0; i < array.length(); i++) {
-                JSONObject obj = array.getJSONObject(i);
-                kqi = new KaoqinInfo();
-                kqi.setEmpId(obj.getString(strs[0]));
-                kqi.setEmpName(obj.getString(strs[0]));
-                kqi.setDate(obj.getString(strs[0]));
-                kqi.setState(obj.getString(strs[0]));
-                kqi.setStartTime(obj.getString(strs[0]));
-                kqi.setEndTime(obj.getString(strs[0]));
-                kqi.setStartIp(obj.getString(strs[0]));
-                kqi.setEndIp(obj.getString(strs[0]));
-                list.add(kqi);
-            }
-            return list;
-        } else if (entity instanceof ChukuTongZhiInfo) {
-            ChukuTongZhiInfo Chuku = (ChukuTongZhiInfo) entity;
-        }
-
-        return null;
-    }
 
     //"EmployeeID": "100",
 //"员工": "朱强",
@@ -119,9 +93,7 @@ public class MyJsonUtils {
             cktz.setFengzhuang(obj.getString("封装"));
             cktz.setDescription(obj.getString("描述"));
             list.add(cktz);
-
         }
-
         return list;
     }
 

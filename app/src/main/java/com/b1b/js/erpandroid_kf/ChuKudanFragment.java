@@ -66,12 +66,17 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == 0) {
+                List<ChuKuDanInfo> list = (List<ChuKuDanInfo>) msg.obj;
+                data.addAll(list);
                 adapter.notifyDataSetChanged();
                 isFinish = true;
                 MyToast.showToast(getActivity(), "查询到" + data.size() + "条数据");
             } else if (msg.what == 1) {
                 isFinish = true;
                 MyToast.showToast(getActivity(), "查询条件有误");
+            } else if (msg.what == 2) {
+                isFinish = true;
+                MyToast.showToast(getActivity(), "当前网络质量较差，查询失败");
             }
         }
     };
@@ -131,10 +136,11 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
                     String json = getGetChuKuInfoList("", uid, stime, etime, pid, partNo);
                     List<ChuKuDanInfo> list = MyJsonUtils.getCKDList(json);
                     if (list != null && list.size() > 0) {
-                        data.addAll(list);
-                        handler.sendEmptyMessage(0);
+                        Message msg = handler.obtainMessage(0, list);
+                        handler.sendMessage(msg);
                     }
                 } catch (IOException e) {
+                    handler.sendEmptyMessage(2);
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();

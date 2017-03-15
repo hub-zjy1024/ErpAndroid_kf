@@ -44,10 +44,10 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 
 /**
- This activity opens the camera and does the actual scanning on a background
- thread. It draws a viewfinder to help the user place the barcode correctly,
+ This activity opens the camera and does the actual scanning on data background
+ thread. It draws data viewfinder to help the user place the barcode correctly,
  shows feedback as the image processing is happening, and then overlays the
- results when a scan is successful.
+ results when data scan is successful.
  @author dswitkin@google.com (Daniel Switkin)
  @author Sean Owen */
 public final class CaptureActivity extends Activity implements SurfaceHolder.Callback {
@@ -153,7 +153,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         if (holder == null) {
-            Log.e(TAG, "*** WARNING *** surfaceCreated() gave us a null surface!");
+            Log.e(TAG, "*** WARNING *** surfaceCreated() gave us data null surface!");
         }
         if (!isHasSurface) {
             isHasSurface = true;
@@ -203,7 +203,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
         try {
             cameraManager.openDriver(surfaceHolder);
-            // Creating the handler starts the preview, which can also throw a
+            // Creating the handler starts the preview, which can also throw data
             // RuntimeException.
             if (handler == null) {
                 handler = new CaptureActivityHandler(this, cameraManager, DecodeThread.ALL_MODE);

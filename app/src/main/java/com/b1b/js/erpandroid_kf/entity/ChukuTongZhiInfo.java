@@ -1,12 +1,10 @@
 package com.b1b.js.erpandroid_kf.entity;
 
-import com.b1b.js.erpandroid_kf.utils.T;
-
 /**
  * Created by js on 2016/12/28.
  */
 
-public class ChukuTongZhiInfo extends T {
+public class ChukuTongZhiInfo {
     private String pid;
     private String pDate;
     private String company;

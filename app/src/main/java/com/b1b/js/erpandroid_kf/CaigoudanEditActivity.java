@@ -2,6 +2,7 @@ package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -113,7 +114,23 @@ public class CaigoudanEditActivity extends AppCompatActivity {
                     break;
                 case 6:
                     insertAdapter.notifyDataSetChanged();
-                    MyToast.showToast(CaigoudanEditActivity.this, "插入进价和批号成功,2秒后回退到采购单页面");
+                    MyToast.showToast(CaigoudanEditActivity.this, "插入成功");
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(CaigoudanEditActivity.this);
+                    builder.setTitle("提示");
+                    builder.setMessage("插入成功,是否返回");
+                    builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    });
+                    builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    builder.show();
                     mHandler.sendEmptyMessageDelayed(10, 2000);
                     break;
                 case 7:
@@ -158,7 +175,6 @@ public class CaigoudanEditActivity extends AppCompatActivity {
                 if (position < insertData.size()) {
                     Log.e("zjy", "CaigoudanEditActivity.java->onClick(): position==" + position);
                     final InsertDetialInfo info = insertData.get(position);
-                    Log.e("zjy", "CaigoudanEditActivity.java->onClick(): ==" + info.toString());
                     AlertDialog.Builder builder = new AlertDialog.Builder(CaigoudanEditActivity.this);
                     final AlertDialog providerDialog = builder.create();
                     View view = LayoutInflater.from(CaigoudanEditActivity.this).inflate(R.layout.dialog_insert_info, null);
@@ -215,7 +231,7 @@ public class CaigoudanEditActivity extends AppCompatActivity {
                                     }
                                 }
                             } catch (NumberFormatException e) {
-                                MyToast.showToast(CaigoudanEditActivity.this, "请输入整数或小数");
+                                MyToast.showToast(CaigoudanEditActivity.this, "采购价格只能输入整数或小数");
                                 e.printStackTrace();
                                 return;
                             }
@@ -249,14 +265,9 @@ public class CaigoudanEditActivity extends AppCompatActivity {
         btnProvider.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //                PopupWindow popupWindow = new PopupWindow();
-                //                View view = LayoutInflater.from(CaigoudanEditActivity.this).inflate(R.layout.popwindow_view, null);
-                //                ListView listView = (ListView) view.findViewById(R.id.pop_lv);
-                //                popupWindow.showAtLocation(btnProvider, Gravity.CENTER, 0, 0);
                 AlertDialog.Builder builder = new AlertDialog.Builder(CaigoudanEditActivity.this);
                 final AlertDialog providerDialog = builder.create();
                 View view = LayoutInflater.from(CaigoudanEditActivity.this).inflate(R.layout.popwindow_view, null);
-                //                view.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 500));
                 providerDialog.setView(view);
                 providerDialog.show();
                 ListView listView = (ListView) view.findViewById(R.id.popwindow_lv);
@@ -314,9 +325,11 @@ public class CaigoudanEditActivity extends AppCompatActivity {
                     MyToast.showToast(CaigoudanEditActivity.this, "请选择供应商");
                     return;
                 }
-                String hasFapiao = "0";
+                String hasFapiao;
                 if (cboHasFapiao.isChecked()) {
                     hasFapiao = "1";
+                } else {
+                    hasFapiao = "0";
                 }
                 final String fapiao = hasFapiao;
                 final String providerId = currentProviderInfo.getId();
@@ -410,7 +423,6 @@ public class CaigoudanEditActivity extends AppCompatActivity {
                 SoapObject request = WebserviceUtils.getRequest(map, "GetXinHaoManageInfo");
                 try {
                     SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.MartService);
-                    Log.e("zjy", "CaigoudanEditActivity.java->run(): response==" + response);
                     JSONObject obj = new JSONObject(response.toString());
                     JSONArray jsonArray = obj.getJSONArray("表");
                     for (int i = 0; i < jsonArray.length(); i++) {
@@ -512,7 +524,6 @@ public class CaigoudanEditActivity extends AppCompatActivity {
                     } else {
                         mHandler.sendEmptyMessage(5);
                     }
-                    Log.e("zjy", "CaigoudanEditActivity.java->run(): response==" + response.toString());
                 } catch (IOException e) {
                     mHandler.sendEmptyMessage(5);
                     e.printStackTrace();
@@ -555,7 +566,7 @@ public class CaigoudanEditActivity extends AppCompatActivity {
             } else {
                 mHandler.sendEmptyMessage(7);
             }
-            Log.e("zjy", "CaigoudanEditActivity.java->run(): response==" + response.toString());
+            Log.e("zjy", "CaigoudanEditActivity.java->insertMartStockInfo(): response==" + response.toString());
         } catch (IOException e) {
             mHandler.sendEmptyMessage(7);
             e.printStackTrace();
@@ -619,7 +630,6 @@ public class CaigoudanEditActivity extends AppCompatActivity {
         providerInfos.clear();
         providerList.clear();
         getMyProvider("", MyApp.id, did, "");
-
     }
 }
 

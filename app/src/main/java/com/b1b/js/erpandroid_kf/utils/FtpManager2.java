@@ -4,21 +4,20 @@ import android.util.Log;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
  ftp上传文件工具类
- 最好使用单例模式，保证不出错
  Created by 张建宇 on 2016/12/19. */
-public class FtpUpFile {
-    private static FtpUpFile ftpUpFile;
+public class FtpManager2 {
+    private static FtpManager2 ftpManager;
 
-    private FtpUpFile() {
+    private FtpManager2() {
 
     }
 
@@ -29,18 +28,18 @@ public class FtpUpFile {
      @param port     ftp端口
      @return
      */
-    public static FtpUpFile getFtpUpFile(String name, String password, String ftpUrl, int port) {
-        if (ftpUpFile == null) {
-            ftpUpFile = new FtpUpFile(name, password, ftpUrl, port);
-            Log.e("zjy", "FtpUpFile.java->getFtpUpFile(): first create ftp");
+    public static FtpManager2 getFtpManager(String name, String password, String ftpUrl, int port) {
+        if (ftpManager == null) {
+            ftpManager = new FtpManager2(name, password, ftpUrl, port);
+            Log.e("zjy", "FtpManager.java->getFtpManager(): first create ftp");
         } else {
-            Log.e("zjy", "FtpUpFile.java->getFtpUpFile(): use last ftp");
+            Log.e("zjy", "FtpManager.java->getFtpManager(): use last ftp");
         }
-        return ftpUpFile;
+        return ftpManager;
     }
 
     public static void storeNull() {
-        ftpUpFile = null;
+        ftpManager = null;
     }
 
     /**
@@ -67,7 +66,7 @@ public class FtpUpFile {
      @param password 密码
      @param ftpUrl   Ftp地址
      */
-    private FtpUpFile(String name, String password, String ftpUrl) {
+    public FtpManager2(String name, String password, String ftpUrl) {
         this.password = password;
         this.name = name;
         this.ftpUrl = ftpUrl;
@@ -80,15 +79,15 @@ public class FtpUpFile {
      @param ftpUrl   Ftp地址
      @param port     端口（默认21可以直接使用不带port参数的构造方法）
      */
-    private FtpUpFile(String name, String password, String ftpUrl, int port) {
+    public FtpManager2(String name, String password, String ftpUrl, int port) {
         this(name, password, ftpUrl);
         this.defaultPort = port;
     }
 
-    private void connectAndLogin(String name, String password, String ftpUrl) throws IOException {
+    public void connectAndLogin() throws IOException {
         ftpClient.connect(ftpUrl, defaultPort);
         isConnected = ftpClient.login(name, password);
-        Log.e("zjy", "FtpUpFile.java->connectAndLogin(): connSuccess");
+        Log.e("zjy", "FtpManager.java->connectAndLogin(): connSuccess");
         ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
         ftpClient.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
         ftpClient.enterLocalPassiveMode();
@@ -103,38 +102,35 @@ public class FtpUpFile {
      */
     public boolean upload(File file, String remotePathName,
                           String remoteName) throws Exception {
-        connectAndLogin(name, password, ftpUrl);
         changeDirectory(remotePathName);
-        boolean isSuccess = uploadFile(file, remoteName);
+        FileInputStream fis = new FileInputStream(file);
+        boolean isSuccess = uploadFile(fis, remoteName);
         backToRootDirectory();
-        //需要先logout，然后再disconnect
-        ftpClient.logout();
-        if (ftpClient.isConnected()) {
-            ftpClient.disconnect();
-        }
         return isSuccess;
+    }
+
+    public void exit() throws IOException {
+        //需要先判断是否连接，然后logout，然后再disconnect
+        if (ftpClient.isConnected()) {
+            ftpClient.logout();
+            ftpClient.disconnect();
+            Log.e("zjy", "FtpManager.java->FTP exit");
+        }
     }
 
     /**
      开线程：传入文件输入流
      @param inputStream
-     @param remotePathName
+     @param remotePathName 目录路径，不存在则创建
      @param remoteName     上传后的文件名（带后缀）
      @return
      @throws Exception
      */
     public boolean upload(InputStream inputStream, String remotePathName,
-                          String remoteName) throws IOException, RemoteDeleteException {
-        connectAndLogin(name, password, ftpUrl);
+                          String remoteName) throws IOException {
         changeDirectory(remotePathName);
         boolean isSuccess = uploadFile(inputStream, remoteName);
         backToRootDirectory();
-        //需要先logout，然后再disconnect
-        ftpClient.logout();
-        if (ftpClient.isConnected()) {
-            ftpClient.disconnect();
-            Log.e("zjy", "FtpUpFile.java->upload(): exit");
-        }
         return isSuccess;
     }
 
@@ -157,19 +153,15 @@ public class FtpUpFile {
             throws IOException {
         if (!ftpClient.changeWorkingDirectory(path)) {
             ftpClient.makeDirectory(path);
+            ftpClient.changeWorkingDirectory(path);
         }
-        ftpClient.changeWorkingDirectory(path);
     }
 
     private void backToRootDirectory() throws IOException {
         ftpClient.changeWorkingDirectory("/");
     }
 
-    public class RemoteDeleteException extends Exception {
-
-    }
-
-    private boolean uploadFile(File file, String remoteName) throws IOException, RemoteDeleteException {
+    private boolean uploadFile(File file, String remoteName) throws IOException {
         if (file == null || !file.exists()) {
             return false;
         } else {
@@ -179,17 +171,34 @@ public class FtpUpFile {
     }
 
     private boolean uploadFile(InputStream inputStream, String
-            remoteName) throws IOException, RemoteDeleteException {
+            remoteName) throws IOException {
         if (inputStream == null) {
             return false;
         }
-        FTPFile[] files = ftpClient.listFiles(remoteName);
-        if (files != null) {
-            if (!ftpClient.deleteFile(remoteName))
-                throw new RemoteDeleteException();
-        }
         boolean success = ftpClient.storeFile(remoteName, inputStream);
         inputStream.close();
+//        OutputStream outputStream = ftpClient.storeFileStream(remoteName);
+//        int len;
+//        byte[] buf = new byte[1024];
+//        while ((len = inputStream.read(buf)) != -1) {
+//            outputStream.write(buf, 0, len);
+//        }
+//        inputStream.close();
+//        outputStream.close();
+//        ftpClient.completePendingCommand();
         return success;
+    }
+
+    public boolean downLoadFile(String remoteName, String remoteDir, String savePath) throws IOException {
+        FileOutputStream localOutStream = new FileOutputStream(savePath);
+        //retrieveFile方法中的remote为完整的文件路径，以"/"开头
+        changeDirectory(remoteDir);
+        if (ftpClient.changeWorkingDirectory(remoteDir)) {
+            ftpClient.retrieveFile(remoteDir + remoteName, localOutStream);
+            localOutStream.close();
+            return true;
+        } else {
+            return false;
+        }
     }
 }

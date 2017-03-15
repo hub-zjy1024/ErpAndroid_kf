@@ -31,7 +31,6 @@ import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -196,15 +195,13 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
                         data.addAll(list);
                         mHandler.sendEmptyMessage(0);
                     }
-                } catch (SocketException e) {
+                } catch (IOException e) {
                     mHandler.sendEmptyMessage(2);
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
                     mHandler.sendEmptyMessage(1);
-                    e.printStackTrace();
-                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }

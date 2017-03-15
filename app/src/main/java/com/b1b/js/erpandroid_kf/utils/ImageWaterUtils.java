@@ -43,7 +43,6 @@ public class ImageWaterUtils {
 
         // 在画布 0，0坐标上开始绘制原始图片
         canvas.drawBitmap(src, 0, 0, null);
-        src.recycle();
         // 在画布上绘制水印图片
         canvas.drawBitmap(watermark, paddingLeft, paddingTop, null);
         // 保存

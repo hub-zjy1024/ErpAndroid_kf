@@ -50,7 +50,6 @@ public class ChuKuDanAdapter extends BaseAdapter {
             mHolder = new ViewHolder();
             mHolder.tv = (TextView) convertView.findViewById(R.id.chukudan_items_tv);
             convertView.setTag(mHolder);
-
         } else {
             mHolder = (ViewHolder) convertView.getTag();
         }
