@@ -27,7 +27,7 @@ public class UploadUtils {
      @param extension
      @return 插入到数据库的图片地址
      */
-    public static String getFilePath(String ftpUrl, String remoteDir, String fileName, String extension) {
+    public static String createInsertPath(String ftpUrl, String remoteDir, String fileName, String extension) {
         StringBuilder builder = new StringBuilder();
         builder.append("ftp://");
         builder.append(ftpUrl);

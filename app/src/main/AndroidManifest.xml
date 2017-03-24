@@ -61,11 +61,17 @@
 
         <activity android:name=".UploadActivity">
         </activity>
-        <receiver android:name=".TakePic2Activity$NotificationDeleteBroadcast" android:exported="false">
+
+        <receiver
+            android:name=".TakePic2Activity$NotificationDeleteBroadcast"
+            android:exported="false">
             <intent-filter android:priority="1000">
                 <action android:name="deleteNotification"/>
             </intent-filter>
         </receiver>
+
+        <activity android:name=".PankuActivity">
+        </activity>
     </application>
 
 </manifest>

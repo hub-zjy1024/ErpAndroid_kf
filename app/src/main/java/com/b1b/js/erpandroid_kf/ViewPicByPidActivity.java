@@ -77,7 +77,6 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                     MyToast.showToast(ViewPicByPidActivity.this, "图片上传地址不在本地服务器，无法访问");
                     break;
                 case 4:
-
                     break;
             }
         }
@@ -199,8 +198,11 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                     Log.e("zjy", "ViewPicByPidActivity.java->run():search pic count=" + array.length());
                     FTPClient client = new FTPClient();
                     List<FTPImgInfo> list = new ArrayList<>();
-                     downCounts = 0;
-                    for (int i = 0; i < array.length(); i++) {
+                    downCounts = 0;
+                    int searchSize = array.length();
+                    Message sizeMsg = mHandler.obtainMessage(4, searchSize);
+                    sizeMsg.sendToTarget();
+                    for (int i = 0; i < searchSize; i++) {
                         JSONObject tObj = array.getJSONObject(i);
                         String imgName = tObj.getString("pictureName");
                         String imgUrl = tObj.getString("pictureURL");
@@ -230,7 +232,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                         } catch (IOException e) {
                             e.printStackTrace();
                             mHandler.sendEmptyMessage(3);
-                            return;
+                            continue;
                         }
                     }
                     Log.e("zjy", "ViewPicByPidActivity.java->run(): downCouts==" + downCounts);

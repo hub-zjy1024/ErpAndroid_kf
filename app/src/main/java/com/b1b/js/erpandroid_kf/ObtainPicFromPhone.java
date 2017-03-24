@@ -7,12 +7,11 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -52,18 +51,18 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
     private Button btn_commit;
     private Button btn_commitOrigin;
     private FtpManager ftp;
-    private Bitmap compressImage;
     private ProgressDialog pd;
     private boolean isFirst;
     private int onclickPosition;
     private GridView gv;
     private int currentIndex = 0;
     private final int PICUPLOAD_SUCCESS = 1;
-    private final int LISTPICUPLOAD_SUCCESS = 4;
+    private final int PICLISTUPLOAD_SUCCESS = 4;
     private final int PICUPLOAD_ERROR = 2;
     private final int PIC_OOM = 3;
     private final int FTP_ERROR = 8;
     private String pid;
+    private String failPid;
     private MaterialDialog resultDialog;
     //更新progressDialog
     private Handler handler = new Handler() {
@@ -73,16 +72,16 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                 case PICUPLOAD_SUCCESS:
                     showFinalDialog("上传成功");
                     int nfId = getIntent().getIntExtra("nfId", 0);
-                    String failPid = getIntent().getStringExtra("failPid");
                     UploadPicInfo upInfo = uploadPicInfos.get(onclickPosition);
-                    String path = upInfo.getPath();
-                    String name = path.substring(path.lastIndexOf("/") + 1);
                     if (nfId != 0) {
+                        String path = upInfo.getPath();
+                        String name = path.substring(path.lastIndexOf("/") + 1);
                         NotificationManager nManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(ObtainPicFromPhone.this);
-                        builder.setContentTitle("上传" + failPid + "图片");
-                        builder.setContentText(name + "上传成功");
-                        nManager.notify(nfId, builder.build());
+                        //                        NotificationCompat.Builder builder = new NotificationCompat.Builder(ObtainPicFromPhone.this);
+                        //                        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.notify_icon_large);
+                        //                        builder.setContentTitle("上传" + failPid + "图片");
+                        //                        builder.setContentText(name + "上传成功").setSmallIcon(R.mipmap.notify_icon).setLargeIcon(largeIcon);
+                        nManager.cancel(nfId);
                     }
                     upInfo.setState("1");
                     mGvAdapter.notifyDataSetChanged();
@@ -101,7 +100,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                     showFinalDialog("上传失败,图片过大，超出可用内存");
                     mGvAdapter.notifyDataSetChanged();
                     break;
-                case LISTPICUPLOAD_SUCCESS:
+                case PICLISTUPLOAD_SUCCESS:
                     showFinalDialog("批量上传成功");
                     mGvAdapter.notifyDataSetChanged();
                     break;
@@ -124,8 +123,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
     private List<UploadPicInfo> uploadPicInfos;
     private UploadPicAdapter mGvAdapter;
     private EditText edPid;
-    private Uri imageUri;
-    private String path;
+    private String failPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,10 +152,16 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         resultDialog.setCanceledOnTouchOutside(true);
         Intent intent = getIntent();
         pid = intent.getStringExtra("pid");
-        path = intent.getStringExtra("failPath");
-        if (path != null) {
-            Log.e("zjy", "ObtainPicFromPhone.java->onCreate(): sent path==" + path);
-            uploadPicInfos.add(new UploadPicInfo("-1", path));
+        failPath = intent.getStringExtra("failPath");
+        if (failPath != null) {
+            uploadPicInfos.add(new UploadPicInfo("-1", failPath));
+        }
+        if (uploadPicInfos.size() > 0) {
+            btn_commit.setEnabled(true);
+        }
+        failPid = intent.getStringExtra("failPid");
+        if (failPid != null) {
+            edPid.setText(failPid);
         }
         if (pid != null) {
             edPid.setText(pid);
@@ -228,7 +232,9 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
             public void run() {
                 super.run();
                 try {
-                    ftp.connectAndLogin();
+                    if (ftp != null) {
+                        ftp.connectAndLogin();
+                    }
                 } catch (IOException e) {
                     handler.sendEmptyMessage(target);
                     e.printStackTrace();
@@ -267,7 +273,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                     @Override
                     public void run() {
                         if (commitImages(uploadPicInfos)) {
-                            handler.sendEmptyMessage(LISTPICUPLOAD_SUCCESS);
+                            handler.sendEmptyMessage(PICLISTUPLOAD_SUCCESS);
                         }
                     }
                 }.start();
@@ -290,6 +296,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
      @throws XmlPullParserException
      */
     private boolean commitImages(List<UploadPicInfo> uploadPicInfos) {
+        boolean success = false;
         SharedPreferences sp = getSharedPreferences("UserInfo", 0);
         final int cid = sp.getInt("cid", -1);
         final int did = sp.getInt("did", -1);
@@ -301,78 +308,109 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                         handler.sendEmptyMessage(6);
                     } else {
                         handler.sendEmptyMessage(PICUPLOAD_ERROR);
-                        return false;
+                        return success;
                     }
                 } catch (OutOfMemoryError e) {
                     handler.sendEmptyMessage(PIC_OOM);
                     e.printStackTrace();
+                    return success;
                 } catch (IOException e) {
                     handler.sendEmptyMessage(PICUPLOAD_ERROR);
                     e.printStackTrace();
-                    return false;
+                    return success;
                 } catch (XmlPullParserException e) {
                     handler.sendEmptyMessage(PICUPLOAD_ERROR);
                     e.printStackTrace();
-                    return false;
+                    return success;
                 }
             }
         }
-        return true;
+        success = true;
+        return success;
     }
 
     private boolean commitImage(UploadPicInfo uploadPicInfo, int cid, int did, String pid) throws IOException, XmlPullParserException {
         InputStream inputStream = new FileInputStream(uploadPicInfo.getPath());
-        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-        Bitmap waterBitmap = null;
-        if (bitmap != null) {
-            if (bitmap.getWidth() > 1080 && bitmap.getHeight() > 1080) {
-                waterBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.waterpic);
-            } else {
-                waterBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.water_small);
+        boolean flag = false;
+        String fileName = UploadUtils.getRomoteName(pid);
+        if (failPid != null) {
+            //重新上传失败的文件
+            fileName = failPath.substring(failPath.lastIndexOf("/") + 1, failPath.lastIndexOf("."));
+            Log.e("zjy", "ObtainPicFromPhone->commitImage(): MyAppp.id==" + MyApp.id);
+            fileName = getRemarkName(fileName, false);
+            flag = uploadFlag(cid, did, pid, inputStream, fileName);
+        } else {
+            fileName = getRemarkName(fileName, true);
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            Bitmap waterBitmap = null;
+            if (bitmap != null) {
+                if (bitmap.getWidth() > 1080 && bitmap.getHeight() > 1080) {
+                    waterBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.waterpic);
+                } else {
+                    waterBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.water_small);
+                }
+                Log.e("zjy", "ObtainPicFromPhone.java->commitImages():image size ==" + bitmap.getWidth() + "\t" + bitmap.getHeight());
+                Bitmap textBitmap = ImageWaterUtils.drawTextToRightTop(ObtainPicFromPhone.this, bitmap, pid, (int) (bitmap.getWidth() * 0.015), Color.RED, 20, 20);
+                if (!bitmap.isRecycled()) {
+                    bitmap.recycle();
+                }
+                Bitmap compressImage = ImageWaterUtils.createWaterMaskRightBottom(ObtainPicFromPhone.this, textBitmap, waterBitmap, 0, 0);
+                if (!waterBitmap.isRecycled()) {
+                    waterBitmap.recycle();
+                }
+                if (!textBitmap.isRecycled()) {
+                    textBitmap.recycle();
+                }
+                ByteArrayInputStream bai = new ByteArrayInputStream(MyImageUtls.compressBitmapAtsize(compressImage, 0.4f));
+                if (compressImage != null && !compressImage.isRecycled()) {
+                    compressImage.recycle();
+                }
+                flag = uploadFlag(cid, did, pid, bai, fileName);
             }
-            Log.e("zjy", "ObtainPicFromPhone.java->commitImages():image size ==" + bitmap.getWidth() + "\t" + bitmap.getHeight());
-            Bitmap textBitmap = ImageWaterUtils.drawTextToRightTop(ObtainPicFromPhone.this, bitmap, pid, (int) (bitmap.getWidth() * 0.015), Color.RED, 20, 20);
-            if (!bitmap.isRecycled()) {
-                bitmap.recycle();
+        }
+        return flag;
+    }
+
+    private boolean uploadFlag(int cid, int did, String pid, InputStream inputStream, String fileName) throws IOException, XmlPullParserException {
+        String path;
+        boolean flag = false;
+        boolean isSuccess;
+        //文件名或者目录中有中文需要转码 new String(fileName.getBytes("UTF-8"), "iso-8859-1")
+        if ("101".equals(MyApp.id)) {
+            isSuccess = ftp.upload(inputStream, "/ZJy", new String(fileName.getBytes("UTF-8"), "iso-8859-1") + ".jpg");
+            path= UploadUtils.createInsertPath(MyApp.ftpUrl,"ZJy", fileName, "jpg");
+        } else {
+            isSuccess = ftp.upload(inputStream, "/" + UploadUtils.getRemoteDir(), new String(fileName.getBytes("UTF-8"), "iso-8859-1") + ".jpg");
+            path = UploadUtils.createInsertPath(MyApp.ftpUrl, UploadUtils.getRemoteDir(), fileName, "jpg");
+        }
+        Log.e("zjy", "ObtainPicFromPhone.java->commitImage(): schemePath==" + path);
+        if (isSuccess) {
+            String res = setInsertPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid, fileName + ".jpg", path, "CKTZ");
+            if (res.equals("操作成功")) {
+                flag = true;
             }
-            compressImage = ImageWaterUtils.createWaterMaskRightBottom(ObtainPicFromPhone.this, textBitmap, waterBitmap, 0, 0);
-            if (!waterBitmap.isRecycled()) {
-                waterBitmap.recycle();
-            }
-            if (!textBitmap.isRecycled()) {
-                textBitmap.recycle();
-            }
-            ByteArrayInputStream bai = new ByteArrayInputStream(MyImageUtls.compressBitmapAtsize(compressImage, 0.4f));
-            String remark = edName.getText().toString().trim();
-            //不带后缀名的文件名称
-            String fileName = UploadUtils.getRomoteName(pid);
-            //从手机取的图片，文件后缀加"_o"
-            String suffix = "_o";
+        }
+        return flag;
+    }
+
+    @NonNull
+    private String getRemarkName(String fileName, boolean hasSuffix) {
+        String name = fileName;
+        String remark = edName.getText().toString().trim();
+        //从手机取的图片，文件后缀加"_o"
+        String suffix = "_o";
+        if (hasSuffix) {
             if (!TextUtils.isEmpty(remark)) {
-                fileName = fileName + "_" + remark + suffix;
+                name = fileName + "_" + remark + suffix;
             } else {
-                fileName = fileName + suffix;
-            }
-            //上传路径
-            String filePath = UploadUtils.getFilePath(MyApp.ftpUrl, UploadUtils.getRemoteDir(), fileName, "jpg");
-            //文件名或者目录中有中文需要转码 new String(fileName.getBytes("UTF-8"), "iso-8859-1")
-            boolean isSuccess;
-            if ("101".equals(MyApp.id)) {
-                isSuccess = ftp.upload(bai, "/ZJy", new String(fileName.getBytes("UTF-8"), "iso-8859-1") + ".jpg");
-                filePath = "ftp://" + MyApp.ftpUrl + "/ZJy/" + fileName + ".jpg";
-            } else {
-                isSuccess = ftp.upload(bai, "/" + UploadUtils.getRemoteDir(), new String(fileName.getBytes("UTF-8"), "iso-8859-1") + ".jpg");
-            }
-            Log.e("zjy", "ObtainPicFromPhone.java->commitImages(): schemePath==" + filePath);
-            if (isSuccess) {
-                setInsertPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid, fileName + ".jpg", filePath, "CKTZ");
-                return true;
-            } else {
-                return false;
+                name = fileName + suffix;
             }
         } else {
-            return false;
+            if (!TextUtils.isEmpty(remark)) {
+                name = fileName + "_" + remark;
+            }
         }
+        return name;
     }
 
     public void showProgressDialog() {
@@ -388,6 +426,9 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100 & resultCode == RESULT_OK) {
             ArrayList<String> returnPaths = data.getStringArrayListExtra("imgPaths");
+            if (returnPaths.size() > 0) {
+                btn_commit.setEnabled(true);
+            }
             uploadPicInfos.clear();
             Log.e("zjy", "ObtainPicFromPhone.java->onActivityResult(): imgPaths==" + returnPaths.size());
             for (int i = 0; i < returnPaths.size(); i++) {
@@ -408,7 +449,8 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
             public void run() {
                 super.run();
                 try {
-                    ftp.exit();
+                    if (ftp != null)
+                        ftp.exit();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

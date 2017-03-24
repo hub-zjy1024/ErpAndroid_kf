@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_panku"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.b1b.js.erpandroid_kf.PankuActivity">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/panku_id"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:hint="请输入明细id"
+            android:inputType="number"/>
+
+        <EditText
+            android:id="@+id/panku_partno"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:hint="请输入型号"/>
+
+        <Button
+            android:id="@+id/panku_search"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="搜索"/>
+    </LinearLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ListView
+            android:id="@+id/panku_lv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+        <TextView
+            android:id="@+id/panku_lv_emptyview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:visibility="gone"
+            android:text="当前数据为空"/>
+    </RelativeLayout>
+
+</LinearLayout>

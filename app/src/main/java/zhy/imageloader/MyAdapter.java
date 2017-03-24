@@ -2,6 +2,7 @@ package zhy.imageloader;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
@@ -55,6 +56,7 @@ public class MyAdapter extends CommonAdapter<String> {
                 // 已经选择过该图片
                 if (mSelectedImage.contains(mDirPath + "/" + item)) {
                     mSelectedImage.remove(mDirPath + "/" + item);
+                    Log.e("zjy", "MyAdapter->onClick(): select img==" + item);
                     mSelect.setImageResource(R.drawable.picture_unselected);
                     mImageView.setColorFilter(null);
                 } else

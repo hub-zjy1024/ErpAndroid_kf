@@ -101,7 +101,7 @@ public class FtpManager {
      */
     public boolean upload(File file, String remotePathName,
                           String remoteName) throws Exception {
-        changeDirectory(remotePathName);
+        toTargetDir(remotePathName);
         boolean success;
         if (file == null || !file.exists()) {
             return false;
@@ -132,29 +132,29 @@ public class FtpManager {
      */
     public boolean upload(InputStream inputStream, String remotePathName,
                           String remoteName) throws IOException {
-        changeDirectory(remotePathName);
+        toTargetDir(remotePathName);
         boolean isSuccess = uploadFile(inputStream, remoteName);
         Log.e("zjy", "FtpManager.java->uploadFile():upSuccess==" + isSuccess);
         backToRootDirectory();
         return isSuccess;
     }
 
-    private void changeDirectory(String path)
+    private void toTargetDir(String path)
             throws IOException {
         int nextSeperator = path.indexOf("/", 1);
         String currentPath = null;
         if (nextSeperator == -1) {
             currentPath = path.substring(1, path.length());
-            createFile(currentPath);
+            createDir(currentPath);
             return;
         } else {
             currentPath = path.substring(1, nextSeperator);
-            createFile(currentPath);
-            changeDirectory(path.substring(nextSeperator));
+            createDir(currentPath);
+            toTargetDir(path.substring(nextSeperator));
         }
     }
 
-    private void createFile(String path)
+    private void createDir(String path)
             throws IOException {
         if (!ftpClient.changeWorkingDirectory(path)) {
             ftpClient.makeDirectory(path);
@@ -180,7 +180,7 @@ public class FtpManager {
     public void downLoadFile(String remoteName, String remoteDir, String savePath) throws IOException {
         FileOutputStream localOutStream = new FileOutputStream(savePath);
         //retrieveFile方法中的remote为完整的文件路径，以"/"开头
-        changeDirectory(remoteDir);
+        toTargetDir(remoteDir);
         ftpClient.retrieveFile(remoteDir + remoteName, localOutStream);
         localOutStream.close();
     }

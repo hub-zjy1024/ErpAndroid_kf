@@ -11,7 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.b1b.js.erpandroid_kf.entity.ZoomImageView;
+import com.b1b.js.erpandroid_kf.myview.ZoomImageView;
 import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
 
 import java.util.ArrayList;

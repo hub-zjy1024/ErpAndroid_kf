@@ -5,13 +5,18 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
+import com.b1b.js.erpandroid_kf.utils.MyToast;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,9 +26,9 @@ public class MenuActivity extends AppCompatActivity {
     private ListView menuList;
     private SimpleAdapter simpleAdapter;
     private List<Map<String, String>> listItems = new ArrayList<>();
-    private AlertDialog dialog;
+    private AlertDialog choiceMethodDialog;
     private boolean showAlert = true;
-
+    private int counts = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,7 +57,33 @@ public class MenuActivity extends AppCompatActivity {
                 }
             }
         });
-        dialog = builder.create();
+        choiceMethodDialog = builder.create();
+        final File file = new File(Environment.getExternalStorageDirectory(), "dyj_img/");
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        String[] files = file.list();
+        if (files.length > 200) {
+            AlertDialog.Builder mBd = new AlertDialog.Builder(MenuActivity.this);
+            mBd.setTitle("提示");
+            mBd.setMessage("缓存图片超过200张，是否清理一下");
+            mBd.setPositiveButton("是", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    MyToast.showToast(MenuActivity.this, "清理缓存完成");
+                    final File[] files = file.listFiles();
+                    for (File f : files) {
+                        f.delete();
+                    }
+                }
+            });
+            mBd.setNegativeButton("否", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                }
+            });
+            mBd.show();
+        }
     }
 
     private void setItemOnclickListener() {
@@ -80,22 +111,24 @@ public class MenuActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case "上传图片(必须有单据号)":
-                        if (!dialog.isShowing() && dialog != null) {
-                            dialog.show();
+                        if (!choiceMethodDialog.isShowing() && choiceMethodDialog != null) {
+                            choiceMethodDialog.show();
                         }
-
-
-                        //                        MaterialDialog dialog = new MaterialDialog(MenuActivity.this);
+                        //                        MaterialDialog choiceMethodDialog = new MaterialDialog(MenuActivity.this);
                         //                        View v = LayoutInflater.from(MenuActivity.this).inflate(R.layout.mdialog_progress, null);
                         //                        ProgressBar bar = (ProgressBar) v.findViewById(R.id.mdialog_progress_pbar);
                         //                        bar.setProgress(20);
                         //                        bar.setMax(100);
-                        //                        dialog.setCanceledOnTouchOutside(true);
-                        //                        dialog.setContentView(v);
-                        //                        dialog.show();
+                        //                        choiceMethodDialog.setCanceledOnTouchOutside(true);
+                        //                        choiceMethodDialog.setContentView(v);
+                        //                        choiceMethodDialog.show();
                         break;
                     case "比价单":
                         intent.setClass(MenuActivity.this, BijiaActivity.class);
+                        startActivity(intent);
+                        break;
+                    case "盘库":
+                        intent.setClass(MenuActivity.this, PankuActivity.class);
                         startActivity(intent);
                         break;
                     case "查看单据关联图片":
@@ -103,28 +136,21 @@ public class MenuActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case "图片后台上传":
-                        if (showAlert) {
-                            String msg = "此方法采取后台上传，不用等待上一张图片上传完成就可以进行下一次拍照上传。\n上传成功会在通知栏显示，上传失败时点击通知栏中失败的项可以进行重新上传。有问题及时反馈,出库审核中的拍照暂时还没修改。";
-                            getDialog(MenuActivity.this, "提示(每次重启程序提示)", msg, true, "继续", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent intent = new Intent();
-                                    intent.setClass(MenuActivity.this, TakePic2Activity.class);
-                                    startActivity(intent);
-                                    showAlert = false;
-                                }
-                            }, "取消", null).show();
-//                            AlertDialog.Builder mBuilder = new AlertDialog.Builder(MenuActivity.this);
-//                            mBuilder.setTitle("提示(每次重启程序提示)");
-//                            mBuilder.setMessage("此方法支持拍多张图片在后台上传，和普通的拍照上传使用方法类似。上传成功会在通知栏显示，上传失败时点击通知栏中失败的项可以进行重新上传。有问题及时反馈");
-//                            mBuilder.setNegativeButton("继续", );
-//                            mBuilder.setPositiveButton("取消", null);
-//                            mBuilder.show();
-                        } else {
-                            intent.setClass(MenuActivity.this, TakePic2Activity.class);
-                            startActivity(intent);
-                        }
-
+//                        if (showAlert) {
+//                            String msg = "此方法采取后台上传，不用等待上一张图片上传完成就可以进行下一次拍照上传。\n上传成功会在通知栏显示，上传失败时点击通知栏中失败的项可以进行重新上传。有问题及时反馈,出库审核中的拍照暂时还没修改。";
+//                            getDialog(MenuActivity.this, "提示(每次重启程序提示)", msg, true, "继续", new DialogInterface.OnClickListener() {
+//                                @Override
+//                                public void onClick(DialogInterface dialog, int which) {
+//                                    Intent intent = new Intent();
+//                                    intent.setClass(MenuActivity.this, TakePic2Activity.class);
+//                                    startActivity(intent);
+//                                    showAlert = false;
+//                                }
+//                            }, "取消", null).show();
+//                        } else {
+//                        }
+                        intent.setClass(MenuActivity.this, TakePic2Activity.class);
+                        startActivity(intent);
 
                         break;
                 }
@@ -160,6 +186,26 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            // 按下BACK，同时没有重复
+            int size = MyApp.totoalTask.size();
+            if (size > 0) {
+                getDialog(MenuActivity.this, "提示", "后台还有" + size + "张图片未上传完成，强制退出可能导致图片上传失败", true, "是", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        System.exit(1);
+                    }
+                }, "否", null).show();
+//                MyToast.showToast(MenuActivity.this, "后台还有" +
+//                        size+ "张图片未上传完成，强制退出可能导致图片上传失败");
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
     }
@@ -192,6 +238,9 @@ public class MenuActivity extends AppCompatActivity {
         listItems.add(map);
         map = new HashMap<>();
         map.put("title", "图片后台上传");
+        listItems.add(map);
+        map = new HashMap<>();
+        map.put("title", "盘库");
         listItems.add(map);
     }
 }

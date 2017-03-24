@@ -218,7 +218,9 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
 
                 @Override
                 public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                    inputDialog.show();
+                    if (pid == null) {
+                        inputDialog.show();
+                    }
                 }
 
                 @Override
@@ -381,8 +383,8 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             public void run() {
                 super.run();
                 try {
-                    ftp.exit();
-                    ftp = null;
+                    if (ftp != null)
+                        ftp.exit();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -469,7 +471,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                                 MyImageUtls.compressBitmapAtsize(TextBitmap, bao, 0.4f);
                                 final ByteArrayInputStream in = new ByteArrayInputStream(bao.toByteArray());
                                 remoteName = UploadUtils.getRomoteName(pid);
-                                String insertPath = UploadUtils.getFilePath(MyApp.ftpUrl, UploadUtils.getRemoteDir(), remoteName, "jpg");
+                                String insertPath = UploadUtils.createInsertPath(MyApp.ftpUrl, UploadUtils.getRemoteDir(), remoteName, "jpg");
                                 //上传
                                 boolean isConn;
                                 if ("101".equals(MyApp.id)) {

@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private final int NEWWORK_ERROR = 2;
     private final int FTPCONNECTION_ERROR = 5;
     private AlertDialog permissionDialog;
-    private Handler handler = new Handler() {
+    private Handler zHandler = new Handler() {
         @Override
         public void handleMessage(final Message msg) {
             switch (msg.what) {
@@ -221,6 +221,11 @@ public class MainActivity extends AppCompatActivity {
                     downPd.cancel();
                     MyToast.showToast(MainActivity.this, "下载失败");
                     break;
+                case 12:
+                    String info = tvVersion.getText().toString().trim();
+                    info = info +"，更新说明:"+"\n"+ updateLog;
+                    tvVersion.setText(info);
+                    break;
             }
         }
     };
@@ -245,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590")|| phoneCode.endsWith("864394010742122")) {
+                if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590")|| phoneCode.endsWith("864394010742122")|| phoneCode.endsWith("A0000043F41515")) {
                     login("101", "62105300");
 //                    login("2984", "000000");
                 }
@@ -323,9 +328,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    update(MainActivity.this, handler);
+                    update(MainActivity.this, zHandler);
                 } catch (IOException e) {
-                    handler.sendEmptyMessage(11);
+                    zHandler.sendEmptyMessage(11);
                     Log.e("zjy", "MainActivity.java->run(): downError");
                     e.printStackTrace();
                 }
@@ -347,14 +352,14 @@ public class MainActivity extends AppCompatActivity {
                         socket.connect(remoteAddr, 2 * 1000);
                         MyApp.ftpUrl = urls[i];
                         sp.edit().putString("ftp", MyApp.ftpUrl).apply();
-                        handler.sendEmptyMessage(6);
+                        zHandler.sendEmptyMessage(6);
                         break;
                     } catch (IOException e) {
                         times++;
                         if (counts == times) {
-                            Message msg = handler.obtainMessage(FTPCONNECTION_ERROR);
+                            Message msg = zHandler.obtainMessage(FTPCONNECTION_ERROR);
                             msg.obj = url;
-                            handler.sendMessage(msg);
+                            zHandler.sendMessage(msg);
                         }
                         e.printStackTrace();
                     }
@@ -370,13 +375,12 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     PackageManager pm = getPackageManager();
                     PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
-                    Message msg = Message.obtain();
-                    msg.what = 9;
-                    msg.obj = info.versionName;
-                    handler.sendMessage(msg);
+                    Message lVersionMsg = zHandler.obtainMessage(9);
+                    lVersionMsg.obj = info.versionName;
+                    lVersionMsg.sendToTarget();
                     boolean ifUpdate = checkVersion(info.versionCode);
                     if (ifUpdate) {
-                        handler.sendEmptyMessage(7);
+                        zHandler.sendEmptyMessage(7);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -406,7 +410,7 @@ public class MainActivity extends AppCompatActivity {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     } catch (NumberFormatException e) {
-                        handler.sendEmptyMessage(10);
+                        zHandler.sendEmptyMessage(10);
                         e.printStackTrace();
                     }
                 }
@@ -476,14 +480,14 @@ public class MainActivity extends AppCompatActivity {
                     SoapObject object = WebserviceUtils.getRequest(map, "BarCodeLogin");
                     try {
                         SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(object, SoapEnvelope.VER11, WebserviceUtils.MartService);
-                        Message msg = handler.obtainMessage(SCANCODE_LOGIN_SUCCESS);
+                        Message msg = zHandler.obtainMessage(SCANCODE_LOGIN_SUCCESS);
                         msg.obj = response.toString();
-                        handler.sendMessage(msg);
+                        zHandler.sendMessage(msg);
                     } catch (IOException e) {
-                        handler.sendEmptyMessage(NEWWORK_ERROR);
+                        zHandler.sendEmptyMessage(NEWWORK_ERROR);
                         e.printStackTrace();
                     } catch (XmlPullParserException e) {
-                        handler.sendEmptyMessage(NEWWORK_ERROR);
+                        zHandler.sendEmptyMessage(NEWWORK_ERROR);
                         e.printStackTrace();
                     }
                 }
@@ -535,23 +539,23 @@ public class MainActivity extends AppCompatActivity {
                     result = WebserviceUtils.getSoapPrimitiveResponse(loginReq, SoapEnvelope.VER11, WebserviceUtils.MartService);
                     String[] resArray = result.toString().split("-");
                     if (resArray[0].equals("SUCCESS")) {
-                        Message msg1 = handler.obtainMessage();
+                        Message msg1 = zHandler.obtainMessage();
                         HashMap<String, String> infoMap = new HashMap<>();
                         infoMap.put("name", name);
                         infoMap.put("pwd", pwd);
                         msg1.what = 1;
                         msg1.obj = infoMap;
-                        handler.sendMessage(msg1);
+                        zHandler.sendMessage(msg1);
                     } else {
-                        Message msg = handler.obtainMessage(0);
+                        Message msg = zHandler.obtainMessage(0);
                         msg.obj = result.toString();
-                        handler.sendMessage(msg);
+                        zHandler.sendMessage(msg);
                     }
                 } catch (IOException e) {
-                    handler.sendEmptyMessage(NEWWORK_ERROR);
+                    zHandler.sendEmptyMessage(NEWWORK_ERROR);
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
-                    handler.sendEmptyMessage(NEWWORK_ERROR);
+                    zHandler.sendEmptyMessage(NEWWORK_ERROR);
                     e.printStackTrace();
                 } catch (PackageManager.NameNotFoundException e) {
                     e.printStackTrace();
@@ -598,8 +602,10 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     if (Integer.parseInt(info[1]) > localVersion) {
                         ifUpdate = true;
-                        updateLog = info[2];
                     }
+                    updateLog = info[3] + "\n" + info[2];
+                    Message msg = zHandler.obtainMessage(12);
+                    msg.sendToTarget();
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
                 }

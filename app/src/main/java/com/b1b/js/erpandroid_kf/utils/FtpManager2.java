@@ -58,7 +58,7 @@ public class FtpManager2 {
      ftp密码
      */
     private String password;
-    private FTPClient ftpClient = null;
+    private FTPClient zClient = null;
     private boolean isConnected = false;
 
     /**
@@ -70,7 +70,7 @@ public class FtpManager2 {
         this.password = password;
         this.name = name;
         this.ftpUrl = ftpUrl;
-        ftpClient = new FTPClient();
+        zClient = new FTPClient();
     }
 
     /**
@@ -85,12 +85,12 @@ public class FtpManager2 {
     }
 
     public void connectAndLogin() throws IOException {
-        ftpClient.connect(ftpUrl, defaultPort);
-        isConnected = ftpClient.login(name, password);
+        zClient.connect(ftpUrl, defaultPort);
+        isConnected = zClient.login(name, password);
         Log.e("zjy", "FtpManager.java->connectAndLogin(): connSuccess");
-        ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-        ftpClient.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
-        ftpClient.enterLocalPassiveMode();
+        zClient.setFileType(FTP.BINARY_FILE_TYPE);
+        zClient.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
+        zClient.enterLocalPassiveMode();
     }
 
     /**
@@ -111,9 +111,9 @@ public class FtpManager2 {
 
     public void exit() throws IOException {
         //需要先判断是否连接，然后logout，然后再disconnect
-        if (ftpClient.isConnected()) {
-            ftpClient.logout();
-            ftpClient.disconnect();
+        if (zClient.isConnected()) {
+            zClient.logout();
+            zClient.disconnect();
             Log.e("zjy", "FtpManager.java->FTP exit");
         }
     }
@@ -140,25 +140,25 @@ public class FtpManager2 {
         String currentPath = null;
         if (nextSeperator == -1) {
             currentPath = path.substring(1, path.length());
-            createFile(currentPath);
+            createDir(currentPath);
             return;
         } else {
             currentPath = path.substring(1, nextSeperator);
-            createFile(currentPath);
+            createDir(currentPath);
             changeDirectory(path.substring(nextSeperator));
         }
     }
 
-    private void createFile(String path)
+    private void createDir(String path)
             throws IOException {
-        if (!ftpClient.changeWorkingDirectory(path)) {
-            ftpClient.makeDirectory(path);
-            ftpClient.changeWorkingDirectory(path);
+        if (!zClient.changeWorkingDirectory(path)) {
+            zClient.makeDirectory(path);
+            zClient.changeWorkingDirectory(path);
         }
     }
 
     private void backToRootDirectory() throws IOException {
-        ftpClient.changeWorkingDirectory("/");
+        zClient.changeWorkingDirectory("/");
     }
 
     private boolean uploadFile(File file, String remoteName) throws IOException {
@@ -175,9 +175,9 @@ public class FtpManager2 {
         if (inputStream == null) {
             return false;
         }
-        boolean success = ftpClient.storeFile(remoteName, inputStream);
+        boolean success = zClient.storeFile(remoteName, inputStream);
         inputStream.close();
-//        OutputStream outputStream = ftpClient.storeFileStream(remoteName);
+//        OutputStream outputStream = zClient.storeFileStream(remoteName);
 //        int len;
 //        byte[] buf = new byte[1024];
 //        while ((len = inputStream.read(buf)) != -1) {
@@ -185,7 +185,7 @@ public class FtpManager2 {
 //        }
 //        inputStream.close();
 //        outputStream.close();
-//        ftpClient.completePendingCommand();
+//        zClient.completePendingCommand();
         return success;
     }
 
@@ -193,8 +193,8 @@ public class FtpManager2 {
         FileOutputStream localOutStream = new FileOutputStream(savePath);
         //retrieveFile方法中的remote为完整的文件路径，以"/"开头
         changeDirectory(remoteDir);
-        if (ftpClient.changeWorkingDirectory(remoteDir)) {
-            ftpClient.retrieveFile(remoteDir + remoteName, localOutStream);
+        if (zClient.changeWorkingDirectory(remoteDir)) {
+            zClient.retrieveFile(remoteDir + remoteName, localOutStream);
             localOutStream.close();
             return true;
         } else {
