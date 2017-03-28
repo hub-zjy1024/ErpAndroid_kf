@@ -150,7 +150,7 @@ public class WebserviceUtils {
      @throws XmlPullParserException
      */
     public static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, int envolopeVesion, String serviceName) throws IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName, 10*1000);
+        SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName, 30*1000);
         SoapPrimitive sob = (SoapPrimitive) envelope.getResponse();
         return sob;
     }

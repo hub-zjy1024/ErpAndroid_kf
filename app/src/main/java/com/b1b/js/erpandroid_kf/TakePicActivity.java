@@ -195,7 +195,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = camera.getParameters();
                     setAutoFoucs(parameters);
-                    setPreViewSize(parameters);
+//                    setPreViewSize(parameters);
                     sp = getSharedPreferences("cameraInfo", 0);
                     try {
                         // 设置用于显示拍照影像的SurfaceHolder对象
@@ -361,6 +361,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         if (mOrientationListener.canDetectOrientation()) {
             mOrientationListener.enable();
         } else {
+            Log.e("zjy", "TakePicActivity->attachToSensor(): 获取相机方向失败==");
             mOrientationListener.disable();
             rotation = 0;
         }

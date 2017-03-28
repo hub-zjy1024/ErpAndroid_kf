@@ -29,6 +29,7 @@ public class MenuActivity extends AppCompatActivity {
     private AlertDialog choiceMethodDialog;
     private boolean showAlert = true;
     private int counts = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,7 +43,7 @@ public class MenuActivity extends AppCompatActivity {
         menuList.setAdapter(simpleAdapter);
         simpleAdapter.notifyDataSetChanged();
         AlertDialog.Builder builder = new AlertDialog.Builder(MenuActivity.this);
-        builder.setItems(new String[]{"拍照", "从手机选择"}, new DialogInterface.OnClickListener() {
+        builder.setItems(new String[]{"拍照", "从手机选择", "后台上传"}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
@@ -54,14 +55,30 @@ public class MenuActivity extends AppCompatActivity {
                         Intent intent2 = new Intent(MenuActivity.this, ObtainPicFromPhone.class);
                         startActivity(intent2);
                         break;
+                    case 2:
+                        Intent intent3 = new Intent(MenuActivity.this, TakePic2Activity.class);
+                        startActivity(intent3);
+                        break;
                 }
             }
         });
         choiceMethodDialog = builder.create();
-        final File file = new File(Environment.getExternalStorageDirectory(), "dyj_img/");
-        if (!file.exists()) {
-            file.mkdirs();
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            final File file = new File(Environment.getExternalStorageDirectory(), "dyj_img/");
+            if (!file.exists()) {
+                boolean makeRes = file.mkdirs();
+                if (!makeRes) {
+                    MyToast.showToast(MenuActivity.this, "创建图片目录失败，不可用后台上传");
+                }
+            } else {
+                checkImgFileSize(file);
+            }
+        } else {
+            MyToast.showToast(MenuActivity.this, "sd卡已移除，不可用后台上传图片");
         }
+    }
+
+    private void checkImgFileSize(final File file) {
         String[] files = file.list();
         if (files.length > 200) {
             AlertDialog.Builder mBd = new AlertDialog.Builder(MenuActivity.this);
@@ -110,7 +127,7 @@ public class MenuActivity extends AppCompatActivity {
                         intent.setClass(MenuActivity.this, KaoQinActivity.class);
                         startActivity(intent);
                         break;
-                    case "上传图片(必须有单据号)":
+                    case "上传图片(3种方式)":
                         if (!choiceMethodDialog.isShowing() && choiceMethodDialog != null) {
                             choiceMethodDialog.show();
                         }
@@ -136,19 +153,6 @@ public class MenuActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case "图片后台上传":
-//                        if (showAlert) {
-//                            String msg = "此方法采取后台上传，不用等待上一张图片上传完成就可以进行下一次拍照上传。\n上传成功会在通知栏显示，上传失败时点击通知栏中失败的项可以进行重新上传。有问题及时反馈,出库审核中的拍照暂时还没修改。";
-//                            getDialog(MenuActivity.this, "提示(每次重启程序提示)", msg, true, "继续", new DialogInterface.OnClickListener() {
-//                                @Override
-//                                public void onClick(DialogInterface dialog, int which) {
-//                                    Intent intent = new Intent();
-//                                    intent.setClass(MenuActivity.this, TakePic2Activity.class);
-//                                    startActivity(intent);
-//                                    showAlert = false;
-//                                }
-//                            }, "取消", null).show();
-//                        } else {
-//                        }
                         intent.setClass(MenuActivity.this, TakePic2Activity.class);
                         startActivity(intent);
 
@@ -197,8 +201,6 @@ public class MenuActivity extends AppCompatActivity {
                         System.exit(1);
                     }
                 }, "否", null).show();
-//                MyToast.showToast(MenuActivity.this, "后台还有" +
-//                        size+ "张图片未上传完成，强制退出可能导致图片上传失败");
                 return true;
             }
         }
@@ -218,9 +220,9 @@ public class MenuActivity extends AppCompatActivity {
         map = new HashMap<>();
         map.put("title", "出库审核(拍照)");
         listItems.add(map);
-        //        map = new HashMap<>();
-        //        map.put("title", "采购");
-        //        listItems.add(map);
+        //                map = new HashMap<>();
+        //                map.put("title", "采购");
+        //                listItems.add(map);
         //        map = new HashMap<>();
         //        map.put("title", "入库");
         //        listItems.add(map);
@@ -228,16 +230,13 @@ public class MenuActivity extends AppCompatActivity {
         map.put("title", "考勤");
         listItems.add(map);
         map = new HashMap<>();
-        map.put("title", "上传图片(必须有单据号)");
+        map.put("title", "上传图片(3种方式)");
         listItems.add(map);
         //        map = new HashMap<>();
         //        map.put("title", "比价单");
         //        listItems.add(map);
         map = new HashMap<>();
         map.put("title", "查看单据关联图片");
-        listItems.add(map);
-        map = new HashMap<>();
-        map.put("title", "图片后台上传");
         listItems.add(map);
         map = new HashMap<>();
         map.put("title", "盘库");
