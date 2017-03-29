@@ -96,7 +96,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
         gv = (GridView) findViewById(R.id.view_pic_gv);
         btnSearch = (Button) findViewById(R.id.view_pic_btn_search);
         imgsData = new ArrayList<>();
-        adapter = new ViewPicAdapter(imgsData, ViewPicByPidActivity.this);
+        adapter = new ViewPicAdapter(imgsData, ViewPicByPidActivity.this, R.layout.item_viewpicbypid);
         gv.setAdapter(adapter);
         pd = new ProgressDialog(ViewPicByPidActivity.this);
         pd.setCancelable(false);

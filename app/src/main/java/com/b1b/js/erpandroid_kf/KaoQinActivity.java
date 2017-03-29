@@ -55,10 +55,8 @@ public class KaoQinActivity extends AppCompatActivity {
         inputId.requestFocus();
         Button btnSaixuan = (Button) findViewById(R.id.kq_saixuan);
         inputDate.setText(getCurrentDate());
-        adapter = new KqAdapter(KaoQinActivity.this, data);
+        adapter = new KqAdapter(data, KaoQinActivity.this, R.layout.kaoqin_lvitems);
         listView.setAdapter(adapter);
-        //GetXinHaoManageInfo
-
         btnSaixuan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
