@@ -5,8 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -15,8 +15,14 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
 import com.b1b.js.erpandroid_kf.utils.MyToast;
+import com.b1b.js.erpandroid_kf.utils.UploadUtils;
+
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +35,6 @@ public class MenuActivity extends AppCompatActivity {
     private AlertDialog choiceMethodDialog;
     private boolean showAlert = true;
     private int counts = 0;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,24 +68,11 @@ public class MenuActivity extends AppCompatActivity {
             }
         });
         choiceMethodDialog = builder.create();
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            final File file = new File(Environment.getExternalStorageDirectory(), "dyj_img/");
-            if (!file.exists()) {
-                boolean makeRes = file.mkdirs();
-                if (!makeRes) {
-                    MyToast.showToast(MenuActivity.this, "创建图片目录失败，不可用后台上传");
-                }
-            } else {
-                checkImgFileSize(file);
-            }
-        } else {
-            MyToast.showToast(MenuActivity.this, "sd卡已移除，不可用后台上传图片");
-        }
     }
 
-    private void checkImgFileSize(final File file) {
+    private void checkImgFileSize(final File file, int size) {
         String[] files = file.list();
-        if (files.length > 200) {
+        if (files.length > size) {
             AlertDialog.Builder mBd = new AlertDialog.Builder(MenuActivity.this);
             mBd.setTitle("提示");
             mBd.setMessage("缓存图片超过200张，是否清理一下");
@@ -155,7 +147,10 @@ public class MenuActivity extends AppCompatActivity {
                     case "图片后台上传":
                         intent.setClass(MenuActivity.this, TakePic2Activity.class);
                         startActivity(intent);
-
+                        break;
+                    case "预出库打印":
+                        intent.setClass(MenuActivity.this, PreChukuActivity.class);
+                        startActivity(intent);
                         break;
                 }
                 // 取消登录
@@ -210,6 +205,55 @@ public class MenuActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (MyApp.myLogger != null) {
+            MyApp.myLogger.close();
+            final File localLog = MyApp.myLogger.getlogFile();
+            if (localLog == null) {
+                return;
+            }
+            new Thread() {
+                @Override
+                public void run() {
+                    super.run();
+                    FTPClient client = new FTPClient();
+                    try {
+                        client.setConnectTimeout(10 * 1000);
+                        client.connect("172.16.6.22", 21);
+                        boolean login = client.login("NEW_DYJ", "GY8Fy2Gx");
+                        if (!login) {
+                            return;
+                        }
+                        client.setFileType(FTP.BINARY_FILE_TYPE);
+                        client.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
+                        FileInputStream fis = new FileInputStream(localLog);
+                        String dir = UploadUtils.getRemoteDir();
+                        client.changeWorkingDirectory("ZJy");
+                        boolean change1 = client.changeWorkingDirectory(dir);
+                        if (!change1) {
+                            client.makeDirectory(dir);
+                            client.changeWorkingDirectory(dir);
+                        }
+                        String name = MyApp.id + "_log.txt";
+                        String[] names = client.listNames();
+                        for (String s : names) {
+                            if (s.equals(name)) {
+                                return;
+                            }
+                        }
+                        boolean isFalse = client.storeFile(name, fis);
+                        if (isFalse) {
+                            Log.e("zjy", "MenuActivity->run(): upload log success==");
+                        }
+                        client.completePendingCommand();
+                        client.disconnect();
+                        //                        client.storeFile()
+                        //                        client.storeFile("", "");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.start();
+        }
     }
 
     // 添加菜单项
@@ -217,24 +261,19 @@ public class MenuActivity extends AppCompatActivity {
         Map<String, String> map = new HashMap<>();
         map.put("title", "出库单");
         listItems.add(map);
+
+        map = new HashMap<>();
+        map.put("title", "预出库打印");
+        listItems.add(map);
         map = new HashMap<>();
         map.put("title", "出库审核(拍照)");
         listItems.add(map);
-        //                map = new HashMap<>();
-        //                map.put("title", "采购");
-        //                listItems.add(map);
-        //        map = new HashMap<>();
-        //        map.put("title", "入库");
-        //        listItems.add(map);
         map = new HashMap<>();
         map.put("title", "考勤");
         listItems.add(map);
         map = new HashMap<>();
         map.put("title", "上传图片(3种方式)");
         listItems.add(map);
-        //        map = new HashMap<>();
-        //        map.put("title", "比价单");
-        //        listItems.add(map);
         map = new HashMap<>();
         map.put("title", "查看单据关联图片");
         listItems.add(map);

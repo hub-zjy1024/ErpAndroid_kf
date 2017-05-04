@@ -16,8 +16,8 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -31,10 +31,12 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import com.b1b.js.erpandroid_kf.utils.FtpManager;
 import com.b1b.js.erpandroid_kf.utils.ImageWaterUtils;
+import com.b1b.js.erpandroid_kf.utils.MyFileUtils;
 import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
 import com.b1b.js.erpandroid_kf.utils.UploadUtils;
@@ -52,7 +54,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -96,12 +97,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     toolbar.setVisibility(View.GONE);
                     break;
                 case PICUPLOAD_SUCCESS:
-                    if (msg.obj.toString().equals("操作成功")) {
-                        MyToast.showToast(TakePic2Activity.this, "插入图片成功，请在通知栏查看");
-                    } else {
-                        MyToast.showToast(TakePic2Activity.this, "插入图片信息失败");
-                        //                        showFinalDialog("插入图片信息失败");
-                    }
+                    MyToast.showToast(TakePic2Activity.this, "后台剩余图片：" + MyApp.totoalTask.size());
                     break;
                 case FTP_CONNECT_FAIL:
                     MyToast.showToast(TakePic2Activity.this, "连接ftp服务器失败，请检查网络");
@@ -124,6 +120,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_takepic_main);
+        final FrameLayout container = (FrameLayout) findViewById(R.id.take_pic2_container);
         surfaceView = (SurfaceView) findViewById(R.id.surfaceview);
         btn_tryagain = (Button) findViewById(R.id.main_tryagain);
         btn_commit = (Button) findViewById(R.id.main_commit);
@@ -143,8 +140,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 pid = dialogPid.getText().toString();
-                if (checkPid(TakePic2Activity.this, pid))
-                    return;
+                checkPid(TakePic2Activity.this, pid);
             }
         });
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -163,9 +159,10 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
         if ("".equals(MyApp.ftpUrl) || MyApp.ftpUrl == null) {
             if ("101".equals(MyApp.id)) {
                 MyApp.ftpUrl = "172.16.6.22";
+            } else {
+                MyToast.showToast(getApplicationContext(), "FTP地址获取失败，请重新启动程序");
             }
         }
-        Log.e("zjy", "TakePic2Activity.java->onCreate(): ftpurl==" + MyApp.ftpUrl);
         mOrientationListener = new OrientationEventListener(this,
                 SensorManager.SENSOR_DELAY_NORMAL) {
             @Override
@@ -174,29 +171,16 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
             }
         };
         //成功或失败的提示框
-        resultDialog = new MaterialDialog(TakePic2Activity.this);
-        resultDialog.setTitle("提示");
-        resultDialog.setPositiveButton("返回", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resultDialog.dismiss();
-                finish();
-            }
-        });
-        resultDialog.setCanceledOnTouchOutside(true);
         SharedPreferences userInfoSp = getSharedPreferences("UserInfo", 0);
         cid = userInfoSp.getInt("cid", -1);
         did = userInfoSp.getInt("did", -1);
         attachToSensor(mOrientationListener);
-        if (!checkSD()){
-            finish();
-        }
         //获取surfaceholder
         mHolder = surfaceView.getHolder();
-        mHolder.setKeepScreenOn(true);
-        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         //添加SurfaceHolder回调
         if (mHolder != null) {
+            mHolder.setKeepScreenOn(true);
+            mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
             mHolder.addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
@@ -214,7 +198,19 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     camera.setDisplayOrientation(getPreviewDegree(TakePic2Activity.this));
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = camera.getParameters();
-                    setAutoFoucs(parameters);
+                    String brand = Build.BRAND;
+                    if (brand != null) {
+                        if (brand.toUpperCase().equals("HONOR")) {
+                            container.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    camera.autoFocus(null);
+                                }
+                            });
+                        } else {
+                            setAutoFoucs(parameters);
+                        }
+                    }
 //                    setPreViewSize(parameters);//默认为屏幕大小
                     sp = getSharedPreferences("cameraInfo", 0);
                     try {
@@ -251,15 +247,6 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    private void connFTP(final Handler handler, final int target) {
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-
-            }
-        }.start();
-    }
 
     /**
      默认使用最大的预览尺寸，以便于获取最清晰的预览画面
@@ -364,7 +351,6 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
             dialog.show();
         } else {
             MyToast.showToast(TakePic2Activity.this, "没有可选的尺寸");
-            return;
         }
     }
 
@@ -376,7 +362,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
         if (mOrientationListener.canDetectOrientation()) {
             mOrientationListener.enable();
         } else {
-            Log.e("zjy", "TakePicActivity->attachToSensor(): 获取相机方向失败==");
+            MyApp.myLogger.writeBug("获取相机方向失败");
             mOrientationListener.disable();
             rotation = 0;
         }
@@ -462,7 +448,15 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     showSizeChoiceDialog(parameters);
                     return;
                 }
-                final File sFile = new File(Environment.getExternalStorageDirectory(), "dyj_img/");
+                final File sFile = MyFileUtils.getFileParent();
+                if (sFile == null) {
+                    MyToast.showToast(TakePic2Activity.this, "无法获取存储路径，请换用普通拍照功能");
+                    return;
+                }
+                if (MyApp.ftpUrl == null || "".equals(MyApp.ftpUrl)) {
+                    MyToast.showToast(TakePic2Activity.this, "读取上传地址失败，请重启程序");
+                    return;
+                }
                 camera.startPreview();
                 toolbar.setVisibility(View.GONE);
                 btn_takepic.setEnabled(true);
@@ -503,11 +497,15 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     public void run() {
                         final String remoteName = UploadUtils.getRomoteName(pid);
                         String notifyName = remoteName.substring(remoteName.lastIndexOf("_") + 1);
-                        final File upFile = new File(sFile, remoteName + ".jpg");
+                        final File upFile = new File(sFile, "dyj_img/" + remoteName + ".jpg");
                         FileOutputStream fio = null;
                         try {
                             fio = new FileOutputStream(upFile);
+                            if (fio == null) {
+                                Log.e("zjy", "TakePic2Activity->run(): file not reach==");
+                            }
                             MyImageUtls.compressBitmapAtsize(textBitmap, fio, 0.4f);
+                            Log.e("zjy", "TakePic2Activity->run(): file break1==");
                             if (textBitmap != null && !textBitmap.isRecycled()) {
                                 textBitmap.recycle();
                             }
@@ -528,7 +526,6 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                 try {
                                     mFtpClient.enterLocalPassiveMode();
                                     FileInputStream fis = new FileInputStream(upFile);
-                                    OutputStream outputStream;
                                     boolean upSuccess = false;
                                     if ("101".equals(MyApp.id)) {
                                         //测试专用
@@ -554,6 +551,8 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                                     notificationManager.cancel(finalId);
                                                     MyApp.totoalTask.remove(this);
                                                     map.remove(finalId);
+                                                    MyApp.myLogger.writeInfo("background upload success：" + pid + "\t" + remoteName);
+                                                    mHandler.obtainMessage(PICUPLOAD_SUCCESS).sendToTarget();
                                                     break;
                                                 } else {
                                                     changeNotificationMsg(builder, finalId, notifyName + "上传信息失败", 0, pIntent);
@@ -616,27 +615,6 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    private boolean checkSD() {
-        boolean sdAvialable = false;
-        if (Environment.getExternalStorageState() .equals(Environment.MEDIA_MOUNTED)) {
-             File file = new File(Environment.getExternalStorageDirectory(), "dyj_img/");
-            if (!file.exists()) {
-                boolean makeRes = file.mkdirs();
-                if (!makeRes) {
-                    MyToast.showToast(TakePic2Activity.this, "创建图片目录失败，不可用后台上传");
-                    btn_commit.setEnabled(false);
-                } else {
-                    sdAvialable = true;
-                }
-            } else {
-                sdAvialable = true;
-            }
-        }else {
-            MyToast.showToast(TakePic2Activity.this, "sd卡已移除，不可用后台上传图片");
-            btn_commit.setEnabled(false);
-        }
-        return sdAvialable;
-    }
 
     private static synchronized boolean storeFile(String remoteName, String dirPath, FTPClient mFtpClient, FileInputStream fis) throws IOException {
         deleteNative(remoteName, mFtpClient, dirPath);
@@ -711,20 +689,6 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
         }
         builder.setProgress(100, progress, false).setContentText(msg);
         notificationManager.notify(finalId, builder.build());
-    }
-
-    private void showProgressDialog() {
-        pd = new ProgressDialog(this);
-        pd.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                photo.recycle();
-                camera.startPreview();
-            }
-        });
-        pd.setMessage("正在上传");
-        pd.setCancelable(false);
-        pd.show();
     }
 
     /**
@@ -808,11 +772,4 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
         attachToSensor(mOrientationListener);
     }
 
-    private void showFinalDialog(String message) {
-        if (pd != null && pd.isShowing()) {
-            pd.cancel();
-        }
-        resultDialog.setMessage(message);
-        resultDialog.show();
-    }
 }

@@ -1,11 +1,8 @@
 package com.b1b.js.erpandroid_kf;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +15,7 @@ import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.adapter.ViewPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
+import com.b1b.js.erpandroid_kf.utils.MyFileUtils;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
 import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
@@ -50,7 +48,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
     private ProgressDialog pd;
     private boolean deleteOk = true;
     boolean isConn = false;
-    int downCounts;
+    int downCounts = 0;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -62,7 +60,11 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                     }
                     adapter.notifyDataSetChanged();
                     dismissDialog();
-                    MyToast.showToast(ViewPicByPidActivity.this, "下载成功");
+                    if (downCounts > 0) {
+                        MyToast.showToast(ViewPicByPidActivity.this, "下载成功" + downCounts);
+                    } else {
+                        MyToast.showToast(ViewPicByPidActivity.this, "图片下载失败");
+                    }
                     break;
                 case 1:
                     dismissDialog();
@@ -75,8 +77,6 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                 case 3:
                     dismissDialog();
                     MyToast.showToast(ViewPicByPidActivity.this, "图片上传地址不在本地服务器，无法访问");
-                    break;
-                case 4:
                     break;
             }
         }
@@ -106,43 +106,15 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                                              final String pid = edPid.getText().toString().trim();
                                              imgsData.clear();
                                              adapter.notifyDataSetChanged();
-                                             String path = Environment.getExternalStorageDirectory().getAbsolutePath();
-                                             final File file = new File(path + "/dyj_img/");
-                                             if (!file.exists()) {
-                                                 file.mkdirs();
-                                                 startSearch(pid);
-                                             } else {
-                                                 String[] files = file.list();
-                                                 if (files.length > 100) {
-                                                     AlertDialog.Builder builder = new AlertDialog.Builder(ViewPicByPidActivity.this);
-                                                     builder.setTitle("提示");
-                                                     builder.setMessage("缓存图片超过100张，是否清理一下");
-                                                     builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
-                                                         @Override
-                                                         public void onClick(DialogInterface dialog, int which) {
-                                                             btnSearch.setEnabled(false);
-                                                             MyToast.showToast(ViewPicByPidActivity.this, "清理完成可继续搜索");
-                                                             final File[] files = file.listFiles();
-                                                             for (File f : files) {
-                                                                 f.delete();
-                                                             }
-                                                             btnSearch.setEnabled(true);
-                                                         }
-                                                     });
-                                                     builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
-                                                         @Override
-                                                         public void onClick(DialogInterface dialog, int which) {
-                                                             startSearch(pid);
-                                                         }
-                                                     });
-                                                     builder.show();
-                                                 } else {
-                                                     startSearch(pid);
-                                                 }
+                                             File imgFile = MyFileUtils.getFileParent();
+                                             if (imgFile == null) {
+                                                 MyToast.showToast(ViewPicByPidActivity.this, "当前无可用的存储设备");
+                                                 return;
                                              }
+                                             final File file = new File(imgFile, "dyj_img/");
+                                             MyFileUtils.checkImgFileSize(file, 100, ViewPicByPidActivity.this);
+                                             startSearch(pid);
                                          }
-
-
                                      }
         );
         gv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -171,6 +143,11 @@ public class ViewPicByPidActivity extends AppCompatActivity {
         String pid = getIntent().getStringExtra("pid");
         if (pid != null) {
             edPid.setText(pid);
+            File imgFile = MyFileUtils.getFileParent();
+            if (imgFile == null) {
+                MyToast.showToast(ViewPicByPidActivity.this, "当前无可用的存储设备");
+                return;
+            }
             startSearch(pid);
         }
 
@@ -182,6 +159,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
             @Override
             public void run() {
                 super.run();
+                downCounts = 0;
                 String result = "";
                 try {
                     result = getRelativePicInfoByPid("", pid);
@@ -198,10 +176,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                     Log.e("zjy", "ViewPicByPidActivity.java->run():search pic count=" + array.length());
                     FTPClient client = new FTPClient();
                     List<FTPImgInfo> list = new ArrayList<>();
-                    downCounts = 0;
                     int searchSize = array.length();
-                    Message sizeMsg = mHandler.obtainMessage(4, searchSize);
-                    sizeMsg.sendToTarget();
                     for (int i = 0; i < searchSize; i++) {
                         JSONObject tObj = array.getJSONObject(i);
                         String imgName = tObj.getString("pictureName");
@@ -212,16 +187,10 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                             remoteAbsolutePath = new String(remoteAbsolutePath.getBytes("utf-8"), "iso-8859-1");
                             String imgFtp = urlNoShema.substring(0, urlNoShema.indexOf("/"));
                             FTPImgInfo fti = new FTPImgInfo();
-                            String path = Environment.getExternalStorageDirectory().getAbsolutePath();
-                            File file = new File(path + "/dyj_img/" + imgName);
+                            File fileParent = MyFileUtils.getFileParent();
+                            File file = new File(fileParent, "dyj_img/" + imgName);
                             //图片未下载的需要下载
                             if (!file.exists()) {
-                                File parent = file.getParentFile();
-                                if (parent != null) {
-                                    if (!parent.exists()) {
-                                        parent.mkdirs();
-                                    }
-                                }
                                 downLoadPic(client, remoteAbsolutePath, imgFtp, fti, file, list);
                             } else {
                                 fti.setImgPath(file.getAbsolutePath());
@@ -232,7 +201,6 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                         } catch (IOException e) {
                             e.printStackTrace();
                             mHandler.sendEmptyMessage(3);
-                            continue;
                         }
                     }
                     Log.e("zjy", "ViewPicByPidActivity.java->run(): downCouts==" + downCounts);

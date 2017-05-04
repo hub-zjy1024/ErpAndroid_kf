@@ -72,6 +72,10 @@
 
         <activity android:name=".PankuActivity">
         </activity>
+        <activity android:name=".PreChukuActivity">
+        </activity>
+        <activity android:name=".PreChukuDetailActivity">
+        </activity>
     </application>
 
 </manifest>

@@ -181,7 +181,7 @@ public class FtpManager2 {
 //        int len;
 //        byte[] buf = new byte[1024];
 //        while ((len = inputStream.read(buf)) != -1) {
-//            outputStream.write(buf, 0, len);
+//            outputStream.printText(buf, 0, len);
 //        }
 //        inputStream.close();
 //        outputStream.close();

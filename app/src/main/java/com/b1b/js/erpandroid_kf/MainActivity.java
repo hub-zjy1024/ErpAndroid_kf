@@ -10,19 +10,21 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.utils.MyFileUtils;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
 import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
@@ -127,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
                         final String[] urls = url.split("\\|");
                         String localUrl = sp.getString("ftp", "");
                         if (!defUid.equals(uid)) {
+                            //第一次登录或者更换手机
                             sp.edit().clear().commit();
                             getUserInfoDetail(MyApp.id);
                             SharedPreferences.Editor editor = sp.edit();
@@ -223,13 +226,16 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 12:
                     String info = tvVersion.getText().toString().trim();
-                    info = info +"，更新说明:"+"\n"+ updateLog;
+                    info = info + "，更新说明:" + "\n" + updateLog;
                     tvVersion.setText(info);
                     break;
             }
         }
     };
 
+    /**
+     @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -244,28 +250,20 @@ public class MainActivity extends AppCompatActivity {
         sp = getSharedPreferences("UserInfo", 0);
         final String phoneCode = CaigoudanEditActivity.getPhoneCode(MainActivity.this);
         Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
+        MyFileUtils fileUtils = new MyFileUtils();
+        fileUtils.obtainFileDir(MainActivity.this);
+        if (MyApp.myLogger != null) {
+            MyApp.myLogger.writeInfo("phonecode:" + phoneCode);
+        }
         //检查更新
         checkUpdate();
         //        readCache();
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590")|| phoneCode.endsWith("864394010742122")|| phoneCode.endsWith("A0000043F41515")) {
+                if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590") || phoneCode.endsWith("864394010742122") || phoneCode.endsWith("A0000043F41515")) {
                     login("101", "62105300");
-//                    login("2984", "000000");
                 }
-                //                String name = edUserName.getText().toString().trim();
-                //                String pwd = edPwd.getText().toString().trim();
-                //                if (pwd.equals("") || name.equals("")) {
-                //                    MyToast.showToast(MainActivity.this, "请填写完整信息后再登录");
-                //                } else {
-                //                    //只能使用用户名密码登录
-                //                    if (name.equals("101")) {
-                //                        login(name, pwd);
-                //                    } else {
-                //                        MyToast.showToast(MainActivity.this, "请使用指纹考勤扫码登录");
-                //                    }
-                //                }
             }
         });
         btnScancode.setOnClickListener(new View.OnClickListener() {
@@ -295,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         Intent intent = new Intent();
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+                        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                         intent.setData(Uri.fromParts("package", getPackageName(), null));
                         MainActivity.this.startActivity(intent);
                     }
@@ -331,7 +329,6 @@ public class MainActivity extends AppCompatActivity {
                     update(MainActivity.this, zHandler);
                 } catch (IOException e) {
                     zHandler.sendEmptyMessage(11);
-                    Log.e("zjy", "MainActivity.java->run(): downError");
                     e.printStackTrace();
                 }
             }
@@ -349,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         Socket socket = new Socket();
                         SocketAddress remoteAddr = new InetSocketAddress(urls[i], 21);
-                        socket.connect(remoteAddr, 2 * 1000);
+                        socket.connect(remoteAddr, 10 * 1000);
                         MyApp.ftpUrl = urls[i];
                         sp.edit().putString("ftp", MyApp.ftpUrl).apply();
                         zHandler.sendEmptyMessage(6);
@@ -412,6 +409,13 @@ public class MainActivity extends AppCompatActivity {
                     } catch (NumberFormatException e) {
                         zHandler.sendEmptyMessage(10);
                         e.printStackTrace();
+                    }
+                    if (!success) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -564,17 +568,6 @@ public class MainActivity extends AppCompatActivity {
         }.start();
     }
 
-    // 获取设备ID
-    private void getMyPhoneNumber() {
-        try {
-            PackageManager pm = getPackageManager();
-            PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
-            Log.e("zjy", "MainActivity.java->getMyPhoneNumber(): versionCode==" + info.versionCode);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
     /**
      @param localVersion 当前应用的版本号
      @return
@@ -626,16 +619,7 @@ public class MainActivity extends AppCompatActivity {
         if (conn.getResponseCode() == 200) {
             InputStream is = conn.getInputStream();
             int size = conn.getContentLength();
-            File targetDir;
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                targetDir = Environment.getExternalStorageDirectory();
-                Log.e("zjy", "MainActivity.java->update(): sd card==" + targetDir.getAbsolutePath());
-            } else {
-                targetDir = new File("/storage/sdcard0/dyjdown/");
-            }
-            if (!targetDir.exists()) {
-                targetDir.mkdirs();
-            }
+            File targetDir = MyFileUtils.getFileParent();
             Log.e("zjy", "MainActivity.java->update(): online==" + size);
             File file1 = new File(targetDir, "dyjkfapp.apk");
             FileOutputStream fos = new FileOutputStream(file1);
@@ -643,7 +627,7 @@ public class MainActivity extends AppCompatActivity {
             int hasRead = 0;
             int percent = 0;
             byte[] buf = new byte[1024];
-            while ((len = is.read(buf)) > 0) {
+            while ((len = is.read(buf)) != -1) {
                 hasRead = hasRead + len;
                 percent = (hasRead * 100) / size;
                 if (hasRead < 0) {
@@ -662,6 +646,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             File file = new File(targetDir, "dyjkfapp.apk");
             if (file.exists()) {
+                MimeTypeMap.getSingleton().getMimeTypeFromExtension(".apk");
                 intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);

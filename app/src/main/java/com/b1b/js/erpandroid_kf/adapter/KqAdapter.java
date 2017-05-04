@@ -32,8 +32,8 @@ public class KqAdapter extends MyBaseAdapter<KaoqinInfo> {
     }
 
     @Override
-    protected void initHolder(KaoqinInfo currentData, MyBasedHolder basedHolder) {
-        ViewHolder holder = (ViewHolder) basedHolder;
+    protected void initHolder(KaoqinInfo currentData, MyBasedHolder baseHolder) {
+        ViewHolder holder = (ViewHolder) baseHolder;
         if (getCount() != 0) {
             holder.id.setText("id:" + currentData.getEmpId());
             holder.name.setText("姓名:" + currentData.getEmpName());

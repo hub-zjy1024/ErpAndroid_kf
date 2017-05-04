@@ -35,7 +35,6 @@ public class MyImageUtls {
         opt.inSampleSize = sampleSize;
         opt.inJustDecodeBounds = false;
         Bitmap newBitmap = BitmapFactory.decodeFile(filePath, opt);
-        Log.e("zjy", "MyImageUtls,getMySmallBitmap(): scal==" + opt.inSampleSize);
         if (newBitmap == null) {
             return null;
         }
@@ -51,7 +50,6 @@ public class MyImageUtls {
         opt.inSampleSize = sampleSize;
         opt.inJustDecodeBounds = false;
         Bitmap newBitmap = BitmapFactory.decodeStream(inputStream,null, opt);
-        Log.e("zjy", "MyImageUtls,getMySmallBitmap(): scal==" + opt.inSampleSize);
         if (newBitmap == null) {
             return null;
         }
@@ -88,7 +86,6 @@ public class MyImageUtls {
             float heightScale = (float) defHeight / targetWidth;
             resultScale = Math.min(widthScale, heightScale);
         }
-        Log.e("zjy", "MyImageUtls.java->getSimpleSize(): scale==" + Math.round(resultScale));
         return Math.round(resultScale);
     }
 

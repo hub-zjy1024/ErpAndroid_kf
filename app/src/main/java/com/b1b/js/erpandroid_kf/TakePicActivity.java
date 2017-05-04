@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -25,6 +26,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import com.b1b.js.erpandroid_kf.utils.FtpManager;
@@ -109,6 +111,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_takepic_main);
+        final FrameLayout container = (FrameLayout) findViewById(R.id.take_pic2_container);
         surfaceView = (SurfaceView) findViewById(R.id.surfaceview);
         btn_tryagain = (Button) findViewById(R.id.main_tryagain);
         btn_commit = (Button) findViewById(R.id.main_commit);
@@ -127,8 +130,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 pid = dialogPid.getText().toString();
-                if (checkPid(TakePicActivity.this, pid))
-                    return;
+                checkPid(TakePicActivity.this, pid);
             }
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -147,6 +149,9 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             if ("101".equals(MyApp.id)) {
                 MyApp.ftpUrl = "172.16.6.22";
                 ftp = FtpManager.getFtpManager("NEW_DYJ", "GY8Fy2Gx", MyApp.ftpUrl, 21);
+            } else {
+                MyToast.showToast(getApplicationContext(), "FTP地址获取失败，请重新启动程序");
+                return;
             }
         } else {
             ftp = FtpManager.getFtpManager("dyjftp", "dyjftp", MyApp.ftpUrl, 21);
@@ -194,8 +199,19 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                     camera.setDisplayOrientation(getPreviewDegree(TakePicActivity.this));
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = camera.getParameters();
-                    setAutoFoucs(parameters);
-//                    setPreViewSize(parameters);
+                    String brand = Build.BRAND;
+                    if (brand != null) {
+                        if (brand.toUpperCase().equals("HONOR")) {
+                            container.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    camera.autoFocus(null);
+                                }
+                            });
+                        } else {
+                            setAutoFoucs(parameters);
+                        }
+                    }
                     sp = getSharedPreferences("cameraInfo", 0);
                     try {
                         // 设置用于显示拍照影像的SurfaceHolder对象
@@ -237,7 +253,11 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             public void run() {
                 super.run();
                 try {
-                    ftp.connectAndLogin();
+                    if (ftp != null) {
+                        ftp.connectAndLogin();
+                    } else {
+                        handler.sendEmptyMessage(target);
+                    }
                 } catch (IOException e) {
                     handler.sendEmptyMessage(target);
                     e.printStackTrace();
@@ -247,8 +267,9 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     默认使用最大的预览尺寸，以便于获取最清晰的预览画面
+     默认使用最大的预览尺寸，以便于获取最清晰的预览画面(测试发现有些不兼容)
      @param parameters
+     @deprecated
      */
     private void setPreViewSize(Camera.Parameters parameters) {
         List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();

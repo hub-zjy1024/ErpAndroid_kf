@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_pre_chuku"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.b1b.js.erpandroid_kf.PreChukuActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/prechuku_ed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="请输入单据号"
+            android:inputType="number"/>
+
+        <Button
+            android:id="@+id/prechuku_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="搜索"/>
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/prechuku_sdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="起始时间"
+            />
+
+        <Button
+            android:id="@+id/prechuku_edate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="终止时间"/>
+        <Button
+            android:id="@+id/prechuku_cleartime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:drawableLeft="@drawable/btn_clear"
+            android:text="清除时间"/>
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/prechuku_lv"
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</LinearLayout>

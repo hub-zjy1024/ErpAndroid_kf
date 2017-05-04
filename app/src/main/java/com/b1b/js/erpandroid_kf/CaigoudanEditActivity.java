@@ -390,7 +390,6 @@ public class CaigoudanEditActivity extends AppCompatActivity {
         return phoneId.toString();
     }
 
-    ;
 
     /**
      @param pid

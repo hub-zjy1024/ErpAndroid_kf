@@ -386,6 +386,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         Log.e("zjy", "ObtainPicFromPhone.java->commitImage(): schemePath==" + path);
         if (isSuccess) {
             String res = setInsertPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid, fileName + ".jpg", path, "CKTZ");
+            Log.e("zjy", "ObtainPicFromPhone->uploadFlag(): insert res==" + res);
             if (res.equals("操作成功")) {
                 flag = true;
             }

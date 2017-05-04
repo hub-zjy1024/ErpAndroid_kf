@@ -65,7 +65,7 @@ public abstract class MyBaseAdapter<T> extends BaseAdapter {
 
     protected abstract void initItems(View convertView, MyBasedHolder baseHolder);
 
-    protected abstract void initHolder(T currentData, MyBasedHolder basedHolder);
+    protected abstract void initHolder(T currentData, MyBasedHolder baseHolder);
 
     protected abstract MyBasedHolder getHolder();
 

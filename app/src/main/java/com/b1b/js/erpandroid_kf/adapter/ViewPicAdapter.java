@@ -30,8 +30,8 @@ public class ViewPicAdapter extends MyBaseAdapter<FTPImgInfo> {
     }
 
     @Override
-    protected void initHolder(FTPImgInfo currentData, MyBasedHolder basedHolder) {
-        PicHolder mHolder = (PicHolder) basedHolder;
+    protected void initHolder(FTPImgInfo currentData, MyBasedHolder baseHolder) {
+        PicHolder mHolder = (PicHolder) baseHolder;
         String realPath = currentData.getImgPath();
         Bitmap bitmap;
         if (!bitmaps.containsKey(realPath)) {
