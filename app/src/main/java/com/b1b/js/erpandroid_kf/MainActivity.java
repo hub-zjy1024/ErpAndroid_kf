@@ -250,8 +250,7 @@ public class MainActivity extends AppCompatActivity {
         sp = getSharedPreferences("UserInfo", 0);
         final String phoneCode = CaigoudanEditActivity.getPhoneCode(MainActivity.this);
         Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
-        MyFileUtils fileUtils = new MyFileUtils();
-        fileUtils.obtainFileDir(MainActivity.this);
+        MyFileUtils.obtainFileDir(MainActivity.this);
         if (MyApp.myLogger != null) {
             MyApp.myLogger.writeInfo("phonecode:" + phoneCode);
         }

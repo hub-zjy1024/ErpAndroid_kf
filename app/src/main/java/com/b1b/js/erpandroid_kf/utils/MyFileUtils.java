@@ -66,7 +66,8 @@ public class MyFileUtils {
         return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
     }
 
-    public void obtainFileDir(Context mContext) {
+    public static void obtainFileDir(Context mContext) {
+
         fileParent = Environment.getExternalStorageDirectory();
         final File file = new File(Environment.getExternalStorageDirectory(), "dyj_img/");
         if (!file.exists()) {

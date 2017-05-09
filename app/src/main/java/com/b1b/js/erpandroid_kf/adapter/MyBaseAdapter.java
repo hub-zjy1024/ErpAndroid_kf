@@ -16,10 +16,6 @@ public abstract class MyBaseAdapter<T> extends BaseAdapter {
     protected List<T> data;
     protected Context mContext;
     protected int itemViewId;
-    public MyBaseAdapter(List<T> data, Context mContext) {
-        this.data = data;
-        this.mContext = mContext;
-    }
 
     public MyBaseAdapter(List<T> data, Context mContext, int itemViewId) {
         this.data = data;

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_setting"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.b1b.js.erpandroid_kf.SettingActivity">
+
+    <TextView
+        android:id="@+id/caigouedit_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/bijia_title_background"
+        android:gravity="center"
+        android:text="配置"
+        android:textColor="@color/color_white"
+        android:textSize="20sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="打印机ip地址："/>
+
+        <EditText
+            android:id="@+id/activity_setting_edip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="请输入打印机的地址"/>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/activity_setting_btnsave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="保存"/>
+
+</LinearLayout>

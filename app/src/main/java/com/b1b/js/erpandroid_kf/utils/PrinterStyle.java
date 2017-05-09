@@ -10,10 +10,16 @@ import java.util.List;
  Created by 张建宇 on 2017/5/2. */
 
 public class PrinterStyle {
-    public static boolean printPreparedChuKu(MyInetConn printer, PreChukuInfo info) throws IOException {
+    public static boolean printPreparedChuKu(MyPrinter printer, PreChukuInfo info) throws IOException {
         String pid = info.getPid();
-        printer.printCode(pid, MyInetConn.BARCODE_FLAG_NONE);
-//        printer.newLine();
+        if (info.isXiankuan()) {
+            printer.setFont(3);
+            printer.printTextLn("现货现结");
+            printer.newLine();
+            printer.setFont(0);
+        }
+        printer.printCode(pid, MyPrinter.BARCODE_FLAG_NONE);
+        printer.newLine();
         printer.setFont(1);
         printer.printText("出库通知单-" + pid.substring(3) + "\t");
         printer.setCharHeight(2);
@@ -29,17 +35,17 @@ public class PrinterStyle {
                 PreChukuDetailInfo dInfo = detailInfos.get(i);
                 //一行47个字符
                 printer.printTextLn((i + 1) + ".-----------------------------------------");
-                printer.printTextLn("@@型号:" + getStringAtLength(dInfo.getPartNo(), 20));
-                String fz = getStringAtLength(dInfo.getFengzhuang(), 7);
-                String ph = getStringAtLength(dInfo.getPihao(), 7);
-                String fc =  getStringAtLength(dInfo.getFactory(), 7);
-                String ms = getStringAtLength(dInfo.getDescription(), 7);
-                String place = getStringAtLength(dInfo.getP(), 7);
-                String bz = getStringAtLength(dInfo.getNotes(), 7);
-                String counts = getStringAtLength(dInfo.getCounts(), 7);
-                String leftCounts = getStringAtLength(dInfo.getLeftCounts(), 7);
-                printer.printTextLn("封装:" + fz + "\t" + "批号:" + ph + "  \t" + "厂家:" +fc);
-                printer.printTextLn("描述:" + ms+ "\t" + "P:" + place+ "\t" + "备注:" + bz);
+                printer.printTextLn("@@型号:" + getStringAtLength(dInfo.getPartNo(), 20,0));
+                String fz = getStringAtLength(dInfo.getFengzhuang(), 10,5);
+                String ph = getStringAtLength(dInfo.getPihao(), 10,5);
+                String fc =  getStringAtLength(dInfo.getFactory(), 10,5);
+                String ms = getStringAtLength(dInfo.getDescription(), 10,5);
+                String place = getStringAtLength(dInfo.getP(), 13,2);
+                String bz = getStringAtLength(dInfo.getNotes(), 10,5);
+                String counts = getStringAtLength(dInfo.getCounts(), 10,5);
+                String leftCounts = dInfo.getLeftCounts();
+                printer.printTextLn("封装:" + fz + "\t" + "批号:" + ph + "\t" + "厂家:"+fc);
+                printer.printTextLn("描述:" + ms + "\t" + "P:" + place + "\t" + "备注:" + bz);
                 printer.printTextLn("数量:" + counts + " \t" + "剩余数量:" + leftCounts);
             }
         }
@@ -59,19 +65,25 @@ public class PrinterStyle {
         return true;
     }
 
-    public static String getStringAtLength(String src, int len) {
+    public static String getStringAtLength(String src, int maxLength, int titleLength) {
         String newString = "";
         if (src == null) {
-            return "    ";
-        }
-        if (len > src.length()) {
-            if (src.length() == 1) {
-                newString = src + "  ";
-            } else {
-                newString = src;
+            for (int i = 0; i < 8 - titleLength; i++) {
+                newString = newString + " ";
             }
-        }else {
-            newString = src.substring(0, len);
+            return newString;
+        }
+        if (src.length() > maxLength) {
+            newString = src.substring(0, maxLength);
+        } else {
+            newString = src;
+            int srcLenth = src.length();
+            int p = 8 - srcLenth - titleLength;
+            if (p > 0) {
+                for (int i = 0; i < p; i++) {
+                    newString = newString + " ";
+                }
+            }
         }
         return newString;
     }

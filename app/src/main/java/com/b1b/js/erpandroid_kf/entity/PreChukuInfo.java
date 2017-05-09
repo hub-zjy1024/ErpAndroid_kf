@@ -70,6 +70,15 @@ public class PreChukuInfo {
     private String salesman;
     private String employeeID;
     private String mainNotes;
+    private boolean isXiankuan;
+
+    public boolean isXiankuan() {
+        return isXiankuan;
+    }
+
+    public void setXiankuan(boolean xiankuan) {
+        isXiankuan = xiankuan;
+    }
 
     public String getDeptID() {
         return deptID;

@@ -152,6 +152,10 @@ public class MenuActivity extends AppCompatActivity {
                         intent.setClass(MenuActivity.this, PreChukuActivity.class);
                         startActivity(intent);
                         break;
+                    case "配置":
+                        intent.setClass(MenuActivity.this, SettingActivity.class);
+                        startActivity(intent);
+                        break;
                 }
                 // 取消登录
                 //                if (position == 5) {
@@ -279,6 +283,9 @@ public class MenuActivity extends AppCompatActivity {
         listItems.add(map);
         map = new HashMap<>();
         map.put("title", "盘库");
+        listItems.add(map);
+        map = new HashMap<>();
+        map.put("title", "配置");
         listItems.add(map);
     }
 }

@@ -16,7 +16,7 @@ import java.net.SocketAddress;
 /**
  Created by 张建宇 on 2017/4/28. */
 
-public class MyInetConn {
+public class MyPrinter {
     private static int[] ZHISTATE = new int[]{1, 2, 1};
     private static int[] CMD_INIT = new int[]{27, 64};
     private static int[] CMD_FONT_1 = new int[]{27, 64};
@@ -29,25 +29,37 @@ public class MyInetConn {
     public static final byte DLE = 16;//数据连接换码
     public static final byte EOT = 4;//传输结束
     public static final byte ENQ = 5;//询问字符
-    public static final byte LF = 10;//打印并换行（水平定位）
+    private static final byte LF = 10;//打印并换行（水平定位）
     public static final int BARCODE_FLAG_TOP = 1;//走纸控制
     public static final byte BARCODE_FLAG_BOTTOM = 2;//走纸控制
     public static final byte BARCODE_FLAG_BOTH = 3;//走纸控制
     public static final byte BARCODE_FLAG_NONE = 0;//走纸控制
-    public Socket mSocket = new Socket();
+    private Socket mSocket = new Socket();
     private OutputStream mOut;
+    private String ipAddress = "192.168.199.200";
     int imageWidth = 40;
 
-    public MyInetConn() {
-        SocketAddress s = new InetSocketAddress("192.168.199.200", 9100);
+    public MyPrinter(String address) {
+        SocketAddress s;
+        if (address == null) {
+           s = new InetSocketAddress("192.168.199.200", 9100);
+
+        } else {
+            s = new InetSocketAddress(address, 9100);
+        }
         try {
             mSocket.connect(s, 5 * 1000);
             mOut = mSocket.getOutputStream();
-            Log.e("zjy", "MyInetConn->conn(): connected");
+            Log.e("zjy", "MyPrinter->conn(): connected");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+    public OutputStream getmOut() {
+        return mOut;
+    }
+
 
     public synchronized void printText(String data) throws IOException {
         if (mOut != null) {
@@ -61,7 +73,7 @@ public class MyInetConn {
         }
     }
 
-    public void printTextLn(String data) throws IOException {
+    public synchronized void printTextLn(String data) throws IOException {
         if (mOut != null) {
             mOut.write(data.getBytes("GBK"));
         }
@@ -156,14 +168,18 @@ public class MyInetConn {
         //        byte[] cutCmd = new byte[]{(byte) 29, (byte) 86, (byte) 0};
         byte[] cutCmd = new byte[]{(byte) 29, (byte) 86, (byte) 66, (byte) 2};
         //        mOut.printText(go);
-        mOut.write(cutCmd);
+        if( mOut!= null){
+            mOut.write(cutCmd);
+        }
         //        mOut.printText(new byte[]{});
     }
 
     public void newLine() throws IOException {
         //        byte[] cmd = new byte[]{(byte) 27, (byte) 100, (byte) 5};
         byte[] cmd = new byte[]{(byte) 10};
-        mOut.write(cmd);
+        if (mOut != null) {
+            mOut.write(cmd);
+        }
     }
 
     public void initPrinter() throws IOException {
@@ -194,6 +210,9 @@ public class MyInetConn {
      @throws IOException
      */
     public void setCharHeight(int num) throws IOException {
+        if (mOut == null) {
+            return;
+        }
         if (num >= 1 && num <= 8) {
             byte[] cmd = new byte[]{(byte) 29, (byte) 33, (byte) num};
             mOut.write(cmd);
@@ -202,15 +221,42 @@ public class MyInetConn {
     }
 
     public void setFont(int size) throws IOException {
+        if (mOut == null) {
+            return;
+        }
         byte[] cmd;
         switch (size) {
             case 1:
-                //字符倍宽倍高
+                //字符2倍宽倍高
                 cmd = new byte[]{(byte) 29, (byte) 33, (byte) 17};
                 break;
             case 0:
                 //字符倍取消倍宽
                 cmd = new byte[]{(byte) 29, (byte) 33, (byte) 0};
+                break;
+            case 2:
+                //字符3倍取消倍宽
+                cmd = new byte[]{(byte) 29, (byte) 33, (byte) 34};
+                break;
+            case 3:
+                //字符4倍取消倍宽
+                cmd = new byte[]{(byte) 29, (byte) 33, (byte) 51};
+                break;
+            case 4:
+                //字符5倍取消倍宽
+                cmd = new byte[]{(byte) 29, (byte) 33, (byte) 68};
+                break;
+            case 5:
+                //字符6倍取消倍宽
+                cmd = new byte[]{(byte) 29, (byte) 33, (byte) 85};
+                break;
+            case 6:
+                //字符7倍取消倍宽
+                cmd = new byte[]{(byte) 29, (byte) 33, (byte) 102};
+                break;
+            case 7:
+                //字符8倍取消倍宽
+                cmd = new byte[]{(byte) 29, (byte) 33, (byte) 119};
                 break;
             default:
                 cmd = new byte[]{(byte) 29, (byte) 33, (byte) 0};
@@ -219,6 +265,11 @@ public class MyInetConn {
         mOut.write(cmd);
     }
 
+    /**
+     @param x 横向移动单位
+     @param y 纵向移动单位
+     @throws IOException
+     */
     public void setDistance(int x, int y) throws IOException {
         mOut.write(new byte[]{(byte) 29, (byte) 80, (byte) x, (byte) y,});
     }
@@ -232,7 +283,7 @@ public class MyInetConn {
             byte[] res = new byte[in.available()];
             in.read(res);
             for (byte b : res) {
-                Log.e("zjy", "MyInetConn->getResponse(): res==" + b);
+                Log.e("zjy", "MyPrinter->getResponse(): res==" + b);
 
             }
         } catch (IOException e) {

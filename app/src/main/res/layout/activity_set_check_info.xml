@@ -6,9 +6,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="5dp"
     tools:context="com.b1b.js.erpandroid_kf.SetCheckInfoActivity">
-
+    <TextView
+        android:id="@+id/caigouedit_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/bijia_title_background"
+        android:gravity="center"
+        android:text="出库审核"
+        android:textColor="@color/color_white"
+        android:textSize="20sp"/>
     <TextView
         android:id="@+id/setcheckinfo_pid"
         android:layout_width="match_parent"
@@ -54,5 +62,5 @@
         android:id="@+id/setcheckinfo_viewpic"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="点击查看图片"/>
+        android:text="查看关联图片"/>
 </LinearLayout>

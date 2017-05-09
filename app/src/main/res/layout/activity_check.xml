@@ -5,10 +5,18 @@
     android:id="@+id/activity_check"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@mipmap/bg_main"
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.CheckActivity">
-
+    <TextView
+        android:id="@+id/caigouedit_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/bijia_title_background"
+        android:gravity="center"
+        android:text="出库审核"
+        android:textColor="@color/color_white"
+        android:textSize="20sp"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,7 +28,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/border_1"
             android:hint="输入单据号"
             android:inputType="number"/>
 
@@ -30,7 +37,6 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_weight="1"
-            android:background="@drawable/border_1"
             android:hint="输入型号"
             android:maxLines="1"
             android:singleLine="true"/>
@@ -77,13 +83,15 @@
             android:text="扫码"/>
     </RadioGroup>
 
-
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:background="#cecece"/>
     <ListView
         android:id="@+id/check_lv"
         android:listSelector="@android:color/transparent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/border2"
         android:divider="@drawable/divider"
         android:dividerHeight="1dp"/>
 

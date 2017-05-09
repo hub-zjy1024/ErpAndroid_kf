@@ -103,4 +103,18 @@ public class PreChukuDetailInfo {
     public void setLeftCounts(String leftCounts) {
         this.leftCounts = leftCounts;
     }
+
+    @Override
+    public String toString() {
+        return
+                "型号=" + partNo +"\n"+
+                "封装=" + fengzhuang +"\n"+
+                "批号=" + pihao + "\n"+
+                "厂家=" + factory + "\n"+
+                "描述=" + description + "\n"+
+                "notes=" + notes + "\n"+
+                "位置=" + p + "\n"+
+                "数量=" + counts + "\n"+
+                "剩余数量=" + leftCounts ;
+    }
 }

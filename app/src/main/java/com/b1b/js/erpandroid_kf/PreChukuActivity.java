@@ -9,15 +9,17 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 
 import com.b1b.js.erpandroid_kf.adapter.PreChukuAdapter;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
-import com.b1b.js.erpandroid_kf.utils.MyInetConn;
+import com.b1b.js.erpandroid_kf.utils.MyToast;
 import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONArray;
@@ -46,8 +48,7 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
     private static final int REQUEST_SUCCESS = 1;
     private static final int REQUEST_ERROR = 0;
     private static final int REQUEST_NO_DATA = 2;
-    MyInetConn conn;
-
+    private CheckBox cbo;
     private PreChukuAdapter adapter;
     private Handler zHandler = new Handler() {
         @Override
@@ -55,8 +56,10 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
             super.handleMessage(msg);
             switch (msg.what) {
                 case REQUEST_ERROR:
+                    MyToast.showToast(PreChukuActivity.this, "连接服务器失败，请检查网络");
                     break;
                 case REQUEST_NO_DATA:
+                    MyToast.showToast(PreChukuActivity.this, "查询条件有误");
                     break;
                 case REQUEST_SUCCESS:
                     adapter.notifyDataSetChanged();
@@ -74,36 +77,21 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
         btnETime = (Button) findViewById(R.id.prechuku_edate);
         btnClearDate = (Button) findViewById(R.id.prechuku_cleartime);
         edPid = (EditText) findViewById(R.id.prechuku_ed);
+        cbo = (CheckBox) findViewById(R.id.prechuku_cbo);
         //绑定adapter
         lv = (ListView) findViewById(R.id.prechuku_lv);
         data = new ArrayList<>();
         adapter = new PreChukuAdapter(data, this, R.layout.item_caigou_simpleitem);
         lv.setAdapter(adapter);
-//        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-//            @Override
-//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-//                final int pos = position;
-//                new Thread() {
-//                    @Override
-//                    public void run() {
-//                        try {
-//                            conn.initPrinter();
-//                            PrinterStyle.printPreparedChuKu(conn, data.get(pos));
-//                            conn.cutPaper();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }.start();
-//
-//                return false;
-//            }
-//        });
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(PreChukuActivity.this, PreChukuDetailActivity.class);
                 intent.putExtra("pid", data.get(position).getPid());
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
+                }
                 startActivity(intent);
             }
         });
@@ -111,12 +99,6 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
         btnSTime.setOnClickListener(this);
         btnETime.setOnClickListener(this);
         btnClearDate.setOnClickListener(this);
-        new Thread() {
-            @Override
-            public void run() {
-                conn = new MyInetConn();
-            }
-        }.start();
     }
 
     public String getPreChukuList(String beginDate, String endDate, String partNo, int pid, int uid) throws IOException, XmlPullParserException {
@@ -155,6 +137,10 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
                 if (pid.equals("")) {
                     pid = "0";
                 }
+                if (data.size() != 0) {
+                    data.clear();
+                    adapter.notifyDataSetChanged();
+                }
                 String sTime = btnSTime.getText().toString();
                 String eTime = btnETime.getText().toString();
                 if (sTime.equals("起始时间")) {
@@ -192,15 +178,22 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
                                 String fahuoType = obj.getString("发货类型");
                                 String weituoCompanyID = obj.getString("委托公司");
                                 PreChukuInfo info = new PreChukuInfo(pid, createDate, chukuType, weituo, storageID, fahuoPart, diaoruKf, printCounts, partNo, couts, pihao, factory, placedID, kuqu, fahuoType, weituoCompanyID);
-                                data.add(info);
+                                if (printCounts.equals("0")) {
+                                    data.add(info);
+                                } else {
+                                    if (!cbo.isChecked()) {
+                                        data.add(info);
+                                    }
+                                }
                             }
                             zHandler.sendEmptyMessage(REQUEST_SUCCESS);
-                            //                            getPreChukuCallback(966250, Integer.parseInt(MyApp.id));
                         } catch (IOException e) {
+                            zHandler.sendEmptyMessage(REQUEST_ERROR);
                             e.printStackTrace();
                         } catch (XmlPullParserException e) {
                             e.printStackTrace();
                         } catch (JSONException e) {
+                            zHandler.sendEmptyMessage(REQUEST_NO_DATA);
                             e.printStackTrace();
                         }
                     }
@@ -220,11 +213,4 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
         datePickerDialog.show();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (conn != null) {
-            conn.close();
-        }
-    }
 }

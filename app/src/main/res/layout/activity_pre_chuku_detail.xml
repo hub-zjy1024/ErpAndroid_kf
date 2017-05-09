@@ -1,12 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_pre_chuku_detail"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="com.b1b.js.erpandroid_kf.PreChukuDetailActivity">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/caigouedit_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/bijia_title_background"
+        android:gravity="center"
+        android:text="预出库打印"
+        android:textColor="@color/color_white"
+        android:textSize="20sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/pre_chuku_detail_printerip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="请输入打印机地址"
+            android:visibility="gone"
+            android:maxLines="1"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="打印机状态:"/>
+
+        <TextView
+            android:id="@+id/pre_chuku_detail_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="等待打印机连接"
+            android:textColor="@color/color_black"/>
+
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,13 +52,9 @@
             android:id="@+id/pre_chuku_detail_print"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:enabled="false"
             android:text="打印"/>
 
-        <TextView
-            android:id="@+id/pre_chuku_detail_state"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="等待打印机连接"/>
         <Button
             android:id="@+id/pre_chuku_detail_reconnect"
             android:layout_width="wrap_content"
@@ -34,5 +66,9 @@
     <ListView
         android:id="@+id/pre_chuku_detail_lv"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="400dp"/>
+
+
 </LinearLayout>
+
+
