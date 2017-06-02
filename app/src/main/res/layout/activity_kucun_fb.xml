@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_kucun_fb"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.b1b.js.erpandroid_kf.KucunFBActivity">
+
+    <TextView
+        android:id="@+id/caigouedit_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/bijia_title_background"
+        android:gravity="center"
+        android:text="库存发布"
+        android:textColor="@color/color_white"
+        android:textSize="20sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/kucunfb_ed_partno"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="输入型号"/>
+
+        <EditText
+            android:id="@+id/kucunfb_ed_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="金额不低于"
+            android:inputType="number"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <CheckBox
+            android:id="@+id/kucunfb_cbo_only_fabu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="只看发布库存"
+            />
+
+        <CheckBox
+            android:id="@+id/kucunfb_cbo_zero"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="只看零库存"
+            />
+
+        <CheckBox
+            android:id="@+id/kucunfb_isbeihuo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="只看备货部门"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp">
+
+        <Button
+            android:id="@+id/kucunfb_btn_search"
+            style="@style/myButton"
+            android:text="搜索"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="50dp"
+            android:text="注：长按表内容可查看详情"
+            android:textColor="@color/color_black"/>
+
+
+    </LinearLayout>
+
+
+    <HorizontalScrollView
+        android:id="@+id/kucunfb_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/kucunfb_scrollview_container"
+            android:layout_width="500dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            >
+
+            <ListView
+                android:id="@+id/kucunfb_lv"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
+
+
+</LinearLayout>

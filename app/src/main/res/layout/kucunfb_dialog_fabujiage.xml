@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:paddingLeft="5dp"
+              android:paddingRight="5dp">
+
+    <TextView
+        android:id="@+id/kucunfb_dialog_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <EditText
+        android:id="@+id/kucunfb_dialog_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="请输入发布价格"
+        android:inputType="numberDecimal"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/kucunfb_dialog_lock"
+            style="@style/myButton"
+            android:text="禁止"
+            />
+
+        <Button
+            android:id="@+id/kucunfb_dialog_unlock"
+            style="@style/myButton"
+            android:text="解禁"
+            />
+
+        <Button
+            android:id="@+id/kucunfb_dialog_commit"
+            style="@style/myButton"
+            android:text="提交价格"/>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -45,6 +45,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
     private Button btnSearch;
     private Button btnScancode;
     private ProgressDialog pd;
+    private boolean isFirst = true;
     private RadioButton rdb_checkFirst;
     private Handler mHandler = new Handler() {
         @Override
@@ -143,13 +144,13 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
             case R.id.check_btn_search:
                 pid = edPid.getText().toString().trim();
                 partNo = edPartno.getText().toString().trim();
-                data.clear();
-                mAdapter.notifyDataSetChanged();
+                if (data.size() > 0) {
+                    data.clear();
+                    mAdapter.notifyDataSetChanged();
+                }
                 getData(2, pid, partNo);
                 break;
             case R.id.check_btn_scancode:
-                data.clear();
-                mAdapter.notifyDataSetChanged();
                 Intent intent = new Intent(CheckActivity.this, CaptureActivity.class);
                 startActivityForResult(intent, 100);
                 break;
@@ -158,13 +159,26 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (!isFirst) {
+            if (this.data.size() > 0) {
+                this.data.clear();
+                mAdapter.notifyDataSetChanged();
+            }
+            pid = edPid.getText().toString().trim();
+            partNo = edPartno.getText().toString().trim();
+            getData(2, pid, partNo);
+        }
+        isFirst = false;
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100 && resultCode == RESULT_OK) {
             pid = data.getStringExtra("result");
             edPid.setText(pid);
-            partNo = edPartno.getText().toString().trim();
-            getData(2, pid, partNo);
         }
     }
 }

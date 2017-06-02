@@ -43,11 +43,11 @@ public class LogRecoder {
         }
     }
 
-    public static class Type {
-        public static final int TYPE_ERROR = 0;
-        public static final int TYPE_EXCEPTION = 1;
-        public static final int TYPE_BUG = 2;
-        public static final int TYPE_INFO = 3;
+    private static class Type {
+        static final int TYPE_ERROR = 0;
+        static final int TYPE_EXCEPTION = 1;
+        static final int TYPE_BUG = 2;
+        static final int TYPE_INFO = 3;
     }
 
 

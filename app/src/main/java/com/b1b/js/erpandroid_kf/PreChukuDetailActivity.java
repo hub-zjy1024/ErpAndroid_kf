@@ -1,6 +1,7 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -34,7 +35,12 @@ import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,7 +57,9 @@ public class PreChukuDetailActivity extends AppCompatActivity {
     private PreChukuDetialAdapter detailAdapter;
     private EditText edIP;
     SharedPreferences sp;
+    ProgressDialog pDialog;
     List<PreChukuDetailInfo> list = new ArrayList<PreChukuDetailInfo>();
+    private String localKuqu = "";
     private Handler zHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -64,11 +72,17 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                     tvState.setText("连接失败");
                     btnPrint.setEnabled(false);
                     MyToast.showToast(PreChukuDetailActivity.this, "连接打印机失败");
+                    if (pDialog != null && pDialog.isShowing()) {
+                        pDialog.cancel();
+                    }
                     tvState.setTextColor(Color.RED);
                     break;
                 case 2:
                     btnPrint.setEnabled(true);
                     tvState.setText("连接成功");
+                    if (pDialog != null && pDialog.isShowing()) {
+                        pDialog.cancel();
+                    }
                     tvState.setTextColor(Color.BLACK);
                     break;
                 case 3:
@@ -99,9 +113,15 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         edIP = (EditText) findViewById(R.id.pre_chuku_detail_printerip);
         detailAdapter = new PreChukuDetialAdapter(list, this, R.layout.pre_chuku_lv_detail_items);
         lv.setAdapter(detailAdapter);
+        pDialog = new ProgressDialog(PreChukuDetailActivity.this);
+        pDialog.setCancelable(false);
         btnReconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                pDialog.setMessage("请稍等，正在重连打印机");
+                if (pDialog != null && !pDialog.isShowing()) {
+                    pDialog.show();
+                }
                 new Thread() {
                     @Override
                     public void run() {
@@ -116,11 +136,45 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 }.start();
             }
         });
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                try {
+                    URL url = new URL("http://172.16.6.101:802/ErpV5IP.asp");
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    InputStream is = conn.getInputStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+                    String result = "";
+                    String s;
+                    while ((s = reader.readLine()) != null) {
+                        result = result + s;
+                    }
+                    Log.e("zjy", "SettingActivity->run():getip==" + result);
+                    //                        GetChildStorageIDByIP
+                    LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+                    map.put("ip", result);
+                    SoapObject object1 = WebserviceUtils.getRequest(map, "GetChildStorageIDByIP");
+                    SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(object1, SoapEnvelope.VER11, WebserviceUtils
+                            .MartService);
+                    localKuqu = res1.toString();
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
         btnPrint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (info == null) {
                     MyToast.showToast(PreChukuDetailActivity.this, "请稍等，打印数据还未获取完成");
+                    return;
+                }
+                if (localKuqu.equals("")) {
+                    MyToast.showToast(PreChukuDetailActivity.this, "请稍等，正在获取库区信息");
                     return;
                 }
                 new Thread() {
@@ -130,8 +184,11 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                         boolean isFinish = false;
                         try {
                             mPrinter.initPrinter();
-                            isFinish = PrinterStyle.printPreparedChuKu(mPrinter, info);
-                            mPrinter.cutPaper();
+                            isFinish = PrinterStyle.printPreparedChuKu(mPrinter, info, localKuqu);
+                            boolean isOK = mPrinter.cutPaper();
+                            if (!isOK) {
+                                return;
+                            }
                             String res = updatePrintCount(Integer.parseInt(info.getPid()));
                             if (res.equals("1")) {
                                 zHandler.sendEmptyMessage(5);
@@ -152,35 +209,35 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         });
         sp = getSharedPreferences("UserInfo", Context.MODE_PRIVATE);
         final String localPrinterIP = sp.getString("printerIP", "");
-        if (localPrinterIP.equals("")) {
-            if (MyApp.id.equals("101")) {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        super.run();
-                        Intent intent = getIntent();
-                        String pid = intent.getStringExtra("pid");
-                        zHandler.sendEmptyMessage(0);
-                        mPrinter = new MyPrinter(null);
-                        if (mPrinter.getmOut() != null) {
-                            zHandler.sendEmptyMessage(2);
-                        } else {
-                            zHandler.sendEmptyMessage(1);
-                        }
-                        try {
-                            String root = getPreChukuDetail(Integer.parseInt(pid), Integer.parseInt(MyApp.id));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (XmlPullParserException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+        if (MyApp.id.equals("101")) {
+            new Thread() {
+                @Override
+                public void run() {
+                    super.run();
+                    Intent intent = getIntent();
+                    String pid = intent.getStringExtra("pid");
+                    zHandler.sendEmptyMessage(0);
+                    mPrinter = new MyPrinter(null);
+                    if (mPrinter.getmOut() != null) {
+                        zHandler.sendEmptyMessage(2);
+                    } else {
+                        zHandler.sendEmptyMessage(1);
                     }
-                }.start();
-            }
+                    try {
+                        String root = getPreChukuDetail(Integer.parseInt(pid), Integer.parseInt(MyApp.id));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.start();
+        } else if (localPrinterIP.equals("")) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("提示").setMessage("请在菜单中的'配置'项中进行配置打印机IP地址").setPositiveButton("前往", new DialogInterface.OnClickListener() {
+            builder.setTitle("提示").setMessage("请在菜单中的'配置'项中进行配置打印机IP地址").setPositiveButton("前往", new DialogInterface
+                    .OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     Intent intent = new Intent(PreChukuDetailActivity.this, SettingActivity.class);
@@ -232,7 +289,8 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         map.put("pid", pid);
         map.put("uid", uid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintView");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                .ChuKuServer);
         Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + response);
         JSONObject object = new JSONObject(response.toString());
         JSONArray array = object.getJSONArray("表");
@@ -245,10 +303,13 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 info.setEmployeeID(obj.getString("EmployeeID"));
                 info.setDeptID(obj.getString("部门ID"));
                 info.setPactID(obj.getString("合同编号"));
-                info.setClient(obj.getString("业务员"));
+                info.setClient(obj.getString("客户"));
                 info.setOutType(obj.getString("出库类型"));
                 info.setFahuoType(obj.getString("发货类型"));
+                info.setKuqu(obj.getString("库区"));
                 info.setMainNotes(obj.getString("note"));
+                boolean isXiankuan = obj.getBoolean("IsXianHuoXianJie");
+                info.setXiankuan(isXiankuan);
             }
             String partNo = obj.getString("型号");
             String fengzhuang = obj.getString("封装");
@@ -258,10 +319,9 @@ public class PreChukuDetailActivity extends AppCompatActivity {
             String p = obj.getString("位置");
             String notes = obj.getString("备注");
             String counts = obj.getString("数量");
-            boolean isXiankuan = obj.getBoolean("IsXianHuoXianJie");
-            info.setXiankuan(isXiankuan);
             String leftCounts = String.valueOf(Integer.parseInt(obj.getString("BalanceQ")) - Integer.parseInt(counts));
-            PreChukuDetailInfo info = new PreChukuDetailInfo(partNo, fengzhuang, pihao, factory, description, notes, p, counts, leftCounts);
+            PreChukuDetailInfo info = new PreChukuDetailInfo(partNo, fengzhuang, pihao, factory, description, notes, p, counts,
+                    leftCounts);
             list.add(info);
         }
         info.setDetailInfos(list);
@@ -273,7 +333,8 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("pid", pid);
         SoapObject request = WebserviceUtils.getRequest(map, "UpdatePrintCKTZCount");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                .ChuKuServer);
         Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + response);
         return response.toString();
     }

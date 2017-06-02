@@ -54,9 +54,9 @@
         </activity>
 
         <service
-            android:name=".service.UpLoadService"
+            android:name=".service.PushService"
             android:enabled="true"
-            android:exported="true">
+            android:exported="false">
         </service>
 
         <activity android:name=".UploadActivity">
@@ -77,6 +77,8 @@
         <activity android:name=".PreChukuDetailActivity">
         </activity>
         <activity android:name=".SettingActivity">
+        </activity>
+        <activity android:name=".KucunFBActivity">
         </activity>
     </application>
 

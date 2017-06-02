@@ -155,16 +155,20 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                                 Intent intent1 = new Intent(SetCheckInfoActivity.this, TakePicActivity.class);
                                 intent1.putExtra("pid", pid);
                                 startActivity(intent1);
+                                MyApp.myLogger.writeInfo("upload-from-checkpage-take");
                                 break;
                             case 1:
                                 Intent intent2 = new Intent(SetCheckInfoActivity.this, ObtainPicFromPhone.class);
                                 intent2.putExtra("pid", pid);
                                 startActivity(intent2);
+                                MyApp.myLogger.writeInfo("upload-from-checkpage-obtain");
+
                                 break;
                             case 2:
                                 Intent intent3 = new Intent(SetCheckInfoActivity.this, TakePic2Activity.class);
                                 intent3.putExtra("pid", pid);
                                 startActivity(intent3);
+                                MyApp.myLogger.writeInfo("upload-from-checkpage-take2");
                                 break;
                         }
                     }

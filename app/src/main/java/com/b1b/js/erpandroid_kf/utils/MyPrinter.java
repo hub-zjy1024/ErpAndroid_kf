@@ -163,15 +163,16 @@ public class MyPrinter {
         return cmd;
     }
 
-    public synchronized void cutPaper() throws IOException {
+    public synchronized boolean cutPaper() throws IOException {
         //        byte[] cutCmd=new byte[]{0x1D,0x56,0x0,0x48};
         //        byte[] cutCmd = new byte[]{(byte) 29, (byte) 86, (byte) 0};
         byte[] cutCmd = new byte[]{(byte) 29, (byte) 86, (byte) 66, (byte) 2};
         //        mOut.printText(go);
         if( mOut!= null){
             mOut.write(cutCmd);
+            return true;
         }
-        //        mOut.printText(new byte[]{});
+        return false;
     }
 
     public void newLine() throws IOException {

@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.SetCheckInfoActivity">
+
     <TextView
         android:id="@+id/caigouedit_title"
         android:layout_width="match_parent"
@@ -17,50 +18,60 @@
         android:text="出库审核"
         android:textColor="@color/color_white"
         android:textSize="20sp"/>
+
     <TextView
         android:id="@+id/setcheckinfo_pid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:padding="5dp"/>
+        android:padding="5dp"
+        android:textSize="18sp"/>
 
-    <EditText
-        android:id="@+id/setcheckinfo_ed_info"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:gravity="top"
-        android:maxLines="5"
-        android:hint="请输入审核信息(默认信息为'通过')"
-        android:padding="5dp"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
 
-    <Button
-        android:id="@+id/setcheckinfo_commit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@null"
-        android:drawableLeft="@mipmap/gc_deal_sign_ok"
-        android:enabled="true"
-        android:text="通过"/>
+        <EditText
+            android:id="@+id/setcheckinfo_ed_info"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:gravity="top"
+            android:hint="请输入审核信息(默认信息为'通过')"
+            android:maxLines="5"
+            android:padding="5dp"/>
 
-    <Button
-        android:id="@+id/setcheckinfo_fail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@null"
-        android:drawableLeft="@mipmap/gc_deal_sign_deny"
-        android:enabled="true"
-        android:text="不通过"/>
+        <Button
+            android:id="@+id/setcheckinfo_commit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:drawableLeft="@mipmap/gc_deal_sign_ok"
+            android:enabled="true"
+            android:text="通过"/>
 
-    <Button
-        android:id="@+id/setcheckinfo_photo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@null"
-        android:drawableLeft="@mipmap/cipugc_icon_add_photo"
-        android:text="拍照上传"/>
-    <Button
-        android:id="@+id/setcheckinfo_viewpic"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="查看关联图片"/>
+        <Button
+            android:id="@+id/setcheckinfo_fail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:drawableLeft="@mipmap/gc_deal_sign_deny"
+            android:enabled="true"
+            android:text="不通过"/>
+
+        <Button
+            android:id="@+id/setcheckinfo_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:drawableLeft="@mipmap/cipugc_icon_add_photo"
+            android:text="拍照上传"/>
+
+        <Button
+            android:id="@+id/setcheckinfo_viewpic"
+            style="@style/myButton"
+            android:text="查看关联图片"/>
+    </LinearLayout>
+
 </LinearLayout>

@@ -80,17 +80,15 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case PICUPLOAD_ERROR:
-                    showFinalDialog("上传图片失败，请重新拍摄或检查网络");
+                    showFinalDialog("上传图片失败，请检查网络并重新拍摄");
                     btn_takepic.setEnabled(true);
                     toolbar.setVisibility(View.GONE);
                     break;
                 case PICUPLOAD_SUCCESS:
                     if (msg.obj.toString().equals("操作成功")) {
-
                         showFinalDialog("上传成功");
                     } else {
-                        MyToast.showToast(TakePicActivity.this, "插入图片信息失败");
-                        showFinalDialog("插入图片信息失败");
+                        showFinalDialog("插入图片信息失败，请重新上传");
                     }
                     btn_takepic.setEnabled(true);
                     toolbar.setVisibility(View.GONE);

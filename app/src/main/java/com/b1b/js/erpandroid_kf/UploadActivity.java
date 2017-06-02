@@ -10,7 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import com.b1b.js.erpandroid_kf.service.UpLoadService;
+import com.b1b.js.erpandroid_kf.service.PushService;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
@@ -33,7 +33,7 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.e("zjy", "UploadActivity.java->onServiceConnected(): onServiceConnected==");
-            UpLoadService.MyBinder mBinder = (UpLoadService.MyBinder) service;
+            PushService.MyBinder mBinder = (PushService.MyBinder) service;
             mBinder.upLoad();
         }
 
@@ -59,7 +59,7 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     public void onClick(View v) {
-        Intent intent = new Intent(UploadActivity.this, UpLoadService.class);
+        Intent intent = new Intent(UploadActivity.this, PushService.class);
         switch (v.getId()) {
             case R.id.activity_upload_start_srv:
                 startService(intent);
@@ -114,7 +114,6 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
          得到配置 * @return
          */
         private FTPClientConfig getFTPClientConfig() { // 创建配置对象
-
             FTPClientConfig conf = new FTPClientConfig(FTPClientConfig.SYST_NT);
             conf.setServerLanguageCode("zh");
             return conf;
@@ -227,7 +226,10 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
         }
 
         /**
-         下载 * @throws Exception
+         下载
+         @param localFilePath
+         @param remoteFilePath
+         @throws Exception
          */
         public void download(String localFilePath, String remoteFilePath) throws Exception {
             OutputStream localOut = new FileOutputStream(localFilePath);

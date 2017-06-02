@@ -10,7 +10,7 @@ import java.util.List;
  Created by 张建宇 on 2017/5/2. */
 
 public class PrinterStyle {
-    public static boolean printPreparedChuKu(MyPrinter printer, PreChukuInfo info) throws IOException {
+    public static boolean printPreparedChuKu(MyPrinter printer, PreChukuInfo info, String localKuqu) throws IOException {
         String pid = info.getPid();
         if (info.isXiankuan()) {
             printer.setFont(3);
@@ -27,35 +27,45 @@ public class PrinterStyle {
         printer.setFont(1);
         printer.printTextLn(info.getSalesman() + "-" + info.getEmployeeID() + "-" + pid.substring(0, 3));
         printer.setFont(0);
-        printer.printTextLn("DeptID:" + info.getDeptID() + "\t" + "Client:" + info.getClient());
-        printer.printTextLn("PactID:" + info.getPactID() + "\t" + "oType:" + info.getOutType());
+        printer.printTextLn("DeptID:" + getStringAtLength(info.getDeptID(),8,7) + "\t" + "Client:" + info.getClient());
+        printer.printTextLn("PactID:" +getStringAtLength(info.getPactID(),8,7)  + "\t" + "oType:" + info.getOutType());
         List<PreChukuDetailInfo> detailInfos = info.getDetailInfos();
         if (detailInfos != null) {
             for (int i = 0; i < detailInfos.size(); i++) {
                 PreChukuDetailInfo dInfo = detailInfos.get(i);
                 //一行47个字符
                 printer.printTextLn((i + 1) + ".-----------------------------------------");
-                printer.printTextLn("@@型号:" + getStringAtLength(dInfo.getPartNo(), 20,0));
-                String fz = getStringAtLength(dInfo.getFengzhuang(), 10,5);
-                String ph = getStringAtLength(dInfo.getPihao(), 10,5);
-                String fc =  getStringAtLength(dInfo.getFactory(), 10,5);
-                String ms = getStringAtLength(dInfo.getDescription(), 10,5);
-                String place = getStringAtLength(dInfo.getP(), 13,2);
-                String bz = getStringAtLength(dInfo.getNotes(), 10,5);
-                String counts = getStringAtLength(dInfo.getCounts(), 10,5);
+                printer.printTextLn("@@型号:" + getStringAtLength(dInfo.getPartNo(), 20, 0));
+                String fz = getStringAtLength(dInfo.getFengzhuang(), 10, 5);
+                String ph = getStringAtLength(dInfo.getPihao(), 10, 5);
+                String fc = getStringAtLength(dInfo.getFactory(), 10, 5);
+                String ms = getStringAtLength(dInfo.getDescription(), 10, 5);
+                String place = getStringAtLength(dInfo.getP(), 13, 2);
+                String bz = getStringAtLength(dInfo.getNotes(), 4, 5);
+                String counts = getStringAtLength(dInfo.getCounts(), 10, 5);
                 String leftCounts = dInfo.getLeftCounts();
-                printer.printTextLn("封装:" + fz + "\t" + "批号:" + ph + "\t" + "厂家:"+fc);
+                printer.printTextLn("封装:" + fz + "\t" + "批号:" + ph + "\t" + "厂家:" + fc);
                 printer.printTextLn("描述:" + ms + "\t" + "P:" + place + "\t" + "备注:" + bz);
                 printer.printTextLn("数量:" + counts + " \t" + "剩余数量:" + leftCounts);
             }
         }
         printer.newLine();
         printer.printTextLn("主备注：" + info.getMainNotes());
-        printer.printTextLn("鉴于工作需要，本人向公司做出如下承诺：");
-        printer.printTextLn("1、因业务需要，本人自愿自行取货。");
-        printer.printTextLn("2、所取的上述货物由本人负责在30日内收回销货款并上交公司。否则，由本人承担全部的经济责任。");
-        printer.printTextLn("3、本签收单由本人签字后即产生法律效力，作为本人欠款的依据。");
-        printer.printTextLn("4、本签收单的原件、复印件和传真件具有同等的法律效力。");
+        if (!info.getKuqu().equals(localKuqu)) {
+            String name = "";
+            if (info.getKuqu().equals("0")) {
+                name = "次库区";
+            } else if (info.getKuqu().equals("1")) {
+                name = "主库区";
+            }
+            printer.printTextLn("本单以上型号，由发" + info.getFahuoPart() + "发货调拨至" + name + ",请认真核实，如果不能发货，请及时归还原库区。");
+        } else {
+            printer.printTextLn("鉴于工作需要，本人向公司做出如下承诺：");
+            printer.printTextLn("1、因业务需要，本人自愿自行取货。");
+            printer.printTextLn("2、所取的上述货物由本人负责在30日内收回销货款并上交公司。否则，由本人承担全部的经济责任。");
+            printer.printTextLn("3、本签收单由本人签字后即产生法律效力，作为本人欠款的依据。");
+            printer.printTextLn("4、本签收单的原件、复印件和传真件具有同等的法律效力。");
+        }
         printer.newLine();
         printer.printTextLn("出库员：");
         printer.printTextLn("一次复核：");
@@ -65,7 +75,7 @@ public class PrinterStyle {
         return true;
     }
 
-    public static String getStringAtLength(String src, int maxLength, int titleLength) {
+    private static String getStringAtLength(String src, int maxLength, int titleLength) {
         String newString = "";
         if (src == null) {
             for (int i = 0; i < 8 - titleLength; i++) {

@@ -1,16 +1,43 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.b1b.js.erpandroid_kf.utils.MyToast;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class SettingActivity extends AppCompatActivity {
 
+    private Handler zHandler=new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case 0:
+                    MyToast.showToast(SettingActivity.this, "保存打印机ip地址成功");
+                    break;
+                case 1:
+                    MyToast.showToast(SettingActivity.this, "插入失败");
+                    break;
+                case 2:
+                    MyToast.showToast(SettingActivity.this, "当前网络质量较差，连接超时");
+                    break;
+            }
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,9 +50,48 @@ public class SettingActivity extends AppCompatActivity {
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sp.edit().putString("printerIP", edPrinterIP.getText().toString()).commit();
-                MyToast.showToast(SettingActivity.this, "保存打印机ip地址成功");
+                Pattern pattern = Pattern.compile("((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))");
+                final String ip = edPrinterIP.getText().toString().trim();
+                Matcher matcher = pattern.matcher(ip);
+                boolean matches = matcher.matches();
+                if (!matches) {
+                    MyToast.showToast(SettingActivity.this, "请输入正确的ip格式");
+                    return;
+                }
+                sp.edit().putString("printerIP", ip).commit();
+                new Thread(){
+                    @Override
+                    public void run() {
+                        saveIP(ip, MyApp.id);
+                        sp.edit().putString("printerIP", ip).commit();
+                    }
+                }.start();
             }
         });
+
+    }
+
+    public void saveIP(String ip, String id) {
+        try {
+            URL url = new URL("http://192.168.10.101:8080/Dyj_server/saveUser?uid=" + id + "&ip=" + ip);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            InputStream in = conn.getInputStream();
+            byte[] buf = new byte[1024];
+            int len;
+            StringBuilder builder = new StringBuilder();
+            while ((len = in.read(buf)) != -1) {
+                builder.append(new String(buf, 0, len, "UTF-8"));
+            }
+            if (builder.toString().equals("插入成功")) {
+                zHandler.sendEmptyMessage(0);
+            } else {
+                zHandler.sendEmptyMessage(1);
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            zHandler.sendEmptyMessage(2);
+            e.printStackTrace();
+        }
     }
 }

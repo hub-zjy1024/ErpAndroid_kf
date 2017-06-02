@@ -17,7 +17,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.b1b.js.erpandroid_kf.adapter.PreChukuAdapter;
+import com.b1b.js.erpandroid_kf.adapter.PreChukuAdapter2;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
 import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
@@ -49,7 +49,8 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
     private static final int REQUEST_ERROR = 0;
     private static final int REQUEST_NO_DATA = 2;
     private CheckBox cbo;
-    private PreChukuAdapter adapter;
+    private PreChukuAdapter2 adapter;
+
     private Handler zHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -81,7 +82,7 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
         //绑定adapter
         lv = (ListView) findViewById(R.id.prechuku_lv);
         data = new ArrayList<>();
-        adapter = new PreChukuAdapter(data, this, R.layout.item_caigou_simpleitem);
+        adapter = new PreChukuAdapter2(data, this, R.layout.item_caigou_simpleitem);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -179,6 +180,8 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
                                 String weituoCompanyID = obj.getString("委托公司");
                                 PreChukuInfo info = new PreChukuInfo(pid, createDate, chukuType, weituo, storageID, fahuoPart, diaoruKf, printCounts, partNo, couts, pihao, factory, placedID, kuqu, fahuoType, weituoCompanyID);
                                 if (printCounts.equals("0")) {
+                                    data.add(info);
+                                } else if (printCounts.equals("")) {
                                     data.add(info);
                                 } else {
                                     if (!cbo.isChecked()) {

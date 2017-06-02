@@ -1,8 +1,6 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -12,8 +10,11 @@ import android.widget.ListView;
 import com.b1b.js.erpandroid_kf.adapter.KqAdapter;
 import com.b1b.js.erpandroid_kf.entity.KaoqinInfo;
 import com.b1b.js.erpandroid_kf.task.MyAsyncTask;
-import com.b1b.js.erpandroid_kf.utils.MyCallBack;
+import com.b1b.js.erpandroid_kf.task.TaskCallback;
+import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
+
+import org.json.JSONException;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,17 +28,6 @@ public class KaoQinActivity extends AppCompatActivity {
     private EditText inputDate;
     private EditText inputId;
 
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case 0:
-                    MyToast.showToast(KaoQinActivity.this, "查询条件有误或者网络问题");
-                    break;
-            }
-        }
-    };
 
     public String getCurrentDate() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
@@ -65,6 +55,9 @@ public class KaoQinActivity extends AppCompatActivity {
                         data.remove(i);
                     }
                 }
+                if (data.size() == 0) {
+                    MyToast.showToast(getApplicationContext(), "当前无迟到早退记录");
+                }
                 adapter.notifyDataSetChanged();
             }
         });
@@ -77,19 +70,7 @@ public class KaoQinActivity extends AppCompatActivity {
                 if (date.equals("") || id.equals("")) {
                     MyToast.showToast(KaoQinActivity.this, "请输入完整查询条件");
                 } else {
-                    new MyAsyncTask(new MyCallBack() {
-                        @Override
-                        public void postRes(List list) {
-                            if (list != null) {
-                                data.clear();
-                                data.addAll(list);
-                                adapter.notifyDataSetChanged();
-                                MyToast.showToast(KaoQinActivity.this, "查询到" + list.size() + "条考勤记录");
-                            } else {
-                                mHandler.sendEmptyMessage(0);
-                            }
-                        }
-                    }).execute(new String[]{date, id});
+                        initData(new String[]{date, id});
                 }
             }
         });
@@ -98,21 +79,26 @@ public class KaoQinActivity extends AppCompatActivity {
     }
 
     private void initData(String[] arr) {
-        new MyAsyncTask(new MyCallBack() {
+        new MyAsyncTask(new TaskCallback() {
             @Override
-            public void postRes(List list) {
+            public void callback(String list) {
                 if (list != null) {
-                    data.addAll(list);
-                    adapter.notifyDataSetChanged();
-                    MyToast.showToast(KaoQinActivity.this, "查询到" + list.size() + "条考勤记录");
+                    List<KaoqinInfo> kqList = null;
+                    try {
+                        kqList = MyJsonUtils.getKaoQinList(list);
+                        data.clear();
+                        data.addAll(kqList);
+                        adapter.notifyDataSetChanged();
+                        MyToast.showToast(KaoQinActivity.this, "查询到" + kqList.size() + "条考勤记录");
+                    } catch (JSONException e) {
+                        MyToast.showToast(KaoQinActivity.this, "查询条件有误");
+                        e.printStackTrace();
+                    }
+                } else {
+                    MyToast.showToast(KaoQinActivity.this, "连接服务器失败，请检查网络");
                 }
             }
         }).execute(arr);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-    }
 }

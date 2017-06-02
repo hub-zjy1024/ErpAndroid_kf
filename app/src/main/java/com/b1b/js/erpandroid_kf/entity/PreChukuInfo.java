@@ -62,7 +62,6 @@ public class PreChukuInfo {
     private String kuqu;
     private String fahuoType;
     private String weituoCompanyID;
-
     private String deptID;
     private String client;
     private String pactID;

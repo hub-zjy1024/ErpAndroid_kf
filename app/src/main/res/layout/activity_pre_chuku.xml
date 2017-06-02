@@ -74,5 +74,5 @@
         android:layout_height="match_parent"
         android:divider="#bcbcbc"
         android:dividerHeight="2dp"
-        android:padding="5dp"/>
+        />
 </LinearLayout>

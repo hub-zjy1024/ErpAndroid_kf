@@ -78,6 +78,16 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                     dismissDialog();
                     MyToast.showToast(ViewPicByPidActivity.this, "图片上传地址不在本地服务器，无法访问");
                     break;
+                case 4:
+                    int totalSize = msg.arg1;
+                    int current = msg.arg2 + 1;
+                    pd.setMessage("正在下载图片" + current + "/" + totalSize);
+                    MyToast.showToast(ViewPicByPidActivity.this, "图片上传地址不在本地服务器，无法访问");
+                    break;
+                case 5:
+                    dismissDialog();
+                    MyToast.showToast(ViewPicByPidActivity.this, "图片上传地址不在本地服务器，无法访问");
+                    break;
             }
         }
     };
@@ -192,6 +202,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                             //图片未下载的需要下载
                             if (!file.exists()) {
                                 downLoadPic(client, remoteAbsolutePath, imgFtp, fti, file, list);
+                                mHandler.obtainMessage(4, searchSize, i).sendToTarget();
                             } else {
                                 fti.setImgPath(file.getAbsolutePath());
                                 list.add(fti);
@@ -214,7 +225,8 @@ public class ViewPicByPidActivity extends AppCompatActivity {
         }.start();
     }
 
-    private void downLoadPic(FTPClient client, String remoteAbsolutePath, String imgFtp, FTPImgInfo fii, File file, List<FTPImgInfo> list) throws IOException {
+    private void downLoadPic(FTPClient client, String remoteAbsolutePath, String imgFtp, FTPImgInfo fii, File file,
+                             List<FTPImgInfo> list) throws IOException {
         if (!client.isConnected()) {
             client.connect(imgFtp, 21);
             if (imgFtp.equals("172.16.6.22")) {
@@ -261,7 +273,8 @@ public class ViewPicByPidActivity extends AppCompatActivity {
         map.put("checkWord", checkWord);
         map.put("ID", pid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetBILL_PictureRelatenfoByID");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                .ChuKuServer);
         return response.toString();
     }
 

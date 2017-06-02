@@ -22,8 +22,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -57,7 +58,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <Button
@@ -81,13 +82,12 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="10dp"
-        android:background="#cecece"/>
+        android:background="@color/lv_bg"/>
 
     <ListView
         android:id="@+id/kq_lv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="10dp"
         android:divider="@drawable/listview_divider"
         android:dividerHeight="2dp"
         android:listSelector="@android:color/transparent"

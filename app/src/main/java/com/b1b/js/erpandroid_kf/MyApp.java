@@ -3,7 +3,6 @@ package com.b1b.js.erpandroid_kf;
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.os.Environment;
-import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.utils.LogRecoder;
 import com.b1b.js.erpandroid_kf.utils.UploadUtils;
@@ -59,7 +58,9 @@ public class MyApp extends Application {
                                     client.makeDirectory(dir);
                                     client.changeWorkingDirectory(dir);
                                 }
-                                String name = MyApp.id + "_log.txt";
+                                SharedPreferences sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
+                                String id = sp.getString("name", "");
+                                String name = id + "_log.txt";
                                 String[] names = client.listNames();
                                 for (String s : names) {
                                     if (s.equals(name)) {
@@ -68,9 +69,7 @@ public class MyApp extends Application {
                                 }
                                 boolean isFalse = client.storeFile(name, fis);
                                 if (isFalse) {
-                                    Log.e("zjy", "MenuActivity->run(): upload log success==");
                                     log.delete();
-                                    myLogger = new LogRecoder("dyj_log.txt", null);
                                 }
                                 client.completePendingCommand();
                                 client.disconnect();
@@ -79,16 +78,10 @@ public class MyApp extends Application {
                             }
                         }
                     }.start();
-
-                } else {
-                    myLogger = new LogRecoder("dyj_log.txt", null);
                 }
                 sp.edit().putString("date", current).apply();
-            } else {
-                myLogger = new LogRecoder("dyj_log.txt", null);
             }
-        } else {
-            myLogger = new LogRecoder("dyj_log.txt", null);
         }
+        myLogger = new LogRecoder("dyj_log.txt", null);
     }
 }

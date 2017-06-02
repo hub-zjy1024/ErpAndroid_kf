@@ -8,6 +8,18 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="WarpLinearLayoutDefault">
+        <item name="grivate">left</item>
+        <item name="horizontal_Space">0dp</item>
+        <item name="vertical_Space">5dp</item>
+        <item name="isFull">true</item>
+    </style>
+    <style name="zjy_title">
+        <item name="android:background">@color/title_background</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">25sp</item>
+        <item name="android:textColor">@color/color_white</item>
+    </style>
     <style name="AppSplash" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@mipmap/appsplash</item>
     </style>
@@ -31,4 +43,15 @@
         <item name="android:windowEnterAnimation">@anim/slide_in</item>
         <item name="android:windowExitAnimation">@anim/slide_out</item>
     </style>
+
+    <declare-styleable name="WarpLinearLayout">
+        <attr name="grivate" format="enum"><!--对齐方式 !-->
+            <enum name="right" value="0"/>
+            <enum name="left" value="1"/>
+            <enum name="center" value="2"/>
+        </attr>
+        <attr name="horizontal_Space" format="dimension"/>
+        <attr name="vertical_Space" format="dimension"/>
+        <attr name="isFull" format="boolean"/>
+    </declare-styleable>
 </resources>
