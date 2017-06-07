@@ -7,8 +7,8 @@ android {
         applicationId "com.b1b.js.erpandroid_kf"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 19
-        versionName "2.8"
+        versionCode 21
+        versionName "3.0"
     }
     buildTypes {
         release {
@@ -29,6 +29,7 @@ dependencies {
     compile 'com.android.support:support-v4:24.2.1'
     testCompile 'junit:junit:4.12'
     compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.rengwuxian.materialedittext:library:2.1.4'
     compile files('libs/commons-net-3.6.jar')
     compile 'me.drakeet.materialdialog:library:1.3.1'
 }

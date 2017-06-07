@@ -19,6 +19,7 @@ import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
 import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
+import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
 import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONException;
@@ -52,6 +53,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case 0:
+                    SoftKeyboardUtils.closeInputMethod(edPartno, CheckActivity.this);
                     mAdapter.notifyDataSetChanged();
                     MyToast.showToast(CheckActivity.this, "查询到" + data.size() + "条数据");
                     break;
@@ -63,6 +65,9 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                     mAdapter.notifyDataSetChanged();
                     MyToast.showToast(CheckActivity.this, "查询失败，网络状态不佳");
                     break;
+            }
+            if (pd != null) {
+                pd.cancel();
             }
         }
     };
@@ -99,6 +104,9 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
             }
         });
         lv.setAdapter(mAdapter);
+        pd = new ProgressDialog(this);
+        pd.setTitle("提示");
+        pd.setMessage("正在查询。。。");
     }
 
     public void getData(final int typeId, final String pid, final String partNo) {
@@ -147,6 +155,9 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                 if (data.size() > 0) {
                     data.clear();
                     mAdapter.notifyDataSetChanged();
+                }
+                if (pd != null && !pd.isShowing()) {
+                    pd.show();
                 }
                 getData(2, pid, partNo);
                 break;

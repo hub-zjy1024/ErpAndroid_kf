@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_view_pic_by_pid"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -19,20 +20,27 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
         android:orientation="horizontal">
 
-        <EditText
+        <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/view_pic_edpid"
-            android:layout_width="150dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="请输入单据号"
-            android:inputType="date"
+            app:met_clearButton="true"
+            android:layout_weight="2"
+            app:met_primaryColor="@color/colorPrimary"
+            android:inputType="number"
             android:maxLines="1"/>
 
         <Button
             android:id="@+id/view_pic_btn_search"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_width="0dp"
+           style="@style/zjy_button_light"
+            android:layout_weight="1"
+
             android:text="搜索"/>
     </LinearLayout>
 

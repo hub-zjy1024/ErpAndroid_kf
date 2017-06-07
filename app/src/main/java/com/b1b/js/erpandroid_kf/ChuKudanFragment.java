@@ -21,6 +21,7 @@ import com.b1b.js.erpandroid_kf.adapter.ChuKuDanAdapter;
 import com.b1b.js.erpandroid_kf.entity.ChuKuDanInfo;
 import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
+import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
 import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONException;
@@ -70,6 +71,7 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
                 data.addAll(list);
                 adapter.notifyDataSetChanged();
                 isFinish = true;
+                SoftKeyboardUtils.closeInputMethod(edPartNo, getActivity());
                 MyToast.showToast(getActivity(), "查询到" + data.size() + "条数据");
             } else if (msg.what == 1) {
                 isFinish = true;

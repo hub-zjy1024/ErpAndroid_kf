@@ -22,6 +22,7 @@ import com.b1b.js.erpandroid_kf.adapter.ChuKuTongZhiAdapter;
 import com.b1b.js.erpandroid_kf.entity.ChukuTongZhiInfo;
 import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
+import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
 import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONException;
@@ -64,6 +65,7 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
                 case 0:
                     adapter.notifyDataSetChanged();
                     isFinish = true;
+                    SoftKeyboardUtils.closeInputMethod(edPartNo, getActivity());
                     MyToast.showToast(getActivity(), "查询到" + data.size() + "条数据");
                     break;
                 case 1:

@@ -210,6 +210,7 @@ public class MenuActivity extends AppCompatActivity {
         //        listItems.add(map);
         ArrayList<MyMenuItem> data = new ArrayList<>();
         data.add(new MyMenuItem(R.mipmap.menu_chuku, "出库单","查看出库单和出库通知单"));
+//        data.add(new MyMenuItem(R.mipmap.menu_chuku, "预出库打印", "预出库单据信息打印"));
         data.add(new MyMenuItem(R.mipmap.menu_check, "出库审核(拍照)", "出库审核功能和审核完成的拍照功能"));
         data.add(new MyMenuItem(R.mipmap.menu_kaoqin, "考勤", "查询考勤状态"));
         data.add(new MyMenuItem(R.mipmap.menu_photo, "上传图片(3种方式)", "通过三种不同的方式上传图片"));

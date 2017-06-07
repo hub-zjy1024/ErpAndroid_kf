@@ -2,6 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_panku"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -21,28 +22,36 @@
 
     <LinearLayout
         android:layout_width="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
         android:layout_height="wrap_content">
 
-        <EditText
+        <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/panku_id"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:hint="请输入明细id"
+            app:met_clearButton="true"
+            app:met_primaryColor="@color/colorPrimary"
             android:inputType="number"/>
 
-        <EditText
+        <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/panku_partno"
-            android:layout_width="100dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            app:met_clearButton="true"
+            app:met_primaryColor="@color/colorPrimary"
             android:hint="请输入型号"/>
 
-        <Button
-            android:id="@+id/panku_search"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:text="搜索"/>
-    </LinearLayout>
 
+    </LinearLayout>
+    <Button
+        android:id="@+id/panku_search"
+        android:layout_marginLeft="10dp"
+        style="@style/zjy_button_light"
+        android:layout_marginBottom="10dp"
+        android:text="搜索"/>
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">

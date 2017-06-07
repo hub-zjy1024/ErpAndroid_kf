@@ -17,6 +17,7 @@ import com.b1b.js.erpandroid_kf.adapter.ViewPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
 import com.b1b.js.erpandroid_kf.utils.MyFileUtils;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
+import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
 import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.apache.commons.net.ftp.FTP;
@@ -60,10 +61,11 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                     }
                     adapter.notifyDataSetChanged();
                     dismissDialog();
+                    SoftKeyboardUtils.closeInputMethod(edPid, ViewPicByPidActivity.this);
                     if (downCounts > 0) {
-                        MyToast.showToast(ViewPicByPidActivity.this, "下载成功" + downCounts);
+                        MyToast.showToast(ViewPicByPidActivity.this, "下载成功" + downCounts+ "张");
                     } else {
-                        MyToast.showToast(ViewPicByPidActivity.this, "图片下载失败");
+                        MyToast.showToast(ViewPicByPidActivity.this, "在手机中找到图片" + list.size() + "张");
                     }
                     break;
                 case 1:
@@ -82,7 +84,6 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                     int totalSize = msg.arg1;
                     int current = msg.arg2 + 1;
                     pd.setMessage("正在下载图片" + current + "/" + totalSize);
-                    MyToast.showToast(ViewPicByPidActivity.this, "图片上传地址不在本地服务器，无法访问");
                     break;
                 case 5:
                     dismissDialog();
@@ -214,7 +215,6 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                             mHandler.sendEmptyMessage(3);
                         }
                     }
-                    Log.e("zjy", "ViewPicByPidActivity.java->run(): downCouts==" + downCounts);
                     Message msg = mHandler.obtainMessage(0, list);
                     mHandler.sendMessage(msg);
                 } catch (JSONException e) {

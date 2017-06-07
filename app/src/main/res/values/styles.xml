@@ -44,6 +44,22 @@
         <item name="android:windowExitAnimation">@anim/slide_out</item>
     </style>
 
+    <style name="zjy_theme_stautebar" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:buttonStyle">@style/zjy_button_light</item>
+
+    </style>
+    <style name="zjy_button_light" parent="Base.Widget.AppCompat.Button">
+        <item name="android:background">@drawable/bg_light_button</item>
+        <item name="android:textColor">@color/button_light_content</item>
+        <item name="android:minHeight">35dp</item>
+        <item name="android:minWidth">60dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
     <declare-styleable name="WarpLinearLayout">
         <attr name="grivate" format="enum"><!--对齐方式 !-->
             <enum name="right" value="0"/>

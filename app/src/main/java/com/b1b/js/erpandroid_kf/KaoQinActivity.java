@@ -13,6 +13,7 @@ import com.b1b.js.erpandroid_kf.task.MyAsyncTask;
 import com.b1b.js.erpandroid_kf.task.TaskCallback;
 import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
+import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
 
 import org.json.JSONException;
 
@@ -86,6 +87,7 @@ public class KaoQinActivity extends AppCompatActivity {
                     List<KaoqinInfo> kqList = null;
                     try {
                         kqList = MyJsonUtils.getKaoQinList(list);
+                        SoftKeyboardUtils.closeInputMethod(inputId, KaoQinActivity.this);
                         data.clear();
                         data.addAll(kqList);
                         adapter.notifyDataSetChanged();
