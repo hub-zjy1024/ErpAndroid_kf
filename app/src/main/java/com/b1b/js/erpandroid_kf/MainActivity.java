@@ -215,7 +215,6 @@ public class MainActivity extends AppCompatActivity {
                     //                    builder.show();
                     break;
                 case 9:
-                    tvVersion.setText("当前版本为：" + msg.obj.toString());
                     break;
                 case 10:
                     MyToast.showToast(MainActivity.this, "部门号或公司号为空");
@@ -365,26 +364,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkUpdate() {
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    PackageManager pm = getPackageManager();
-                    PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
-                    Message lVersionMsg = zHandler.obtainMessage(9);
-                    lVersionMsg.obj = info.versionName;
-                    lVersionMsg.sendToTarget();
-                    boolean ifUpdate = checkVersion(info.versionCode);
-                    if (ifUpdate) {
-                        zHandler.sendEmptyMessage(7);
+        PackageManager pm = getPackageManager();
+        PackageInfo info = null;
+        try {
+            info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
+            final int code = info.versionCode;
+            tvVersion.setText("当前版本为：" + info.versionName);
+            MyApp.myLogger.writeInfo("version:" + code);
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        boolean ifUpdate = checkVersion(code);
+                        if (ifUpdate) {
+                            zHandler.sendEmptyMessage(7);
+//                            startUpdate();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
                 }
-            }
-        }.start();
+            }.start();
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private void getUserInfoDetail(final String uid) {

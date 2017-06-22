@@ -49,7 +49,7 @@ import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
 
-public class TakePicActivity extends AppCompatActivity implements View.OnClickListener {
+public class TakePicPankuActivity extends AppCompatActivity implements View.OnClickListener {
 
     private int rotation = 0;
     private SurfaceView surfaceView;
@@ -94,7 +94,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                     toolbar.setVisibility(View.GONE);
                     break;
                 case FTP_CONNECT_FAIL:
-                    MyToast.showToast(TakePicActivity.this, "连接ftp服务器失败，请检查网络");
+                    MyToast.showToast(TakePicPankuActivity.this, "连接ftp服务器失败，请检查网络");
                     break;
             }
         }
@@ -120,15 +120,15 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         btn_takepic.setOnClickListener(this);
         btn_tryagain.setOnClickListener(this);
         btn_commit.setOnClickListener(this);
-        AlertDialog.Builder builder = new AlertDialog.Builder(TakePicActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(TakePicPankuActivity.this);
         builder.setTitle("请输入单据号");
-        View v = LayoutInflater.from(TakePicActivity.this).inflate(R.layout.dialog_inputpid, null);
+        View v = LayoutInflater.from(TakePicPankuActivity.this).inflate(R.layout.dialog_inputpid, null);
         final EditText dialogPid = (EditText) v.findViewById(R.id.dialog_inputpid_ed);
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 pid = dialogPid.getText().toString();
-                checkPid(TakePicActivity.this, pid);
+                checkPid(TakePicPankuActivity.this, pid);
             }
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -163,7 +163,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             }
         };
         //成功或失败的提示框
-        resultDialog = new MaterialDialog(TakePicActivity.this);
+        resultDialog = new MaterialDialog(TakePicPankuActivity.this);
         resultDialog.setTitle("提示");
         resultDialog.setPositiveButton("返回", new View.OnClickListener() {
             @Override
@@ -185,16 +185,16 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 public void surfaceCreated(SurfaceHolder holder) {
                     int counts = Camera.getNumberOfCameras();
                     if (counts == 0) {
-                        MyToast.showToast(TakePicActivity.this, "设备无摄像头");
+                        MyToast.showToast(TakePicPankuActivity.this, "设备无摄像头");
                         return;
                     }
                     camera = Camera.open(0); // 打开摄像头
                     if (camera == null) {
-                        MyToast.showToast(TakePicActivity.this, "检测不到摄像头");
+                        MyToast.showToast(TakePicPankuActivity.this, "检测不到摄像头");
                         return;
                     }
                     //设置旋转角度
-                    camera.setDisplayOrientation(getPreviewDegree(TakePicActivity.this));
+                    camera.setDisplayOrientation(getPreviewDegree(TakePicPankuActivity.this));
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = camera.getParameters();
                     String brand = Build.BRAND;
@@ -330,7 +330,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 String item = size.width + "X" + size.height;
                 strs[i] = item;
             }
-            AlertDialog.Builder dialog = new AlertDialog.Builder(TakePicActivity.this);
+            AlertDialog.Builder dialog = new AlertDialog.Builder(TakePicPankuActivity.this);
             dialog.setTitle("选择照片大小(尽量选择大的值)");//窗口名
             dialog.setSingleChoiceItems(strs, 0, new DialogInterface.OnClickListener() {
                         @Override
@@ -367,7 +367,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             dialog.setCancelable(false);
             dialog.show();
         } else {
-            MyToast.showToast(TakePicActivity.this, "没有可选的尺寸");
+            MyToast.showToast(TakePicPankuActivity.this, "没有可选的尺寸");
             return;
         }
     }
@@ -416,11 +416,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         if ("".equals(pid) || pid == null) {
             MyToast.showToast(mContext, "请输入单据号");
             return true;
-        } else {
-            if (pid.length() < 7) {
-                MyToast.showToast(mContext, "请输入7位单据号");
-                return true;
-            }
         }
         return false;
     }
@@ -431,7 +426,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             //拍照
             case R.id.btn_takepic:
                 //禁止点击拍照按钮
-                if (checkPid(TakePicActivity.this, pid))
+                if (checkPid(TakePicPankuActivity.this, pid))
                     return;
                 btn_takepic.setEnabled(false);
                 camera.takePicture(null, null, new Camera.PictureCallback() {
@@ -446,7 +441,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                             toolbar.setVisibility(View.VISIBLE);
                         } catch (OutOfMemoryError error) {
                             error.printStackTrace();
-                            MyToast.showToast(TakePicActivity.this, "当前尺寸太大，请选择合适的尺寸");
+                            MyToast.showToast(TakePicPankuActivity.this, "当前尺寸太大，请选择合适的尺寸");
                             if (photo != null && !photo.isRecycled()) {
                                 photo.recycle();
                             }
@@ -472,7 +467,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.main_commit:
                 commitTimes++;
                 if (photo == null) {
-                    MyToast.showToast(TakePicActivity.this, "请稍等，等图像稳定再上传");
+                    MyToast.showToast(TakePicPankuActivity.this, "请稍等，等图像稳定再上传");
                     return;
                 }
                 showProgressDialog();
@@ -484,22 +479,21 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         public void run() {
                             try {
                                 //加水印后的图片
-                                Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicActivity.this, photo, bitmap, 0, 0);
-                                Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid, (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
+                                Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicPankuActivity.this, photo, bitmap, 0, 0);
+                                Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicPankuActivity.this, waterBitmap, pid, (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
                                 ByteArrayOutputStream bao = new ByteArrayOutputStream();
                                 //图片质量压缩到bao数组
                                 MyImageUtls.compressBitmapAtsize(TextBitmap, bao, 0.4f);
                                 final ByteArrayInputStream in = new ByteArrayInputStream(bao.toByteArray());
-                                remoteName = UploadUtils.getRomoteName(pid);
-                                String insertPath = UploadUtils.createInsertPath(MyApp.ftpUrl, UploadUtils.getCurrentDate(), remoteName, "jpg");
+                                remoteName = UploadUtils.getRomoteName2(pid);
+                                String dirPath = UploadUtils.getCurrentDate()+"/pk";
+                                if ("101".equals(MyApp.id)) {
+                                    dirPath = "Zjy/pk";
+                                }
+                                String insertPath = UploadUtils.createInsertPath(MyApp.ftpUrl, dirPath, remoteName, "jpg");
                                 //上传
                                 boolean isConn;
-                                if ("101".equals(MyApp.id)) {
-                                    isConn = ftp.upload(in, "/ZJy", remoteName + ".jpg");
-                                    insertPath = "ftp://172.16.6.22/ZJy/" + remoteName + ".jpg";
-                                } else {
-                                    isConn = ftp.upload(in, "/" + UploadUtils.getCurrentDate(), remoteName + ".jpg");
-                                }
+                                isConn = ftp.upload(in, "/" + dirPath+"/"+remoteName + ".jpg");
                                 if (isConn) {
                                     //更新服务器信息
                                     SharedPreferences sp = getSharedPreferences("UserInfo", 0);

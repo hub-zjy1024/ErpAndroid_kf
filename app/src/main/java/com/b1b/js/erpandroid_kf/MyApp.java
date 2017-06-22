@@ -30,7 +30,7 @@ public class MyApp extends Application {
         super.onCreate();
         SharedPreferences sp = getSharedPreferences("uploadlog", MODE_PRIVATE);
         String date = sp.getString("date", "");
-        String current = UploadUtils.getRemoteDir();
+        String current = UploadUtils.getCurrentDate();
         final File root = Environment.getExternalStorageDirectory();
         if (root.length() > 0) {
             final File log = new File(root, "dyj_log.txt");
@@ -51,13 +51,9 @@ public class MyApp extends Application {
                                 client.setFileType(FTP.BINARY_FILE_TYPE);
                                 client.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
                                 FileInputStream fis = new FileInputStream(log);
-                                String dir = UploadUtils.getRemoteDir();
+                                String dir = UploadUtils.getCurrentDate();
                                 client.changeWorkingDirectory("ZJy");
-                                boolean change1 = client.changeWorkingDirectory(dir);
-                                if (!change1) {
-                                    client.makeDirectory(dir);
-                                    client.changeWorkingDirectory(dir);
-                                }
+                                UploadUtils.createDirs(client, "Zjy/log_kf/" + dir);
                                 SharedPreferences sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
                                 String id = sp.getString("name", "");
                                 String name = id + "_log.txt";

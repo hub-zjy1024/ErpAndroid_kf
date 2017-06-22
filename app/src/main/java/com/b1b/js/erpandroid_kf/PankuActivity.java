@@ -3,6 +3,8 @@ package com.b1b.js.erpandroid_kf;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -57,6 +59,7 @@ public class PankuActivity extends AppCompatActivity {
     private AlertDialog editDialog;
     private Button btnPk;
     private Button btnReset;
+    AlertDialog choiceMethodDialog;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -76,7 +79,7 @@ public class PankuActivity extends AppCompatActivity {
                     break;
                 case INSERT_SUCCESS:
                     Toast.makeText(PankuActivity.this, "插入成功", Toast.LENGTH_SHORT).show();
-                    btnPk.setEnabled(false);
+                    btnPk.setVisibility(View.INVISIBLE);
                     btnReset.setVisibility(View.VISIBLE);
                     pkData.clear();
                     mAdapter.notifyDataSetChanged();
@@ -109,7 +112,7 @@ public class PankuActivity extends AppCompatActivity {
                 case CHANGEFLAG_SUCCESS:
                     Toast.makeText(PankuActivity.this, "解锁成功", Toast.LENGTH_SHORT).show();
                     final String did = msg.obj.toString();
-                    btnPk.setEnabled(true);
+                    btnPk.setVisibility(View.VISIBLE);
                     btnReset.setVisibility(View.INVISIBLE);
                     pkData.clear();
                     mAdapter.notifyDataSetChanged();
@@ -169,6 +172,7 @@ public class PankuActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final PankuInfo item = (PankuInfo) parent.getItemAtPosition(position);
+                Log.e("zjy", "PankuActivity->onItemClick(): flag==" + item.getHasFlag());
                 if (item.getHasFlag().equals("0")) {
                     showEditDialog(item);
                 } else {
@@ -215,12 +219,14 @@ public class PankuActivity extends AppCompatActivity {
 
     //    string GetDataListForPanKu(string id, string part);
     //
-    public List<PankuInfo> getPankuList(String detailId, String partno) throws IOException, XmlPullParserException, JSONException {
+    public List<PankuInfo> getPankuList(String detailId, String partno) throws IOException, XmlPullParserException,
+            JSONException {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("id", detailId);
         map.put("part", partno);
         SoapObject request = WebserviceUtils.getRequest(map, "GetDataListForPanKu");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                .ChuKuServer);
         List<PankuInfo> tempList = new ArrayList<>();
         JSONObject jObj = new JSONObject(response.toString());
         JSONArray jsonArray = jObj.getJSONArray("表");
@@ -238,7 +244,8 @@ public class PankuActivity extends AppCompatActivity {
             String rkDate = tempJobj.getString("入库日期");
             String storageName = tempJobj.getString("仓库");
             String pkFlag = tempJobj.getString("PanKuFlag");
-            PankuInfo pkInfo = new PankuInfo(pid, mxId, sPartno, leftCounts, factory, description, fengzhuang, pihao, placeId, rkDate, storageName, pkFlag);
+            PankuInfo pkInfo = new PankuInfo(pid, mxId, sPartno, leftCounts, factory, description, fengzhuang, pihao, placeId,
+                    rkDate, storageName, pkFlag);
             tempList.add(pkInfo);
         }
         return tempList;
@@ -257,6 +264,44 @@ public class PankuActivity extends AppCompatActivity {
         final EditText dialogBz = (EditText) v.findViewById(R.id.panku_dialog_minbz);
         final EditText dialogMark = (EditText) v.findViewById(R.id.panku_dialog_mark);
         final Button dialogPanku = (Button) v.findViewById(R.id.panku_dialog_panku);
+        final Button dialogTakePic = (Button) v.findViewById(R.id.panku_dialog_takepic);
+        dialogTakePic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String detailID = info.getDetailId();
+                if (choiceMethodDialog != null&&!choiceMethodDialog.isShowing()) {
+                    choiceMethodDialog.show();
+                    return;
+                }
+                AlertDialog.Builder builder = new AlertDialog.Builder(PankuActivity.this);
+                builder.setTitle("上传方式选择");
+                builder.setItems(new String[]{"拍照", "从手机选择"}, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        MyApp.myLogger.writeInfo("菜单拍照：" + which);
+                        Intent intent = new Intent();
+                        intent.putExtra("pid", detailID);
+                        switch (which) {
+                            case 0:
+                                intent.setClass(PankuActivity.this, TakePicPankuActivity.class);
+                                MyApp.myLogger.writeInfo("takepic_panku");
+                                break;
+                            case 1:
+                                intent.setClass(PankuActivity.this, ObtainPicPanku.class);
+                                MyApp.myLogger.writeInfo("obtain_panku");
+                                break;
+                            case 2:
+                                break;
+                        }
+                        startActivity(intent);
+                    }
+                });
+                choiceMethodDialog = builder.show();
+//                Intent intent = new Intent(PankuActivity.this, TakePicPankuActivity.class);
+//                intent.putExtra("pid", detailID);
+//                startActivity(intent);
+            }
+        });
         btnPk = dialogPanku;
         final Button dialogReset = (Button) v.findViewById(R.id.panku_dialog_reset);
         btnReset = dialogReset;
@@ -296,8 +341,9 @@ public class PankuActivity extends AppCompatActivity {
         });
         if (info.getHasFlag().equals("0")) {
             dialogReset.setVisibility(View.INVISIBLE);
+            dialogPanku.setVisibility(View.VISIBLE);
         } else {
-            dialogPanku.setEnabled(false);
+            dialogPanku.setVisibility(View.INVISIBLE);
             dialogReset.setVisibility(View.VISIBLE);
         }
         dialogPanku.setOnClickListener(new View.OnClickListener() {
@@ -324,7 +370,9 @@ public class PankuActivity extends AppCompatActivity {
                         String Note = dialogMark.getText().toString().trim();
                         String PKPlace = dialogPlace.getText().toString().trim();
                         try {
-                            int result = insertPankuInfo(Integer.parseInt(info.getDetailId()), info.getPartNo(), Integer.parseInt(info.getLeftCounts()), pkPartNo, PKQuantity, PKmfc, PKDescription, PKPack, PKBatchNo, MinPack, OperID, OperName, DiskID, Note, PKPlace);
+                            int result = insertPankuInfo(Integer.parseInt(info.getDetailId()), info.getPartNo(), Integer
+                                    .parseInt(info.getLeftCounts()), pkPartNo, PKQuantity, PKmfc, PKDescription, PKPack,
+                                    PKBatchNo, MinPack, OperID, OperName, DiskID, Note, PKPlace);
                             if (result == 0) {
                                 mHandler.sendEmptyMessage(INSERT_FAIL);
                             } else if (result == 1) {
@@ -391,8 +439,10 @@ public class PankuActivity extends AppCompatActivity {
      @throws IOException
      @throws XmlPullParserException
      */
-    public int insertPankuInfo(int InstorageDetailID, String OldPartNo, int OldQuantity, String PKPartNo, String PKQuantity, String PKmfc, String PKDescription, String PKPack
-            , String PKBatchNo, int MinPack, int OperID, String OperName, String DiskID, String Note, String PKPlace) throws IOException, XmlPullParserException {
+    public int insertPankuInfo(int InstorageDetailID, String OldPartNo, int OldQuantity, String PKPartNo, String PKQuantity,
+                               String PKmfc, String PKDescription, String PKPack
+            , String PKBatchNo, int MinPack, int OperID, String OperName, String DiskID, String Note, String PKPlace) throws
+            IOException, XmlPullParserException {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("InstorageDetailID", InstorageDetailID);
         map.put("OldPartNo", OldPartNo);
@@ -410,7 +460,8 @@ public class PankuActivity extends AppCompatActivity {
         map.put("Note", Note);
         map.put("PKPlace", PKPlace);
         SoapObject request = WebserviceUtils.getRequest(map, "PanKu");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                .ChuKuServer);
         int result = Integer.parseInt(response.toString());
         Log.e("zjy", "PankuActivity.java->insertPankuInfo(): res==" + response.toString());
         return result;
@@ -421,7 +472,8 @@ public class PankuActivity extends AppCompatActivity {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("instoragedetailPID", detailid);
         SoapObject request = WebserviceUtils.getRequest(map, "CancelPanKuFlag");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                .ChuKuServer);
         return Integer.parseInt(response.toString());
     }
 
@@ -430,7 +482,8 @@ public class PankuActivity extends AppCompatActivity {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("id", detailId);
         SoapObject request = WebserviceUtils.getRequest(map, "GetPauKuDataInfoByID");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                .ChuKuServer);
         return response.toString();
     }
 
@@ -442,7 +495,7 @@ public class PankuActivity extends AppCompatActivity {
         }
 
         @Override
-        public synchronized void run() {
+        public void run() {
             try {
                 String s = getUpdateInfo(item.getHasFlag());
                 JSONObject root = new JSONObject(s);
@@ -460,7 +513,8 @@ public class PankuActivity extends AppCompatActivity {
                     String Mark = tempJ.getString("Note");
                     String PKPlace = tempJ.getString("PKPlace");
                     String flag = tempJ.getString("ID");
-                    PankuInfo info = new PankuInfo("", detailId, PKPartNo, PKQuantity, PKmfc, PKDescription, PKPack, PKBatchNo, PKPlace, "", "", flag);
+                    PankuInfo info = new PankuInfo("", detailId, PKPartNo, PKQuantity, PKmfc, PKDescription, PKPack, PKBatchNo,
+                            PKPlace, "", "", flag);
                     info.setMinBz(MinPack);
                     info.setMark(Mark);
                     Message message = mHandler.obtainMessage(GET_PANKUINFO, info);

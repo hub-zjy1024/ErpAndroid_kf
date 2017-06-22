@@ -56,7 +56,7 @@ public class PushService extends Service {
                 boolean flag = false;
                 SharedPreferences sp = getSharedPreferences("notify_flag", MODE_PRIVATE);
                 final String loacalDate = sp.getString("date", "");
-                String current = UploadUtils.getRemoteDir();
+                String current = UploadUtils.getCurrentDate();
                 sp.edit().clear().commit();
                 if (!loacalDate.equals(current)) {
                     sp.edit().putString("date", current).putInt("counts", 0).commit();

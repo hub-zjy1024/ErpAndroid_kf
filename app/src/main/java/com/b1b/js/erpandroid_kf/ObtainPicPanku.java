@@ -46,7 +46,7 @@ import me.drakeet.materialdialog.MaterialDialog;
 import zhy.imageloader.MyAdapter;
 import zhy.imageloader.PickPicActivity;
 
-public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClickListener {
+public class ObtainPicPanku extends AppCompatActivity implements View.OnClickListener {
 
     private Button btn_commit;
     private Button btn_commitOrigin;
@@ -108,7 +108,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                     mGvAdapter.notifyDataSetChanged();
                     break;
                 case FTP_ERROR:
-                    MyToast.showToast(ObtainPicFromPhone.this, "连接ftp失败，请检查网络");
+                    MyToast.showToast(ObtainPicPanku.this, "连接ftp失败，请检查网络");
                     connFTP(handler, FTP_ERROR);
                     mGvAdapter.notifyDataSetChanged();
                     break;
@@ -143,7 +143,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         uploadPicInfos = new ArrayList<>();
         pd = new ProgressDialog(this);
         //初始化结果对话框
-        resultDialog = new MaterialDialog(ObtainPicFromPhone.this);
+        resultDialog = new MaterialDialog(ObtainPicPanku.this);
         resultDialog.setTitle("提示");
         resultDialog.setPositiveButton("返回", new View.OnClickListener() {
             @Override
@@ -179,12 +179,12 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
             ftp = FtpManager.getFtpManager("dyjftp", "dyjftp", MyApp.ftpUrl, 21);
         }
         connFTP(handler, FTP_ERROR);
-        mGvAdapter = new UploadPicAdapter(ObtainPicFromPhone.this, uploadPicInfos, new UploadPicAdapter.OnItemBtnClickListener() {
+        mGvAdapter = new UploadPicAdapter(ObtainPicPanku.this, uploadPicInfos, new UploadPicAdapter.OnItemBtnClickListener() {
             @Override
             public void onClick(View v, int position) {
                 final UploadPicInfo uploadPicInfo = uploadPicInfos.get(position);
                 pid = edPid.getText().toString().trim();
-                if (TakePicActivity.checkPid(ObtainPicFromPhone.this, pid))
+                if (TakePicPankuActivity.checkPid(ObtainPicPanku.this, pid))
                     return;
                 if (uploadPicInfo.getState().equals("-1")) {
                     Button btn = (Button) v;
@@ -221,7 +221,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                     }.start();
 
                 } else {
-                    MyToast.showToast(ObtainPicFromPhone.this, "当前图片已经上传完成");
+                    MyToast.showToast(ObtainPicPanku.this, "当前图片已经上传完成");
                 }
             }
         });
@@ -271,7 +271,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         switch (v.getId()) {
             case R.id.review_commit:
                 pid = edPid.getText().toString().trim();
-                if (TakePicActivity.checkPid(ObtainPicFromPhone.this, pid))
+                if (TakePicPankuActivity.checkPid(ObtainPicPanku.this, pid))
                     return;
                 showProgressDialog();
                 new Thread() {
@@ -284,7 +284,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                 }.start();
                 break;
             case R.id.review_getFromPhone:
-                Intent intent = new Intent(ObtainPicFromPhone.this, PickPicActivity.class);
+                Intent intent = new Intent(ObtainPicPanku.this, PickPicActivity.class);
                 startActivityForResult(intent, 100);
                 break;
         }
@@ -352,12 +352,12 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                 }
                 Log.e("zjy", "ObtainPicFromPhone.java->commitImages():image size ==" + bitmap.getWidth() + "\t" + bitmap
                         .getHeight());
-                Bitmap textBitmap = ImageWaterUtils.drawTextToRightTop(ObtainPicFromPhone.this, bitmap, pid, (int) (bitmap
+                Bitmap textBitmap = ImageWaterUtils.drawTextToRightTop(ObtainPicPanku.this, bitmap, pid, (int) (bitmap
                         .getWidth() * 0.015), Color.RED, 20, 20);
                 if (!bitmap.isRecycled()) {
                     bitmap.recycle();
                 }
-                Bitmap compressImage = ImageWaterUtils.createWaterMaskRightBottom(ObtainPicFromPhone.this, textBitmap,
+                Bitmap compressImage = ImageWaterUtils.createWaterMaskRightBottom(ObtainPicPanku.this, textBitmap,
                         waterBitmap, 0, 0);
                 if (!waterBitmap.isRecycled()) {
                     waterBitmap.recycle();

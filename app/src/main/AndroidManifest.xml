@@ -44,6 +44,7 @@
         <activity android:name=".SetCheckInfoActivity"/>
         <activity android:name=".CaigouActivity"/>
         <activity android:name=".CaigoudanEditActivity"/>
+        <activity android:name=".TakePicPankuActivity"/>
         <activity android:name=".BijiaActivity"/>
         <activity android:name=".BijiaDetailAcitiviy"/>
         <activity android:name=".AddBijiaActivity">
@@ -71,6 +72,8 @@
         </receiver>
 
         <activity android:name=".PankuActivity">
+        </activity>
+        <activity android:name=".ObtainPicPanku">
         </activity>
         <activity android:name=".PreChukuActivity">
         </activity>

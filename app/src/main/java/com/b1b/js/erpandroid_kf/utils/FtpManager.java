@@ -139,6 +139,28 @@ public class FtpManager {
         return isSuccess;
     }
 
+    /**
+     开线程：传入文件输入流
+     @param inputStream
+     @param remotePath 上传后的文件的完整路径（带后缀），以"/"开头,如果不存在会自动创建
+     @return
+     @throws Exception
+     */
+    public boolean upload(InputStream inputStream, String remotePath) throws IOException {
+        int last = remotePath.lastIndexOf("/");
+        if (last != 0) {
+            String path = remotePath.substring(1, last);
+            toTargetDir(path);
+        }
+        String fileName = remotePath.substring(last + 1, remotePath.length());
+        Log.e("zjy", "FtpManager->upload(): FileName==" + fileName);
+        boolean isSuccess = ftpClient.storeFile(fileName, inputStream);
+        inputStream.close();
+        Log.e("zjy", "FtpManager.java->upload():upSuccess==" + isSuccess);
+        backToRootDirectory();
+        return isSuccess;
+    }
+
     private void toTargetDir(String path)
             throws IOException {
         int nextSeperator = path.indexOf("/", 1);
@@ -146,7 +168,6 @@ public class FtpManager {
         if (nextSeperator == -1) {
             currentPath = path.substring(1, path.length());
             createDir(currentPath);
-            return;
         } else {
             currentPath = path.substring(1, nextSeperator);
             createDir(currentPath);

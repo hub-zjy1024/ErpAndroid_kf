@@ -510,7 +510,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                 textBitmap.recycle();
                             }
                             fio.close();
-                            String insertPath = UploadUtils.createInsertPath(MyApp.ftpUrl, UploadUtils.getRemoteDir(), remoteName, "jpg");
+                            String insertPath = UploadUtils.createInsertPath(MyApp.ftpUrl, UploadUtils.getCurrentDate(), remoteName, "jpg");
                             Intent mIntent = new Intent(TakePic2Activity.this, ObtainPicFromPhone.class);
                             mIntent.putExtra("failPid", pid);
                             mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -533,12 +533,12 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                         //                                    outputStream = mFtpClient.storeFileStream("/ZJy/" + remoteName + ".jpg");
                                         upSuccess = storeFile(remoteName, "Zjy", mFtpClient, fis);
                                     } else {
-                                        if (!mFtpClient.changeWorkingDirectory("/" + UploadUtils.getRemoteDir())) {
-                                            mFtpClient.makeDirectory("/" + UploadUtils.getRemoteDir());
-                                            mFtpClient.changeWorkingDirectory("/" + UploadUtils.getRemoteDir());
+                                        if (!mFtpClient.changeWorkingDirectory("/" + UploadUtils.getCurrentDate())) {
+                                            mFtpClient.makeDirectory("/" + UploadUtils.getCurrentDate());
+                                            mFtpClient.changeWorkingDirectory("/" + UploadUtils.getCurrentDate());
                                         }
-                                        //                                    outputStream = mFtpClient.storeFileStream("/" + UploadUtils.getRemoteDir() + "/" + remoteName + ".jpg");
-                                        upSuccess = storeFile(remoteName, UploadUtils.getRemoteDir(), mFtpClient, fis);
+                                        //                                    outputStream = mFtpClient.storeFileStream("/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg");
+                                        upSuccess = storeFile(remoteName, UploadUtils.getCurrentDate(), mFtpClient, fis);
                                     }
                                     if (upSuccess) {
                                         while (true) {
