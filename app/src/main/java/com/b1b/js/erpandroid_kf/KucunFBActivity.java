@@ -298,6 +298,7 @@ public class KucunFBActivity extends AppCompatActivity {
                     URL url = new URL("http://172.16.6.101:802/ErpV5IP.asp");
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     InputStream is = conn.getInputStream();
+                    conn.setConnectTimeout(15 * 1000);
                     BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
                     String result = "";
                     String s;

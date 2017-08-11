@@ -71,9 +71,7 @@ public class AddBijiaActivity extends AppCompatActivity {
                     builder.setMessage("插入成功");
                     break;
                 case INSERT_ERROR:
-
                     break;
-
                 case 3:
                     popAdapter.notifyDataSetChanged();
                     break;

@@ -161,7 +161,6 @@ public class CaigoudanEditActivity extends AppCompatActivity {
         spiKuFang = (Spinner) findViewById(R.id.caigouedit_kufang);
         lsView = (ListView) findViewById(R.id.caigouedit_lv);
         btnFinish = (Button) findViewById(R.id.caigouedit_finish);
-
         //加载库房名称和库房id
         final int[] kfIds = getResources().getIntArray(R.array.storage_id);
         final String[] kfNames = getResources().getStringArray(R.array.storage_name);
@@ -406,7 +405,7 @@ public class CaigoudanEditActivity extends AppCompatActivity {
         map.put("strValue", strValue);
         SoapObject request = WebserviceUtils.getRequest(map, "SetSC_BD_PartTypeInfoInfo");
         SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.MartService);
-        Log.e("zjy", "CaigouActivity.java->getCaigoudan():response==" + response.toString());
+        Log.e("zjy", "CaigouActivity.java->getCaigoudanByPidAndPartNo():response==" + response.toString());
         return response.toString();
 
     }

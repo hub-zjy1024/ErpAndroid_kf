@@ -147,7 +147,7 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                 break;
             case R.id.setcheckinfo_photo:
                 AlertDialog.Builder builder = new AlertDialog.Builder(SetCheckInfoActivity.this);
-                builder.setItems(new String[]{"拍照", "从手机选择", "拍照（后台）"}, new DialogInterface.OnClickListener() {
+                builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {

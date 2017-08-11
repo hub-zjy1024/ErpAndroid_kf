@@ -29,6 +29,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
+import com.b1b.js.erpandroid_kf.utils.DownUtils;
 import com.b1b.js.erpandroid_kf.utils.FtpManager;
 import com.b1b.js.erpandroid_kf.utils.ImageWaterUtils;
 import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
@@ -66,15 +67,12 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     private List<Camera.Size> picSizes;
     private ProgressDialog pd;
     private String pid;
-    private String remoteName;
     private int commitTimes = 0;
     FtpManager ftp;
-    //    FtpManager2 ftp;
     private MaterialDialog resultDialog;
     private final static int FTP_CONNECT_FAIL = 3;
     private final static int PICUPLOAD_SUCCESS = 0;
     private final static int PICUPLOAD_ERROR = 1;
-
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -96,6 +94,9 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 case FTP_CONNECT_FAIL:
                     MyToast.showToast(TakePicActivity.this, "连接ftp服务器失败，请检查网络");
                     break;
+                case 4:
+                    MyToast.showToast(TakePicActivity.this, "FTP地址为空，请重启程序");
+                    break;
             }
         }
     };
@@ -104,6 +105,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     private SharedPreferences sp;
     private int itemPosition;
     private AlertDialog inputDialog;
+    private String flag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,7 +130,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 pid = dialogPid.getText().toString();
-                checkPid(TakePicActivity.this, pid);
+                checkPid(TakePicActivity.this, pid, 3);
             }
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -140,19 +142,13 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         builder.setView(v);
         inputDialog = builder.create();
         pid = getIntent().getStringExtra("pid");
+        flag = getIntent().getStringExtra("flag");
         if (pid != null) {
             dialogPid.setText(pid);
         }
-        if ("".equals(MyApp.ftpUrl) || MyApp.ftpUrl == null) {
-            if ("101".equals(MyApp.id)) {
-                MyApp.ftpUrl = "172.16.6.22";
-                ftp = FtpManager.getFtpManager("NEW_DYJ", "GY8Fy2Gx", MyApp.ftpUrl, 21);
-            } else {
-                MyToast.showToast(getApplicationContext(), "FTP地址获取失败，请重新启动程序");
-                return;
-            }
-        } else {
-            ftp = FtpManager.getFtpManager("dyjftp", "dyjftp", MyApp.ftpUrl, 21);
+        ftp = TakePicActivity.initFTP(getApplicationContext());
+        if (ftp == null) {
+            return;
         }
         connFTP(mHandler, FTP_CONNECT_FAIL);
         mOrientationListener = new OrientationEventListener(this,
@@ -245,6 +241,22 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    public static FtpManager initFTP( Context mContext) {
+        FtpManager manager;
+        Log.e("zjy", "TakePicActivity->initFTP(): id==" + MyApp.id);
+        if ("101".equals(MyApp.id)) {
+            manager = FtpManager.getFtpManager("NEW_DYJ", "GY8Fy2Gx", FtpManager.mainAddress, 21);
+        } else {
+            if ("".equals(MyApp.ftpUrl) || MyApp.ftpUrl == null) {
+                MyToast.showToast(mContext, "FTP地址获取失败，请重新启动程序");
+                return null;
+            } else {
+                manager = FtpManager.getFtpManager(FtpManager.ftpName, FtpManager.ftpPassword, MyApp.ftpUrl, 21);
+            }
+        }
+        return manager;
+    }
+
     private void connFTP(final Handler handler, final int target) {
         new Thread() {
             @Override
@@ -252,7 +264,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 super.run();
                 try {
                     if (ftp != null) {
-                        ftp.connectAndLogin();
+                        ftp.connectAndLogin(30);
                     } else {
                         handler.sendEmptyMessage(target);
                     }
@@ -318,7 +330,8 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         //剔除出尺寸太小的，和尺寸太大的，宽度（1280-2048)
         for (int i = picSizes.size() - 1; i >= 0; i--) {
             int width = picSizes.get(i).width;
-            Log.e("zjy", "TakePicActivity.java->showProgressDialog(): size==" + picSizes.get(i).width + "\t" + picSizes.get(i).height);
+            Log.e("zjy", "TakePicActivity.java->showProgressDialog(): size==" + picSizes.get(i).width + "\t" + picSizes.get(i)
+                    .height);
             if (width < 1920 || width > 2592) {
                 picSizes.remove(i);
             }
@@ -377,12 +390,14 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
      @param mOrientationListener
      */
     private void attachToSensor(OrientationEventListener mOrientationListener) {
-        if (mOrientationListener.canDetectOrientation()) {
-            mOrientationListener.enable();
-        } else {
-            Log.e("zjy", "TakePicActivity->attachToSensor(): 获取相机方向失败==");
-            mOrientationListener.disable();
-            rotation = 0;
+        if (mOrientationListener != null) {
+            if (mOrientationListener.canDetectOrientation()) {
+                mOrientationListener.enable();
+            } else {
+                Log.e("zjy", "TakePicActivity->attachToSensor(): 获取相机方向失败==");
+                mOrientationListener.disable();
+                rotation = 0;
+            }
         }
     }
 
@@ -425,13 +440,27 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         return false;
     }
 
+    public static boolean checkPid(Context mContext, String pid, int len) {
+
+        if ("".equals(pid) || pid == null) {
+            MyToast.showToast(mContext, "请输入单据号");
+            return true;
+        } else {
+            if (pid.length() < len) {
+                MyToast.showToast(mContext, "请输入" + len + "位单据号");
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             //拍照
             case R.id.btn_takepic:
                 //禁止点击拍照按钮
-                if (checkPid(TakePicActivity.this, pid))
+                if (checkPid(TakePicActivity.this, pid, 3))
                     return;
                 btn_takepic.setEnabled(false);
                 camera.takePicture(null, null, new Camera.PictureCallback() {
@@ -484,32 +513,70 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         public void run() {
                             try {
                                 //加水印后的图片
-                                Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicActivity.this, photo, bitmap, 0, 0);
-                                Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid, (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
+                                Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicActivity.this, photo,
+                                        bitmap, 0, 0);
+                                Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid,
+                                        (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
                                 ByteArrayOutputStream bao = new ByteArrayOutputStream();
                                 //图片质量压缩到bao数组
                                 MyImageUtls.compressBitmapAtsize(TextBitmap, bao, 0.4f);
                                 final ByteArrayInputStream in = new ByteArrayInputStream(bao.toByteArray());
-                                remoteName = UploadUtils.getRomoteName(pid);
-                                String insertPath = UploadUtils.createInsertPath(MyApp.ftpUrl, UploadUtils.getCurrentDate(), remoteName, "jpg");
+                                String remoteName;
+                                String insertPath;
                                 //上传
-                                boolean isConn;
-                                if ("101".equals(MyApp.id)) {
-                                    isConn = ftp.upload(in, "/ZJy", remoteName + ".jpg");
-                                    insertPath = "ftp://172.16.6.22/ZJy/" + remoteName + ".jpg";
+                                boolean isConn = false;
+                                DownUtils downUtils;
+                                if (flag != null && flag.equals("caigou")) {
+                                    remoteName = UploadUtils.createSCCGRemoteName(pid);
+                                    downUtils = new DownUtils(CaigoudanTakePicActivity.ftpAddress, 21, CaigoudanTakePicActivity.username,
+                                            CaigoudanTakePicActivity.password);
+                                    downUtils.login();
+                                    String remotePath = "";
+                                    if ("101".equals(MyApp.id)) {
+                                        remotePath = UploadUtils.CG_DIR + remoteName + ".jpg";
+                                    } else {
+                                        remotePath = UploadUtils.getCaigouDir(remoteName + ".jpg");
+                                    }
+                                    isConn = downUtils.upload(in, remotePath);
+                                    insertPath = UploadUtils.createInsertPath(CaigoudanTakePicActivity.ftpAddress, remotePath);
                                 } else {
-                                    isConn = ftp.upload(in, "/" + UploadUtils.getCurrentDate(), remoteName + ".jpg");
+                                    remoteName = UploadUtils.getRomoteName(pid);
+                                    String remotePath;
+                                    String mUrl;
+                                    if ("101".equals(MyApp.id)) {
+                                        mUrl = FtpManager.mainAddress;
+                                        downUtils = new DownUtils(FtpManager.mainAddress, 21, "NEW_DYJ", "GY8Fy2Gx");
+                                        remotePath = UploadUtils.KF_DIR+ "newdyj/"+remoteName + ".jpg";
+                                    } else {
+                                        mUrl = MyApp.ftpUrl;
+                                        downUtils = new DownUtils(mUrl, 21, FtpManager.ftpName, FtpManager.ftpPassword);
+                                        remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
+                                    }
+                                    downUtils.login();
+                                    insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
+                                    isConn = downUtils.upload(in, remotePath);
+                                    in.close();
                                 }
+                                downUtils.exitServer();
+                                Log.e("zjy", "TakePicActivity.java->run(): insertPath==" + insertPath);
                                 if (isConn) {
                                     //更新服务器信息
                                     SharedPreferences sp = getSharedPreferences("UserInfo", 0);
                                     final int cid = sp.getInt("cid", -1);
                                     final int did = sp.getInt("did", -1);
-                                    Log.e("zjy", "TakePicActivity.java->run(): insertPath==" + insertPath);
-                                    String res = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer.parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "CKTZ");
-                                    Log.e("zjy", "TakePicActivity.java->run(): res==" + res);
+                                    String result = "";
+                                    if (flag != null && flag.equals("caigou")) {
+                                        result = ObtainPicFromPhone.setSSCGPicInfo(WebserviceUtils.WebServiceCheckWord, cid,
+                                                did, Integer
+                                                        .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "SCCG");
+                                        Log.e("zjy", "TakePicActivity.java->run(): SCCG==" + result);
+                                    } else {
+                                        result = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
+                                                .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "CKTZ");
+                                        Log.e("zjy", "TakePicActivity.java->run(): setInsert==" + result);
+                                    }
                                     Message msg = mHandler.obtainMessage(PICUPLOAD_SUCCESS);
-                                    msg.obj = res;
+                                    msg.obj = result;
                                     mHandler.sendMessage(msg);
                                 } else {
                                     mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
@@ -519,6 +586,8 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                                 e.printStackTrace();
                             } catch (XmlPullParserException e) {
                                 mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
+                                e.printStackTrace();
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
@@ -594,7 +663,8 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     //name="did" type="int"    部门id
     //name="uid" type="int"   用户id
 
-    public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath, String stypeID) throws IOException, XmlPullParserException {
+    public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
+                                   String stypeID) throws IOException, XmlPullParserException {
         String str = "";
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("checkWord", checkWord);
@@ -606,7 +676,27 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         map.put("filepath", filePath);
         map.put("stypeID", stypeID);//标记，固定为"CKTZ"
         SoapObject request = WebserviceUtils.getRequest(map, "SetInsertPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                .ChuKuServer);
+        str = response.toString();
+        return str;
+    }
+
+    public String setSSCGPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
+                                 String stypeID) throws IOException, XmlPullParserException {
+        String str = "";
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        map.put("checkWord", checkWord);
+        map.put("cid", cid);
+        map.put("did", did);
+        map.put("uid", uid);
+        map.put("pid", pid);
+        map.put("filename", fileName);
+        map.put("filepath", filePath);
+        map.put("stypeID", stypeID);//标记，固定为"SCCG"
+        SoapObject request = WebserviceUtils.getRequest(map, "InsertSSCGPicInfo");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                .MartStock);
         str = response.toString();
         return str;
     }
@@ -614,7 +704,9 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onPause() {
         super.onPause();
-        mOrientationListener.disable();
+        if (mOrientationListener != null) {
+            mOrientationListener.disable();
+        }
     }
 
     @Override

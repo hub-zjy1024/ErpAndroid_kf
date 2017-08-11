@@ -2,13 +2,14 @@ package com.b1b.js.erpandroid_kf;
 
 import android.app.Application;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Environment;
+import android.util.Log;
 
+import com.b1b.js.erpandroid_kf.utils.DownUtils;
+import com.b1b.js.erpandroid_kf.utils.FtpManager;
 import com.b1b.js.erpandroid_kf.utils.LogRecoder;
 import com.b1b.js.erpandroid_kf.utils.UploadUtils;
-
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,9 +29,9 @@ public class MyApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        SharedPreferences sp = getSharedPreferences("uploadlog", MODE_PRIVATE);
-        String date = sp.getString("date", "");
-        String current = UploadUtils.getCurrentDate();
+        final SharedPreferences sp = getSharedPreferences("uploadlog", MODE_PRIVATE);
+        final String date = sp.getString("date", "");
+       final String current = UploadUtils.getCurrentDate();
         final File root = Environment.getExternalStorageDirectory();
         if (root.length() > 0) {
             final File log = new File(root, "dyj_log.txt");
@@ -40,42 +41,33 @@ public class MyApp extends Application {
                         @Override
                         public void run() {
                             super.run();
-                            FTPClient client = new FTPClient();
+                            boolean upOK = false;
+                            DownUtils utils = new DownUtils(FtpManager.mainAddress, 21, "NEW_DYJ", "GY8Fy2Gx");
                             try {
-                                client.setConnectTimeout(10 * 1000);
-                                client.connect("172.16.6.22", 21);
-                                boolean login = client.login("NEW_DYJ", "GY8Fy2Gx");
-                                if (!login) {
-                                    return;
-                                }
-                                client.setFileType(FTP.BINARY_FILE_TYPE);
-                                client.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
                                 FileInputStream fis = new FileInputStream(log);
-                                String dir = UploadUtils.getCurrentDate();
-                                client.changeWorkingDirectory("ZJy");
-                                UploadUtils.createDirs(client, "Zjy/log_kf/" + dir);
-                                SharedPreferences sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
                                 String id = sp.getString("name", "");
-                                String name = id + "_log.txt";
-                                String[] names = client.listNames();
-                                for (String s : names) {
-                                    if (s.equals(name)) {
-                                        return;
-                                    }
-                                }
-                                boolean isFalse = client.storeFile(name, fis);
-                                if (isFalse) {
+                                  String phoneCode= CaigoudanEditActivity.getPhoneCode(getApplicationContext()) + Build.BRAND;
+                                String name = id + "_" + phoneCode + "_log.txt";
+                                String remotePath = "Zjy/log_kf/" + UploadUtils.getCurrentDate() + "/" + name;
+                                Log.e("zjy", "MyApp->run(): start upload log==");
+                                utils.login();
+                                boolean isUploaded = utils.upload(fis, remotePath);
+                                fis.close();
+                                if (isUploaded) {
                                     log.delete();
+                                    upOK = true;
                                 }
-                                client.completePendingCommand();
-                                client.disconnect();
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
+                            if (upOK) {
+                                sp.edit().putString("date", current).apply();
+                            }
                         }
                     }.start();
+                } else {
+                    sp.edit().putString("date", current).apply();
                 }
-                sp.edit().putString("date", current).apply();
             }
         }
         myLogger = new LogRecoder("dyj_log.txt", null);

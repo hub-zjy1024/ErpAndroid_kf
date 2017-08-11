@@ -24,12 +24,16 @@ public class WebserviceUtils {
     public static final String ROOT_URL = "http://172.16.6.160:8006/";
     //服务名，带后缀名的
     public static final String MartService = "MartService.svc";
+    public static final String MartStock = "MartStock.svc";
     public static final String Login = "Login.svc";
     public static final String MyBasicServer = "MyBasicServer.svc";
     public static final String ForeignStockServer = "ForeignStockServer.svc";
     public static final String PMServer = "PMServer.svc";
     public static final String IC360Server = "IC360Server.svc";
     public static final String ChuKuServer = "ChuKuServer.svc";
+    private static final int VERSION_10 = SoapEnvelope.VER10;
+    private static final int VERSION_11 = SoapEnvelope.VER11;
+    private static final int VERSION_12 = SoapEnvelope.VER12;
     /**
      扫描二维码的返回请求码
      */
@@ -65,7 +69,8 @@ public class WebserviceUtils {
      @return
      */
     private static String getSoapAcction(String serviceName, String methodName) {
-        Log.e("zjy", "WebserviceUtils.java->getSoapAcction(): ==" + NAMESPACE + "I" + serviceName.substring(0, serviceName.indexOf(".")) + "/" + methodName);
+        Log.e("zjy", "WebserviceUtils.java->getSoapAcction(): ==" + NAMESPACE + "I" + serviceName.substring(0, serviceName
+                .indexOf(".")) + "/" + methodName);
         return NAMESPACE + "I" + serviceName.substring(0, serviceName.indexOf(".")) + "/" + methodName;
     }
 
@@ -96,7 +101,8 @@ public class WebserviceUtils {
      @throws IOException
      @throws XmlPullParserException
      */
-    public static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String soapAction, String resultUrl) throws IOException, XmlPullParserException {
+    public static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String soapAction, String
+            resultUrl) throws IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVesion);
         envelope.dotNet = true;
         //       envelope.bodyOut = request;
@@ -116,7 +122,8 @@ public class WebserviceUtils {
      @throws IOException
      @throws XmlPullParserException
      */
-    private static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String serviceName,int timeout) throws IOException, XmlPullParserException {
+    private static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String serviceName, int
+            timeout) throws IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVesion);
         envelope.dotNet = true;
         //       envelope.bodyOut = request;
@@ -136,8 +143,9 @@ public class WebserviceUtils {
      @throws IOException
      @throws XmlPullParserException
      */
-    public static SoapObject getSoapObjResponse(SoapObject request, int envolopeVesion, String serviceName,int timeout) throws IOException, XmlPullParserException {
-        SoapObject sob = (SoapObject)( getEnvelope(request, envolopeVesion, serviceName,timeout).bodyIn);
+    public static SoapObject getSoapObjResponse(SoapObject request, int envolopeVesion, String serviceName, int timeout) throws
+            IOException, XmlPullParserException {
+        SoapObject sob = (SoapObject) (getEnvelope(request, envolopeVesion, serviceName, timeout).bodyIn);
         return sob;
     }
 
@@ -149,13 +157,16 @@ public class WebserviceUtils {
      @throws IOException
      @throws XmlPullParserException
      */
-    public static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, int envolopeVesion, String serviceName) throws IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName, 30*1000);
+    public static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, int envolopeVesion, String serviceName) throws
+            IOException, XmlPullParserException {
+        SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName, 30 * 1000);
         SoapPrimitive sob = (SoapPrimitive) envelope.getResponse();
         return sob;
     }
 
-    private static SoapSerializationEnvelope getEnvelope(String namespace, String method, String soapAction, String transUrl, LinkedHashMap<String, Object> properties, int envolopeVersion,int timeout) throws IOException, XmlPullParserException {
+    private static SoapSerializationEnvelope getEnvelope(String namespace, String method, String soapAction, String transUrl,
+                                                         LinkedHashMap<String, Object> properties, int envolopeVersion, int
+                                                                 timeout) throws IOException, XmlPullParserException {
         SoapObject request = new SoapObject(namespace, method);
         //设置方法参数，无参数直接传入null值
         if (properties != null) {
@@ -182,8 +193,11 @@ public class WebserviceUtils {
         return envelope;
     }
 
-    public static SoapObject getSoapObjectData(String namespace, String method, String soapAction, String transUrl, LinkedHashMap<String, Object> properties, int envolopeVersion,int timeout) throws IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = getEnvelope(namespace, method, soapAction, transUrl, properties, envolopeVersion,timeout);
+    public static SoapObject getSoapObjectData(String namespace, String method, String soapAction, String transUrl,
+                                               LinkedHashMap<String, Object> properties, int envolopeVersion, int timeout)
+            throws IOException, XmlPullParserException {
+        SoapSerializationEnvelope envelope = getEnvelope(namespace, method, soapAction, transUrl, properties, envolopeVersion,
+                timeout);
         SoapObject sObj = null;
         if (envelope != null) {
             sObj = (SoapObject) envelope.bodyIn;
@@ -191,8 +205,11 @@ public class WebserviceUtils {
         return sObj;
     }
 
-    public static SoapPrimitive getSoapPrimitiveData(String namespace, String method, String soapAction, String transUrl, LinkedHashMap<String, Object> properties, int envolopeVersion,int timeout) throws IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = getEnvelope(namespace, method, soapAction, transUrl, properties, envolopeVersion,timeout);
+    public static SoapPrimitive getSoapPrimitiveData(String namespace, String method, String soapAction, String transUrl,
+                                                     LinkedHashMap<String, Object> properties, int envolopeVersion, int
+                                                             timeout) throws IOException, XmlPullParserException {
+        SoapSerializationEnvelope envelope = getEnvelope(namespace, method, soapAction, transUrl, properties, envolopeVersion,
+                timeout);
         SoapPrimitive soapPrimitive = null;
         if (envelope != null) {
             soapPrimitive = (SoapPrimitive) envelope.getResponse();

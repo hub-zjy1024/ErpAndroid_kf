@@ -59,13 +59,14 @@ public class SettingActivity extends AppCompatActivity {
                     return;
                 }
                 sp.edit().putString("printerIP", ip).commit();
-                new Thread(){
-                    @Override
-                    public void run() {
-                        saveIP(ip, MyApp.id);
-                        sp.edit().putString("printerIP", ip).commit();
-                    }
-                }.start();
+                MyToast.showToast(SettingActivity.this, "保存打印机ip地址成功");
+//                new Thread(){
+//                    @Override
+//                    public void run() {
+//                        saveIP(ip, MyApp.id);
+//                        sp.edit().putString("printerIP", ip).commit();
+//                    }
+//                }.start();
             }
         });
 
@@ -75,6 +76,7 @@ public class SettingActivity extends AppCompatActivity {
         try {
             URL url = new URL("http://192.168.10.101:8080/Dyj_server/saveUser?uid=" + id + "&ip=" + ip);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(15 * 1000);
             InputStream in = conn.getInputStream();
             byte[] buf = new byte[1024];
             int len;

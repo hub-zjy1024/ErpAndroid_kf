@@ -13,6 +13,24 @@ public class PreChukuDetailInfo {
     private String p;
     private String counts;
     private String leftCounts;
+    private String proLevel;
+    private String initialDate;
+
+    public String getProLevel() {
+        return proLevel;
+    }
+
+    public void setProLevel(String proLevel) {
+        this.proLevel = proLevel;
+    }
+
+    public String getInitialDate() {
+        return initialDate;
+    }
+
+    public void setInitialDate(String initialDate) {
+        this.initialDate = initialDate;
+    }
 
     public PreChukuDetailInfo() {
     }

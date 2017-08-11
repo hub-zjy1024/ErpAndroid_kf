@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
                         edit.apply();
                         getUserInfoDetail(MyApp.id);
                     } else {
-                        MyApp.ftpUrl = sp.getString("ftp", "");
+//                        MyApp.ftpUrl = sp.getString("ftp", "");
                     }
                     //是否记住密码
                     //                    ifSavePwd(true, "101", "62105300");

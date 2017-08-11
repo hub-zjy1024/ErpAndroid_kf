@@ -21,6 +21,7 @@ import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
+import com.b1b.js.erpandroid_kf.utils.DownUtils;
 import com.b1b.js.erpandroid_kf.utils.FtpManager;
 import com.b1b.js.erpandroid_kf.utils.ImageWaterUtils;
 import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
@@ -78,7 +79,7 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
                         String name = path.substring(path.lastIndexOf("/") + 1);
                         NotificationManager nManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                         //                        NotificationCompat.Builder builder = new NotificationCompat.Builder
-                        // (ObtainPicFromPhone.this);
+                        // (PankuObtain.this);
                         //                        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap
                         // .notify_icon_large);
                         //                        builder.setContentTitle("上传" + failPid + "图片");
@@ -170,13 +171,9 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
             edPid.setText(pid);
         }
         //初始化ftp
-        if ("".equals(MyApp.ftpUrl) || MyApp.ftpUrl == null) {
-            if ("101".equals(MyApp.id)) {
-                MyApp.ftpUrl = "172.16.6.22";
-                ftp = FtpManager.getFtpManager("NEW_DYJ", "GY8Fy2Gx", MyApp.ftpUrl, 21);
-            }
-        } else {
-            ftp = FtpManager.getFtpManager("dyjftp", "dyjftp", MyApp.ftpUrl, 21);
+        ftp = TakePicActivity.initFTP(getApplicationContext());
+        if (ftp == null) {
+            return;
         }
         connFTP(handler, FTP_ERROR);
         mGvAdapter = new UploadPicAdapter(ObtainPicPanku.this, uploadPicInfos, new UploadPicAdapter.OnItemBtnClickListener() {
@@ -262,7 +259,7 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
         SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
                 .ChuKuServer);
         str = response.toString();
-        Log.e("zjy", "ObtainPicFromPhone.java->setInsertPicInfo(): insertRes==" + str);
+        Log.e("zjy", "PankuObtain.java->setInsertPicInfo(): insertRes==" + str);
         return str;
     }
 
@@ -333,11 +330,11 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
             XmlPullParserException {
         InputStream inputStream = new FileInputStream(uploadPicInfo.getPath());
         boolean flag = false;
-        String fileName = UploadUtils.getRomoteName(pid);
+        String fileName = UploadUtils.getRomoteName2(pid);
         if (failPid != null) {
             //重新上传失败的文件
             fileName = failPath.substring(failPath.lastIndexOf("/") + 1, failPath.lastIndexOf("."));
-            Log.e("zjy", "ObtainPicFromPhone->commitImage(): MyAppp.id==" + MyApp.id);
+            Log.e("zjy", "PankuObtain->commitImage(): MyAppp.id==" + MyApp.id);
             fileName = getRemarkName(fileName, false);
             flag = uploadFlag(cid, did, pid, inputStream, fileName);
         } else {
@@ -350,7 +347,7 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
                 } else {
                     waterBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.water_small);
                 }
-                Log.e("zjy", "ObtainPicFromPhone.java->commitImages():image size ==" + bitmap.getWidth() + "\t" + bitmap
+                Log.e("zjy", "PankuObtain.java->commitImages():image size ==" + bitmap.getWidth() + "\t" + bitmap
                         .getHeight());
                 Bitmap textBitmap = ImageWaterUtils.drawTextToRightTop(ObtainPicPanku.this, bitmap, pid, (int) (bitmap
                         .getWidth() * 0.015), Color.RED, 20, 20);
@@ -377,20 +374,34 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
 
     private boolean uploadFlag(int cid, int did, String pid, InputStream inputStream, String fileName) throws IOException,
             XmlPullParserException {
-        String path;
+        String insertPath;
         boolean flag = false;
         boolean isSuccess;
         //文件名或者目录中有中文需要转码 new String(fileName.getBytes("UTF-8"), "iso-8859-1")
-        String insertPath = UploadUtils.getCurrentDate();
+        String remoteName =  fileName + ".jpg";
+        String remotePath = "/" + UploadUtils.getCurrentDate() + "/";
+        String mUrl = MyApp.ftpUrl;
+        DownUtils downUtils=null;
         if ("101".equals(MyApp.id)) {
-            insertPath = "Zjy";
+            mUrl = FtpManager.mainAddress;
+            downUtils = new DownUtils(mUrl, 21, CaigoudanTakePicActivity.username,  CaigoudanTakePicActivity.password);
+            //            mUrl= "192.168.10.65";
+            //            downUtils=  new DownUtils(mUrl, 21, "zjy", "123456");
+            remotePath = UploadUtils.KF_DIR+ "pk/" +remoteName ;
+        } else {
+            mUrl = MyApp.ftpUrl;
+            downUtils = new DownUtils(mUrl, 21,FtpManager.ftpName,
+                    FtpManager.ftpPassword);
+            remotePath = "/" + UploadUtils.getCurrentDate() + "/pk/" + remoteName;
         }
-        path = UploadUtils.createInsertPath(MyApp.ftpUrl, insertPath, fileName, "jpg");
-        isSuccess = ftp.upload(inputStream, "/" + insertPath, new String(fileName.getBytes("UTF-8"), "iso-8859-1") + ".jpg");
-        Log.e("zjy", "ObtainPicFromPhone.java->commitImage(): schemePath==" + path);
+        insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
+        downUtils.login();
+        isSuccess = downUtils.upload(inputStream, new String(remotePath.getBytes("UTF-8"), "iso-8859-1"));
+        downUtils.exitServer();
+        Log.e("zjy", "PankuObtain.java->commitImage(): schemePath==" + insertPath);
         if (isSuccess) {
-            String res = setInsertPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid, fileName + ".jpg", path, "CKTZ");
-            Log.e("zjy", "ObtainPicFromPhone->uploadFlag(): insert res==" + res);
+            String res = setInsertPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid,remoteName, insertPath, "PK");
+            Log.e("zjy", "PankuObtain->uploadFlag(): insert res==" + res);
             if (res.equals("操作成功")) {
                 flag = true;
             }
@@ -435,7 +446,7 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
                 btn_commit.setEnabled(true);
             }
             uploadPicInfos.clear();
-            Log.e("zjy", "ObtainPicFromPhone.java->onActivityResult(): imgPaths==" + returnPaths.size());
+            Log.e("zjy", "PankuObtain.java->onActivityResult(): imgPaths==" + returnPaths.size());
             for (int i = 0; i < returnPaths.size(); i++) {
                 UploadPicInfo info = new UploadPicInfo("-1", returnPaths.get(i));
                 uploadPicInfos.add(info);
@@ -447,7 +458,7 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e("zjy", "ObtainPicFromPhone.java->onDestroy(): clear uploadpicinfos");
+        Log.e("zjy", "PankuObtain.java->onDestroy(): clear uploadpicinfos");
         MyAdapter.mSelectedImage.clear();
         new Thread() {
             @Override

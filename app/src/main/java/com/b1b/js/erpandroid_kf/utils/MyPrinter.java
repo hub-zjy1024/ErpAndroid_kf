@@ -2,6 +2,8 @@ package com.b1b.js.erpandroid_kf.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.Log;
@@ -17,10 +19,7 @@ import java.net.SocketAddress;
  Created by 张建宇 on 2017/4/28. */
 
 public class MyPrinter {
-    private static int[] ZHISTATE = new int[]{1, 2, 1};
     private static int[] CMD_INIT = new int[]{27, 64};
-    private static int[] CMD_FONT_1 = new int[]{27, 64};
-    private static int[] CMD_P_STATE = new int[]{27, 64};
     private static int[] CMD_PRINT_GO = new int[]{27, 100, 0};
     private static int[] CMD_COD128 = new int[]{29, 107, 74};
     public static final byte ESC = 27;//换码
@@ -30,20 +29,20 @@ public class MyPrinter {
     public static final byte EOT = 4;//传输结束
     public static final byte ENQ = 5;//询问字符
     private static final byte LF = 10;//打印并换行（水平定位）
-    public static final int BARCODE_FLAG_TOP = 1;//走纸控制
-    public static final byte BARCODE_FLAG_BOTTOM = 2;//走纸控制
-    public static final byte BARCODE_FLAG_BOTH = 3;//走纸控制
-    public static final byte BARCODE_FLAG_NONE = 0;//走纸控制
+    public static final int BARCODE_FLAG_TOP = 1;
+    public static final byte BARCODE_FLAG_BOTTOM = 2;
+    public static final byte BARCODE_FLAG_BOTH = 3;
+    public static final byte BARCODE_FLAG_NONE = 0;
     private Socket mSocket = new Socket();
     private OutputStream mOut;
-    private String ipAddress = "192.168.199.200";
+    private final Object obj = new Object();
     int imageWidth = 40;
 
     public MyPrinter(String address) {
         SocketAddress s;
         if (address == null) {
            s = new InetSocketAddress("192.168.199.200", 9100);
-
+//            s = new InetSocketAddress("192.168.9.101", 0);
         } else {
             s = new InetSocketAddress(address, 9100);
         }
@@ -74,9 +73,7 @@ public class MyPrinter {
     }
 
     public synchronized void printTextLn(String data) throws IOException {
-        if (mOut != null) {
-            mOut.write(data.getBytes("GBK"));
-        }
+        printText(data);
         newLine();
     }
 
@@ -92,12 +89,12 @@ public class MyPrinter {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
         if (width > w) {
-            float resizedBitmap2 = (float) w / (float) width;
+            float widthScale = (float) w / (float) width;
             float canvas1 = (float) h / (float) height + 24.0F;
-            Matrix paint1 = new Matrix();
-            paint1.postScale(resizedBitmap2, resizedBitmap2);
-            Bitmap resizedBitmap1 = Bitmap.createBitmap(bitmap, 0, 0, width, height, paint1, true);
-            return resizedBitmap1;
+            Matrix matrix = new Matrix();
+            matrix.postScale(widthScale, widthScale);
+            matrix.postScale(1, 1);
+            return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
         } else {
             Bitmap resizedBitmap = Bitmap.createBitmap(w, height + 24, Bitmap.Config.RGB_565);
             Canvas canvas = new Canvas(resizedBitmap);
@@ -128,19 +125,25 @@ public class MyPrinter {
         mOut.write((byte) 119);
         mOut.write((byte) 3);
         //选择COD128条码格式进行打印
-        mOut.write(new byte[]{0x1d, 0x6B, (byte) 73});
-        int len = code.length();
-        mOut.write(len + 2);
+        mOut.write(new byte[]{0x1D, 0x6B, (byte) 73});
+        byte[] bytes = code.getBytes("utf-8");
+        //数据长度=条码长度+加上字符集选择指令的长度
+        mOut.write((byte) (bytes.length + 2));
         //选择字符集CODEB
         mOut.write(new byte[]{(byte) 123, (byte) 66});
         //打印条码内容
-        mOut.write(code.getBytes());
+        mOut.write(bytes);
         //恢复条码高度
         mOut.write((byte) 29);
         mOut.write((byte) 104);
         mOut.write((byte) 1);
     }
 
+    /**
+     打印条码内容，暂时不可用
+     @param flag
+     @return
+     */
     public byte[] printBarCodeTitle(int flag) {
         byte[] cmd;
         switch (flag) {
@@ -183,9 +186,13 @@ public class MyPrinter {
         }
     }
 
+    /**
+     初始化打印机，还原初始设置，清除格式
+     @throws IOException
+     */
     public void initPrinter() throws IOException {
         if (mOut != null) {
-            synchronized (mOut) {
+            synchronized (obj) {
                 //        byte[] cmd = new byte[]{(byte) 27, (byte) 100, (byte) 5};
                 byte[] cmd = intArray2ByteArray(CMD_INIT);
                 mOut.write(cmd);
@@ -221,6 +228,11 @@ public class MyPrinter {
 
     }
 
+    /**
+     同时放大宽高
+     @param size
+     @throws IOException
+     */
     public void setFont(int size) throws IOException {
         if (mOut == null) {
             return;
@@ -297,6 +309,69 @@ public class MyPrinter {
         byte[] cmd = intArray2ByteArray(CMD_PRINT_GO);
         cmd[2] = (byte) lines;
         mOut.write(cmd);
+    }
+    public static Bitmap toGrayscale(Bitmap bmpOriginal) {
+        int width, height;
+        height = bmpOriginal.getHeight();
+        width = bmpOriginal.getWidth();
+        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        Canvas c = new Canvas(bmpGrayscale);
+        Paint paint = new Paint();
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(0);
+        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+        paint.setColorFilter(f);
+        c.drawBitmap(bmpOriginal, 0, 0, paint);
+        return bmpGrayscale;
+    }
+    public void printBitmap(Bitmap bmp) throws IOException {
+//        29  118   48   m    xL    xH    yL   yH   d1......dk
+        //设置字符行间距为n点行
+        //byte[] data = new byte[] { 0x1B, 0x33, 0x00 };
+        String send = "" + (char) (27) + (char) (51) + (char) (0);
+        byte[] data = new byte[send.length()];
+        for (int i = 0; i < send.length(); i++) {
+            data[i] = (byte) send.charAt(i);
+        }
+        mOut.write(data);
+        data[0] = (byte) ('0');
+        data[1] = (byte) '0';
+        data[2] = (byte) '0';    // Clear to Zero.
+        int pixelColor;
+        //ESC * m nL nH d1…dk   选择位图模式
+        // ESC * m nL nH
+        byte[] escBmp = new byte[]{0x1B, 0x2A, 0x00, 0x00, 0x00};
+        escBmp[2] = (byte) 21;
+        //nL, nH
+        escBmp[3] = (byte) (bmp.getWidth()% 256);
+        escBmp[4] = (byte) (bmp.getWidth() / 256);
+        //循环图片像素打印图片
+        //循环高
+        for (int i = 0; i < (bmp.getHeight() / 24 + 1); i++) {
+            //设置模式为位图模式
+            mOut.write(escBmp);
+            //循环宽
+            for (int j = 0; j < bmp.getWidth(); j++) {
+                for (int k = 0; k < 24; k++) {
+                    if (((i * 24) + k) < bmp.getHeight())  // if within the BMP size
+                    {
+                        pixelColor = bmp.getPixel(j, (i * 24) + k);
+                        if (pixelColor == 0) {
+                            data[k / 8] += (byte) (128 >> (k % 8));
+                        }
+                    }
+                }
+                //一次写入一个data，24个像素
+                mOut.write(data);
+                data[0] = (byte)0;
+                data[1] = (byte)0;
+                data[2] = (byte)0;    // Clear to Zero.
+            }
+            //换行，打印第二行
+            byte[] data2 = {0xA};
+            mOut.write(data2);
+        } // data
+        mOut.write("\n\n".getBytes());
     }
 
     public byte[] intArray2ByteArray(int[] array) {

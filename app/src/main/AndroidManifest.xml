@@ -83,6 +83,22 @@
         </activity>
         <activity android:name=".KucunFBActivity">
         </activity>
+        <activity android:name=".CaigoudanTakePicActivity">
+        </activity>
+        <activity android:name=".CaigouTakePic2Activity">
+        </activity>
+        <activity android:name=".HetongActivity">
+        </activity>
+        <activity android:name=".CaigouDetailActivity">
+        </activity>
+        <activity android:name="printer.activity.PickPicPrintingActivity">
+        </activity>
+        <activity android:name="printer.activity.SetYundanActivity">
+        </activity>
+        <activity android:name="printer.activity.SFActivity">
+        </activity>
+        <activity android:name="printer.activity.ToolbarTestActivity">
+        </activity>
     </application>
 
 </manifest>

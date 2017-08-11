@@ -69,6 +69,7 @@ public class PreChukuInfo {
     private String salesman;
     private String employeeID;
     private String mainNotes;
+    private String isVip;
     private boolean isXiankuan;
 
     public boolean isXiankuan() {
@@ -294,5 +295,13 @@ public class PreChukuInfo {
 
     public void setMainNotes(String mainNotes) {
         this.mainNotes = mainNotes;
+    }
+
+    public String getIsVip() {
+        return isVip;
+    }
+
+    public void setIsVip(String isVip) {
+        this.isVip = isVip;
     }
 }

@@ -77,7 +77,6 @@ public class MyFileUtils {
                 fileParent = null;
             }
         } else {
-            Log.e("zjy", "MyFileUtils->obtainFileDir(): exist==");
             checkImgFileSize(file, 200, mContext);
         }
     }

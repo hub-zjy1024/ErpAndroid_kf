@@ -16,16 +16,52 @@ public class Caigoudan {
     private String yewuName;
     private String caigouName;
     private String partNo;
+    private boolean isForeignClient;
+    private String inPrice;
+    private String salePrice;
+    private String note;
+    private String clientID;
+    private String provider;
+    private String askPriceMan;
+    private String caigouPlace;
+    private String counts;
+    private String providerID;
+    private String corpID;
+
+    public String getProviderID() {
+        return providerID;
+    }
+
+    public void setProviderID(String providerID) {
+        this.providerID = providerID;
+    }
+
+    public String getCorpID() {
+        return corpID;
+    }
+
+    public void setCorpID(String corpID) {
+        this.corpID = corpID;
+    }
 
     @Override
     public String toString() {
         return
                 " 单据号=" + pid + "\n" +
+                        " 型号=" + partNo + "\n" +
                         " 单据状态=" + state + "\n" +
                         " 制单时间=" + createdDate + "\n" +
-                        " 业务员=" + yewuName + "\n" +
+                        " 数量=" + counts + "\n" +
+                        " 进价=" + inPrice + "\n" +
+                        " 售价=" + salePrice + "\n" +
+                        " 供应商=" + provider + "\n" +
+                        " 询价员=" + askPriceMan + "\n" +
                         " 采购员=" + caigouName + "\n" +
-                        " 型号=" + partNo;
+                        " 采购地=" + caigouPlace + "\n" +
+                        " 客户编码=" + clientID + "\n" +
+                        " 备注=" + note + "\n" +
+                        " 是否国外=" + ((isForeignClient) ? "是" : "否");
+
     }
 
     public Caigoudan() {
@@ -54,6 +90,78 @@ public class Caigoudan {
         this.yewuName = yewuName;
         this.caigouName = caigouName;
         this.partNo = partNo;
+    }
+
+    public boolean isForeignClient() {
+        return isForeignClient;
+    }
+
+    public String getCounts() {
+        return counts;
+    }
+
+    public void setCounts(String counts) {
+        this.counts = counts;
+    }
+
+    public void setForeignClient(boolean foreignClient) {
+        isForeignClient = foreignClient;
+    }
+
+    public String getInPrice() {
+        return inPrice;
+    }
+
+    public void setInPrice(String inPrice) {
+        this.inPrice = inPrice;
+    }
+
+    public String getSalePrice() {
+        return salePrice;
+    }
+
+    public void setSalePrice(String salePrice) {
+        this.salePrice = salePrice;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public String getClientID() {
+        return clientID;
+    }
+
+    public void setClientID(String clientID) {
+        this.clientID = clientID;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public String getAskPriceMan() {
+        return askPriceMan;
+    }
+
+    public void setAskPriceMan(String askPriceMan) {
+        this.askPriceMan = askPriceMan;
+    }
+
+    public String getCaigouPlace() {
+        return caigouPlace;
+    }
+
+    public void setCaigouPlace(String caigouPlace) {
+        this.caigouPlace = caigouPlace;
     }
 
     public String getPid() {

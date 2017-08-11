@@ -29,6 +29,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
+import com.b1b.js.erpandroid_kf.utils.DownUtils;
 import com.b1b.js.erpandroid_kf.utils.FtpManager;
 import com.b1b.js.erpandroid_kf.utils.ImageWaterUtils;
 import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
@@ -66,7 +67,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
     private List<Camera.Size> picSizes;
     private ProgressDialog pd;
     private String pid;
-    private String remoteName;
+
     private int commitTimes = 0;
     FtpManager ftp;
     //    FtpManager2 ftp;
@@ -143,16 +144,9 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
         if (pid != null) {
             dialogPid.setText(pid);
         }
-        if ("".equals(MyApp.ftpUrl) || MyApp.ftpUrl == null) {
-            if ("101".equals(MyApp.id)) {
-                MyApp.ftpUrl = "172.16.6.22";
-                ftp = FtpManager.getFtpManager("NEW_DYJ", "GY8Fy2Gx", MyApp.ftpUrl, 21);
-            } else {
-                MyToast.showToast(getApplicationContext(), "FTP地址获取失败，请重新启动程序");
-                return;
-            }
-        } else {
-            ftp = FtpManager.getFtpManager("dyjftp", "dyjftp", MyApp.ftpUrl, 21);
+        ftp = TakePicActivity.initFTP(getApplicationContext());
+        if (ftp == null) {
+            return;
         }
         connFTP(mHandler, FTP_CONNECT_FAIL);
         mOrientationListener = new OrientationEventListener(this,
@@ -318,7 +312,8 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
         //剔除出尺寸太小的，和尺寸太大的，宽度（1280-2048)
         for (int i = picSizes.size() - 1; i >= 0; i--) {
             int width = picSizes.get(i).width;
-            Log.e("zjy", "TakePicActivity.java->showProgressDialog(): size==" + picSizes.get(i).width + "\t" + picSizes.get(i).height);
+            Log.e("zjy", "TakePicActivity.java->showProgressDialog(): size==" + picSizes.get(i).width + "\t" + picSizes.get(i)
+                    .height);
             if (width < 1920 || width > 2592) {
                 picSizes.remove(i);
             }
@@ -377,12 +372,14 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
      @param mOrientationListener
      */
     private void attachToSensor(OrientationEventListener mOrientationListener) {
-        if (mOrientationListener.canDetectOrientation()) {
-            mOrientationListener.enable();
-        } else {
-            Log.e("zjy", "TakePicActivity->attachToSensor(): 获取相机方向失败==");
-            mOrientationListener.disable();
-            rotation = 0;
+        if (mOrientationListener != null) {
+            if (mOrientationListener.canDetectOrientation()) {
+                mOrientationListener.enable();
+            } else {
+                Log.e("zjy", "TakePicActivity->attachToSensor(): 获取相机方向失败==");
+                mOrientationListener.disable();
+                rotation = 0;
+            }
         }
     }
 
@@ -479,28 +476,43 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
                         public void run() {
                             try {
                                 //加水印后的图片
-                                Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicPankuActivity.this, photo, bitmap, 0, 0);
-                                Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicPankuActivity.this, waterBitmap, pid, (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
+                                Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicPankuActivity.this,
+                                        photo, bitmap, 0, 0);
+                                Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicPankuActivity.this, waterBitmap,
+                                        pid, (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
                                 ByteArrayOutputStream bao = new ByteArrayOutputStream();
                                 //图片质量压缩到bao数组
                                 MyImageUtls.compressBitmapAtsize(TextBitmap, bao, 0.4f);
                                 final ByteArrayInputStream in = new ByteArrayInputStream(bao.toByteArray());
-                                remoteName = UploadUtils.getRomoteName2(pid);
-                                String dirPath = UploadUtils.getCurrentDate()+"/pk";
+                                 String remoteName= UploadUtils.getRomoteName2(pid);
+                                String remotePath = "/" + UploadUtils.getCurrentDate() + "/";
+                                String mUrl = MyApp.ftpUrl;
+                                DownUtils downUtils=null;
                                 if ("101".equals(MyApp.id)) {
-                                    dirPath = "Zjy/pk";
+                                    mUrl = FtpManager.mainAddress;
+                                    downUtils = new DownUtils(FtpManager.mainAddress, 21, CaigoudanTakePicActivity.username,  CaigoudanTakePicActivity.password);
+                                    //            mUrl= "192.168.10.65";
+                                    //            downUtils=  new DownUtils(mUrl, 21, "zjy", "123456");
+                                    remotePath = UploadUtils.KF_DIR+ "pk/" +remoteName+".jpg" ;
+                                } else {
+                                    mUrl = MyApp.ftpUrl;
+                                    downUtils = new DownUtils(mUrl, 21,FtpManager.ftpName,
+                                            FtpManager.ftpPassword);
+                                    remotePath = "/" + UploadUtils.getCurrentDate() + "/pk/" + remoteName+".jpg" ;
                                 }
-                                String insertPath = UploadUtils.createInsertPath(MyApp.ftpUrl, dirPath, remoteName, "jpg");
-                                //上传
+                               String insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
+                                downUtils.login();
                                 boolean isConn;
-                                isConn = ftp.upload(in, "/" + dirPath+"/"+remoteName + ".jpg");
+                                isConn = downUtils.upload(in, remotePath);
+                                downUtils.exitServer();
                                 if (isConn) {
                                     //更新服务器信息
                                     SharedPreferences sp = getSharedPreferences("UserInfo", 0);
                                     final int cid = sp.getInt("cid", -1);
                                     final int did = sp.getInt("did", -1);
                                     Log.e("zjy", "TakePicActivity.java->run(): insertPath==" + insertPath);
-                                    String res = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer.parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "CKTZ");
+                                    String res = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
+                                            .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "PK");
                                     Log.e("zjy", "TakePicActivity.java->run(): res==" + res);
                                     Message msg = mHandler.obtainMessage(PICUPLOAD_SUCCESS);
                                     msg.obj = res;
@@ -588,7 +600,8 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
     //name="did" type="int"    部门id
     //name="uid" type="int"   用户id
 
-    public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath, String stypeID) throws IOException, XmlPullParserException {
+    public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
+                                   String stypeID) throws IOException, XmlPullParserException {
         String str = "";
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("checkWord", checkWord);
@@ -600,7 +613,8 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
         map.put("filepath", filePath);
         map.put("stypeID", stypeID);//标记，固定为"CKTZ"
         SoapObject request = WebserviceUtils.getRequest(map, "SetInsertPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                .ChuKuServer);
         str = response.toString();
         return str;
     }
@@ -608,7 +622,9 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
     @Override
     protected void onPause() {
         super.onPause();
-        mOrientationListener.disable();
+        if (mOrientationListener != null) {
+            mOrientationListener.disable();
+        }
     }
 
     @Override

@@ -336,7 +336,7 @@ public class CaigouActivity extends AppCompatActivity {
         map.put("partNo", partNo);
         SoapObject request = WebserviceUtils.getRequest(map, "GetBillByPartNo");
         SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.MartService);
-        Log.e("zjy", "CaigouActivity.java->getCaigoudan(): response==" + response.toString());
+        Log.e("zjy", "CaigouActivity.java->getCaigoudanByPidAndPartNo(): response==" + response.toString());
         return response.toString();
     }
 

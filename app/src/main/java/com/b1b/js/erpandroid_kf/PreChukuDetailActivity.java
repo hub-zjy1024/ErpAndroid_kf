@@ -13,7 +13,6 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -22,9 +21,11 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuDetialAdapter;
 import com.b1b.js.erpandroid_kf.entity.PreChukuDetailInfo;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
+import com.b1b.js.erpandroid_kf.utils.DialogUtils;
 import com.b1b.js.erpandroid_kf.utils.MyPrinter;
 import com.b1b.js.erpandroid_kf.utils.MyToast;
 import com.b1b.js.erpandroid_kf.utils.PrinterStyle;
+import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
 import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONArray;
@@ -59,6 +60,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
     SharedPreferences sp;
     ProgressDialog pDialog;
     List<PreChukuDetailInfo> list = new ArrayList<PreChukuDetailInfo>();
+    private String pAddress;
     private String localKuqu = "";
     private Handler zHandler = new Handler() {
         @Override
@@ -97,6 +99,9 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                     MyToast.showToast(PreChukuDetailActivity.this, "打印次数插入失败");
                     MyApp.myLogger.writeError("插入打印次数失败：" + info.getPid());
                     break;
+                case 7:
+                    DialogUtils.getSpAlert(PreChukuDetailActivity.this, "打印出现错误，请检查打印机是否正常工作", "提示").show();
+                    break;
 
             }
         }
@@ -110,11 +115,21 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         btnPrint = (Button) findViewById(R.id.pre_chuku_detail_print);
         tvState = (TextView) findViewById(R.id.pre_chuku_detail_state);
         btnReconnect = (Button) findViewById(R.id.pre_chuku_detail_reconnect);
+        Button btnSet = (Button) findViewById(R.id.pre_chuku_detail_set);
         edIP = (EditText) findViewById(R.id.pre_chuku_detail_printerip);
         detailAdapter = new PreChukuDetialAdapter(list, this, R.layout.pre_chuku_lv_detail_items);
         lv.setAdapter(detailAdapter);
         pDialog = new ProgressDialog(PreChukuDetailActivity.this);
         pDialog.setCancelable(false);
+        sp = getSharedPreferences("UserInfo", Context.MODE_PRIVATE);
+        pAddress = sp.getString("printerIP", "");
+        btnSet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(PreChukuDetailActivity.this, SettingActivity.class);
+                startActivity(intent);
+            }
+        });
         btnReconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,11 +137,24 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 if (pDialog != null && !pDialog.isShowing()) {
                     pDialog.show();
                 }
+                if (pAddress.equals("")) {
+                    MyToast.showToast(PreChukuDetailActivity.this, "打印机地址还未设置好");
+                    AlertDialog.Builder builder = new AlertDialog.Builder(PreChukuDetailActivity.this);
+                    builder.setTitle("提示").setMessage("是否前往配置页配置打印机地址").setPositiveButton("前往", new DialogInterface
+                            .OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(PreChukuDetailActivity.this, SettingActivity.class);
+                            startActivity(intent);
+                        }
+                    }).show();
+                    return;
+                }
                 new Thread() {
                     @Override
                     public void run() {
-                        final String localPrinterIP = sp.getString("printerIP", "");
-                        mPrinter = new MyPrinter(localPrinterIP);
+                        //beijing 192.168.9.101  //shenzhen
+                        mPrinter = new MyPrinter(pAddress);
                         if (mPrinter.getmOut() != null) {
                             zHandler.sendEmptyMessage(2);
                         } else {
@@ -143,6 +171,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 try {
                     URL url = new URL("http://172.16.6.101:802/ErpV5IP.asp");
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setConnectTimeout(15 * 1000);
                     InputStream is = conn.getInputStream();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
                     String result = "";
@@ -157,6 +186,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                     SoapObject object1 = WebserviceUtils.getRequest(map, "GetChildStorageIDByIP");
                     SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(object1, SoapEnvelope.VER11, WebserviceUtils
                             .MartService);
+                    Log.e("zjy", "PreChukuDetailActivity->run(): res==" + res1);
                     localKuqu = res1.toString();
                     reader.close();
                 } catch (IOException e) {
@@ -187,6 +217,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                             isFinish = PrinterStyle.printPreparedChuKu(mPrinter, info, localKuqu);
                             boolean isOK = mPrinter.cutPaper();
                             if (!isOK) {
+                                zHandler.sendEmptyMessage(7);
                                 return;
                             }
                             String res = updatePrintCount(Integer.parseInt(info.getPid()));
@@ -207,80 +238,73 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 }.start();
             }
         });
-        sp = getSharedPreferences("UserInfo", Context.MODE_PRIVATE);
-        final String localPrinterIP = sp.getString("printerIP", "");
-        if (MyApp.id.equals("101")) {
-            new Thread() {
-                @Override
-                public void run() {
-                    super.run();
+        new Thread(){
+            @Override
+            public void run() {
+                super.run();
+                try {
                     Intent intent = getIntent();
                     String pid = intent.getStringExtra("pid");
-                    zHandler.sendEmptyMessage(0);
-                    mPrinter = new MyPrinter(null);
-                    if (mPrinter.getmOut() != null) {
-                        zHandler.sendEmptyMessage(2);
-                    } else {
-                        zHandler.sendEmptyMessage(1);
-                    }
-                    try {
-                        String root = getPreChukuDetail(Integer.parseInt(pid), Integer.parseInt(MyApp.id));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                     getPreChukuDetail(Integer.parseInt(pid), Integer.parseInt(MyApp.id));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            }.start();
-        } else if (localPrinterIP.equals("")) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("提示").setMessage("请在菜单中的'配置'项中进行配置打印机IP地址").setPositiveButton("前往", new DialogInterface
-                    .OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Intent intent = new Intent(PreChukuDetailActivity.this, SettingActivity.class);
-                    startActivity(intent);
-                }
-            }).show();
+            }
+        }.start();
+        if (pAddress.equals("")) {
+            if ("101".equals(MyApp.id)) {
+                new Thread() {
+                    @Override
+                    public void run() {
+                        super.run();
+                        zHandler.sendEmptyMessage(0);
+                        pAddress = "192.168.199.200";
+                        sp.edit().putString("printerIP", pAddress).commit();
+                        mPrinter = new MyPrinter(pAddress);
+                        if (mPrinter.getmOut() != null) {
+                            zHandler.sendEmptyMessage(2);
+                        } else {
+                            zHandler.sendEmptyMessage(1);
+                        }
+                    }
+                }.start();
+            } else{
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("提示").setMessage("是否前往配置页配置打印机地址").setPositiveButton("前往", new DialogInterface
+                        .OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(PreChukuDetailActivity.this, SettingActivity.class);
+                        startActivity(intent);
+                    }
+                }).show();
+            }
         } else {
             new Thread() {
                 @Override
                 public void run() {
                     super.run();
-                    Intent intent = getIntent();
-                    String pid = intent.getStringExtra("pid");
                     zHandler.sendEmptyMessage(0);
-                    mPrinter = new MyPrinter(localPrinterIP);
+                    mPrinter = new MyPrinter(pAddress);
                     if (mPrinter.getmOut() != null) {
                         zHandler.sendEmptyMessage(2);
                     } else {
                         zHandler.sendEmptyMessage(1);
                     }
-                    try {
-                        String root = getPreChukuDetail(Integer.parseInt(pid), Integer.parseInt(MyApp.id));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
                 }
             }.start();
         }
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            imm.hideSoftInputFromWindow(edIP.getWindowToken(), 0);
-            //            imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
-        }
+        pAddress = sp.getString("printerIP", "");
+        SoftKeyboardUtils.closeInputMethod(edIP, PreChukuDetailActivity.this);
     }
 
     public String getPreChukuDetail(int pid, int uid) throws IOException, XmlPullParserException, JSONException {
@@ -308,6 +332,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 info.setFahuoType(obj.getString("发货类型"));
                 info.setKuqu(obj.getString("库区"));
                 info.setMainNotes(obj.getString("note"));
+                info.setIsVip(obj.getString("IsVIP"));
                 boolean isXiankuan = obj.getBoolean("IsXianHuoXianJie");
                 info.setXiankuan(isXiankuan);
             }
@@ -322,6 +347,8 @@ public class PreChukuDetailActivity extends AppCompatActivity {
             String leftCounts = String.valueOf(Integer.parseInt(obj.getString("BalanceQ")) - Integer.parseInt(counts));
             PreChukuDetailInfo info = new PreChukuDetailInfo(partNo, fengzhuang, pihao, factory, description, notes, p, counts,
                     leftCounts);
+            info.setProLevel(obj.getString("DengJi"));
+            info.setInitialDate(obj.getString("InstorageData"));
             list.add(info);
         }
         info.setDetailInfos(list);
@@ -344,4 +371,15 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         super.onDestroy();
         mPrinter.close();
     }
+
+    //    GetOutStoragePrintViewPriviceInfo
+    public String getPrintInfo(String pid, String uid) throws IOException, XmlPullParserException {
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        map.put("", "");
+        map.put("", "");
+        SoapObject req = WebserviceUtils.getRequest(map, "GetOutStoragePrintViewPriviceInfo");
+        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        return null;
+    }
+
 }

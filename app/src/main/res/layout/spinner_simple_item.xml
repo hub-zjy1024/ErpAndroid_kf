@@ -6,8 +6,8 @@
     <TextView
         android:id="@+id/spinner_item_tv"
         android:layout_width="match_parent"
-        android:maxLines="1"
         android:textSize="20sp"
+        android:text="测试"
         android:layout_height="wrap_content"/>
 
 </LinearLayout>

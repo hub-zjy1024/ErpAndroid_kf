@@ -1,9 +1,14 @@
 package com.b1b.js.erpandroid_kf.utils;
 
+import android.util.Log;
+
 import com.b1b.js.erpandroid_kf.entity.PreChukuDetailInfo;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,16 +30,40 @@ public class PrinterStyle {
         printer.setCharHeight(2);
         printer.printTextLn(info.getOutType());
         printer.setFont(1);
-        printer.printTextLn(info.getSalesman() + "-" + info.getEmployeeID() + "-" + pid.substring(0, 3));
+//        printer.printTextLn(info.getSalesman() + "-" + info.getEmployeeID() + "-" + pid.substring(0, 3)+ "\t[VIP]");
+        printer.printTextLn(info.getSalesman() + "-" + info.getEmployeeID() + "-" + pid.substring(0, 3)+"\t"+(info.getIsVip().equals("1")?"[VIP]":""));
         printer.setFont(0);
-        printer.printTextLn("DeptID:" + getStringAtLength(info.getDeptID(),8,7) + "\t" + "Client:" + info.getClient());
+        printer.printTextLn("DeptID:" + getStringAtLength(info.getDeptID(), 8, 7) + "\t" + "Client:" + info.getClient());
         printer.printTextLn("PactID:" +getStringAtLength(info.getPactID(),8,7)  + "\t" + "oType:" + info.getOutType());
         List<PreChukuDetailInfo> detailInfos = info.getDetailInfos();
         if (detailInfos != null) {
             for (int i = 0; i < detailInfos.size(); i++) {
                 PreChukuDetailInfo dInfo = detailInfos.get(i);
                 //一行47个字符
-                printer.printTextLn((i + 1) + ".-----------------------------------------");
+//                printer.printTextLn((i + 1) + ".-----------------------------------------");
+                // TODO: 2017/7/24 修改打印格式
+                String date = dInfo.getInitialDate();
+                Date compareDate = new Date(117, 6, 1);
+                Log.e("zjy", "PrinterStyle->printPreparedChuKu(): compareDate==" + compareDate.toString());
+                boolean isShow = false;
+                if (!date.equals("")) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                    Date pidDate = null;
+                    try {
+                        pidDate = sdf.parse(date);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    if (pidDate.compareTo(compareDate) < 0) {
+                        isShow = true;
+                    }
+                }
+//                1160454
+                if (isShow) {
+                    printer.printTextLn((i + 1) + ".---供应商等级:[" + dInfo.getProLevel() + "]---需检测入库时间:" + dInfo.getInitialDate());
+                } else {
+                    printer.printTextLn((i + 1) + ".---供应商等级:[" + dInfo.getProLevel() + "]-------------------------");
+                }
                 printer.printTextLn("@@型号:" + getStringAtLength(dInfo.getPartNo(), 20, 0));
                 String fz = getStringAtLength(dInfo.getFengzhuang(), 10, 5);
                 String ph = getStringAtLength(dInfo.getPihao(), 10, 5);

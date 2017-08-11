@@ -21,6 +21,7 @@ import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
+import com.b1b.js.erpandroid_kf.utils.DownUtils;
 import com.b1b.js.erpandroid_kf.utils.FtpManager;
 import com.b1b.js.erpandroid_kf.utils.ImageWaterUtils;
 import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
@@ -62,6 +63,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
     private final int PIC_OOM = 3;
     private final int FTP_ERROR = 8;
     private String pid;
+    private static final Object lock = new Object();
     private String failPid;
     private MaterialDialog resultDialog;
     //更新progressDialog
@@ -170,13 +172,9 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
             edPid.setText(pid);
         }
         //初始化ftp
-        if ("".equals(MyApp.ftpUrl) || MyApp.ftpUrl == null) {
-            if ("101".equals(MyApp.id)) {
-                MyApp.ftpUrl = "172.16.6.22";
-                ftp = FtpManager.getFtpManager("NEW_DYJ", "GY8Fy2Gx", MyApp.ftpUrl, 21);
-            }
-        } else {
-            ftp = FtpManager.getFtpManager("dyjftp", "dyjftp", MyApp.ftpUrl, 21);
+        ftp = TakePicActivity.initFTP(getApplicationContext());
+        if (ftp == null) {
+            return;
         }
         connFTP(handler, FTP_ERROR);
         mGvAdapter = new UploadPicAdapter(ObtainPicFromPhone.this, uploadPicInfos, new UploadPicAdapter.OnItemBtnClickListener() {
@@ -184,7 +182,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
             public void onClick(View v, int position) {
                 final UploadPicInfo uploadPicInfo = uploadPicInfos.get(position);
                 pid = edPid.getText().toString().trim();
-                if (TakePicActivity.checkPid(ObtainPicFromPhone.this, pid))
+                if (TakePicActivity.checkPid(ObtainPicFromPhone.this, pid, 5))
                     return;
                 if (uploadPicInfo.getState().equals("-1")) {
                     Button btn = (Button) v;
@@ -215,6 +213,8 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                                 e.printStackTrace();
                             } catch (IOException e) {
                                 handler.sendEmptyMessage(PICUPLOAD_ERROR);
+                                e.printStackTrace();
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
@@ -271,7 +271,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         switch (v.getId()) {
             case R.id.review_commit:
                 pid = edPid.getText().toString().trim();
-                if (TakePicActivity.checkPid(ObtainPicFromPhone.this, pid))
+                if (TakePicActivity.checkPid(ObtainPicFromPhone.this, pid, 5))
                     return;
                 showProgressDialog();
                 new Thread() {
@@ -322,6 +322,8 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                     handler.sendEmptyMessage(PICUPLOAD_ERROR);
                     e.printStackTrace();
                     return success;
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -329,15 +331,13 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         return success;
     }
 
-    private boolean commitImage(UploadPicInfo uploadPicInfo, int cid, int did, String pid) throws IOException,
-            XmlPullParserException {
+    private boolean commitImage(UploadPicInfo uploadPicInfo, int cid, int did, String pid) throws Exception {
         InputStream inputStream = new FileInputStream(uploadPicInfo.getPath());
         boolean flag = false;
         String fileName = UploadUtils.getRomoteName(pid);
         if (failPid != null) {
             //重新上传失败的文件
             fileName = failPath.substring(failPath.lastIndexOf("/") + 1, failPath.lastIndexOf("."));
-            Log.e("zjy", "ObtainPicFromPhone->commitImage(): MyAppp.id==" + MyApp.id);
             fileName = getRemarkName(fileName, false);
             flag = uploadFlag(cid, did, pid, inputStream, fileName);
         } else {
@@ -369,28 +369,93 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                 if (compressImage != null && !compressImage.isRecycled()) {
                     compressImage.recycle();
                 }
-                flag = uploadFlag(cid, did, pid, bai, fileName);
+                String intentFlag = getIntent().getStringExtra("flag");
+                if (intentFlag != null && intentFlag.equals("caigou")) {
+                    boolean isSuccess;
+                    //文件名或者目录中有中文需要转码 new String(fileName.getBytes("UTF-8"), "iso-8859-1")
+                    String insertPath;
+                    String remoteName = UploadUtils.createSCCGRemoteName(pid);
+                    DownUtils downUtils = new DownUtils( CaigoudanTakePicActivity.ftpAddress, 21, CaigoudanTakePicActivity
+                            .username, CaigoudanTakePicActivity.password);
+                    downUtils.login();
+                    remoteName = getRemarkName(remoteName, false);
+                    String remotePath = "";
+                    if ("101".equals(MyApp.id)) {
+                        remotePath = UploadUtils.CG_DIR + remoteName + ".jpg";
+                    } else {
+                        remotePath = UploadUtils.getCaigouDir(remoteName + ".jpg");
+                    }
+                    Log.e("zjy", "ObtainPicFromPhone->commitImage(): remote==" + remotePath);
+                    isSuccess = downUtils.upload(bai, new String(remotePath.getBytes("UTF-8"), "iso-8859-1"));
+                    bai.close();
+                    downUtils.exitServer();
+                    insertPath = UploadUtils.createInsertPath(CaigoudanTakePicActivity.ftpAddress, remotePath);
+                    Log.e("zjy", "ObtainPicFromPhone->commitImage(): SCCGPATH==" + insertPath);
+                    if (isSuccess) {
+                        String result = setSSCGPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
+                                .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "SCCG");
+                        Log.e("zjy", "ObtainPicFromPhone.java->run(): SCCG==" + result);
+                        if (result.equals("操作成功")) {
+                            flag = true;
+                        }
+                    }
+                } else {
+                    flag = uploadFlag(cid, did, pid, bai, fileName);
+                }
             }
         }
         return flag;
     }
 
+    public synchronized static String setSSCGPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
+                                 String stypeID) throws IOException, XmlPullParserException {
+        String str = "";
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        map.put("checkWord", checkWord);
+        map.put("cid", cid);
+        map.put("did", did);
+        map.put("uid", uid);
+        map.put("pid", pid);
+        map.put("filename", fileName);
+        map.put("filepath", filePath);
+        map.put("stypeID", stypeID);//标记，固定为"CKTZ"
+            SoapObject request = WebserviceUtils.getRequest(map, "InsertSSCGPicInfo");
+            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                    .MartStock);
+            str = response.toString();
+        return str;
+    }
+
     private boolean uploadFlag(int cid, int did, String pid, InputStream inputStream, String fileName) throws IOException,
             XmlPullParserException {
-        String path;
+        String insertPath;
         boolean flag = false;
         boolean isSuccess;
         //文件名或者目录中有中文需要转码 new String(fileName.getBytes("UTF-8"), "iso-8859-1")
-        String insertPath = UploadUtils.getCurrentDate();
+        String remoteName =fileName + ".jpg";
+        String remotePath = "/" + UploadUtils.getCurrentDate() + "/";
+        String mUrl = MyApp.ftpUrl;
+        DownUtils downUtils=null;
         if ("101".equals(MyApp.id)) {
-            insertPath = "Zjy";
+            mUrl = FtpManager.mainAddress;
+            downUtils = new DownUtils(mUrl, 21, CaigoudanTakePicActivity.username,  CaigoudanTakePicActivity.password,true);
+            //            mUrl= "192.168.10.65";
+            //            downUtils=  new DownUtils(mUrl, 21, "zjy", "123456");
+            remotePath = UploadUtils.KF_DIR + remoteName ;
+        } else {
+            mUrl = MyApp.ftpUrl;
+            downUtils = new DownUtils(mUrl, 21,FtpManager.ftpName,
+                    FtpManager.ftpPassword);
+            remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName;
         }
-        path = UploadUtils.createInsertPath(MyApp.ftpUrl, insertPath, fileName, "jpg");
-        isSuccess = ftp.upload(inputStream, "/" + insertPath, new String(fileName.getBytes("UTF-8"), "iso-8859-1") + ".jpg");
-        Log.e("zjy", "ObtainPicFromPhone.java->commitImage(): schemePath==" + path);
+        insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
+        downUtils.login();
+        isSuccess = downUtils.upload(inputStream, new String(remotePath.getBytes("UTF-8"), "iso-8859-1"));
+        downUtils.exitServer();
+        inputStream.close();
+        Log.e("zjy", "ObtainPicFromPhone.java->commitImage(): uploadPath==" + insertPath);
         if (isSuccess) {
-            String res = setInsertPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid, fileName + ".jpg", path, "CKTZ");
-            Log.e("zjy", "ObtainPicFromPhone->uploadFlag(): insert res==" + res);
+            String res = setInsertPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid, remoteName, insertPath, "CKTZ");
             if (res.equals("操作成功")) {
                 flag = true;
             }
