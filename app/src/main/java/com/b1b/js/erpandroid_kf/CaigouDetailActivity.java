@@ -15,11 +15,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.utils.DialogUtils;
-import com.b1b.js.erpandroid_kf.utils.DownUtils;
-import com.b1b.js.erpandroid_kf.utils.HttpUtils;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 import com.joanzapata.pdfview.PDFView;
 import com.joanzapata.pdfview.listener.OnPageChangeListener;
 
@@ -43,6 +38,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.LinkedHashMap;
+
+import utils.DialogUtils;
+import utils.FTPUtils;
+import utils.HttpUtils;
+import utils.MyToast;
+import utils.WebserviceUtils;
 
 public class CaigouDetailActivity extends AppCompatActivity implements OnPageChangeListener {
 
@@ -188,7 +189,6 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                 builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        MyApp.myLogger.writeInfo("菜单拍照：" + which);
                         switch (which) {
                             case 0:
                                 Intent intent1 = new Intent(CaigouDetailActivity.this, TakePicActivity.class);
@@ -352,10 +352,10 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                             if (result != null) {
                                 if (!result.equals("")) {
                                     if (result.contains("ftp")) {
-                                        DownUtils downUtils = new DownUtils( CaigoudanTakePicActivity.ftpAddress, 21,
+                                        FTPUtils ftpUtil = new FTPUtils( CaigoudanTakePicActivity.ftpAddress, 21,
                                                 CaigoudanTakePicActivity.username, CaigoudanTakePicActivity.password);
                                         try {
-                                            downUtils.login();
+                                            ftpUtil.login();
                                             for (int i = 0; true; i++) {
                                                 int index = result.indexOf("/") + 1;
                                                 result = result.substring(index);
@@ -372,7 +372,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                                             }
                                             FileOutputStream fio = new FileOutputStream
                                                     (file);
-                                            downUtils.download(fio, remotePath);
+                                            ftpUtil.download(fio, remotePath);
                                             filePath = file.getAbsolutePath();
                                             fio.close();
                                             mHandler.obtainMessage(5, file.getAbsolutePath()).sendToTarget();

@@ -18,7 +18,6 @@ import android.widget.GridView;
 import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.R;
-import com.b1b.js.erpandroid_kf.utils.DialogUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -26,6 +25,7 @@ import java.util.List;
 
 import printer.adapter.ImageGvAdapter;
 import printer.entity.PrinterItem;
+import utils.DialogUtils;
 
 public class PickPicPrintingActivity extends AppCompatActivity {
     private List<PrinterItem> selcetItems;

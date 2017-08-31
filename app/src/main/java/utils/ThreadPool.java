@@ -1,6 +1,6 @@
-package com.b1b.js.erpandroid_kf.utils;
+package utils;
 
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.List;
 
 /**
@@ -14,8 +14,7 @@ public final class ThreadPool {
     private WorkThread[] workThrads;
     // 未处理的任务
     private static volatile int finished_task = 0;
-    // 任务队列，作为一个缓冲,List线程不安全
-    private List<Runnable> taskQueue = new LinkedList<Runnable>();
+    private ArrayDeque<Runnable> taskQueue = new ArrayDeque<Runnable>();
     private static ThreadPool threadPool;
 
     // 创建具有默认线程个数的线程池
@@ -41,10 +40,14 @@ public final class ThreadPool {
     // 单态模式，获得一个指定线程个数的线程池,worker_num(>0)为线程池中工作线程的个数
     // worker_num<=0创建默认的工作线程个数
     public static ThreadPool getThreadPool(int worker_num1) {
-        if (worker_num1 <= 0)
-            worker_num1 = ThreadPool.worker_num;
-        if (threadPool == null)
-            threadPool = new ThreadPool(worker_num1);
+
+        if (threadPool == null){
+            if (worker_num1 <= 0){
+                threadPool = new ThreadPool(ThreadPool.worker_num);
+            }else{
+                threadPool = new ThreadPool(worker_num1);
+            }
+        }
         return threadPool;
     }
 
@@ -58,38 +61,48 @@ public final class ThreadPool {
 
     // 批量执行任务,其实只是把任务加入任务队列，什么时候执行有线程池管理器觉定
     public void execute(Runnable[] task) {
-        synchronized (taskQueue) {
-            for (Runnable t : task)
-                taskQueue.add(t);
-            taskQueue.notify();
-        }
+        for (Runnable t : task)
+            execute(t);
     }
 
     // 批量执行任务,其实只是把任务加入任务队列，什么时候执行有线程池管理器觉定
     public void execute(List<Runnable> task) {
-        synchronized (taskQueue) {
-            for (Runnable t : task)
-                taskQueue.add(t);
-            taskQueue.notify();
-        }
+        for (Runnable t : task)
+            execute(t);
     }
 
     // 销毁线程池,该方法保证在所有任务都完成的情况下才销毁所有线程，否则等待任务完成才销毁
     public void destroy() {
-        while (!taskQueue.isEmpty()) {// 如果还有任务没执行完成，就先睡会吧
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        if (taskQueue.isEmpty()) {
+            for (int i = 0; i < worker_num; i++) {
+                workThrads[i].stopWorker();
+                workThrads[i] = null;
             }
+            threadPool = null;
+            return;
         }
-        // 工作线程停止工作，且置为null
-        for (int i = 0; i < worker_num; i++) {
-            workThrads[i].stopWorker();
-            workThrads[i] = null;
+        synchronized (taskQueue) {
+            new Thread(){
+                @Override
+                public void run() {
+                    super.run();
+                    while (true) {
+                        if (taskQueue.isEmpty()) {
+                            for (int i = 0; i < worker_num; i++) {
+                                workThrads[i].stopWorker();
+                                workThrads[i] = null;
+                            }
+                            threadPool = null;
+                        }
+                        try {
+                            Thread.sleep(200);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }.start();
         }
-        threadPool = null;
-        taskQueue.clear();// 清空任务队列
     }
 
     // 返回工作线程的个数
@@ -129,21 +142,18 @@ public final class ThreadPool {
             Runnable r = null;
             while (isRunning) {// 注意，若线程无效则自然结束run方法，该线程就没用了
                 synchronized (taskQueue) {
-                    while (isRunning && taskQueue.isEmpty()) {// 队列为空
-                        try {
-                            taskQueue.wait(20);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (!taskQueue.isEmpty())
-                        r = taskQueue.remove(0);// 取出任务
+                        if (!taskQueue.isEmpty())
+                            r = taskQueue.poll();// 取出任务
                 }
                 if (r != null) {
                     r.run();// 执行任务
+                    r = null;
                 }
-                finished_task++;
-                r = null;
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
 

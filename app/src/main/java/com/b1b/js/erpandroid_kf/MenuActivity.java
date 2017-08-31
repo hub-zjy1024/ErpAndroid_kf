@@ -6,16 +6,19 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
 import com.b1b.js.erpandroid_kf.adapter.MenuAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -23,7 +26,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import printer.activity.SFActivity;
 import printer.activity.ToolbarTestActivity;
+import utils.MyToast;
 
 public class MenuActivity extends AppCompatActivity {
     private ListView menuList;
@@ -42,7 +47,7 @@ public class MenuActivity extends AppCompatActivity {
         setItemOnclickListener();
         addItem();
         // 设置adapter
-//        menuList.setAdapter(simpleAdapter);
+        //        menuList.setAdapter(simpleAdapter);
         simpleAdapter.notifyDataSetChanged();
         AlertDialog.Builder builder = new AlertDialog.Builder(MenuActivity.this);
         builder.setTitle("上传方式选择");
@@ -101,7 +106,7 @@ public class MenuActivity extends AppCompatActivity {
         menuList.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Map<String, String> item = listItems.get(position);
+                //                Map<String, String> item = listItems.get(position);
                 MyMenuItem data = (MyMenuItem) parent.getItemAtPosition(position);
                 String value = data.content;
                 Intent intent = new Intent();
@@ -109,16 +114,17 @@ public class MenuActivity extends AppCompatActivity {
                     case "出库单":
                         intent.setClass(MenuActivity.this, ChuKuActivity.class);
                         startActivity(intent);
-                        MyApp.myLogger.writeInfo("chukudan");
+                        MyApp.myLogger.writeInfo("<page> chukudan");
                         break;
                     case "出库审核(拍照)":
                         intent.setClass(MenuActivity.this, CheckActivity.class);
                         startActivity(intent);
+                        MyApp.myLogger.writeInfo("<page> chukucheck");
                         break;
                     case "考勤":
                         intent.setClass(MenuActivity.this, KaoQinActivity.class);
                         startActivity(intent);
-                        MyApp.myLogger.writeInfo("kaoqin");
+                        MyApp.myLogger.writeInfo("<page> kaoqin");
                         break;
                     case "上传图片(3种方式)":
                         if (!choiceMethodDialog.isShowing() && choiceMethodDialog != null) {
@@ -128,16 +134,17 @@ public class MenuActivity extends AppCompatActivity {
                     case "盘库":
                         intent.setClass(MenuActivity.this, PankuActivity.class);
                         startActivity(intent);
-                        MyApp.myLogger.writeInfo("panku");
+                        MyApp.myLogger.writeInfo("<page> panku");
                         break;
                     case "查看单据关联图片":
                         intent.setClass(MenuActivity.this, ViewPicByPidActivity.class);
                         startActivity(intent);
-                        MyApp.myLogger.writeInfo("searchpic");
+                        MyApp.myLogger.writeInfo("<page> searchpic");
                         break;
-                    case "预出库打印":
+                    case "出库单打印":
                         intent.setClass(MenuActivity.this, PreChukuActivity.class);
                         startActivity(intent);
+                        MyApp.myLogger.writeInfo("<page> chukudanprint");
                         break;
                     case "配置":
                         intent.setClass(MenuActivity.this, SettingActivity.class);
@@ -146,14 +153,57 @@ public class MenuActivity extends AppCompatActivity {
                     case "库存发布":
                         intent.setClass(MenuActivity.this, KucunFBActivity.class);
                         startActivity(intent);
+                        MyApp.myLogger.writeInfo("<page> kucunfabu");
                         break;
                     case "采购拍照":
                         intent.setClass(MenuActivity.this, CaigoudanTakePicActivity.class);
                         startActivity(intent);
                         break;
-                    case "打印":
-                        intent.setClass(MenuActivity.this,ToolbarTestActivity.class);
-                        startActivity(intent);
+                    case "特殊":
+                        AlertDialog.Builder specialDialog = new AlertDialog.Builder(MenuActivity.this);
+                        View v = LayoutInflater.from(MenuActivity.this).inflate(R.layout.admin_manager_layout, null);
+                        final EditText edID = (EditText) v.findViewById(R.id.admin_manager_ed_id);
+                        final EditText edFtp = (EditText) v.findViewById(R.id.admin_manager_ed_ftp);
+                        Button btnChange = (Button) v.findViewById(R.id.admin_manager_btnCommit);
+                        btnChange.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                MyApp.id = edID.getText().toString();
+                                MyApp.ftpUrl = edFtp.getText().toString();
+                                Log.e("zjy", "MenuActivity->onClick(): uid==" + MyApp.id);
+                            }
+                        });
+                        specialDialog.setView(v);
+                        specialDialog.show();
+                        break;
+                    case "打印(暂仅供北京使用)":
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MenuActivity.this);
+                        builder.setTitle("打印");
+                        builder.setItems(new String[]{"SF打印", "打印手机文件", "配置打印地址"}, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent intent;
+                                switch (which) {
+                                    case 0:
+                                        intent = new Intent(MenuActivity.this, SFActivity.class);
+                                        startActivity(intent);
+                                        MyApp.myLogger.writeInfo("<page> SFprint");
+                                        break;
+                                    case 1:
+                                        intent = new Intent(MenuActivity.this, ToolbarTestActivity.class);
+                                        startActivity(intent);
+                                        MyApp.myLogger.writeInfo("<page> fileprint");
+                                        break;
+                                    case 2:
+                                        intent = new Intent(MenuActivity.this, SettingActivity.class);
+                                        startActivity(intent);
+                                        MyApp.myLogger.writeInfo("<page> printServer peizhi");
+                                        break;
+                                }
+                            }
+                        });
+
+                        builder.show();
                         break;
                 }
             }
@@ -194,9 +244,9 @@ public class MenuActivity extends AppCompatActivity {
         Map<String, String> map = new HashMap<>();
         map.put("title", "出库单");
         listItems.add(map);
-//        map = new HashMap<>();
-//        map.put("title", "预出库打印");
-//        listItems.add(map);
+        //        map = new HashMap<>();
+        //        map.put("title", "出库单打印");
+        //        listItems.add(map);
         map = new HashMap<>();
         map.put("title", "出库审核(拍照)");
         listItems.add(map);
@@ -216,21 +266,24 @@ public class MenuActivity extends AppCompatActivity {
         map.put("title", "采购拍照");
         listItems.add(map);
         //        map = new HashMap<>();
-//        map.put("title", "库存发布");
-//        listItems.add(map);
+        //        map.put("title", "库存发布");
+        //        listItems.add(map);
         //        map = new HashMap<>();
         //        map.put("title", "配置");
         //        listItems.add(map);
         ArrayList<MyMenuItem> data = new ArrayList<>();
-        data.add(new MyMenuItem(R.mipmap.menu_chuku, "出库单","查看出库单和出库通知单"));
-        data.add(new MyMenuItem(R.mipmap.menu_preprint, "预出库打印", "预出库单据信息打印"));
+        data.add(new MyMenuItem(R.mipmap.menu_chuku, "出库单", "查看出库单和出库通知单"));
+        if ("101".equals(MyApp.id)) {
+            data.add(new MyMenuItem(R.mipmap.menu_chuku, "特殊", "101"));
+        }
+        data.add(new MyMenuItem(R.mipmap.menu_preprint, "出库单打印", "出库单单据信息打印"));
         data.add(new MyMenuItem(R.mipmap.menu_check, "出库审核(拍照)", "出库审核功能和审核完成的拍照功能"));
         data.add(new MyMenuItem(R.mipmap.menu_kaoqin, "考勤", "查询考勤状态"));
-        data.add(new MyMenuItem(R.mipmap.menu_photo, "上传图片(3种方式)", "通过三种不同的方式上传图片"));
+        //        data.add(new MyMenuItem(R.mipmap.menu_photo, "上传图片(3种方式)", "通过三种不同的方式上传图片"));
         data.add(new MyMenuItem(R.mipmap.menu_pic, "查看单据关联图片", "查询单据与相关联的照片"));
         data.add(new MyMenuItem(R.mipmap.menu_panku, "盘库", "货物位置管理"));
         data.add(new MyMenuItem(R.mipmap.menu_caigou_96, "采购拍照", "采购单拍照功能"));
-        data.add(new MyMenuItem(R.mipmap.menu_print, "打印", "打印功能"));
+        data.add(new MyMenuItem(R.mipmap.menu_print, "打印(暂仅供北京使用)", "顺丰下单并打印功能,以及打印手机接受的文件的功能"));
         MenuAdapter adapter = new MenuAdapter(data, this, R.layout.menu_item);
         menuList.setAdapter(adapter);
     }

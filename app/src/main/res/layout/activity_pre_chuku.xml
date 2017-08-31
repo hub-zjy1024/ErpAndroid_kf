@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.PreChukuActivity">
+
     <TextView
         android:id="@+id/caigouedit_title"
         android:layout_width="match_parent"
@@ -17,16 +18,29 @@
         android:text="预出库"
         android:textColor="@color/color_white"
         android:textSize="20sp"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <EditText
             android:id="@+id/prechuku_ed"
-            android:layout_width="wrap_content"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:hint="请输入单据号"
             android:inputType="number"/>
+
+        <CheckBox
+            android:id="@+id/prechuku_cbo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="只搜索未打印过的"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
         <Button
             android:id="@+id/prechuku_search"
@@ -34,11 +48,11 @@
             android:layout_height="wrap_content"
             android:text="搜索"/>
 
-        <CheckBox
-            android:id="@+id/prechuku_cbo"
+        <Button
+            android:id="@+id/prechuku_scan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="只搜索未打印过的"/>
+            android:text="扫码"/>
 
     </LinearLayout>
 

@@ -1,4 +1,4 @@
-package com.b1b.js.erpandroid_kf.utils;
+package utils;
 
 import android.graphics.Bitmap;
 import android.util.Base64;

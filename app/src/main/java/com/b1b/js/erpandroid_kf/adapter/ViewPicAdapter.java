@@ -7,7 +7,7 @@ import android.widget.ImageView;
 
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
-import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
+import utils.MyImageUtls;
 
 import java.util.LinkedHashMap;
 import java.util.List;

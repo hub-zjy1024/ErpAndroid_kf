@@ -26,13 +26,30 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="打印机ip地址："/>
+            android:text="预出库打印机ip地址："/>
 
-        <EditText
+        <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/activity_setting_edip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="请输入打印机的地址"/>
+            android:hint="请输入预出库打印机的地址"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="打印服务器ip地址："/>
+
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:id="@+id/activity_setting_ed_printerserver"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="请输入打印服务器地址"/>
 
     </LinearLayout>
 

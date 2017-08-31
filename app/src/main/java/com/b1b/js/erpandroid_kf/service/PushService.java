@@ -18,8 +18,8 @@ import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.KucunFBActivity;
 import com.b1b.js.erpandroid_kf.R;
-import com.b1b.js.erpandroid_kf.utils.UploadUtils;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
+import utils.UploadUtils;
+import utils.WebserviceUtils;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;

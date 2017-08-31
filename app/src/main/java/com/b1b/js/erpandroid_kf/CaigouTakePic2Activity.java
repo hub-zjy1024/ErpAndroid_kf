@@ -34,15 +34,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-import com.b1b.js.erpandroid_kf.utils.DialogUtils;
-import com.b1b.js.erpandroid_kf.utils.DownUtils;
-import com.b1b.js.erpandroid_kf.utils.ImageWaterUtils;
-import com.b1b.js.erpandroid_kf.utils.MyFileUtils;
-import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.UploadUtils;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
-
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
@@ -58,6 +49,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
+import utils.DialogUtils;
+import utils.FTPUtils;
+import utils.ImageWaterUtils;
+import utils.MyFileUtils;
+import utils.MyImageUtls;
+import utils.MyToast;
+import utils.UploadUtils;
+import utils.WebserviceUtils;
 
 public class CaigouTakePic2Activity extends AppCompatActivity implements View.OnClickListener {
 
@@ -526,19 +525,19 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                                     if ("101".equals(MyApp.id)) {
                                         remotePath = UploadUtils.CG_DIR + remoteName + ".jpg";
                                     } else {
-                                        remotePath = UploadUtils.getCaigouDir(remoteName + ".jpg");
+                                        remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
                                     }
-                                    DownUtils  downUtils = new DownUtils(CaigoudanTakePicActivity.ftpAddress, 21, CaigoudanTakePicActivity.username,
+                                    FTPUtils ftpUtil = new FTPUtils(CaigoudanTakePicActivity.ftpAddress, 21, CaigoudanTakePicActivity.username,
                                             CaigoudanTakePicActivity.password);
                                     //                                        url= "192.168.10.65";
-                                    //                                        downUtils=  new DownUtils(url, 21, "zjy",
+                                    //                                        ftpUtil=  new ftpUtil(url, 21, "zjy",
                                     // "123456");
-                                    downUtils.login();
+                                    ftpUtil.login();
                                     insertPath = UploadUtils.createInsertPath(CaigoudanTakePicActivity.ftpAddress, remotePath);
                                     Log.e("zjy", "TakePic2Activity->run(): InsertPath==" + insertPath);
                                     changeNotificationMsg(builder, finalId, notifyName + "正在准备上传", 0, pIntent);
-                                    upSuccess = downUtils.upload(localInputStream, remotePath);
-                                    downUtils.exitServer();
+                                    upSuccess = ftpUtil.upload(localInputStream, remotePath);
+                                    ftpUtil.exitServer();
                                     if (upSuccess) {
                                         while (true) {
                                             //更新服务器信息

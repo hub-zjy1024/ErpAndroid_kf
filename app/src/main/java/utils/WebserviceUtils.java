@@ -1,4 +1,4 @@
-package com.b1b.js.erpandroid_kf.utils;
+package utils;
 
 import android.util.Log;
 
@@ -160,6 +160,22 @@ public class WebserviceUtils {
     public static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, int envolopeVesion, String serviceName) throws
             IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName, 30 * 1000);
+        SoapPrimitive sob = (SoapPrimitive) envelope.getResponse();
+        return sob;
+    }
+
+    /**
+     @param request
+     @param envolopeVesion {@link org.ksoap2.SoapEnvelope}
+     @param serviceName    以svc结尾的service名称
+     @return
+     @throws IOException
+     @throws XmlPullParserException
+     */
+    public static SoapPrimitive getSoapPrimitiveResponseByTime(SoapObject request, int envolopeVesion, String serviceName, int
+            timeout) throws
+            IOException, XmlPullParserException {
+        SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName, timeout*1000);
         SoapPrimitive sob = (SoapPrimitive) envelope.getResponse();
         return sob;
     }

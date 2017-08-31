@@ -1,4 +1,4 @@
-package com.b1b.js.erpandroid_kf.utils;
+package utils;
 
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
 import com.b1b.js.erpandroid_kf.entity.ChuKuDanInfo;

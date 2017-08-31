@@ -15,10 +15,6 @@ import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.adapter.ViewPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
-import com.b1b.js.erpandroid_kf.utils.MyFileUtils;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -38,6 +34,12 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import utils.FtpManager;
+import utils.MyFileUtils;
+import utils.MyToast;
+import utils.SoftKeyboardUtils;
+import utils.WebserviceUtils;
 
 public class ViewPicByPidActivity extends AppCompatActivity {
 
@@ -229,10 +231,10 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                              List<FTPImgInfo> list) throws IOException {
         if (!client.isConnected()) {
             client.connect(imgFtp, 21);
-            if (imgFtp.equals("172.16.6.22")) {
-                client.login("NEW_DYJ", "GY8Fy2Gx");
+            if (imgFtp.equals(FtpManager.mainAddress)) {
+                client.login(FtpManager.mainName, FtpManager.mainPwd);
             } else {
-                client.login("dyjftp", "dyjftp");
+                client.login(FtpManager.ftpName, FtpManager.ftpPassword);
             }
             client.setFileType(FTP.BINARY_FILE_TYPE);
             client.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
@@ -242,7 +244,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
         InputStream inputStream = client.retrieveFileStream(remoteAbsolutePath);
         if (inputStream != null) {
             FileOutputStream fio = new FileOutputStream(file);
-            byte[] buf = new byte[1024];
+            byte[] buf = new byte[8*1024];
             int len;
             while ((len = inputStream.read(buf)) != -1) {
                 fio.write(buf, 0, len);

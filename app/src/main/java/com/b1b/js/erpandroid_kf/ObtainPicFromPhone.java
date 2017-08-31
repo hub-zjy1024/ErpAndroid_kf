@@ -21,13 +21,6 @@ import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
-import com.b1b.js.erpandroid_kf.utils.DownUtils;
-import com.b1b.js.erpandroid_kf.utils.FtpManager;
-import com.b1b.js.erpandroid_kf.utils.ImageWaterUtils;
-import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.UploadUtils;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
@@ -44,6 +37,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
+import utils.FTPUtils;
+import utils.FtpManager;
+import utils.ImageWaterUtils;
+import utils.MyImageUtls;
+import utils.MyToast;
+import utils.UploadUtils;
+import utils.WebserviceUtils;
 import zhy.imageloader.MyAdapter;
 import zhy.imageloader.PickPicActivity;
 
@@ -51,7 +51,6 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
 
     private Button btn_commit;
     private Button btn_commitOrigin;
-    private FtpManager ftp;
     private ProgressDialog pd;
     private boolean isFirst;
     private int onclickPosition;
@@ -111,7 +110,6 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                     break;
                 case FTP_ERROR:
                     MyToast.showToast(ObtainPicFromPhone.this, "连接ftp失败，请检查网络");
-                    connFTP(handler, FTP_ERROR);
                     mGvAdapter.notifyDataSetChanged();
                     break;
             }
@@ -172,11 +170,6 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
             edPid.setText(pid);
         }
         //初始化ftp
-        ftp = TakePicActivity.initFTP(getApplicationContext());
-        if (ftp == null) {
-            return;
-        }
-        connFTP(handler, FTP_ERROR);
         mGvAdapter = new UploadPicAdapter(ObtainPicFromPhone.this, uploadPicInfos, new UploadPicAdapter.OnItemBtnClickListener() {
             @Override
             public void onClick(View v, int position) {
@@ -199,11 +192,14 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                             try {
                                 if (commitImage(uploadPicInfo, cid, did, pid)) {
                                     handler.sendEmptyMessage(PICUPLOAD_SUCCESS);
+                                    MyApp.myLogger.writeInfo("obtainpic ok:" + pid);
                                 } else {
                                     handler.sendEmptyMessage(PICUPLOAD_ERROR);
                                 }
                             } catch (OutOfMemoryError e) {
                                 handler.sendEmptyMessage(PIC_OOM);
+                                int[] wh = MyImageUtls.getBitmapWH(uploadPicInfo.getPath());
+                                MyApp.myLogger.writeError("obtainpic oom:" + wh[0] + "X" + wh[1]+"-memory:"+Runtime.getRuntime().freeMemory()+"/"+Runtime.getRuntime().maxMemory());
                                 e.printStackTrace();
                             } catch (FileNotFoundException e) {
                                 handler.sendEmptyMessage(PICUPLOAD_ERROR);
@@ -212,6 +208,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                                 handler.sendEmptyMessage(PICUPLOAD_ERROR);
                                 e.printStackTrace();
                             } catch (IOException e) {
+                                MyApp.myLogger.writeError("obtainpic IO:" + e.getMessage());
                                 handler.sendEmptyMessage(PICUPLOAD_ERROR);
                                 e.printStackTrace();
                             } catch (Exception e) {
@@ -229,22 +226,6 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
     }
 
 
-    private void connFTP(final Handler handler, final int target) {
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                try {
-                    if (ftp != null) {
-                        ftp.connectAndLogin();
-                    }
-                } catch (IOException e) {
-                    handler.sendEmptyMessage(target);
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-    }
 
     public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
                                    String stypeID) throws IOException, XmlPullParserException {
@@ -312,11 +293,14 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                     }
                 } catch (OutOfMemoryError e) {
                     handler.sendEmptyMessage(PIC_OOM);
+                    int[] wh = MyImageUtls.getBitmapWH(uploadPicInfos.get(i).getPath());
+                    MyApp.myLogger.writeError("obtainpic oom:" + wh[0] + "X" + wh[1]+"-memory:"+Runtime.getRuntime().freeMemory()+"/"+Runtime.getRuntime().maxMemory());
                     e.printStackTrace();
                     return success;
                 } catch (IOException e) {
                     handler.sendEmptyMessage(PICUPLOAD_ERROR);
                     e.printStackTrace();
+                    MyApp.myLogger.writeError("obtainpic IO:" + e.getMessage());
                     return success;
                 } catch (XmlPullParserException e) {
                     handler.sendEmptyMessage(PICUPLOAD_ERROR);
@@ -334,7 +318,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
     private boolean commitImage(UploadPicInfo uploadPicInfo, int cid, int did, String pid) throws Exception {
         InputStream inputStream = new FileInputStream(uploadPicInfo.getPath());
         boolean flag = false;
-        String fileName = UploadUtils.getRomoteName(pid);
+        String fileName = UploadUtils.getChukuRemoteName(pid);
         if (failPid != null) {
             //重新上传失败的文件
             fileName = failPath.substring(failPath.lastIndexOf("/") + 1, failPath.lastIndexOf("."));
@@ -350,8 +334,6 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                 } else {
                     waterBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.water_small);
                 }
-                Log.e("zjy", "ObtainPicFromPhone.java->commitImages():image size ==" + bitmap.getWidth() + "\t" + bitmap
-                        .getHeight());
                 Bitmap textBitmap = ImageWaterUtils.drawTextToRightTop(ObtainPicFromPhone.this, bitmap, pid, (int) (bitmap
                         .getWidth() * 0.015), Color.RED, 20, 20);
                 if (!bitmap.isRecycled()) {
@@ -375,20 +357,20 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
                     //文件名或者目录中有中文需要转码 new String(fileName.getBytes("UTF-8"), "iso-8859-1")
                     String insertPath;
                     String remoteName = UploadUtils.createSCCGRemoteName(pid);
-                    DownUtils downUtils = new DownUtils( CaigoudanTakePicActivity.ftpAddress, 21, CaigoudanTakePicActivity
+                    FTPUtils ftpUtil = new FTPUtils( CaigoudanTakePicActivity.ftpAddress, 21, CaigoudanTakePicActivity
                             .username, CaigoudanTakePicActivity.password);
-                    downUtils.login();
+                    ftpUtil.login();
                     remoteName = getRemarkName(remoteName, false);
                     String remotePath = "";
                     if ("101".equals(MyApp.id)) {
                         remotePath = UploadUtils.CG_DIR + remoteName + ".jpg";
                     } else {
-                        remotePath = UploadUtils.getCaigouDir(remoteName + ".jpg");
+                        remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
                     }
                     Log.e("zjy", "ObtainPicFromPhone->commitImage(): remote==" + remotePath);
-                    isSuccess = downUtils.upload(bai, new String(remotePath.getBytes("UTF-8"), "iso-8859-1"));
+                    isSuccess = ftpUtil.upload(bai, new String(remotePath.getBytes("UTF-8"), "iso-8859-1"));
                     bai.close();
-                    downUtils.exitServer();
+                    ftpUtil.exitServer();
                     insertPath = UploadUtils.createInsertPath(CaigoudanTakePicActivity.ftpAddress, remotePath);
                     Log.e("zjy", "ObtainPicFromPhone->commitImage(): SCCGPATH==" + insertPath);
                     if (isSuccess) {
@@ -435,23 +417,23 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         String remoteName =fileName + ".jpg";
         String remotePath = "/" + UploadUtils.getCurrentDate() + "/";
         String mUrl = MyApp.ftpUrl;
-        DownUtils downUtils=null;
+        FTPUtils ftpUtil =null;
         if ("101".equals(MyApp.id)) {
             mUrl = FtpManager.mainAddress;
-            downUtils = new DownUtils(mUrl, 21, CaigoudanTakePicActivity.username,  CaigoudanTakePicActivity.password,true);
+            ftpUtil = new FTPUtils(mUrl, 21, FtpManager.mainName,FtpManager.mainPwd);
             //            mUrl= "192.168.10.65";
-            //            downUtils=  new DownUtils(mUrl, 21, "zjy", "123456");
+            //            ftpUtil=  new ftpUtil(mUrl, 21, "zjy", "123456");
             remotePath = UploadUtils.KF_DIR + remoteName ;
         } else {
             mUrl = MyApp.ftpUrl;
-            downUtils = new DownUtils(mUrl, 21,FtpManager.ftpName,
+            ftpUtil = new FTPUtils(mUrl, 21,FtpManager.ftpName,
                     FtpManager.ftpPassword);
             remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName;
         }
         insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
-        downUtils.login();
-        isSuccess = downUtils.upload(inputStream, new String(remotePath.getBytes("UTF-8"), "iso-8859-1"));
-        downUtils.exitServer();
+        ftpUtil.login();
+        isSuccess = ftpUtil.upload(inputStream, new String(remotePath.getBytes("UTF-8"), "iso-8859-1"));
+        ftpUtil.exitServer();
         inputStream.close();
         Log.e("zjy", "ObtainPicFromPhone.java->commitImage(): uploadPath==" + insertPath);
         if (isSuccess) {
@@ -514,17 +496,5 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         super.onDestroy();
         Log.e("zjy", "ObtainPicFromPhone.java->onDestroy(): clear uploadpicinfos");
         MyAdapter.mSelectedImage.clear();
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                try {
-                    if (ftp != null)
-                        ftp.exit();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
     }
 }

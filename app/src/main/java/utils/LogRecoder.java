@@ -1,14 +1,14 @@
-package com.b1b.js.erpandroid_kf.utils;
+package utils;
 
 import android.os.Environment;
 import android.util.Log;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -18,7 +18,7 @@ import java.util.Date;
 public class LogRecoder {
     private String logName;
     private String filepath;
-    private BufferedOutputStream bufops;
+    private OutputStreamWriter writer;
     private boolean canWrite = false;
 
 
@@ -34,7 +34,11 @@ public class LogRecoder {
                 } else {
                     stream = new FileOutputStream(rootFile.getAbsolutePath() + "/" + filepath + "/" + logName, true);
                 }
-                bufops = new BufferedOutputStream(stream);
+                try {
+                    writer = new OutputStreamWriter(stream, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
                 canWrite = true;
             }
         } catch (FileNotFoundException e) {
@@ -53,11 +57,10 @@ public class LogRecoder {
 
     public synchronized boolean writeString(int type, String logs) {
         if (!canWrite) {
-            Log.e("zjy", "LogRecoder->writeString(): can not printText==");
+            Log.e("zjy", "LogRecoder->writeString(): can not write to log==");
             return false;
         }
         try {
-            OutputStreamWriter writer = new OutputStreamWriter(bufops);
             String tag = "";
             switch (type) {
                 case Type.TYPE_BUG:
@@ -99,7 +102,7 @@ public class LogRecoder {
     public synchronized void close() {
         try {
             if (canWrite) {
-                bufops.close();
+                writer.close();
             }
         } catch (IOException e) {
             e.printStackTrace();

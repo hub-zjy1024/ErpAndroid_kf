@@ -9,7 +9,6 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -18,9 +17,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.b1b.js.erpandroid_kf.adapter.PreChukuAdapter2;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,10 +29,14 @@ import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Vector;
+
+import utils.MyToast;
+import utils.SoftKeyboardUtils;
+import utils.WebserviceUtils;
 
 public class PreChukuActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -68,6 +70,7 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
             }
         }
     };
+    private Button btnScan;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,9 +82,10 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
         btnClearDate = (Button) findViewById(R.id.prechuku_cleartime);
         edPid = (EditText) findViewById(R.id.prechuku_ed);
         cbo = (CheckBox) findViewById(R.id.prechuku_cbo);
+        btnScan = (Button) findViewById(R.id.prechuku_scan);
         //绑定adapter
         lv = (ListView) findViewById(R.id.prechuku_lv);
-        data = new ArrayList<>();
+        data = new Vector<>();
         adapter = new PreChukuAdapter2(data, this, R.layout.item_caigou_simpleitem);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -89,20 +93,17 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(PreChukuActivity.this, PreChukuDetailActivity.class);
                 intent.putExtra("pid", data.get(position).getPid());
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                if (imm != null) {
-                    imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
-                }
                 startActivity(intent);
             }
         });
+        btnScan.setOnClickListener(this);
         btnSearch.setOnClickListener(this);
         btnSTime.setOnClickListener(this);
         btnETime.setOnClickListener(this);
         btnClearDate.setOnClickListener(this);
     }
 
-    public String getPreChukuList(String beginDate, String endDate, String partNo, int pid, int uid) throws IOException, XmlPullParserException {
+    public String getList(String beginDate, String endDate, String partNo, int pid, int uid) throws IOException, XmlPullParserException {
         //        GetOutStorageNotifyPrintViewList
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("beginDate", beginDate);
@@ -116,12 +117,32 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
         return response.toString();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 300 && resultCode == RESULT_OK) {
+            final String pid = data.getStringExtra("result");
+                edPid.setText(pid);
+            this.data.clear();
+            adapter.notifyDataSetChanged();
+            try {
+                getPreChukuList("", "", Integer.parseInt(pid));
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                MyToast.showToast(PreChukuActivity.this, "扫码结果不是数字");
+            }
+        }
+    }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.prechuku_sdate:
                 setTime(btnSTime, this);
+                break;
+            case R.id.prechuku_scan:
+                Intent intent = new Intent(PreChukuActivity.this, CaptureActivity.class);
+                startActivityForResult(intent, 300);
                 break;
 
             case R.id.prechuku_edate:
@@ -138,7 +159,7 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
                 if (pid.equals("")) {
                     pid = "0";
                 }
-                if (data.size() != 0) {
+                if (data.size()> 0) {
                     data.clear();
                     adapter.notifyDataSetChanged();
                 }
@@ -153,56 +174,73 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
                 final String temS = sTime;
                 final String temE = eTime;
                 final int id = Integer.parseInt(pid);
-                new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            String res = getPreChukuList(temS, temE, "", id, Integer.parseInt(MyApp.id));
-                            JSONObject root = new JSONObject(res);
-                            JSONArray array = root.getJSONArray("表");
-                            for (int i = 0; i < array.length(); i++) {
-                                JSONObject obj = array.getJSONObject(i);
-                                String pid = obj.getString("PID");
-                                String createDate = obj.getString("制单日期");
-                                String chukuType = obj.getString("出库类型");
-                                String weituo = obj.getString("委托人");
-                                String storageID = obj.getString("仓库");
-                                String fahuoPart = obj.getString("发货库区");
-                                String diaoruKf = obj.getString("调入仓库");
-                                String printCounts = obj.getString("打印次数");
-                                String partNo = obj.getString("型号");
-                                String couts = obj.getString("数量");
-                                String pihao = obj.getString("批号");
-                                String factory = obj.getString("厂家");
-                                String placedID = obj.getString("位置");
-                                String kuqu = obj.getString("库区");
-                                String fahuoType = obj.getString("发货类型");
-                                String weituoCompanyID = obj.getString("委托公司");
-                                PreChukuInfo info = new PreChukuInfo(pid, createDate, chukuType, weituo, storageID, fahuoPart, diaoruKf, printCounts, partNo, couts, pihao, factory, placedID, kuqu, fahuoType, weituoCompanyID);
-                                if (printCounts.equals("0")) {
-                                    data.add(info);
-                                } else if (printCounts.equals("")) {
-                                    data.add(info);
-                                } else {
-                                    if (!cbo.isChecked()) {
-                                        data.add(info);
-                                    }
-                                }
-                            }
-                            zHandler.sendEmptyMessage(REQUEST_SUCCESS);
-                        } catch (IOException e) {
-                            zHandler.sendEmptyMessage(REQUEST_ERROR);
-                            e.printStackTrace();
-                        } catch (XmlPullParserException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
-                            zHandler.sendEmptyMessage(REQUEST_NO_DATA);
-                            e.printStackTrace();
-                        }
-                    }
-                }.start();
+                Log.e("zjy", "PreChukuActivity->onClick(): integer pid==" + id);
+                if (MyApp.id == null) {
+                    MyToast.showToast(PreChukuActivity.this, "程序出现错误，请重启");
+                    return;
+                }
+                SoftKeyboardUtils.closeInputMethod(edPid, PreChukuActivity.this);
+                MyApp.myLogger.writeInfo("prechuku:closeInputMethod 1");
+                Log.e("zjy", "PreChukuActivity->onClick(): next==" + "");
+                SoftKeyboardUtils.closeInputMethod(edPid, PreChukuActivity.this);
+                MyApp.myLogger.writeInfo("prechuku:closeInputMethod 2");
+                getPreChukuList(temS, temE, id);
                 break;
         }
+    }
+
+    private void getPreChukuList(final String temS, final String temE, final int id) {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    MyApp.myLogger.writeInfo("prechuku:getList" + MyApp.id);
+                    String res = getList(temS, temE, "", id, Integer.parseInt(MyApp.id));
+                    MyApp.myLogger.writeInfo("prechuku:getList ok" + MyApp.id);
+                    JSONObject root = new JSONObject(res);
+                    JSONArray array = root.getJSONArray("表");
+                    for (int i = 0; i < array.length(); i++) {
+                        JSONObject obj = array.getJSONObject(i);
+                        String pid = obj.getString("PID");
+                        String createDate = obj.getString("制单日期");
+                        String chukuType = obj.getString("出库类型");
+                        String weituo = obj.getString("委托人");
+                        String storageID = obj.getString("仓库");
+                        String fahuoPart = obj.getString("发货库区");
+                        String diaoruKf = obj.getString("调入仓库");
+                        String printCounts = obj.getString("打印次数");
+                        String partNo = obj.getString("型号");
+                        String couts = obj.getString("数量");
+                        String pihao = obj.getString("批号");
+                        String factory = obj.getString("厂家");
+                        String placedID = obj.getString("位置");
+                        String kuqu = obj.getString("库区");
+                        String fahuoType = obj.getString("发货类型");
+                        String weituoCompanyID = obj.getString("委托公司");
+                        PreChukuInfo info = new PreChukuInfo(pid, createDate, chukuType, weituo, storageID, fahuoPart, diaoruKf, printCounts, partNo, couts, pihao, factory, placedID, kuqu, fahuoType, weituoCompanyID);
+                        if (printCounts.equals("0")) {
+                            data.add(info);
+                        } else if (printCounts.equals("")) {
+                            data.add(info);
+                        } else {
+                            if (!cbo.isChecked()) {
+                                data.add(info);
+                            }
+                        }
+                    }
+                    Log.e("zjy", "PreChukuActivity->run(): data.size==" + data.size());
+                    zHandler.sendEmptyMessage(REQUEST_SUCCESS);
+                } catch (IOException e) {
+                    zHandler.sendEmptyMessage(REQUEST_ERROR);
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    zHandler.sendEmptyMessage(REQUEST_NO_DATA);
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 
     private void setTime(final Button button, Context mContext) {

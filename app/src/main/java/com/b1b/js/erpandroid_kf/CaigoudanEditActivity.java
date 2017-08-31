@@ -27,8 +27,6 @@ import com.b1b.js.erpandroid_kf.adapter.CaigouInsertAdapter;
 import com.b1b.js.erpandroid_kf.entity.CaigouGoodType;
 import com.b1b.js.erpandroid_kf.entity.InsertDetialInfo;
 import com.b1b.js.erpandroid_kf.entity.ProviderInfo;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,6 +40,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import utils.MyToast;
+import utils.WebserviceUtils;
 
 public class CaigoudanEditActivity extends AppCompatActivity {
 

@@ -1,4 +1,4 @@
-package com.b1b.js.erpandroid_kf.utils;
+package utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -104,8 +104,7 @@ public class MyImageUtls {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;//不加载图片到内存，仅获得图片宽高
             BitmapFactory.decodeFile(imagePath, options);
-            Log.e("zjy", "MyImageUtls.java->decodeBitmapFromFile(): original height: " + options.outHeight);
-            Log.e("zjy", "MyImageUtls.java->decodeBitmapFromFile(): original width: " + options.outWidth);
+            Log.e("zjy", "MyImageUtls.java->decodeBitmapFromFile(): original w-h: " + options.outWidth+"X"+ options.outHeight);
             if (options.outHeight == -1 || options.outWidth == -1) {
                 try {
                     ExifInterface exifInterface = new ExifInterface(imagePath);
@@ -134,18 +133,28 @@ public class MyImageUtls {
 
     public static void saveBitmap(String path, Bitmap bitmap) {
         File file = new File(path);
-        if (!file.exists()) {
-            file.mkdirs();
+        File parent = file.getParentFile();
+        if (!parent.exists()) {
+            parent.mkdirs();
         }
         try {
             FileOutputStream fis = new FileOutputStream(file);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fis);
             fis.flush();
+            fis.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public static int[] getBitmapWH(String path) {
+        BitmapFactory.Options opt = new BitmapFactory.Options();
+        opt.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(path, opt);
+        int w = opt.outWidth;
+        int h = opt.outHeight;
+        return new int[]{w, h};
     }
 
     /**

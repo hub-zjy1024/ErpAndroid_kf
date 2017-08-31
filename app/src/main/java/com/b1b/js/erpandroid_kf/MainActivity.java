@@ -24,9 +24,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
-import com.b1b.js.erpandroid_kf.utils.MyFileUtils;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,15 +31,21 @@ import org.json.JSONObject;
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -52,6 +55,15 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import utils.MyFileUtils;
+import utils.MyToast;
+import utils.UploadUtils;
+import utils.WebserviceUtils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -106,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                     break;
                 case NEWWORK_ERROR:
+                    MyApp.myLogger.writeError("bad network");
                     MyToast.showToast(MainActivity.this, "网络状态不佳,请检查网络状态");
                     if (pd != null) {
                         pd.cancel();
@@ -190,12 +203,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                     downPd.setProgress(percent);
                     if (percent == 100) {
-                        downPd.dismiss();
+                        downPd.cancel();
                         MyToast.showToast(MainActivity.this, "下载完成");
                     }
                     break;
                 case 7:
-                    startUpdate();
                     //                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     //                    builder.setTitle("提示");
                     //                    builder.setMessage("当前有新版本可用，是否更新?\n更新内容：\n" + updateLog);
@@ -250,17 +262,36 @@ public class MainActivity extends AppCompatActivity {
         final String phoneCode = CaigoudanEditActivity.getPhoneCode(MainActivity.this);
         Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
         MyFileUtils.obtainFileDir(MainActivity.this);
-        if (MyApp.myLogger != null) {
-            MyApp.myLogger.writeInfo("phonecode:" + phoneCode);
-        }
         //检查更新
-        checkUpdate();
+        PackageManager pm = getPackageManager();
+        PackageInfo info = null;
+         int code = 0;
+        try {
+            info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
+            code = info.versionCode;
+            tvVersion.setText("当前版本为：" + info.versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        final SharedPreferences logSp = getSharedPreferences("uploadlog", MODE_PRIVATE);
+        String saveDate = logSp.getString("date", "");
+        final String current = UploadUtils.getCurrentDate();
+        if (MyApp.myLogger != null) {
+            if (!saveDate.equals(current)) {
+                MyApp.myLogger.writeInfo("phonecode:" + phoneCode);
+                MyApp.myLogger.writeInfo("dyj-version:" + code);
+                logSp.edit().putString("date", current).apply();
+            }
+        }
+        downPd = new ProgressDialog(MainActivity.this);
+        checkUpdate(code);
         //        readCache();
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590") || phoneCode.endsWith("864394010742122") || phoneCode.endsWith("A0000043F41515")) {
                     login("101", "62105300");
+//                    login("2984", "000000");
                 }
             }
         });
@@ -311,27 +342,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void startUpdate() {
-        downPd = new ProgressDialog(MainActivity.this);
-        //必须设定进图条样式
-        downPd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        downPd.setTitle("更新");
-        downPd.setMax(100);
-        downPd.setMessage("下载中");
-        downPd.setProgress(0);
-        downPd.show();
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    update(MainActivity.this, zHandler);
-                } catch (IOException e) {
-                    zHandler.sendEmptyMessage(11);
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-    }
 
     private void checkSaveFTP(final String url) {
         final String[] urls = url.split("\\|");
@@ -363,31 +373,130 @@ public class MainActivity extends AppCompatActivity {
         }.start();
     }
 
-    private void checkUpdate() {
-        PackageManager pm = getPackageManager();
-        PackageInfo info = null;
-        try {
-            info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
-            final int code = info.versionCode;
-            tvVersion.setText("当前版本为：" + info.versionName);
-            MyApp.myLogger.writeInfo("version:" + code);
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        boolean ifUpdate = checkVersion(code);
-                        if (ifUpdate) {
-                            zHandler.sendEmptyMessage(7);
-//                            startUpdate();
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }.start();
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+    private void checkUpdate(final int nowCode) {
+        if (nowCode == 0) {
+            MyApp.myLogger.writeError("apk versioncode==0");
+            return;
         }
+        new Thread() {
+            @Override
+            public void run() {
+                boolean ifUpdate = false;
+                try {
+//                    boolean ifUpdate = checkVersion(nowCode);
+                    HashMap<String, String> updateInfo = getUpdateXml("http://172.16.6.160:8006/DownLoad/dyj_kf/updateXml.txt");
+                    if (updateInfo != null) {
+                        String sCode=updateInfo.get("code");
+                        final String sContent = updateInfo.get("content");
+                        final String sDate = updateInfo.get("date");
+                        zHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                String info = tvVersion.getText().toString().trim();
+                                info = info + "，更新说明:\n";
+                                info += "更新时间:" + sDate+"\n";
+                                info +=   "更新内容:" +sContent;
+                                tvVersion.setText(info);
+                            }
+                        });
+                        int sIntCode = Integer.parseInt(sCode);
+                        if (sIntCode > nowCode) {
+                            ifUpdate = true;
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+//                    String downUrl = "http://172.16.6.160:8006/DownLoad/dyjkfapp.apk";
+                    String downUrl = "http://172.16.6.160:8006/DownLoad/dyj_kf/dyjkfapp.apk";
+                    if (ifUpdate) {
+                        zHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                //必须设定进图条样式
+                                downPd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                                downPd.setTitle("更新");
+                                downPd.setMax(100);
+                                downPd.setMessage("下载中");
+                                downPd.setProgress(0);
+                                downPd.show();
+                            }
+                        });
+                        try {
+                            updateAPK(MainActivity.this, zHandler, downUrl);
+                        } catch (IOException e) {
+                            zHandler.sendEmptyMessage(11);
+                            e.printStackTrace();
+                        }
+                    } else {
+                        String specialUrl= "http://172.16.6.160:8006/DownLoad/dyj_kf/debug-update.txt";
+                        HashMap<String, String> map = null;
+                        try {
+                            map = specialUpdate(specialUrl);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        if (map == null) {
+                            return;
+                        }
+                        SharedPreferences speUpdate = getSharedPreferences("speUpdate", Context.MODE_PRIVATE);
+                        String localCheckID = speUpdate.getString("checkid", "");
+                        String deviceCode = UploadUtils.getDeviceID(MainActivity.this);
+                        String onlineCode = map.get("deviceID");
+                        String apkUrl = map.get("url");
+                        String onlineCheckID = map.get("checkid");
+                        if (apkUrl != null) {
+                            if (localCheckID.equals("")) {
+                                speUpdate.edit().putString("checkid", onlineCheckID).commit();
+                                return;
+                            }
+                            if (!localCheckID.equals(onlineCheckID)) {
+                                if ("all".equals(onlineCheckID)) {
+                                    zHandler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            //必须设定进图条样式
+                                            downPd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                                            downPd.setTitle("更新");
+                                            downPd.setMax(100);
+                                            downPd.setMessage("下载中");
+                                            downPd.setProgress(0);
+                                            downPd.show();
+                                        }
+                                    });
+                                    try {
+                                        updateAPK(MainActivity.this, zHandler, apkUrl);
+                                        speUpdate.edit().putString("checkid", onlineCheckID).commit();
+                                    } catch (IOException e) {
+                                        zHandler.sendEmptyMessage(11);
+                                        e.printStackTrace();
+                                    }
+                                } else if (onlineCheckID != null && onlineCode.equals(deviceCode)) {
+                                    zHandler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            //必须设定进图条样式
+                                            downPd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                                            downPd.setTitle("更新");
+                                            downPd.setMax(100);
+                                            downPd.setMessage("下载中");
+                                            downPd.setProgress(0);
+                                            downPd.show();
+                                        }
+                                    });
+                                    try {
+                                        updateAPK(MainActivity.this, zHandler, apkUrl);
+                                        speUpdate.edit().putString("checkid", onlineCheckID).commit();
+                                    } catch (IOException e) {
+                                        zHandler.sendEmptyMessage(11);
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
+                    }
+            }
+        }.start();
     }
 
     private void getUserInfoDetail(final String uid) {
@@ -398,7 +507,6 @@ public class MainActivity extends AppCompatActivity {
                 while (!success) {
                     try {
                         Map<String, Object> result = getUserInfo(uid);
-                        sp = getSharedPreferences("UserInfo", 0);
                         sp.edit().putInt("cid", (int) result.get("cid")).putInt("did", (int) result.get("did")).
                                 putString("oprName", (String) result.get("oprName")).apply();
                         success = true;
@@ -577,7 +685,6 @@ public class MainActivity extends AppCompatActivity {
      @throws IOException             */
     public boolean checkVersion(int localVersion) throws IOException {
         boolean ifUpdate = false;
-        //        String url = "http://192.168.10.127:8080/AppUpdate/download/readme.txt";
         String url = "http://172.16.6.160:8006/DownLoad/readme.txt";
         URL urll = new URL(url);
         HttpURLConnection conn = (HttpURLConnection) urll.openConnection();
@@ -606,14 +713,89 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             is.close();
-            Log.e("zjy", "MainActivity.java->checkVersion(): readme==" + stringBuilder.toString());
         }
         return ifUpdate;
     }
 
-    public void update(Context context, Handler mHandler) throws IOException {
-        //        String url = "http://192.168.10.127:8080/AppUpdate/DownLoad/dyjkfapp.apk";
-        String downUrl = "http://172.16.6.160:8006/DownLoad/dyjkfapp.apk";
+    /**
+     @return
+     @throws SocketTimeoutException
+     @throws IOException             */
+    public HashMap<String, String> specialUpdate(String url) throws IOException {
+        boolean ifUpdate = false;
+        URL urll = new URL(url);
+        HttpURLConnection conn = (HttpURLConnection) urll.openConnection();
+        conn.setConnectTimeout(5 * 1000);
+        conn.setReadTimeout(10000);
+        if (conn.getResponseCode() == 200) {
+            InputStream is = conn.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String len = reader.readLine();
+            StringBuilder stringBuilder = new StringBuilder();
+            HashMap<String, String> map = new HashMap<>();
+            while (len != null) {
+                String[] parm = len.split("=");
+                map.put(parm[0], parm[1]);
+                stringBuilder.append(len);
+                len = reader.readLine();
+            }
+            Log.e("zjy", "MainActivity->specialUpdate(): result==" + stringBuilder.toString());
+            return map;
+        }
+        return null;
+    }
+
+    public static HashMap<String, String>  getUpdateXml(String url) throws IOException {
+        URL urll = new URL(url);
+            HttpURLConnection conn = (HttpURLConnection) urll.openConnection();
+            conn.setConnectTimeout(30 * 1000);
+            conn.setReadTimeout(30*1000);
+        if (conn.getResponseCode() == 200) {
+            InputStream is = conn.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "utf-8"));
+            String len = reader.readLine();
+            StringBuilder stringBuilder = new StringBuilder();
+            while (len != null) {
+                stringBuilder.append(len);
+                len = reader.readLine();
+            }
+            String res = stringBuilder.toString();
+            HashMap<String, String> result = new HashMap<>();
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            try {
+                DocumentBuilder docBuilder = factory.newDocumentBuilder();
+                ByteArrayInputStream bin = new ByteArrayInputStream(res.getBytes("utf-8"));
+                Document xmlDoc = docBuilder.parse(bin);
+                NodeList newVersion = xmlDoc.getElementsByTagName("latest-version");
+                Node item = newVersion.item(0);
+                NodeList childNodes = item.getChildNodes();
+                for (int i = 0; i < childNodes.getLength(); i++) {
+                    Node n = childNodes.item(i);
+                    String nName = n.getNodeName();
+                    if (nName.equals("code")) {
+                        result.put("code", n.getTextContent());
+                    } else if (nName.equals("content")) {
+                        result.put("content", n.getTextContent());
+                    } else if (nName.equals("date")) {
+                        result.put("date", n.getTextContent());
+                    }
+                }
+                return result;
+            } catch (SAXException e) {
+                e.printStackTrace();
+            } catch (ParserConfigurationException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        } else {
+            return null;
+        }
+    }
+    public void updateAPK(Context context, Handler mHandler, String downUrl) throws IOException {
         URL url = new URL(downUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(3 * 1000);
@@ -622,7 +804,6 @@ public class MainActivity extends AppCompatActivity {
             InputStream is = conn.getInputStream();
             int size = conn.getContentLength();
             File targetDir = MyFileUtils.getFileParent();
-            Log.e("zjy", "MainActivity.java->update(): online==" + size);
             File file1 = new File(targetDir, "dyjkfapp.apk");
             FileOutputStream fos = new FileOutputStream(file1);
             int len = 0;
@@ -632,19 +813,34 @@ public class MainActivity extends AppCompatActivity {
             while ((len = is.read(buf)) != -1) {
                 hasRead = hasRead + len;
                 percent = (hasRead * 100) / size;
+                final int tempPercent = percent;
                 if (hasRead < 0) {
-                    Log.e("zjy", "MainActivity.java->update(): hasRead==" + hasRead);
+                    Log.e("zjy", "MainActivity.java->updateAPK(): hasRead==" + hasRead);
                 }
-                Message msg = new Message();
-                msg.what = 8;
-                msg.arg1 = percent;
-                mHandler.sendMessage(msg);
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        int percent = tempPercent;
+                        if (percent < 0) {
+                            return;
+                        }
+                        downPd.setProgress(percent);
+                        if (percent == 100) {
+                            downPd.cancel();
+                            MyToast.showToast(MainActivity.this, "下载完成");
+                        }
+                    }
+                });
+//                Message msg = mHandler.obtainMessage(8);
+//                msg.arg1 = percent;
+//                mHandler.sendMessage(msg);
                 //写入时第三个参数使用len
                 fos.write(buf, 0, len);
             }
             fos.flush();
             is.close();
             fos.close();
+            MyApp.myLogger.writeInfo("update download" );
             Intent intent = new Intent(Intent.ACTION_VIEW);
             File file = new File(targetDir, "dyjkfapp.apk");
             if (file.exists()) {

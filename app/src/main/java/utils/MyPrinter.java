@@ -1,4 +1,4 @@
-package com.b1b.js.erpandroid_kf.utils;
+package utils;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -297,7 +297,6 @@ public class MyPrinter {
             in.read(res);
             for (byte b : res) {
                 Log.e("zjy", "MyPrinter->getResponse(): res==" + b);
-
             }
         } catch (IOException e) {
             e.printStackTrace();

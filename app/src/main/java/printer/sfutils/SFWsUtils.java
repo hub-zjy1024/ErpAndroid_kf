@@ -11,7 +11,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
@@ -36,35 +35,23 @@ import printer.entity.SFSender;
 public class SFWsUtils {
 
     public static String ORDER_SERVICE = "OrderService";
+    public static String ORDER_CANCLE_SERVICE = "OrderConfirmService";
     public static final String NAMESPACE = "http://service.expressservice.integration" +
             ".sf.com/";
-    //        http://service.expressservice.integration.sf.com
-
-//    public static final String ROOT_URL = "http://bsp-ois.sit.sf-express.com:9080/bsp-ois/ws/sfexpressService";
-    public static final String ROOT_URL = "http://218.17.248" +
-            ".244:11080/bsp-oisp/ws/sfexpressService?wsdl ";
-    //    public static final String ROOT_URL = "http://bsp-oisp.sf-express
-    // .com/bsp-oisp/ws/sfexpressService?wsdl";//正式接口
-    //    public static String verifyCode = "FCQsryp3UXNgLfMEPEkcRDT3BRVgYGx5";
-    // 正式checkword
-    public static final String key = "";
-    /**
-     * 校验码
-     */
-    //        public static String verifyCode = "j8DzkIFgmlomPt0aLuwU";
-    public static String verifyCode = "DNt3SK0gqnKs";
-    //服务名，带后缀名的
-    //    sfexpressService
+//    public static final String ROOT_URL = "http://bspoisp.sit.sf-express.com:11080/bsp-oisp/ws/sfexpressService?wsdl";
+//    public static String head = "BSPdevelop";
+//    public static String verifyCode = "j8DzkIFgmlomPt0aLuwU";
+    //正式接口
+        public static final String ROOT_URL = "http://bsp-oisp.sf-express.com/bsp-oisp/ws/sfexpressService?wsdl";
+        public static String verifyCode = "FCQsryp3UXNgLfMEPEkcRDT3BRVgYGx5";
+        public static String head = "bjyd";
     public static final int TIME_OUT = 15 * 1000;
     //SetClientSFInfo  name="id" type="xs:string" name="Province" type="xs:string"
     //   name="City" type="xs:string"name="County" type="xs:string"
     //    UpdateHeTongFileInfo(int pid, string filepath);
     //    string GetHeTongFileInfo(int pid);
-    /**
-     * 设备ID
-     */
-    //    public static String head = "BSPdevelop";
-    public static String head = "BJYDCX";
+
+//    public static String head = "bjyd";
 
     /**
      * 获取Url
@@ -132,7 +119,7 @@ public class SFWsUtils {
         envelope.dotNet = isNetServer;
         envelope.setOutputSoapObject(request);
         //创建HttpTransportSE对象
-        HttpTransportSE ht = new HttpTransportSE(resultUrl, 15 * 1000);
+        HttpTransportSE ht = new HttpTransportSE(resultUrl, TIME_OUT);
         //有些不需要传入soapAction，根据wsdl文档
         ht.call(soapAction, envelope);
         return envelope;
@@ -408,35 +395,43 @@ public class SFWsUtils {
         return null;
     }
 
-    public static String comfirmOrderXml(String serviceName, SFSender info, Cargo
-            cargo, float vWidth, float vHeight, float vLength, String[] extras) {
-
-        List<Cargo> cargos = new ArrayList<>();
-        cargos.add(cargo);
-        StringBuilder builder = new StringBuilder();
-        builder.append("<Request service=\"OrderConfirmService\" lang=\"zh-CN\">");
-        builder.append("<Head>" + head + "</Head>");
-        builder.append("<Body>");
-        builder.append("<OrderConfirm ");
-        builder.append("orderid=\"" + info.orderID + "\"");
-        builder.append("mailno=\"" + info.orderID + "\"");
-        builder.append("dealtype=\"" + info.orderID + "\"");
-        builder.append(">");
-        builder.append("<OrderConfirmOption ");
-        builder.append("weight=\"" + info.orderID + "\"");
-        builder.append("volume=\"" + vLength + "," + vWidth + "," + vHeight + "\"");
-        builder.append("/>");
-        builder.append("</OrderConfirm>");
-        if (extras != null && extras.length > 0) {
-            builder.append("<Extra ");
-            for (int i = 0; i < extras.length; i++) {
-                builder.append("e" + (i + 1) + "=\"" + extras[i] + "\"");
+    public static String comfirmOrderXml(String serviceName,String sfOrderID,String sendID) {
+        DocumentBuilderFactory xmlFactory = DocumentBuilderFactory.newInstance();
+        try {
+            DocumentBuilder xmlBuilder = xmlFactory.newDocumentBuilder();
+            Document xmlDoc = xmlBuilder.newDocument();
+            Element root = xmlDoc.createElement("Request");
+            root.setAttribute("service", serviceName);
+            root.setAttribute("lang", "zh-CN");
+            Element head = xmlDoc.createElement("Head");
+            head.setTextContent(SFWsUtils.head);
+            root.appendChild(head);
+            Element body = xmlDoc.createElement("Body");
+            Element order = xmlDoc.createElement("OrderConfirm");
+            order.setAttribute("orderid", sendID);
+            if (sfOrderID != null) {
+                order.setAttribute("mailno",sfOrderID );
             }
-            builder.append("/>");
+            order.setAttribute("dealtype","2");
+            body.appendChild(order);
+            root.appendChild(body);
+            xmlDoc.appendChild(root);
+            //定义了用于处理转换指令，以及执行从源到结果的转换的
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty("encoding", "UTF-8");
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(xmlDoc), new StreamResult(writer));
+            Log.e("zjy", "sfWs->sendRequest(): xmlResult==" + writer.toString
+                    ());
+            return writer.toString();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
         }
-        builder.append("</Body>");
-        builder.append("</Request>");
-
-        return builder.toString();
+        return null;
     }
 }

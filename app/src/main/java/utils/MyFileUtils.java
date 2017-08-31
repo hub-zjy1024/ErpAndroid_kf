@@ -1,4 +1,4 @@
-package com.b1b.js.erpandroid_kf.utils;
+package utils;
 
 import android.app.AlertDialog;
 import android.content.Context;

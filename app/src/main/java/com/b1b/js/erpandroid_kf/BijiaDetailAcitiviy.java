@@ -13,8 +13,8 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.BijiaDetailAdapter;
 import com.b1b.js.erpandroid_kf.entity.BijiadetailInfo;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
+import utils.MyToast;
+import utils.WebserviceUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;

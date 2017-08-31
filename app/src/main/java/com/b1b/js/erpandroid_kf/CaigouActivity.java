@@ -22,9 +22,9 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.entity.CaigouGoodType;
 import com.b1b.js.erpandroid_kf.entity.Caigoudan;
-import com.b1b.js.erpandroid_kf.utils.MyDecoration;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
+import utils.MyDecoration;
+import utils.MyToast;
+import utils.WebserviceUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;

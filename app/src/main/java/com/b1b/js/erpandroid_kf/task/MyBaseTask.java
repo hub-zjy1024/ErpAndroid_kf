@@ -2,7 +2,7 @@ package com.b1b.js.erpandroid_kf.task;
 
 import android.os.AsyncTask;
 
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
+import utils.WebserviceUtils;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;

@@ -21,13 +21,6 @@ import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
-import com.b1b.js.erpandroid_kf.utils.DownUtils;
-import com.b1b.js.erpandroid_kf.utils.FtpManager;
-import com.b1b.js.erpandroid_kf.utils.ImageWaterUtils;
-import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.UploadUtils;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
@@ -44,6 +37,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
+import utils.FTPUtils;
+import utils.FtpManager;
+import utils.ImageWaterUtils;
+import utils.MyImageUtls;
+import utils.MyToast;
+import utils.UploadUtils;
+import utils.WebserviceUtils;
 import zhy.imageloader.MyAdapter;
 import zhy.imageloader.PickPicActivity;
 
@@ -51,7 +51,6 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
 
     private Button btn_commit;
     private Button btn_commitOrigin;
-    private FtpManager ftp;
     private ProgressDialog pd;
     private boolean isFirst;
     private int onclickPosition;
@@ -110,7 +109,6 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
                     break;
                 case FTP_ERROR:
                     MyToast.showToast(ObtainPicPanku.this, "连接ftp失败，请检查网络");
-                    connFTP(handler, FTP_ERROR);
                     mGvAdapter.notifyDataSetChanged();
                     break;
             }
@@ -171,11 +169,6 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
             edPid.setText(pid);
         }
         //初始化ftp
-        ftp = TakePicActivity.initFTP(getApplicationContext());
-        if (ftp == null) {
-            return;
-        }
-        connFTP(handler, FTP_ERROR);
         mGvAdapter = new UploadPicAdapter(ObtainPicPanku.this, uploadPicInfos, new UploadPicAdapter.OnItemBtnClickListener() {
             @Override
             public void onClick(View v, int position) {
@@ -226,22 +219,6 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
     }
 
 
-    private void connFTP(final Handler handler, final int target) {
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                try {
-                    if (ftp != null) {
-                        ftp.connectAndLogin();
-                    }
-                } catch (IOException e) {
-                    handler.sendEmptyMessage(target);
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-    }
 
     public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
                                    String stypeID) throws IOException, XmlPullParserException {
@@ -330,7 +307,7 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
             XmlPullParserException {
         InputStream inputStream = new FileInputStream(uploadPicInfo.getPath());
         boolean flag = false;
-        String fileName = UploadUtils.getRomoteName2(pid);
+        String fileName = UploadUtils.getPankuRemoteName(pid);
         if (failPid != null) {
             //重新上传失败的文件
             fileName = failPath.substring(failPath.lastIndexOf("/") + 1, failPath.lastIndexOf("."));
@@ -381,23 +358,23 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
         String remoteName =  fileName + ".jpg";
         String remotePath = "/" + UploadUtils.getCurrentDate() + "/";
         String mUrl = MyApp.ftpUrl;
-        DownUtils downUtils=null;
+        FTPUtils ftpUtil =null;
         if ("101".equals(MyApp.id)) {
             mUrl = FtpManager.mainAddress;
-            downUtils = new DownUtils(mUrl, 21, CaigoudanTakePicActivity.username,  CaigoudanTakePicActivity.password);
+            ftpUtil = new FTPUtils(mUrl, 21, FtpManager.mainName,FtpManager.mainPwd);
             //            mUrl= "192.168.10.65";
-            //            downUtils=  new DownUtils(mUrl, 21, "zjy", "123456");
+            //            ftpUtil=  new ftpUtil(mUrl, 21, "zjy", "123456");
             remotePath = UploadUtils.KF_DIR+ "pk/" +remoteName ;
         } else {
             mUrl = MyApp.ftpUrl;
-            downUtils = new DownUtils(mUrl, 21,FtpManager.ftpName,
+            ftpUtil = new FTPUtils(mUrl, 21,FtpManager.ftpName,
                     FtpManager.ftpPassword);
             remotePath = "/" + UploadUtils.getCurrentDate() + "/pk/" + remoteName;
         }
         insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
-        downUtils.login();
-        isSuccess = downUtils.upload(inputStream, new String(remotePath.getBytes("UTF-8"), "iso-8859-1"));
-        downUtils.exitServer();
+        ftpUtil.login();
+        isSuccess = ftpUtil.upload(inputStream, new String(remotePath.getBytes("UTF-8"), "iso-8859-1"));
+        ftpUtil.exitServer();
         Log.e("zjy", "PankuObtain.java->commitImage(): schemePath==" + insertPath);
         if (isSuccess) {
             String res = setInsertPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid,remoteName, insertPath, "PK");
@@ -460,17 +437,5 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
         super.onDestroy();
         Log.e("zjy", "PankuObtain.java->onDestroy(): clear uploadpicinfos");
         MyAdapter.mSelectedImage.clear();
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                try {
-                    if (ftp != null)
-                        ftp.exit();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
     }
 }

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -26,7 +27,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.R;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
+import com.b1b.js.erpandroid_kf.SettingActivity;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,6 +46,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import printer.entity.PrinterItem;
+import utils.DialogUtils;
+import utils.MyToast;
 
 public class ToolbarTestActivity extends AppCompatActivity {
 
@@ -61,7 +64,12 @@ public class ToolbarTestActivity extends AppCompatActivity {
     private Handler mHandler = new Handler();
     private ProgressDialog pd;
     private CheckBox cboAll;
+    private ProgressDialog pDialog;
+    private String ipAddress="";
 
+    /**
+     @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,17 +80,20 @@ public class ToolbarTestActivity extends AppCompatActivity {
         cboAll = (CheckBox) findViewById(R.id.print_cbo_searchall);
         lvItems = new ArrayList<>();
         spiItems = new ArrayList<>();
-        sp = getSharedPreferences("printerServer", Context.MODE_PRIVATE);
-        String serverAddress = sp.getString("ip", "");
-        edIP.setText(serverAddress);
-
+        pDialog = new ProgressDialog(this);
+        pDialog.setMessage("正在搜索打印机");
+        pDialog.setTitle("提示");
+        sp = getSharedPreferences("UserInfo", 0);
+        ipAddress= sp.getString("serverPrinter", "");
         pinterAdapter = new ArrayAdapter<String>(this, R.layout.lv_item_printer, R
                 .id.spinner_item_tv, spiItems);
 
-        if (serverAddress.equals("")) {
-            MyToast.showToast(this, "请配置打印服务器地址");
+        if (ipAddress.equals("")) {
+            showAlert(ToolbarTestActivity.this, SettingActivity.class);
         } else {
-            getPrinter(serverAddress);
+            pd = ProgressDialog.show(this, "提示", "正在搜索打印机", true, false);
+//            pDialog.show();
+            getPrinter(ipAddress);
         }
         lvAdapter = new ArrayAdapter<>(this, R.layout.printing_lv_item, R
                 .id.spinner_item_tv, lvItems);
@@ -100,14 +111,11 @@ public class ToolbarTestActivity extends AppCompatActivity {
 
                 final PrinterItem clickItem = (PrinterItem) parent.getItemAtPosition
                         (position);
-                String ip = edIP.getText()
-                        .toString().trim();
-                if (ip.equals("")) {
-                    Toast.makeText(getApplicationContext(), "请输入IP地址", Toast.LENGTH_SHORT)
-                            .show();
+                if (ipAddress.equals("")) {
+                    showAlert(ToolbarTestActivity.this, SettingActivity.class);;
                     return;
                 }
-                final String strUrl = "http://" + ip + "/PrinterServer/PrintServlet?";
+                final String strUrl = "http://" + ipAddress + ":8080/PrinterServer/PrintServlet?";
                 Object selectItem = spiPrintes.getSelectedItem();
                 String printer = "";
                 if (selectItem != null) {
@@ -125,9 +133,23 @@ public class ToolbarTestActivity extends AppCompatActivity {
 
             }
         });
-        pd = ProgressDialog.show(this, "提示", "正在搜索。。", true, false);
-        pd.cancel();
         final File file = Environment.getExternalStorageDirectory();
+    }
+
+    private void showAlert(Context current, Class target) {
+        DialogUtils.getSpAlert(ToolbarTestActivity.this, "暂时未配置打印服务器地址，是否去配置？", "提示", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(ToolbarTestActivity.this, SettingActivity.class);
+                startActivity(intent);
+            }
+        }, "是", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        }, "否").show();
+        MyToast.showToast(this, "请配置打印服务器地址");
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -166,17 +188,17 @@ public class ToolbarTestActivity extends AppCompatActivity {
             String[] flags = data.getStringArrayExtra("flags");
             String ip = edIP.getText()
                     .toString().trim();
-            if (ip.equals("")) {
-                Toast.makeText(getApplicationContext(), "请输入IP地址", Toast.LENGTH_SHORT)
-                        .show();
+            if (ipAddress.equals("")) {
+                showAlert(ToolbarTestActivity.this, SettingActivity.class);;
                 return;
             }
-            String strUrl = "http://" + ip + "/PrinterServer/PrintServlet?";
+            String strUrl = "http://" + ipAddress + ":8080/PrinterServer/PrintServlet?";
             Object selectItem = spiPrintes.getSelectedItem();
             String printer = "";
             if (selectItem != null) {
                 printer = selectItem.toString();
             }
+            pDialog.setMessage("正在打印中");
             Log.e("zjy", "ToolbarTestActivity->onActivityResult(): startPrinterImg==");
             for (int i = 0; i < paths.length; i++) {
                 print(new File(paths[i]), strUrl, flags[i], printer);
@@ -184,6 +206,12 @@ public class ToolbarTestActivity extends AppCompatActivity {
 
         }
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ipAddress = sp.getString("serverPrinter", "");
     }
 
     @Override
@@ -202,44 +230,38 @@ public class ToolbarTestActivity extends AppCompatActivity {
         }
     }
 
-    private void uploadandPrint(File file, String strUrl) {
+    private boolean uploadandPrint(File file, String strUrl) throws IOException {
         if (file.exists()) {
-            Log.e("zjy", "ToolbarTestActivity->run(): file found==");
-            try {
-                URL url = new URL(strUrl);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setConnectTimeout(15 * 1000);
-                conn.setRequestMethod("POST");
-                conn.setUseCaches(false);
-                conn.setRequestProperty("Content-Type", "multipart/form-data");
-                conn.setDoOutput(true);
-                conn.setDoInput(true);
-                FileInputStream fis = new FileInputStream(file);
-                OutputStream outputStream = conn.getOutputStream();
-                int len = 0;
-                byte[] buf = new byte[1024];
-                while ((len = fis.read(buf)) != -1) {
-                    outputStream.write(buf, 0, len);
-                }
-                outputStream.close();
-                InputStream inputStream = conn.getInputStream();
-                BufferedReader reader = new BufferedReader(new InputStreamReader
-                        (inputStream, "UTF-8"));
-                Log.e("zjy", "ToolbarTestActivity->run(): ==write over:" + reader
-                        .readLine());
-                reader.close();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(ToolbarTestActivity.this, "网络错误", Toast
-                                .LENGTH_SHORT).show();
-                    }
-                });
-                e.printStackTrace();
+            URL url = new URL(strUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(15 * 1000);
+            conn.setRequestMethod("POST");
+            conn.setUseCaches(false);
+            conn.setRequestProperty("Content-Type", "multipart/form-data");
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            FileInputStream fis = new FileInputStream(file);
+            OutputStream outputStream = conn.getOutputStream();
+            int len = 0;
+            byte[] buf = new byte[1024];
+            while ((len = fis.read(buf)) != -1) {
+                outputStream.write(buf, 0, len);
             }
+            outputStream.close();
+            InputStream inputStream = conn.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader
+                    (inputStream, "UTF-8"));
+            String result = reader.readLine();
+            boolean isOk = false;
+            if (result.equals("ok")) {
+                isOk = true;
+            }
+            Log.e("zjy", "ToolbarTestActivity->run(): ==write over:" + reader
+                    .readLine());
+            reader.close();
+            return isOk;
+        } else {
+            return false;
         }
     }
 
@@ -253,8 +275,10 @@ public class ToolbarTestActivity extends AppCompatActivity {
              File file = Environment.getExternalStorageDirectory();
              File file2 = new File(file, "tencent/qqfile_recv/");
              File file3 = new File(file, "tencent/MicroMsg/Download");
+             File file4 = new File(file, "tencent/MicroMsg/WeiXin");
             dirs.add(file2);
             dirs.add(file3);
+            dirs.add(file4);
 
         }
 
@@ -264,10 +288,11 @@ public class ToolbarTestActivity extends AppCompatActivity {
             File[] files = temp_file.listFiles();
             if (files != null) {
                 Log.e("zjy", "ToolbarTestActivity->getFileList(): dir==" + temp_file);
-
                 for (File f : files) {
                     if (f.isDirectory()) {
-                        dirs.addLast(f);
+                        if (!f.getName().startsWith(".")) {
+                            dirs.addLast(f);
+                        }
                     } else {
                         boolean isNeed = checkFile(f, type);
                         if (isNeed) {
@@ -280,7 +305,6 @@ public class ToolbarTestActivity extends AppCompatActivity {
     }
 
     public boolean checkFile(File f, String type) {
-        //
         if (type.equals("word")) {
             if (f.getName().endsWith(".doc")) {
                 return true;
@@ -309,11 +333,10 @@ public class ToolbarTestActivity extends AppCompatActivity {
         final File file2 = new File(file, "tencent/qqfile_recv/");
         final String ip = edIP.getText()
                 .toString().trim();
-        if (ip.equals("")) {
-            Toast.makeText(getApplicationContext(), "请输入IP地址", Toast.LENGTH_SHORT).show();
+        if (ipAddress.equals("")) {
+            showAlert(ToolbarTestActivity.this, SettingActivity.class);;
             return;
         }
-        sp.edit().putString("ip", ip).commit();
         final boolean isAll = cboAll.isChecked();
         switch (view.getId()) {
             case R.id.btn1:
@@ -380,11 +403,12 @@ public class ToolbarTestActivity extends AppCompatActivity {
                 break;
             case R.id.btn7:
                 spiItems.clear();
-                getPrinter(ip);
+                pd.show();
+                getPrinter(ipAddress);
                 break;
-            case R.id.btn9:
-                Intent intent1 = new Intent(ToolbarTestActivity.this, SFActivity.class);
-                startActivity(intent1);
+            case R.id.activity_toolbar_test_btn_setting:
+                Intent intent2 = new Intent(ToolbarTestActivity.this, SettingActivity.class);
+                startActivity(intent2);
                 break;
         }
     }
@@ -404,7 +428,7 @@ public class ToolbarTestActivity extends AppCompatActivity {
             @Override
             public void run() {
                 String urlPrinter = "http://" + ip +
-                        "/PrinterServer/GetPrinterInfoServlet";
+                        ":8080/PrinterServer/GetPrinterInfoServlet";
                 try {
                     URL url = new URL(urlPrinter);
                     HttpURLConnection conn = (HttpURLConnection) url
@@ -429,12 +453,19 @@ public class ToolbarTestActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 pinterAdapter.notifyDataSetChanged();
+                                DialogUtils.dismissDialog(pd);
                             }
                         });
                     }
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            DialogUtils.dismissDialog(pd);
+                        }
+                    });
                     e.printStackTrace();
                 }
             }
@@ -454,7 +485,33 @@ public class ToolbarTestActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     super.run();
-                    uploadandPrint(file2, finalStrUrl);
+                    try {
+                        boolean isOk = uploadandPrint(file2, finalStrUrl);
+                        if (isOk) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    pDialog.dismiss();
+                                }
+                            });
+                        } else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    pDialog.dismiss();
+                                    DialogUtils.getSpAlert(ToolbarTestActivity.this, "打印错误", "提示").show();
+                                }
+                            });
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                DialogUtils.getSpAlert(ToolbarTestActivity.this, "连接服务器失败，请重试", "提示").show();
+                            }
+                        });
+                    }
                 }
             }.start();
         } catch (UnsupportedEncodingException e) {

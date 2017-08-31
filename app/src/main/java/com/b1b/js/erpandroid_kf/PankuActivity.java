@@ -23,8 +23,6 @@ import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.adapter.PankuAdapter;
 import com.b1b.js.erpandroid_kf.entity.PankuInfo;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,6 +36,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import utils.MyToast;
+import utils.WebserviceUtils;
 
 public class PankuActivity extends AppCompatActivity {
 

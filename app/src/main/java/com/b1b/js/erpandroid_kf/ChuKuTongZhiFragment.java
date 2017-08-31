@@ -20,10 +20,10 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.ChuKuTongZhiAdapter;
 import com.b1b.js.erpandroid_kf.entity.ChukuTongZhiInfo;
-import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
+import utils.MyJsonUtils;
+import utils.MyToast;
+import utils.SoftKeyboardUtils;
+import utils.WebserviceUtils;
 
 import org.json.JSONException;
 import org.ksoap2.SoapEnvelope;

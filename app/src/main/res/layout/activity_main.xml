@@ -115,7 +115,7 @@
         android:layout_height="200dp"
         android:layout_marginTop="10dp"
         android:layout_gravity="center_horizontal"
-        android:src="@drawable/download_apk"/>
+        android:src="@drawable/download_apk2"/>
     <TextView
         android:id="@+id/main_version"
         android:layout_width="wrap_content"

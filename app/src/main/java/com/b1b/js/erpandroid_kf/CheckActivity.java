@@ -17,10 +17,6 @@ import android.widget.RadioButton;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
-import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONException;
 import org.ksoap2.SoapEnvelope;
@@ -32,6 +28,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import utils.MyJsonUtils;
+import utils.MyToast;
+import utils.SoftKeyboardUtils;
+import utils.WebserviceUtils;
 
 public class CheckActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -159,6 +160,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                 if (pd != null && !pd.isShowing()) {
                     pd.show();
                 }
+                SoftKeyboardUtils.closeInputMethod(edPid, CheckActivity.this);
                 getData(2, pid, partNo);
                 break;
             case R.id.check_btn_scancode:

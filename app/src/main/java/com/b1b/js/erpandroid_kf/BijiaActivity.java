@@ -13,8 +13,8 @@ import android.widget.ListView;
 
 import com.b1b.js.erpandroid_kf.adapter.BijiadanAdapter;
 import com.b1b.js.erpandroid_kf.entity.BijiadanInfo;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
+import utils.MyToast;
+import utils.WebserviceUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;

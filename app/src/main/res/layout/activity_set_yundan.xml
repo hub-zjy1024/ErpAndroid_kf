@@ -49,6 +49,7 @@
                     android:id="@+id/activity_set_yundan_ed_j_person"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:focusableInTouchMode="true"
                     android:hint="寄件人"
                     android:textColor="#000000"/>
 
@@ -153,6 +154,25 @@
         </LinearLayout>
 
         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/activity_set_yundan_cbo_diaohuo"
+                android:layout_width="wrap_content"
+                android:visibility="gone"
+                android:layout_height="wrap_content"
+                android:text="调货去向："/>
+
+            <Spinner
+                android:id="@+id/activity_set_yundan_spi_diaohuo"
+                android:layout_width="match_parent"
+                android:visibility="gone"
+                android:layout_height="wrap_content">
+
+            </Spinner>
+        </LinearLayout>
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -163,15 +183,23 @@
 
             <EditText
                 android:id="@+id/activity_set_yundan_ed_bags"
-                android:layout_width="100dp"
+                android:layout_width="50dp"
                 android:layout_height="wrap_content"
-                android:text="1"
-                android:inputType="number"/>
+                android:inputType="number"
+                android:text="1"/>
+
+            <Spinner
+                android:id="@+id/activity_set_yundan_spi_bags"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content">
+
+            </Spinner>
+
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:textColor="#fff000"
                 android:text="子母单必选"
+                android:textColor="#ea6969"
                 />
         </LinearLayout>
 
@@ -180,8 +208,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:visibility="gone"
-            android:padding="5dp">
+            android:padding="5dp"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -250,6 +278,7 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
                 android:gravity="center_vertical">
 
                 <TextView
@@ -286,39 +315,85 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:gravity="center"
             android:orientation="horizontal">
+
+            <RadioGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/activity_set_yundan_rdo_210"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="210格式"
+                    android:checked="true"/>
+
+                <RadioButton
+                    android:id="@+id/activity_set_yundan_rdo_150"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="150格式"
+                    />
+            </RadioGroup>
 
             <Button
                 android:id="@+id/activity_set_yundan_btnCommit"
-                android:layout_width="100dp"
+                android:layout_width="wrap_content"
+                android:layout_marginLeft="10dp"
                 android:layout_height="wrap_content"
-                android:text="下单"/>
-
-            <Button
-                android:id="@+id/activity_set_yundan_btnReview"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:text="打印预览"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+                android:text="下单并打印"/>
 
             <Button
                 android:id="@+id/activity_set_yundan_btnCommit1"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:text="打印150格式"/>
 
             <Button
-                android:id="@+id/activity_set_yundan_btnCommit2"
+                android:id="@+id/activity_set_yundan_btnReview"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:text="打印210格式"/>
+                android:text="打印预览"
+                android:visibility="gone"/>
+
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/activity_set_yundan_btnReprint"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:text="重新打印"/>
+
+            <Button
+                android:id="@+id/activity_set_yundan_btnReInsert"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="true"
+                android:text="重新插入回单信息"/>
+
+            <CheckBox
+                android:id="@+id/activity_set_yundan_cbotest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="test"
+                android:visibility="visible"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/activity_set_yundan_tv_orderid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"/>
 
         <printer.sfutils.ZoomImageView
             android:id="@+id/activity_set_yundan_iv"

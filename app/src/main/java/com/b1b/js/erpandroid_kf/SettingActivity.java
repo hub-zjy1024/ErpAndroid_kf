@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.b1b.js.erpandroid_kf.utils.MyToast;
+import utils.MyToast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,22 +44,38 @@ public class SettingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_setting);
         Button btnSave = (Button) findViewById(R.id.activity_setting_btnsave);
         final EditText edPrinterIP = (EditText) findViewById(R.id.activity_setting_edip);
+        final EditText edPrinterServer = (EditText) findViewById(R.id.activity_setting_ed_printerserver);
         final SharedPreferences sp = getSharedPreferences("UserInfo", 0);
         String localPrinterIP = sp.getString("printerIP", "");
+        final String serverIP = sp.getString("serverPrinter", "");
         edPrinterIP.setText(localPrinterIP);
+        edPrinterServer.setText(serverIP);
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Pattern pattern = Pattern.compile("((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))");
                 final String ip = edPrinterIP.getText().toString().trim();
+                final String serverIp = edPrinterServer.getText().toString().trim();
                 Matcher matcher = pattern.matcher(ip);
+                Matcher serverMatcher = pattern.matcher(serverIp);
                 boolean matches = matcher.matches();
-                if (!matches) {
-                    MyToast.showToast(SettingActivity.this, "请输入正确的ip格式");
-                    return;
+                if (!ip.equals("")) {
+                    if (!matches) {
+                        MyToast.showToast(SettingActivity.this, "请输入的预出库打印机的ip格式");
+                        return;
+                    } else {
+                        sp.edit().putString("printerIP", ip).commit();
+                        MyToast.showToast(SettingActivity.this, "保存预出库打印机ip地址成功");
+                    }
                 }
-                sp.edit().putString("printerIP", ip).commit();
-                MyToast.showToast(SettingActivity.this, "保存打印机ip地址成功");
+                if (!serverIp.equals("")) {
+                    if (!serverMatcher.matches()) {
+                        MyToast.showToast(SettingActivity.this, "请输入正确的ip格式");
+                    } else {
+                        sp.edit().putString("serverPrinter", serverIp).commit();
+                        MyToast.showToast(SettingActivity.this, "保存预出库打印机ip地址成功");
+                    }
+                }
 //                new Thread(){
 //                    @Override
 //                    public void run() {

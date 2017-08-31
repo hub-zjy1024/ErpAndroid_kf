@@ -21,12 +21,6 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuDetialAdapter;
 import com.b1b.js.erpandroid_kf.entity.PreChukuDetailInfo;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
-import com.b1b.js.erpandroid_kf.utils.DialogUtils;
-import com.b1b.js.erpandroid_kf.utils.MyPrinter;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.PrinterStyle;
-import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -45,6 +39,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import utils.DialogUtils;
+import utils.MyPrinter;
+import utils.MyToast;
+import utils.PrinterStyle;
+import utils.SoftKeyboardUtils;
+import utils.WebserviceUtils;
 
 public class PreChukuDetailActivity extends AppCompatActivity {
 
@@ -313,8 +314,10 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         map.put("pid", pid);
         map.put("uid", uid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintView");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
-                .ChuKuServer);
+//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+//                .ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponseByTime(request, SoapEnvelope.VER11, WebserviceUtils
+                .ChuKuServer, 120);
         Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + response);
         JSONObject object = new JSONObject(response.toString());
         JSONArray array = object.getJSONArray("表");
@@ -345,11 +348,11 @@ public class PreChukuDetailActivity extends AppCompatActivity {
             String notes = obj.getString("备注");
             String counts = obj.getString("数量");
             String leftCounts = String.valueOf(Integer.parseInt(obj.getString("BalanceQ")) - Integer.parseInt(counts));
-            PreChukuDetailInfo info = new PreChukuDetailInfo(partNo, fengzhuang, pihao, factory, description, notes, p, counts,
+            PreChukuDetailInfo dinfo = new PreChukuDetailInfo(partNo, fengzhuang, pihao, factory, description, notes, p, counts,
                     leftCounts);
-            info.setProLevel(obj.getString("DengJi"));
-            info.setInitialDate(obj.getString("InstorageData"));
-            list.add(info);
+            dinfo.setProLevel(obj.getString("DengJi"));
+            dinfo.setInitialDate(obj.getString("InstorageData"));
+            list.add(dinfo);
         }
         info.setDetailInfos(list);
         zHandler.sendEmptyMessage(3);
@@ -369,7 +372,9 @@ public class PreChukuDetailActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mPrinter.close();
+        if(mPrinter != null){
+            mPrinter.close();
+        }
     }
 
     //    GetOutStoragePrintViewPriviceInfo

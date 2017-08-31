@@ -1,36 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_sf"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <TextView
+        style="@style/zjy_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="运单打印"
+        />
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        style="@style/lrPadding">
 
-        <EditText
+        <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/yundan_ed_pid"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="单据号"/>
+            android:hint="单据号"
+            android:inputType="number"
+            app:met_clearButton="true"/>
 
-        <EditText
+        <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/yundan_ed_partno"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="型号"/>
+            android:hint="型号"
+            app:met_clearButton="true"/>
     </LinearLayout>
 
-    <Button
-        android:id="@+id/sf_btnSFservice"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="myOnclick"
-        android:text="搜索"/>
+        style="@style/lrPadding">
+
+        <Button
+            android:id="@+id/sf_btnSFservice"
+            style="@style/zjy_button_light"
+            android:onClick="myOnclick"
+            android:text="搜索"/>
+
+        <Button
+            android:id="@+id/sf_btnSFScan"
+            style="@style/zjy_button_light"
+            android:layout_marginLeft="20dp"
+            android:onClick="myOnclick"
+            android:text="扫码"/>
+
+        <Button
+            android:id="@+id/sf_btnSFdiaohuo"
+            style="@style/zjy_button_light"
+            android:layout_marginLeft="20dp"
+            android:visibility="gone"
+            android:onClick="myOnclick"
+            android:text="调货单"/>
+    </LinearLayout>
+
 
     <ListView
         android:id="@+id/yundan_lv"

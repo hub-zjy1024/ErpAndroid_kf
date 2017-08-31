@@ -23,8 +23,8 @@ import android.widget.Spinner;
 
 import com.b1b.js.erpandroid_kf.adapter.PopAdapter;
 import com.b1b.js.erpandroid_kf.entity.ProviderInfo;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
+import utils.MyToast;
+import utils.WebserviceUtils;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;

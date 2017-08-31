@@ -9,18 +9,21 @@ import android.widget.ListView;
 
 import com.b1b.js.erpandroid_kf.adapter.KqAdapter;
 import com.b1b.js.erpandroid_kf.entity.KaoqinInfo;
-import com.b1b.js.erpandroid_kf.task.MyAsyncTask;
-import com.b1b.js.erpandroid_kf.task.TaskCallback;
-import com.b1b.js.erpandroid_kf.utils.MyJsonUtils;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
+import com.b1b.js.erpandroid_kf.task.WebCallback;
+import com.b1b.js.erpandroid_kf.task.WebServicesTask;
 
 import org.json.JSONException;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+
+import utils.MyJsonUtils;
+import utils.MyToast;
+import utils.SoftKeyboardUtils;
+import utils.WebserviceUtils;
 
 public class KaoQinActivity extends AppCompatActivity {
 
@@ -71,7 +74,7 @@ public class KaoQinActivity extends AppCompatActivity {
                 if (date.equals("") || id.equals("")) {
                     MyToast.showToast(KaoQinActivity.this, "请输入完整查询条件");
                 } else {
-                        initData(new String[]{date, id});
+                    initData(new String[]{date, id});
                 }
             }
         });
@@ -80,27 +83,60 @@ public class KaoQinActivity extends AppCompatActivity {
     }
 
     private void initData(String[] arr) {
-        new MyAsyncTask(new TaskCallback() {
+//        new MyAsyncTask(new TaskCallback() {
+//            @Override
+//            public void callback(String list) {
+//                if (list != null) {
+//                    List<KaoqinInfo> kqList = null;
+//                    try {
+//                        kqList = MyJsonUtils.getKaoQinList(list);
+//                        SoftKeyboardUtils.closeInputMethod(inputId, KaoQinActivity.this);
+//                        data.clear();
+//                        data.addAll(kqList);
+//                        adapter.notifyDataSetChanged();
+//                        MyToast.showToast(KaoQinActivity.this, "查询到" + kqList.size() + "条考勤记录");
+//                    } catch (JSONException e) {
+//                        MyToast.showToast(KaoQinActivity.this, "查询条件有误");
+//                        e.printStackTrace();
+//                    }
+//                } else {
+//                    MyToast.showToast(KaoQinActivity.this, "连接服务器失败，请检查网络");
+//                }
+//            }
+//        }).execute(arr);
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        map.put("month", arr[0]);
+        map.put("uid", arr[1]);
+        map.put("checkWord", "");
+        new WebServicesTask<String>(new WebCallback<String>() {
             @Override
-            public void callback(String list) {
-                if (list != null) {
-                    List<KaoqinInfo> kqList = null;
-                    try {
-                        kqList = MyJsonUtils.getKaoQinList(list);
-                        SoftKeyboardUtils.closeInputMethod(inputId, KaoQinActivity.this);
-                        data.clear();
-                        data.addAll(kqList);
-                        adapter.notifyDataSetChanged();
-                        MyToast.showToast(KaoQinActivity.this, "查询到" + kqList.size() + "条考勤记录");
-                    } catch (JSONException e) {
-                        MyToast.showToast(KaoQinActivity.this, "查询条件有误");
-                        e.printStackTrace();
+            public void errorCallback(Throwable e) {
+                MyToast.showToast(KaoQinActivity.this, "网络较差");
+            }
+
+            @Override
+            public void okCallback(String obj) {
+                try {
+                    if (obj == null) {
+                        return;
                     }
-                } else {
-                    MyToast.showToast(KaoQinActivity.this, "连接服务器失败，请检查网络");
+                    List<KaoqinInfo> kqList = MyJsonUtils.getKaoQinList(obj);
+                    SoftKeyboardUtils.closeInputMethod(inputId, KaoQinActivity.this);
+                    data.clear();
+                    data.addAll(kqList);
+                    adapter.notifyDataSetChanged();
+                    MyToast.showToast(KaoQinActivity.this, "查询到" + kqList.size() + "条考勤记录");
+                } catch (JSONException e) {
+                    MyToast.showToast(KaoQinActivity.this, "查询条件有误");
+                    e.printStackTrace();
                 }
             }
-        }).execute(arr);
+
+            @Override
+            public void otherCallback(Object obj) {
+
+            }
+        }, map).execute("GetMyKaoQinInfoJson", WebserviceUtils.MyBasicServer);
     }
 
 }

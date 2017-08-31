@@ -1,4 +1,4 @@
-package com.b1b.js.erpandroid_kf.utils;
+package utils;
 
 /**
  Created by 张建宇 on 2017/2/3. */

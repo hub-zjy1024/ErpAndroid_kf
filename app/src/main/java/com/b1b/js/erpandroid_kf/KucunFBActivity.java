@@ -21,8 +21,8 @@ import com.b1b.js.erpandroid_kf.adapter.TableAdapter;
 import com.b1b.js.erpandroid_kf.entity.KucunFBInfo;
 import com.b1b.js.erpandroid_kf.task.MyBaseTask;
 import com.b1b.js.erpandroid_kf.task.TaskCallback;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
+import utils.MyToast;
+import utils.WebserviceUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -34,15 +34,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-import com.b1b.js.erpandroid_kf.utils.DownUtils;
-import com.b1b.js.erpandroid_kf.utils.FtpManager;
-import com.b1b.js.erpandroid_kf.utils.ImageWaterUtils;
-import com.b1b.js.erpandroid_kf.utils.MyFileUtils;
-import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.UploadUtils;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
-
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
@@ -58,6 +49,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
+import utils.FTPUtils;
+import utils.FtpManager;
+import utils.ImageWaterUtils;
+import utils.MyFileUtils;
+import utils.MyImageUtls;
+import utils.MyToast;
+import utils.UploadUtils;
+import utils.WebserviceUtils;
 
 public class TakePic2Activity extends AppCompatActivity implements View.OnClickListener {
 
@@ -79,8 +78,6 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
     private int commitTimes = 0;
     private final Object lock=new Object();
     NotificationManager notificationManager;
-    FtpManager ftp;
-    //    FtpManager2 ftp;
     private MaterialDialog resultDialog;
     private final static int FTP_CONNECT_FAIL = 3;
     private final static int PICUPLOAD_SUCCESS = 0;
@@ -115,7 +112,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
     private int itemPosition;
     private AlertDialog inputDialog;
     private HashMap<Integer, String> map = new HashMap<>();
-    private DownUtils downUtils;
+    private FTPUtils FTPUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -381,7 +378,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
 //            public void run() {
 //                super.run();
 //                if (MyApp.totoalTask.size() == 0) {
-//                    downUtils.exitServer();
+//                    FTPUtils.exitServer();
 //                }
 //            }
 //        }.start();
@@ -502,7 +499,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                 Thread tempThread = new Thread() {
                     @Override
                     public void run() {
-                         String remoteName = UploadUtils.getRomoteName(pid);
+                         String remoteName = UploadUtils.getChukuRemoteName(pid);
                         String notifyName = remoteName.substring(remoteName.lastIndexOf("_") + 1);
                         final File upFile = new File(sFile, "dyj_img/" + remoteName + ".jpg");
                         FileOutputStream fio = null;
@@ -523,33 +520,33 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                             boolean isStop = false;
                             int counts = 0;
                             while (!isStop) {
-                                remoteName = UploadUtils.getRomoteName3(pid);
+                                remoteName = UploadUtils.getChukuRemoteName(pid);
                                 notifyName = remoteName.substring(remoteName.lastIndexOf("_") + 1);
                                 String remotePath ;
                                 String msg = "";
                                 try {
                                     FileInputStream fis = new FileInputStream(upFile);
                                     boolean upSuccess = false;
-                                    DownUtils downUtils=null;
+                                    FTPUtils ftpUtil =null;
                                     String mUrl ;
                                     if ("101".equals(MyApp.id)) {
                                         mUrl = FtpManager.mainAddress;
-                                        downUtils = new DownUtils(mUrl, 21, CaigoudanTakePicActivity.username,  CaigoudanTakePicActivity.password,true);
+                                        ftpUtil = new FTPUtils(mUrl, 21,  FtpManager.mainName,FtpManager.mainPwd);
 //                                       mUrl= "192.168.10.65";
-//                                        downUtils=  new DownUtils(mUrl, 21, "zjy", "123456");
+//                                        ftpUtil=  new ftpUtil(mUrl, 21, "zjy", "123456");
                                         remotePath = UploadUtils.KF_DIR + remoteName + ".jpg";
                                     } else {
                                         mUrl = MyApp.ftpUrl;
-                                        downUtils = new DownUtils(mUrl, 21,FtpManager.ftpName,
+                                        ftpUtil = new FTPUtils(mUrl, 21,FtpManager.ftpName,
                                                 FtpManager.ftpPassword);
                                         remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
                                     }
-                                    downUtils.login(30);
+                                    ftpUtil.login(30);
                                     insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
                                     Log.e("zjy", "TakePic2Activity->run(): InsertPath==" + insertPath);
-                                    upSuccess = downUtils.upload(fis, remotePath);
-                                    downUtils.exitServer();
-                                    Log.e("zjy", "TakePic2Activity->run(): downUtils upSuccesss==" + upSuccess);
+                                    upSuccess = ftpUtil.upload(fis, remotePath);
+                                    ftpUtil.exitServer();
+                                    Log.e("zjy", "TakePic2Activity->run(): ftpUtil upSuccesss==" + upSuccess);
                                     if (upSuccess) {
                                         while (true) {
                                             //更新服务器信息
@@ -558,7 +555,6 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                                 notificationManager.cancel(finalId);
                                                 MyApp.totoalTask.remove(this);
                                                 map.remove(finalId);
-                                                MyApp.myLogger.writeInfo("background upload success：" + pid + "\t" + remoteName);
                                                 mHandler.obtainMessage(PICUPLOAD_SUCCESS).sendToTarget();
                                                 break;
                                             }
@@ -577,6 +573,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                                     msg = "插入图片信息失败,多次出现请联系后台";
                                                 }
                                             } catch (IOException e) {
+                                                MyApp.myLogger.writeError("takepic2 upload Exception:" +pid+"\t"+ remoteName+"-"+e.getMessage());
                                                 msg = "连接服务器失败,正在重试";
                                                 //                                mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
                                                 e.printStackTrace();
@@ -591,10 +588,12 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                             }
                                         }
                                     } else {
+                                        MyApp.myLogger.writeError("takepic2 upload false:" +pid+"\t"+ remoteName);
                                         Log.e("zjy", "TakePic2Activity->run(): storeFileFalse==" + remoteName);
                                     }
                                 } catch (IOException e) {
                                     e.printStackTrace();
+                                    MyApp.myLogger.writeError("takepic2 upload Exception:" +pid+"\t"+ remoteName+"-"+e.getMessage());
                                     changeNotificationMsg(builder, finalId, notifyName + "上传失败，正在重新上传", 0, pIntent);
                                 }
                                 try {

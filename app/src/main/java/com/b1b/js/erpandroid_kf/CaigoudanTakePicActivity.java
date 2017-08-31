@@ -17,9 +17,6 @@ import android.widget.ListView;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.Caigoudan;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.SoftKeyboardUtils;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,6 +29,10 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+
+import utils.MyToast;
+import utils.SoftKeyboardUtils;
+import utils.WebserviceUtils;
 
 public class CaigoudanTakePicActivity extends AppCompatActivity {
 
@@ -106,7 +107,6 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
                 builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        MyApp.myLogger.writeInfo("菜单拍照：" + which);
                         switch (which) {
                             case 0:
                                 Intent intent1 = new Intent(CaigoudanTakePicActivity.this, TakePicActivity.class);
@@ -139,6 +139,7 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 caigoudans.clear();
+                SoftKeyboardUtils.closeInputMethod(edPid, CaigoudanTakePicActivity.this);
                 final String partNo = edPartNo.getText().toString();
                 final String pid = edPid.getText().toString();
                 if (MyApp.id == null) {

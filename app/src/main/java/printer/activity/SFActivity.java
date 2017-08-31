@@ -14,6 +14,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.R;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import printer.entity.Yundan;
+import utils.SoftKeyboardUtils;
 
 public class SFActivity extends AppCompatActivity {
 
@@ -77,16 +79,30 @@ public class SFActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position,
                                     long id) {
+                if (position > yundanData.size()) {
+                    Log.e("zjy", "SFActivity->onItemClick(): noYundan==");
+                    return;
+                }
                 Intent intent = new Intent(SFActivity.this, SetYundanActivity.class);
                 Yundan item = (Yundan) parent.getItemAtPosition(position);
                 String goodInfos = "";
+                int n = 0;
                 for (int i = 0; i < yundanData.size(); i++) {
                     Yundan good = yundanData.get(i);
                     if (good.getPid().equals(item.getPid())) {
-                        goodInfos += good.getPartNo() + "&" + good.getCounts() + ",";
+                        String counts = good.getCounts();
+                        if (counts.equals("")) {
+                            counts = "null";
+                        }
+                        goodInfos += good.getPartNo() + "&" +counts  + "$";
+                        n++;
+                        if (n == 4) {
+                            break;
+                        }
                     }
                 }
-                goodInfos = goodInfos.substring(0, goodInfos.lastIndexOf(","));
+                Log.e("zjy", "SFActivity->onItemClick(): goodCounts==" + n);
+                goodInfos = goodInfos.substring(0, goodInfos.lastIndexOf("$"));
                 intent.putExtra("goodInfos", goodInfos);
                 intent.putExtra("client", item.getCustomer());
                 intent.putExtra("pid", item.getPid());
@@ -98,7 +114,30 @@ public class SFActivity extends AppCompatActivity {
     }
 
     public void myOnclick(View view) {
-        yundanData.clear();
+        switch (view.getId()) {
+            case R.id.sf_btnSFScan:
+                Intent intent = new Intent(SFActivity.this, CaptureActivity.class);
+                startActivityForResult(intent, 300);
+                break;
+            case R.id.sf_btnSFservice:
+
+                SoftKeyboardUtils.closeInputMethod(edPid,this);
+                yundanData.clear();
+                adapter.notifyDataSetChanged();
+                getYundanResult();
+                break;
+            case R.id.sf_btnSFdiaohuo:
+                Intent dhIntent = new Intent(SFActivity.this, SetYundanActivity.class);
+                dhIntent.putExtra("flag", "diaohuo");
+                dhIntent.putExtra("pid", "00000");
+                dhIntent.putExtra("times", "");
+                startActivity(dhIntent);
+                break;
+        }
+    }
+
+    private void getYundanResult() {
+
         new Thread() {
             @Override
             public void run() {
@@ -120,6 +159,17 @@ public class SFActivity extends AppCompatActivity {
         }.start();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 300&&resultCode==RESULT_OK) {
+            String pid = data.getStringExtra("result");
+            edPid.setText(pid);
+            yundanData.clear();
+            getYundanResult();
+        }
+    }
+
     private void getYundanList(String pid, String xh) throws IOException,
             XmlPullParserException, JSONException {
         SoapObject requestList = new SoapObject("http://tempuri.org/", "GetYunDanList");
@@ -139,8 +189,8 @@ public class SFActivity extends AppCompatActivity {
         JSONObject object = new JSONObject(soapList.toString());
         ArrayList<String> list = new ArrayList<>();
         JSONArray jArray = object.getJSONArray("表");
+        long time1 = System.currentTimeMillis();
         for (int i = 0; i < jArray.length(); i++) {
-
             JSONObject obj = jArray.getJSONObject(i);
             String sPid = obj.getString("PID");
             String createDate = obj.getString("制单日期");
@@ -169,8 +219,16 @@ public class SFActivity extends AppCompatActivity {
             yundan.setPartNo(partNo);
             yundan.setCounts(count);
             yundan.setPihao(pihao);
-            yundanData.add(yundan);
+            if (client.equals("")) {
+                yundanData.add(0, yundan);
+            } else {
+                yundanData.add(yundan);
+            }
+//            yundanData.add(0, yundan);
+//            yundanData.add(yundan);
         }
+        long time2 = System.currentTimeMillis();
+        Log.e("zjy", "SFActivity->getYundanList(): time==" +( time2-time1));
         mHandler.sendEmptyMessage(0);
     }
 

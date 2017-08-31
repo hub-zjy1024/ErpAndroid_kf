@@ -1,9 +1,10 @@
-package com.b1b.js.erpandroid_kf.utils;
+package utils;
 
 import android.util.Log;
 
 import org.apache.commons.net.ProtocolCommandEvent;
 import org.apache.commons.net.ProtocolCommandListener;
+import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPFile;
@@ -19,7 +20,7 @@ import java.io.OutputStream;
  Created by 张建宇 on 2017/6/29.
  基于commons-net3.6.jar */
 
-public class DownUtils {
+public class FTPUtils {
     private FTPClient mClient = null;
     private String hostname;
     private int port;
@@ -27,6 +28,11 @@ public class DownUtils {
     private String password;
     private ProtocolCommandListener listener;
     public static final String DEF_FTP="172.16.6.22";
+    public static final String ftpName = "dyjftp";
+    public static final String ftpPassword = "dyjftp";
+    public static final String mainAddress = "172.16.6.22";
+    public static final String mainName = "NEW_DYJ";
+    public static final String mainPwd = "GY8Fy2Gx";
     /**
      调试开关，默认关闭。开启时自动打印ftp命令和回复结果
      */
@@ -39,7 +45,7 @@ public class DownUtils {
      @param username
      @param password
      */
-    public DownUtils(String hostname, int port, String username, String password) {
+    public FTPUtils(String hostname, int port, String username, String password) {
         this(hostname, port, username, password, false);
     } //登录 /** * FTP登陆 * @throws IOException */
 
@@ -51,7 +57,7 @@ public class DownUtils {
      @param password
      @param isDebug  调试模式
      */
-    public DownUtils(String hostname, int port, String username, String password, boolean isDebug) {
+    public FTPUtils(String hostname, int port, String username, String password, boolean isDebug) {
         this.hostname = hostname;
         this.port = port;
         this.username = username;
@@ -62,13 +68,13 @@ public class DownUtils {
             listener = new ProtocolCommandListener() {
                 @Override
                 public void protocolCommandSent(ProtocolCommandEvent event) {
-                    Log.e("zjy", "DownUtils->protocolCommandSent(): sendMsg==" + event.getMessage());
+                    Log.e("zjy", "FTPUtils->protocolCommandSent(): sendMsg==" + event.getMessage());
                 }
 
                 @Override
                 public void protocolReplyReceived(ProtocolCommandEvent event) {
                     int replyCode = event.getReplyCode();
-                    Log.e("zjy", "DownUtils->protocolReplyReceived(): replyCode==" + event.getMessage());
+                    Log.e("zjy", "FTPUtils->protocolReplyReceived(): replyCode==" + event.getMessage());
                 }
             };
             mClient.addProtocolCommandListener(listener);
@@ -88,7 +94,7 @@ public class DownUtils {
      @throws IOException
      */
     public synchronized void login(int timeout) throws IOException {
-        Log.e("zjy", "DownUtils->login(): start login==");
+        Log.e("zjy", "FTPUtils->login(): start login==");
         //ftp传输超时
         mClient.setDataTimeout(timeout * 1000);
         //ftp命令响应超时
@@ -99,13 +105,14 @@ public class DownUtils {
 //        只能在连接成功之后使用
         //ftp命令响应超时
 //        mClient.setSoTimeout(timeout * 1000);
-        mClient.setControlEncoding("UTF-8");
-        mClient.setControlKeepAliveTimeout(2);
+//        mClient.setControlEncoding("UTF-8");
+//        mClient.setControlKeepAliveTimeout(2);
         if (!mClient.login(username, password))
             throw new IOException("FTP登陆失败，请检测登陆用户名和密码是否正确!");
         //只能在登陆成功后设置下面的才有效果
         //根据服务器的设置更改
         mClient.setFileType(FTPClient.BINARY_FILE_TYPE);
+        mClient.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
         //必须设置
         mClient.enterLocalPassiveMode();
     }
@@ -183,7 +190,7 @@ public class DownUtils {
      @return
      @throws Exception
      */
-    public boolean upload(String localFilePath, String remoteFilePath) throws Exception {
+    public boolean upload(String localFilePath, String remoteFilePath) throws IOException {
         boolean state = false;
         File localFile = new File
                 (localFilePath);
@@ -199,7 +206,7 @@ public class DownUtils {
      @throws Exception
      */
     public boolean upload
-    (File localFile, String remoteFilePath) throws Exception {
+    (File localFile, String remoteFilePath) throws IOException {
         boolean state = false;
         if (!localFile.isFile() || localFile.length() == 0) {
             return state;
@@ -224,7 +231,7 @@ public class DownUtils {
             boolean dirExists = fileExists(path);
             if (!dirExists) {
                 mClient.makeDirectory(path);
-                Log.e("zjy", "DownUtils->upload(): makeDir==" + path);
+                Log.e("zjy", "FTPUtils->upload(): makeDir==" + path);
             }
         }
         return mClient.storeFile(remoteFilePath, localIn);

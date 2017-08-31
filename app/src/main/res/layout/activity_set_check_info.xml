@@ -46,8 +46,7 @@
             android:id="@+id/setcheckinfo_commit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@null"
-            android:drawableLeft="@mipmap/gc_deal_sign_ok"
+
             android:enabled="true"
             android:text="通过"/>
 

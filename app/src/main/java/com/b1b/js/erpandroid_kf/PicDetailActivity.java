@@ -12,10 +12,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.b1b.js.erpandroid_kf.myview.ZoomImageView;
-import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import utils.MyImageUtls;
 
 public class PicDetailActivity extends AppCompatActivity {
 

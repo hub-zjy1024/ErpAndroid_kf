@@ -1,4 +1,4 @@
-<resources>
+<resources  xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -20,9 +20,21 @@
         <item name="android:gravity">center</item>
         <item name="android:textSize">25sp</item>
         <item name="android:textColor">@color/color_white</item>
+      <!--  android:id="@+id/caigouedit_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@color/bijia_title_background"
+        android:gravity="center"
+        android:text="运单打印"
+        android:textColor="@color/color_white"
+        android:textSize="20sp"-->
     </style>
     <style name="AppSplash" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@mipmap/appsplash</item>
+    </style>
+    <style name="lrPadding">
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingRight">10dp</item>
     </style>
 
     <style name="dialog_coustom" parent="android:Theme.Dialog">
@@ -39,7 +51,10 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">35dp</item>
     </style>
-
+    <style name="zjy_metiarial_ed">
+    </style>
+  <!--app:met_clearButton="true"<
+        app:met_primaryColor="@color/colorPrimary"&ndash;&gt;-->
     <style name="anim_popup_dir">
         <item name="android:windowEnterAnimation">@anim/slide_in</item>
         <item name="android:windowExitAnimation">@anim/slide_out</item>

@@ -29,14 +29,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-import com.b1b.js.erpandroid_kf.utils.DownUtils;
-import com.b1b.js.erpandroid_kf.utils.FtpManager;
-import com.b1b.js.erpandroid_kf.utils.ImageWaterUtils;
-import com.b1b.js.erpandroid_kf.utils.MyImageUtls;
-import com.b1b.js.erpandroid_kf.utils.MyToast;
-import com.b1b.js.erpandroid_kf.utils.UploadUtils;
-import com.b1b.js.erpandroid_kf.utils.WebserviceUtils;
-
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
@@ -49,6 +41,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
+import utils.FTPUtils;
+import utils.FtpManager;
+import utils.ImageWaterUtils;
+import utils.MyImageUtls;
+import utils.MyToast;
+import utils.UploadUtils;
+import utils.WebserviceUtils;
 
 public class TakePicActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -68,7 +67,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     private ProgressDialog pd;
     private String pid;
     private int commitTimes = 0;
-    FtpManager ftp;
     private MaterialDialog resultDialog;
     private final static int FTP_CONNECT_FAIL = 3;
     private final static int PICUPLOAD_SUCCESS = 0;
@@ -146,11 +144,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         if (pid != null) {
             dialogPid.setText(pid);
         }
-        ftp = TakePicActivity.initFTP(getApplicationContext());
-        if (ftp == null) {
-            return;
-        }
-        connFTP(mHandler, FTP_CONNECT_FAIL);
         mOrientationListener = new OrientationEventListener(this,
                 SensorManager.SENSOR_DELAY_NORMAL) {
             @Override
@@ -241,40 +234,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    public static FtpManager initFTP( Context mContext) {
-        FtpManager manager;
-        Log.e("zjy", "TakePicActivity->initFTP(): id==" + MyApp.id);
-        if ("101".equals(MyApp.id)) {
-            manager = FtpManager.getFtpManager("NEW_DYJ", "GY8Fy2Gx", FtpManager.mainAddress, 21);
-        } else {
-            if ("".equals(MyApp.ftpUrl) || MyApp.ftpUrl == null) {
-                MyToast.showToast(mContext, "FTP地址获取失败，请重新启动程序");
-                return null;
-            } else {
-                manager = FtpManager.getFtpManager(FtpManager.ftpName, FtpManager.ftpPassword, MyApp.ftpUrl, 21);
-            }
-        }
-        return manager;
-    }
 
-    private void connFTP(final Handler handler, final int target) {
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                try {
-                    if (ftp != null) {
-                        ftp.connectAndLogin(30);
-                    } else {
-                        handler.sendEmptyMessage(target);
-                    }
-                } catch (IOException e) {
-                    handler.sendEmptyMessage(target);
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-    }
 
     /**
      默认使用最大的预览尺寸，以便于获取最清晰的预览画面(测试发现有些不兼容)
@@ -413,18 +373,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     protected void onDestroy() {
         super.onDestroy();
         releaseCamera();
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                try {
-                    if (ftp != null)
-                        ftp.exit();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
     }
 
     public static boolean checkPid(Context mContext, String pid) {
@@ -511,6 +459,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                     new Thread() {
                         @Override
                         public void run() {
+                            String remoteName = "";
                             try {
                                 //加水印后的图片
                                 Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicActivity.this, photo,
@@ -521,43 +470,40 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                                 //图片质量压缩到bao数组
                                 MyImageUtls.compressBitmapAtsize(TextBitmap, bao, 0.4f);
                                 final ByteArrayInputStream in = new ByteArrayInputStream(bao.toByteArray());
-                                String remoteName;
                                 String insertPath;
                                 //上传
                                 boolean isConn = false;
-                                DownUtils downUtils;
+                                FTPUtils ftpUtil;
                                 if (flag != null && flag.equals("caigou")) {
                                     remoteName = UploadUtils.createSCCGRemoteName(pid);
-                                    downUtils = new DownUtils(CaigoudanTakePicActivity.ftpAddress, 21, CaigoudanTakePicActivity.username,
+                                    ftpUtil = new FTPUtils(CaigoudanTakePicActivity.ftpAddress, 21, CaigoudanTakePicActivity.username,
                                             CaigoudanTakePicActivity.password);
-                                    downUtils.login();
-                                    String remotePath = "";
+                                    ftpUtil.login();
+                                    String remotePath  = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
                                     if ("101".equals(MyApp.id)) {
                                         remotePath = UploadUtils.CG_DIR + remoteName + ".jpg";
-                                    } else {
-                                        remotePath = UploadUtils.getCaigouDir(remoteName + ".jpg");
                                     }
-                                    isConn = downUtils.upload(in, remotePath);
+                                    isConn = ftpUtil.upload(in, remotePath);
                                     insertPath = UploadUtils.createInsertPath(CaigoudanTakePicActivity.ftpAddress, remotePath);
                                 } else {
-                                    remoteName = UploadUtils.getRomoteName(pid);
+                                    remoteName = UploadUtils.getChukuRemoteName(pid);
                                     String remotePath;
                                     String mUrl;
                                     if ("101".equals(MyApp.id)) {
                                         mUrl = FtpManager.mainAddress;
-                                        downUtils = new DownUtils(FtpManager.mainAddress, 21, "NEW_DYJ", "GY8Fy2Gx");
-                                        remotePath = UploadUtils.KF_DIR+ "newdyj/"+remoteName + ".jpg";
+                                        ftpUtil = new FTPUtils(FtpManager.mainAddress, 21, FtpManager.mainName,FtpManager.mainPwd);
+                                        remotePath = UploadUtils.KF_DIR+remoteName + ".jpg";
                                     } else {
                                         mUrl = MyApp.ftpUrl;
-                                        downUtils = new DownUtils(mUrl, 21, FtpManager.ftpName, FtpManager.ftpPassword);
+                                        ftpUtil = new FTPUtils(mUrl, 21, FtpManager.ftpName, FtpManager.ftpPassword);
                                         remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
                                     }
-                                    downUtils.login();
+                                    ftpUtil.login();
                                     insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
-                                    isConn = downUtils.upload(in, remotePath);
+                                    isConn = ftpUtil.upload(in, remotePath);
                                     in.close();
                                 }
-                                downUtils.exitServer();
+                                ftpUtil.exitServer();
                                 Log.e("zjy", "TakePicActivity.java->run(): insertPath==" + insertPath);
                                 if (isConn) {
                                     //更新服务器信息
@@ -575,13 +521,18 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                                                 .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "CKTZ");
                                         Log.e("zjy", "TakePicActivity.java->run(): setInsert==" + result);
                                     }
+                                    if (result.equals("操作成功")) {
+                                        MyApp.myLogger.writeInfo("takepic success:" +pid+"\t"+ remoteName);
+                                    }
                                     Message msg = mHandler.obtainMessage(PICUPLOAD_SUCCESS);
                                     msg.obj = result;
                                     mHandler.sendMessage(msg);
                                 } else {
                                     mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
+                                    MyApp.myLogger.writeError("takepic upload false:" +pid+"\t"+ remoteName);
                                 }
                             } catch (IOException e) {
+                                MyApp.myLogger.writeError("takepic upload Exception:" +pid+"\t"+ remoteName+"-"+e.getMessage());
                                 mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
                                 e.printStackTrace();
                             } catch (XmlPullParserException e) {
