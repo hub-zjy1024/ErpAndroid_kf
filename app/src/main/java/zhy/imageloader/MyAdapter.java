@@ -46,7 +46,7 @@ public class MyAdapter extends CommonAdapter<String> {
         final ImageView mImageView = helper.getView(R.id.id_item_image);
 //        File file = new File(mDirPath + "/" + item);
 //        Picasso.with(mContext).load(file).resize(100,100);
-        final ImageView mSelect = helper.getView(R.id.id_item_select);
+        final ImageView flagImageView = helper.getView(R.id.id_item_select);
         mImageView.setColorFilter(null);
         //设置ImageView的点击事件
         mImageView.setOnClickListener(new OnClickListener() {
@@ -57,13 +57,13 @@ public class MyAdapter extends CommonAdapter<String> {
                 if (mSelectedImage.contains(mDirPath + "/" + item)) {
                     mSelectedImage.remove(mDirPath + "/" + item);
                     Log.e("zjy", "MyAdapter->onClick(): select img==" + item);
-                    mSelect.setImageResource(R.drawable.picture_unselected);
+                    flagImageView.setImageResource(R.drawable.picture_unselected);
                     mImageView.setColorFilter(null);
                 } else
                 // 未选择该图片
                 {
                     mSelectedImage.add(mDirPath + "/" + item);
-                    mSelect.setImageResource(R.drawable.pictures_selected);
+                    flagImageView.setImageResource(R.drawable.pictures_selected);
                     mImageView.setColorFilter(Color.parseColor("#77000000"));
                 }
 
@@ -74,10 +74,10 @@ public class MyAdapter extends CommonAdapter<String> {
          * 已经选择过的图片，显示出选择过的效果
          */
         if (mSelectedImage.contains(mDirPath + "/" + item)) {
-            mSelect.setImageResource(R.drawable.pictures_selected);
+            flagImageView.setImageResource(R.drawable.pictures_selected);
             mImageView.setColorFilter(Color.parseColor("#77000000"));
         } else {
-            mSelect.setImageResource(R.drawable.picture_unselected);
+            flagImageView.setImageResource(R.drawable.picture_unselected);
             mImageView.setColorFilter(null);
         }
 

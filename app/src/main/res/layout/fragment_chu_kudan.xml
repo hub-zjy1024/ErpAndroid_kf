@@ -32,7 +32,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@null"
+            android:layout_margin="5dp"
+            style="@style/zjy_button_nomarl_alpha100"
             android:drawableLeft="@mipmap/map_ic_global_search_textbox_normal"
             android:text="搜索"/>
     </LinearLayout>
@@ -98,9 +99,7 @@
 
         <Button
             android:id="@+id/chukudan_cleartime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
+            style="@style/zjy_button_nomarl_alpha100"
             android:drawableLeft="@drawable/btn_clear"
             android:text="清除时间"/>
 

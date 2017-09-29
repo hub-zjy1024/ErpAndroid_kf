@@ -8,6 +8,7 @@
     <color name="color_black">#000000</color>
     <color name="main_ed_primaryColor">#060dfa</color>
     <color name="main_ed_baseColor">#7c12ec</color>
+    <color name="alertcolor_bg_whight">#000fff</color>
     <color name="main_ed_floatingColor">#801515</color>
     <color name="cardview_bg">#b0b2ea</color>
     <color name="kucunfb_isfabu">#a60609</color>

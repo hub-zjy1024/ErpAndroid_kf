@@ -99,6 +99,10 @@
         </activity>
         <activity android:name="printer.activity.ToolbarTestActivity">
         </activity>
+        <activity android:name=".CaigouYanhuoActivity"/>
+        <activity android:name=".YanhuoCheckActivity"/>
+        <activity android:name=".AboutActivity">
+        </activity>
     </application>
 
 </manifest>

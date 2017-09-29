@@ -1,5 +1,6 @@
 package zhy.imageloader;
 
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -30,6 +31,7 @@ public class ListImageDirPopupWindow extends BasePopupWindowForListView<ImageFlo
                 R.layout.list_dir_item) {
             @Override
             public void convert(ViewHolder helper, ImageFloder item) {
+                Log.e("zjy", "ListImageDirPopupWindow->convert(): dir.name==" + item.getName());
                 helper.setText(R.id.id_dir_item_name, item.getName());
                 helper.setImageByUrl(R.id.id_dir_item_image,
                         item.getFirstImagePath());

@@ -26,8 +26,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:hint="请输入打印机地址"
-            android:visibility="gone"
-            android:maxLines="1"/>
+            android:maxLines="1"
+            android:visibility="gone"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -44,37 +44,45 @@
 
     </LinearLayout>
 
+    <ListView
+        android:id="@+id/pre_chuku_detail_lv"
+        style="zjy_lv_divider"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <Button
             android:id="@+id/pre_chuku_detail_print"
+            style="@style/zjy_button_nomarl_alpha100"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_margin="10dp"
             android:layout_weight="1"
             android:enabled="false"
             android:text="打印"/>
 
         <Button
             android:id="@+id/pre_chuku_detail_reconnect"
+            style="@style/zjy_button_nomarl_alpha100"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_margin="10dp"
             android:layout_weight="1"
             android:text="重连打印机"/>
+
         <Button
             android:id="@+id/pre_chuku_detail_set"
+            style="@style/zjy_button_nomarl_alpha100"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_margin="10dp"
             android:layout_weight="1"
             android:text="配置地址"/>
 
     </LinearLayout>
-
-    <ListView
-        android:id="@+id/pre_chuku_detail_lv"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"/>
 
 
 </LinearLayout>

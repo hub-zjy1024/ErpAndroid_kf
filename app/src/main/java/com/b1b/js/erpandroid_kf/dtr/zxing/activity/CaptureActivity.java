@@ -53,6 +53,7 @@ import java.lang.reflect.Field;
 public final class CaptureActivity extends Activity implements SurfaceHolder.Callback {
 
     private static final String TAG = CaptureActivity.class.getSimpleName();
+    public static final int REQ_CODE = 300;
 
     private com.b1b.js.erpandroid_kf.dtr.zxing.camera.CameraManager cameraManager;
     private CaptureActivityHandler handler;
@@ -206,7 +207,8 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             // Creating the handler starts the preview, which can also throw data
             // RuntimeException.
             if (handler == null) {
-                handler = new CaptureActivityHandler(this, cameraManager, DecodeThread.ALL_MODE);
+//                handler = new CaptureActivityHandler(this, cameraManager, DecodeThread.ALL_MODE);
+                handler = new CaptureActivityHandler(this, cameraManager, DecodeThread.BARCODE_MODE);
             }
 
             initCrop();

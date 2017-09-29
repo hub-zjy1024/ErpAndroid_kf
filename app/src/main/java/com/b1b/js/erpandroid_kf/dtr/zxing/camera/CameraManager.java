@@ -16,8 +16,6 @@
 
 package com.b1b.js.erpandroid_kf.dtr.zxing.camera;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.graphics.Point;
 import android.hardware.Camera;
@@ -27,6 +25,8 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.camera.open.OpenCameraInterface;
+
+import java.io.IOException;
 
 /**
  * This object wraps the Camera service object and expects to be the only one

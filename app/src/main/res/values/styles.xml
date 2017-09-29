@@ -75,6 +75,25 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
     </style>
+    <style name="zjy_button_nomarl_alpha100" parent="Base.Widget.AppCompat.Button">
+        <item name="android:background">@drawable/btn_selector</item>
+        <item name="android:minHeight">35dp</item>
+        <item name="android:minWidth">60dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">@dimen/btn_padding</item>
+    </style>
+    <style name="zjy_button_nomarl_alpha100_large" parent="Base.Widget.AppCompat.Button">
+        <item name="android:background">@drawable/btn_selector</item>
+        <item name="android:minHeight">40dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">@dimen/btn_padding</item>
+    </style>
+    <style name="zjy_lv_divider">
+        <item name="android:dividerHeight">2dp</item>
+        <item name="android:divider">@drawable/divider</item>
+    </style>
 
     <declare-styleable name="WarpLinearLayout">
         <attr name="grivate" format="enum"><!--对齐方式 !-->

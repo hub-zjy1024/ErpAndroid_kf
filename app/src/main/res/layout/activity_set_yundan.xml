@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_set_yundan"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,16 +10,16 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="10dp">
 
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
 
             <TextView
-
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="单据号:"/>
@@ -27,7 +28,42 @@
                 android:id="@+id/activity_set_yundan_tv_pid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/color_black"
                 android:text="单据号"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginLeft="8dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="包裹数："/>
+
+                <EditText
+                    android:id="@+id/activity_set_yundan_ed_bags"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:text="1"/>
+
+                <Spinner
+                    android:id="@+id/activity_set_yundan_spi_bags"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content">
+
+                </Spinner>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="子母单必选"
+                    android:textColor="#ea6969"
+                    />
+            </LinearLayout>
+
+
         </LinearLayout>
 
         <LinearLayout
@@ -64,6 +100,7 @@
                     android:layout_height="wrap_content"
                     android:hint="寄件电话"
                     android:inputType="number"
+                    android:maxLines="1"
                     android:textColor="#000000"/>
             </LinearLayout>
 
@@ -124,6 +161,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:hint="收件人电话"
+                    android:maxLines="1"
                     android:inputType="number"
                     android:textColor="#000000"/>
             </LinearLayout>
@@ -156,53 +194,57 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center">
+            android:gravity="center"
+            android:visibility="gone">
+
             <TextView
                 android:id="@+id/activity_set_yundan_cbo_diaohuo"
                 android:layout_width="wrap_content"
-                android:visibility="gone"
                 android:layout_height="wrap_content"
                 android:text="调货去向："/>
 
             <Spinner
                 android:id="@+id/activity_set_yundan_spi_diaohuo"
                 android:layout_width="match_parent"
-                android:visibility="gone"
                 android:layout_height="wrap_content">
 
             </Spinner>
         </LinearLayout>
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="包裹数："/>
+                android:text="月结账号："/>
 
             <EditText
-                android:id="@+id/activity_set_yundan_ed_bags"
-                android:layout_width="50dp"
+                android:id="@+id/activity_set_yundan_ed_account"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:hint="月结账号"
                 android:inputType="number"
-                android:text="1"/>
-
-            <Spinner
-                android:id="@+id/activity_set_yundan_spi_bags"
-                android:layout_width="80dp"
-                android:layout_height="wrap_content">
-
-            </Spinner>
-
-            <TextView
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:text="子母单必选"
-                android:textColor="#ea6969"
                 />
-        </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="10dp"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="付款方:"/>
 
+                <TextView
+                    android:id="@+id/activity_set_yundan_tv_payby"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/alertcolor_bg_whight"/>
+            </LinearLayout>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -315,10 +357,10 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingBottom="10dp"
+            android:paddingTop="10dp">
 
             <RadioGroup
                 android:layout_width="wrap_content"
@@ -329,8 +371,8 @@
                     android:id="@+id/activity_set_yundan_rdo_210"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="210格式"
-                    android:checked="true"/>
+                    android:checked="true"
+                    android:text="210格式"/>
 
                 <RadioButton
                     android:id="@+id/activity_set_yundan_rdo_150"
@@ -342,17 +384,16 @@
 
             <Button
                 android:id="@+id/activity_set_yundan_btnCommit"
-                android:layout_width="wrap_content"
+                style="@style/zjy_button_nomarl_alpha100"
                 android:layout_marginLeft="10dp"
-                android:layout_height="wrap_content"
                 android:text="下单并打印"/>
 
             <Button
                 android:id="@+id/activity_set_yundan_btnCommit1"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:text="打印150格式"/>
+                android:text="打印150格式"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/activity_set_yundan_btnReview"
@@ -369,15 +410,19 @@
 
             <Button
                 android:id="@+id/activity_set_yundan_btnReprint"
+                style="@style/zjy_button_nomarl_alpha100"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
+
                 android:enabled="false"
                 android:text="重新打印"/>
 
             <Button
                 android:id="@+id/activity_set_yundan_btnReInsert"
+                style="@style/zjy_button_nomarl_alpha100"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
                 android:enabled="true"
                 android:text="重新插入回单信息"/>
 
@@ -389,8 +434,62 @@
                 android:visibility="visible"/>
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp">
+
+            <Button
+                android:id="@+id/activity_set_yundan_btn_printchukudan"
+                style="@style/zjy_button_nomarl_alpha100"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="打印出库单"/>
+            <CheckBox
+                android:layout_marginLeft="25dp"
+                android:id="@+id/activity_set_yundan_cbo_addmore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前运单号关联到其他单据"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/activity_set_yundan_container_addmore"
+            android:layout_width="match_parent"
+            android:visibility="gone"
+            android:layout_height="wrap_content">
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/activity_set_yundan_ed_morepid"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                app:met_clearButton="true"
+                app:met_primaryColor="@color/colorPrimary"
+                android:inputType="number"
+                android:hint="其他单据号"/>
+
+            <Button
+                android:id="@+id/activity_set_yundan_btn_addmore"
+                android:layout_marginLeft="@dimen/default_padding_bottom"
+                style="@style/zjy_button_nomarl_alpha100"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="关联"/>
+            <Button
+                android:id="@+id/activity_set_yundan_btn_scan"
+                android:layout_marginLeft="@dimen/default_padding_bottom"
+                style="@style/zjy_button_nomarl_alpha100"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="扫码"/>
+
+        </LinearLayout>
         <TextView
             android:id="@+id/activity_set_yundan_tv_orderid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/activity_set_yundan_tv_insertinfo_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="18sp"/>

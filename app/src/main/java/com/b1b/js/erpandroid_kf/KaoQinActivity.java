@@ -49,6 +49,7 @@ public class KaoQinActivity extends AppCompatActivity {
         inputId.requestFocus();
         Button btnSaixuan = (Button) findViewById(R.id.kq_saixuan);
         inputDate.setText(getCurrentDate());
+        inputId.setText(MyApp.id);
         adapter = new KqAdapter(data, KaoQinActivity.this, R.layout.kaoqin_lvitems);
         listView.setAdapter(adapter);
         btnSaixuan.setOnClickListener(new View.OnClickListener() {
@@ -83,27 +84,6 @@ public class KaoQinActivity extends AppCompatActivity {
     }
 
     private void initData(String[] arr) {
-//        new MyAsyncTask(new TaskCallback() {
-//            @Override
-//            public void callback(String list) {
-//                if (list != null) {
-//                    List<KaoqinInfo> kqList = null;
-//                    try {
-//                        kqList = MyJsonUtils.getKaoQinList(list);
-//                        SoftKeyboardUtils.closeInputMethod(inputId, KaoQinActivity.this);
-//                        data.clear();
-//                        data.addAll(kqList);
-//                        adapter.notifyDataSetChanged();
-//                        MyToast.showToast(KaoQinActivity.this, "查询到" + kqList.size() + "条考勤记录");
-//                    } catch (JSONException e) {
-//                        MyToast.showToast(KaoQinActivity.this, "查询条件有误");
-//                        e.printStackTrace();
-//                    }
-//                } else {
-//                    MyToast.showToast(KaoQinActivity.this, "连接服务器失败，请检查网络");
-//                }
-//            }
-//        }).execute(arr);
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("month", arr[0]);
         map.put("uid", arr[1]);

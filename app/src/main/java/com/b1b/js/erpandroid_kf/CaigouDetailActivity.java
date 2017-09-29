@@ -500,7 +500,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
         properties.put("pid", pid);
         SoapObject req = WebserviceUtils.getRequest(properties, "GetHeTongFileInfo");
-        SoapObject res = WebserviceUtils.getSoapObjResponse(req, SoapEnvelope.VER11, WebserviceUtils.MartService, 20 * 1000);
+        SoapObject res = WebserviceUtils.getSoapObjResponse(req, SoapEnvelope.VER11, WebserviceUtils.MartService,  WebserviceUtils.DEF_TIMEOUT);
         String result = res.getPropertyAsString("GetHeTongFileInfoResult");
         Log.e("zjy", "CaigouDetailActivity->getHetongInfo(): result==" + result);
         if (result.equals("anyType{}")) {

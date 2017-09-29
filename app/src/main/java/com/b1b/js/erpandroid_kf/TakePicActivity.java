@@ -10,9 +10,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -37,6 +37,8 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -48,6 +50,7 @@ import utils.MyImageUtls;
 import utils.MyToast;
 import utils.UploadUtils;
 import utils.WebserviceUtils;
+import utils.camera.AutoFoucusMgr;
 
 public class TakePicActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -64,6 +67,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     private boolean isPreview = true;
     private Bitmap photo;
     private List<Camera.Size> picSizes;
+    AutoFoucusMgr auto;
     private ProgressDialog pd;
     private String pid;
     private int commitTimes = 0;
@@ -166,7 +170,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         //获取surfaceholder
         mHolder = surfaceView.getHolder();
         mHolder.setKeepScreenOn(true);
-        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         //添加SurfaceHolder回调
         if (mHolder != null) {
             mHolder.addCallback(new SurfaceHolder.Callback() {
@@ -186,23 +189,24 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                     camera.setDisplayOrientation(getPreviewDegree(TakePicActivity.this));
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = camera.getParameters();
-                    String brand = Build.BRAND;
-                    if (brand != null) {
-                        if (brand.toUpperCase().equals("HONOR")) {
-                            container.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    camera.autoFocus(null);
-                                }
-                            });
-                        } else {
-                            setAutoFoucs(parameters);
-                        }
-                    }
                     sp = getSharedPreferences("cameraInfo", 0);
                     try {
                         // 设置用于显示拍照影像的SurfaceHolder对象
                         camera.setPreviewDisplay(holder);
+                        Camera.Size previewSize = parameters.getPreviewSize();
+                        int width1 = previewSize.width;
+                        int height1 = previewSize.height;
+                        int sw = getWindowManager().getDefaultDisplay().getWidth();
+                        int sh = getWindowManager().getDefaultDisplay().getHeight();
+                        MyApp.myLogger.writeInfo("camera screen:" + sw + "\t" + sh);
+                        MyApp.myLogger.writeInfo("camera def:" + width1 + "\t" + height1);
+                        Log.e("zjy", "TakePicActivity->surfaceCreated(): camera.preview==" + camera.getParameters()
+                                .getPreviewSize().width + "\t" + camera.getParameters().getPreviewSize().height
+                        );
+                        Point finalSize = getSuitablePreviewSize(parameters, sw, sh);
+                        if (finalSize != null) {
+                            parameters.setPreviewSize(finalSize.x, finalSize.y);
+                        }
                         //初始化操作在开始预览之前完成
                         if (sp.getInt("width", -1) != -1) {
                             int width = sp.getInt("width", -1);
@@ -214,6 +218,33 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                             showSizeChoiceDialog(parameters);
                         }
                         camera.startPreview();
+                        //                        String brand = Build.BRAND;
+                        //                        if (brand != null) {
+                        //                            if (brand.toUpperCase().equals("HONOR")) {
+                        //                                container.setOnClickListener(new View.OnClickListener() {
+                        //                                    @Override
+                        //                                    public void onClick(View v) {
+                        //                                        camera.autoFocus(null);
+                        //                                    }
+                        //                                });
+                        //                            } else {
+                        //                                setAutoFoucs(parameters);
+                        //                            }
+                        //                        }
+                        container.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                camera.autoFocus(new Camera.AutoFocusCallback() {
+                                    @Override
+                                    public void onAutoFocus(boolean success, Camera camera) {
+                                        if (success) {
+                                            camera.cancelAutoFocus();
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        auto = new AutoFoucusMgr(camera);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -228,6 +259,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
 
                 @Override
                 public void surfaceDestroyed(SurfaceHolder holder) {
+                    auto.stop();
                     releaseCamera();
                 }
             });
@@ -235,25 +267,54 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     }
 
 
-
     /**
      默认使用最大的预览尺寸，以便于获取最清晰的预览画面(测试发现有些不兼容)
      @param parameters
      @deprecated
      */
-    private void setPreViewSize(Camera.Parameters parameters) {
-        List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();
-        Camera.Size firstSize = supportedPreviewSizes.get(0);
-        Camera.Size lastSize = supportedPreviewSizes.get(supportedPreviewSizes.size() - 1);
-        int firstWidth = firstSize.width;
-        int firstHeight = firstSize.height;
-        int lastWidth = lastSize.width;
-        int lastHeight = lastSize.height;
-        if (firstWidth > lastWidth) {
-            parameters.setPreviewSize(firstWidth, firstHeight);
-        } else {
-            parameters.setPreviewSize(lastWidth, lastHeight);
+    private Point getSuitablePreviewSize(Camera.Parameters parameters, int screenW, int screenH) {
+        Camera.Size defSize = parameters.getPreviewSize();
+        if (defSize.width == screenH && defSize.height == screenW) {
+            return null;
         }
+        List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();
+        Collections.sort(supportedPreviewSizes, new Comparator<Camera.Size>() {
+            @Override
+            public int compare(Camera.Size lhs, Camera.Size rhs) {
+                int px1 = lhs.width * lhs.height;
+                int px2 = rhs.width * rhs.height;
+                if (px1 > px2) {
+                    return -1;
+                } else if (px1 == px2) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            }
+        });
+        int tWidth = 0;
+        int tHeight = 0;
+        for (int i = 0; i < supportedPreviewSizes.size(); i++) {
+            Camera.Size tSize = supportedPreviewSizes.get(i);
+            if (screenH == tSize.width && tSize.height == screenW) {
+                tWidth = tSize.width;
+                tHeight = tSize.height;
+                return new Point(tWidth, tHeight);
+            } else if (screenH > tSize.width) {
+                float rate = tSize.width / (float) tSize.height;
+                float screenRate = screenH / (float) screenW;
+                float res = Math.abs(rate - screenRate);
+                if (res < 0.23) {
+                    tWidth = tSize.width;
+                    tHeight = tSize.height;
+                    break;
+                }
+            }
+        }
+        if (tWidth == 0 && tHeight == 0) {
+            return null;
+        }
+        return new Point(tWidth, tHeight);
     }
 
     /**
@@ -422,6 +483,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                             //显示工具栏
                             toolbar.setVisibility(View.VISIBLE);
                         } catch (OutOfMemoryError error) {
+                            MyApp.myLogger.writeError(TakePicActivity.class, "pic too large");
                             error.printStackTrace();
                             MyToast.showToast(TakePicActivity.this, "当前尺寸太大，请选择合适的尺寸");
                             if (photo != null && !photo.isRecycled()) {
@@ -447,6 +509,12 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             //提交
             case R.id.main_commit:
+                if (MyApp.ftpUrl == null || "".equals(MyApp.ftpUrl)) {
+                    if (!"101".equals(MyApp.id)) {
+                        MyToast.showToast(TakePicActivity.this, "读取上传地址失败，请重启程序");
+                        return;
+                    }
+                }
                 commitTimes++;
                 if (photo == null) {
                     MyToast.showToast(TakePicActivity.this, "请稍等，等图像稳定再上传");
@@ -476,10 +544,11 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                                 FTPUtils ftpUtil;
                                 if (flag != null && flag.equals("caigou")) {
                                     remoteName = UploadUtils.createSCCGRemoteName(pid);
-                                    ftpUtil = new FTPUtils(CaigoudanTakePicActivity.ftpAddress, 21, CaigoudanTakePicActivity.username,
+                                    ftpUtil = new FTPUtils(CaigoudanTakePicActivity.ftpAddress, 21, CaigoudanTakePicActivity
+                                            .username,
                                             CaigoudanTakePicActivity.password);
                                     ftpUtil.login();
-                                    String remotePath  = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
+                                    String remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
                                     if ("101".equals(MyApp.id)) {
                                         remotePath = UploadUtils.CG_DIR + remoteName + ".jpg";
                                     }
@@ -491,8 +560,9 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                                     String mUrl;
                                     if ("101".equals(MyApp.id)) {
                                         mUrl = FtpManager.mainAddress;
-                                        ftpUtil = new FTPUtils(FtpManager.mainAddress, 21, FtpManager.mainName,FtpManager.mainPwd);
-                                        remotePath = UploadUtils.KF_DIR+remoteName + ".jpg";
+                                        ftpUtil = new FTPUtils(FtpManager.mainAddress, 21, FtpManager.mainName, FtpManager
+                                                .mainPwd);
+                                        remotePath = UploadUtils.KF_DIR + remoteName + ".jpg";
                                     } else {
                                         mUrl = MyApp.ftpUrl;
                                         ftpUtil = new FTPUtils(mUrl, 21, FtpManager.ftpName, FtpManager.ftpPassword);
@@ -522,17 +592,18 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                                         Log.e("zjy", "TakePicActivity.java->run(): setInsert==" + result);
                                     }
                                     if (result.equals("操作成功")) {
-                                        MyApp.myLogger.writeInfo("takepic success:" +pid+"\t"+ remoteName);
+                                        MyApp.myLogger.writeInfo("takepic success:" + pid + "\t" + remoteName);
                                     }
                                     Message msg = mHandler.obtainMessage(PICUPLOAD_SUCCESS);
                                     msg.obj = result;
                                     mHandler.sendMessage(msg);
                                 } else {
                                     mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
-                                    MyApp.myLogger.writeError("takepic upload false:" +pid+"\t"+ remoteName);
+                                    MyApp.myLogger.writeError("takepic upload false:" + pid + "\t" + remoteName);
                                 }
                             } catch (IOException e) {
-                                MyApp.myLogger.writeError("takepic upload Exception:" +pid+"\t"+ remoteName+"-"+e.getMessage());
+                                MyApp.myLogger.writeError("takepic upload Exception:" + pid + "\t" + remoteName + "-" + e
+                                        .getMessage());
                                 mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
                                 e.printStackTrace();
                             } catch (XmlPullParserException e) {
@@ -557,7 +628,8 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         pd.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                photo.recycle();
+                if (photo != null)
+                    photo.recycle();
                 camera.startPreview();
             }
         });

@@ -122,8 +122,10 @@ public class SFActivity extends AppCompatActivity {
             case R.id.sf_btnSFservice:
 
                 SoftKeyboardUtils.closeInputMethod(edPid,this);
-                yundanData.clear();
-                adapter.notifyDataSetChanged();
+                if (yundanData.size() > 0) {
+                    yundanData.clear();
+                    adapter.notifyDataSetChanged();
+                }
                 getYundanResult();
                 break;
             case R.id.sf_btnSFdiaohuo:
@@ -189,7 +191,6 @@ public class SFActivity extends AppCompatActivity {
         JSONObject object = new JSONObject(soapList.toString());
         ArrayList<String> list = new ArrayList<>();
         JSONArray jArray = object.getJSONArray("表");
-        long time1 = System.currentTimeMillis();
         for (int i = 0; i < jArray.length(); i++) {
             JSONObject obj = jArray.getJSONObject(i);
             String sPid = obj.getString("PID");
@@ -219,16 +220,13 @@ public class SFActivity extends AppCompatActivity {
             yundan.setPartNo(partNo);
             yundan.setCounts(count);
             yundan.setPihao(pihao);
-            if (client.equals("")) {
-                yundanData.add(0, yundan);
-            } else {
-                yundanData.add(yundan);
-            }
-//            yundanData.add(0, yundan);
-//            yundanData.add(yundan);
+//            if (client.equals("")) {
+//                yundanData.add(0, yundan);
+//            } else {
+//                yundanData.add(yundan);
+//            }
+            yundanData.add(yundan);
         }
-        long time2 = System.currentTimeMillis();
-        Log.e("zjy", "SFActivity->getYundanList(): time==" +( time2-time1));
         mHandler.sendEmptyMessage(0);
     }
 

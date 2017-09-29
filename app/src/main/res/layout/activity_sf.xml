@@ -15,9 +15,9 @@
         />
 
     <LinearLayout
+        style="@style/lrPadding"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@style/lrPadding">
+        android:layout_height="wrap_content">
 
         <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/yundan_ed_pid"
@@ -26,7 +26,8 @@
             android:layout_weight="1"
             android:hint="单据号"
             android:inputType="number"
-            app:met_clearButton="true"/>
+            app:met_clearButton="true"
+            app:met_primaryColor="@color/colorPrimary"/>
 
         <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/yundan_ed_partno"
@@ -34,13 +35,15 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="型号"
-            app:met_clearButton="true"/>
+            app:met_clearButton="true"
+            app:met_primaryColor="@color/colorPrimary"/>
+
     </LinearLayout>
 
     <LinearLayout
+        style="@style/lrPadding"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        style="@style/lrPadding">
+        android:layout_height="wrap_content">
 
         <Button
             android:id="@+id/sf_btnSFservice"
@@ -59,15 +62,17 @@
             android:id="@+id/sf_btnSFdiaohuo"
             style="@style/zjy_button_light"
             android:layout_marginLeft="20dp"
-            android:visibility="gone"
             android:onClick="myOnclick"
-            android:text="调货单"/>
+            android:text="调货单"
+            android:visibility="gone"/>
     </LinearLayout>
 
 
     <ListView
         android:id="@+id/yundan_lv"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:divider="@drawable/divider"
+        android:dividerHeight="2dp"/>
 
 </LinearLayout>

@@ -4,5 +4,6 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="activity_title_height">40dp</dimen>
     <dimen name="activity_title_textsize">20sp</dimen>
-
+    <dimen name="bg_drable_padding">8dp</dimen>
+    <dimen name="btn_padding">8dp</dimen>
 </resources>

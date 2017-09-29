@@ -57,6 +57,7 @@ import utils.MyImageUtls;
 import utils.MyToast;
 import utils.UploadUtils;
 import utils.WebserviceUtils;
+import utils.camera.AutoFoucusMgr;
 
 public class CaigouTakePic2Activity extends AppCompatActivity implements View.OnClickListener {
 
@@ -115,6 +116,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
     private int itemPosition;
     private AlertDialog inputDialog;
     private HashMap<Integer, String> map = new HashMap<>();
+    private AutoFoucusMgr auto;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,18 +193,18 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = camera.getParameters();
                     String brand = Build.BRAND;
-                    if (brand != null) {
-                        if (brand.toUpperCase().equals("HONOR")) {
-                            container.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    camera.autoFocus(null);
-                                }
-                            });
-                        } else {
-                            setAutoFoucs(parameters);
-                        }
-                    }
+//                    if (brand != null) {
+//                        if (brand.toUpperCase().equals("HONOR")) {
+//                            container.setOnClickListener(new View.OnClickListener() {
+//                                @Override
+//                                public void onClick(View v) {
+//                                    camera.autoFocus(null);
+//                                }
+//                            });
+//                        } else {
+//                            setAutoFoucs(parameters);
+//                        }
+//                    }
                     //                    setPreViewSize(parameters);//默认为屏幕大小
                     sp = getSharedPreferences("cameraInfo", 0);
                     try {
@@ -219,6 +221,13 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                             showSizeChoiceDialog(parameters);
                         }
                         camera.startPreview();
+                        container.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                camera.autoFocus(null);
+                            }
+                        });
+                         auto = new AutoFoucusMgr(camera);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -233,6 +242,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
 
                 @Override
                 public void surfaceDestroyed(SurfaceHolder holder) {
+                    auto.stop();
                     releaseCamera();
                 }
             });

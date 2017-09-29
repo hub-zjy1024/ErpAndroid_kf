@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
     private final int SCANCODE_LOGIN_SUCCESS = 4;
     private final int NEWWORK_ERROR = 2;
     private final int FTPCONNECTION_ERROR = 5;
+    private String versionName="1";
     private AlertDialog permissionDialog;
     private Handler zHandler = new Handler() {
         @Override
@@ -269,7 +270,8 @@ public class MainActivity extends AppCompatActivity {
         try {
             info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
             code = info.versionCode;
-            tvVersion.setText("当前版本为：" + info.versionName);
+            versionName = info.versionName;
+            tvVersion.setText("当前版本为：" +versionName);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
@@ -293,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
                     login("101", "62105300");
 //                    login("2984", "000000");
                 }
+//                startActivity(new Intent(MainActivity.this, TakePicActivity.class));
             }
         });
         btnScancode.setOnClickListener(new View.OnClickListener() {
@@ -638,11 +641,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
-                PackageManager pm = getPackageManager();
                 String version = "";
                 try {
-                    PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
-                    version = info.versionName;
+                    version = versionName;
                     map.put("checkWord", "sdr454fgtre6e655t5rt4");
                     map.put("userID", name);
                     map.put("passWord", pwd);
@@ -670,8 +671,6 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     zHandler.sendEmptyMessage(NEWWORK_ERROR);
-                    e.printStackTrace();
-                } catch (PackageManager.NameNotFoundException e) {
                     e.printStackTrace();
                 }
             }

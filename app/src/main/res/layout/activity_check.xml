@@ -44,7 +44,7 @@
             android:layout_weight="1"
             android:hint="输入型号"
             android:maxLines="1"
-            android:singleLine="true"/>
+          />
 
     </LinearLayout>
 
@@ -53,6 +53,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
+        android:layout_marginBottom="10dp"
         android:orientation="horizontal">
 
         <RadioButton
@@ -72,18 +73,14 @@
 
         <Button
             android:id="@+id/check_btn_search"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
+            style="@style/zjy_button_nomarl_alpha100_large"
             android:drawableLeft="@mipmap/map_ic_global_search_textbox_normal"
             android:text="搜索"/>
 
         <Button
             android:id="@+id/check_btn_scancode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/zjy_button_nomarl_alpha100_large"
             android:layout_marginLeft="20dp"
-            android:background="@null"
             android:drawableLeft="@mipmap/qrcode"
             android:text="扫码"/>
     </RadioGroup>

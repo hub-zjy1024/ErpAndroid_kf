@@ -76,7 +76,7 @@ public class LogRecoder {
                     tag = "info";
                     break;
             }
-            writer.write(getFormatDateString(new Date()) + ":" + tag + ":" + logs + "\n");
+            writer.write(getFormatDateString(new Date()) + ":" + tag + ":" + logs + "\r\n");
             writer.flush();
             return true;
         } catch (FileNotFoundException e) {
@@ -90,13 +90,19 @@ public class LogRecoder {
     public synchronized boolean writeError(String logs) {
         return writeString(Type.TYPE_ERROR, logs);
     }
-
+    public synchronized boolean writeError(Class cla, String logs) {
+        return writeString(Type.TYPE_INFO, cla.getSimpleName() + ":" + logs);
+    }
     public synchronized boolean writeBug(String logs) {
         return writeString(Type.TYPE_BUG, logs);
     }
 
     public synchronized boolean writeInfo(String logs) {
         return writeString(Type.TYPE_INFO, logs);
+    }
+
+    public synchronized boolean writeInfo(Class cla, String logs) {
+        return writeString(Type.TYPE_INFO, cla.getSimpleName() + ":" + logs);
     }
 
     public synchronized void close() {
@@ -122,6 +128,28 @@ public class LogRecoder {
             File file = new File(root, logName);
             return file;
         }
+    }
+
+    public static String getErrorMsg(Throwable t) {
+        StringBuilder err = new StringBuilder();
+        err.append(t.toString());
+        err.append("\n");
+        String indent = "";
+        StackTraceElement[] stack = t.getStackTrace();
+        if (stack != null) {
+            for (int i = 0; i < stack.length; i++) {
+                err.append(indent);
+                err.append("\tat ");
+                err.append(stack[i].toString());
+                err.append("\n");
+            }
+        }
+        Throwable cause = t.getCause();
+        if (cause != null) {
+            err.append(indent);
+            err.append("Caused by: ");
+        }
+        return err.toString();
     }
 
 }

@@ -1,5 +1,6 @@
 package utils;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -21,6 +22,13 @@ public class DialogUtils {
         builder.setMessage(msg);
         builder.setCancelable(true);
         return builder.create();
+    }
+
+    public static void safeShowDialog(Context mContext, Dialog dialog) {
+        boolean finishing = ((Activity) mContext).isFinishing();
+        if (!finishing) {
+            dialog.show();
+        }
     }
 
     public static Dialog getSpAlert(Context mContext, String msg, String title, Dialog.OnClickListener ll, String lStr,

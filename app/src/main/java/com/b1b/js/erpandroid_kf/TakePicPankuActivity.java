@@ -48,6 +48,7 @@ import utils.MyImageUtls;
 import utils.MyToast;
 import utils.UploadUtils;
 import utils.WebserviceUtils;
+import utils.camera.AutoFoucusMgr;
 
 public class TakePicPankuActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -72,7 +73,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
     private final static int FTP_CONNECT_FAIL = 3;
     private final static int PICUPLOAD_SUCCESS = 0;
     private final static int PICUPLOAD_ERROR = 1;
-
+    AutoFoucusMgr auto;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -184,18 +185,18 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = camera.getParameters();
                     String brand = Build.BRAND;
-                    if (brand != null) {
-                        if (brand.toUpperCase().equals("HONOR")) {
-                            container.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    camera.autoFocus(null);
-                                }
-                            });
-                        } else {
-                            setAutoFoucs(parameters);
-                        }
-                    }
+//                    if (brand != null) {
+//                        if (brand.toUpperCase().equals("HONOR")) {
+//                            container.setOnClickListener(new View.OnClickListener() {
+//                                @Override
+//                                public void onClick(View v) {
+//                                    camera.autoFocus(null);
+//                                }
+//                            });
+//                        } else {
+//                            setAutoFoucs(parameters);
+//                        }
+//                    }
                     sp = getSharedPreferences("cameraInfo", 0);
                     try {
                         // 设置用于显示拍照影像的SurfaceHolder对象
@@ -211,6 +212,13 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
                             showSizeChoiceDialog(parameters);
                         }
                         camera.startPreview();
+                        container.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                camera.autoFocus(null);
+                            }
+                        });
+                         auto = new AutoFoucusMgr( camera);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -225,6 +233,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
 
                 @Override
                 public void surfaceDestroyed(SurfaceHolder holder) {
+                    auto.stop();
                     releaseCamera();
                 }
             });
@@ -477,6 +486,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
                                             .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "PK");
                                     Log.e("zjy", "TakePicActivity.java->run(): res==" + res);
                                     Message msg = mHandler.obtainMessage(PICUPLOAD_SUCCESS);
+                                    MyApp.myLogger.writeInfo("takepicpanku:\t" + pid);
                                     msg.obj = res;
                                     mHandler.sendMessage(msg);
                                 } else {

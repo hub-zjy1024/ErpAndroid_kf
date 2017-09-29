@@ -18,7 +18,6 @@ package com.b1b.js.erpandroid_kf.dtr.zxing.decode;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.hardware.Camera.Size;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,7 +31,7 @@ import com.google.zxing.MultiFormatReader;
 import com.google.zxing.PlanarYUVLuminanceSource;
 import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
-import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.common.GlobalHistogramBinarizer;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
@@ -75,24 +74,18 @@ public class DecodeHandler extends Handler {
      * @param height The height of the preview frame.
      */
     private void decode(byte[] data, int width, int height) {
-        Size size = activity.getCameraManager().getPreviewSize();
-
         // 这里需要将获取的data翻转一下，因为相机默认拿的的横屏的数据
         byte[] rotatedData = new byte[data.length];
-        for (int y = 0; y < size.height; y++) {
-            for (int x = 0; x < size.width; x++)
-                rotatedData[x * size.height + size.height - y - 1] = data[x + y * size.width];
-        }
-
-        // 宽高也要调整
-        int tmp = size.width;
-        size.width = size.height;
-        size.height = tmp;
-
+//        for (int y = 0; y < size.height; y++) {
+//            for (int x = 0; x < size.width; x++)
+//                rotatedData[x * size.height + size.height - y - 1] = data[x + y * size.width];
+//        }
+        rotateYUV240SP(data, rotatedData, width, height);
         Result rawResult = null;
-        PlanarYUVLuminanceSource source = buildLuminanceSource(rotatedData, size.width, size.height);
+        PlanarYUVLuminanceSource source = buildLuminanceSource(rotatedData, height, width);
         if (source != null) {
-            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+//            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+            BinaryBitmap bitmap = new BinaryBitmap(new GlobalHistogramBinarizer(source));
             try {
                 rawResult = multiFormatReader.decodeWithState(bitmap);
             } catch (ReaderException re) {
@@ -120,7 +113,28 @@ public class DecodeHandler extends Handler {
         }
 
     }
+    public static void rotateYUV240SP(byte[] src,byte[] des,int width,int height)
+    {
+        int wh = width * height;
+        //旋转Y
+        int k = 0;
+        for(int i=0;i<width;i++) {
+            for(int j=0;j<height;j++)
+            {
+                des[k] = src[width*j + i];
+                k++;
+            }
+        }
 
+        for(int i=0;i<width;i+=2) {
+            for(int j=0;j<height/2;j++)
+            {
+                des[k] = src[wh+ width*j + i];
+                des[k+1]=src[wh + width*j + i+1];
+                k+=2;
+            }
+        }
+    }
     private static void bundleThumbnail(PlanarYUVLuminanceSource source, Bundle bundle) {
         int[] pixels = source.renderThumbnail();
         int width = source.getThumbnailWidth();

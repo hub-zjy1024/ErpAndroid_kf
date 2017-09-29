@@ -67,4 +67,40 @@ public class SFSender {
         this.expressType = "1";
         this.payType = "1";
     }
+
+    @Override
+    public String toString() {
+        return "SFSender{" +
+                "orderID='" + orderID + '\'' +
+                ", j_company='" + j_company + '\'' +
+                ", j_name='" + j_name + '\'' +
+                ", j_code='" + j_code + '\'' +
+                ", j_tel='" + j_tel + '\'' +
+                ", j_cellphone='" + j_cellphone + '\'' +
+                ", j_username='" + j_username + '\'' +
+                ", j_country='" + j_country + '\'' +
+                ", j_province='" + j_province + '\'' +
+                ", j_city='" + j_city + '\'' +
+                ", j_district='" + j_district + '\'' +
+                ", j_address='" + j_address + '\'' +
+                ", j_postcode='" + j_postcode + '\'' +
+                ", needCode=" + needCode +
+                ", d_company='" + d_company + '\'' +
+                ", d_name='" + d_name + '\'' +
+                ", d_code='" + d_code + '\'' +
+                ", d_tel='" + d_tel + '\'' +
+                ", d_cellphone='" + d_cellphone + '\'' +
+                ", d_username='" + d_username + '\'' +
+                ", d_country='" + d_country + '\'' +
+                ", d_province='" + d_province + '\'' +
+                ", d_city='" + d_city + '\'' +
+                ", d_district='" + d_district + '\'' +
+                ", d_address='" + d_address + '\'' +
+                ", d_postcode='" + d_postcode + '\'' +
+                ", custid='" + custid + '\'' +
+                ", expressType='" + expressType + '\'' +
+                ", payType='" + payType + '\'' +
+                ", bagCounts='" + bagCounts + '\'' +
+                '}';
+    }
 }

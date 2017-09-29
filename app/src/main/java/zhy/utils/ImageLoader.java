@@ -173,7 +173,7 @@ public class ImageLoader {
 
                     int reqWidth = imageSize.width;
                     int reqHeight = imageSize.height;
-
+                    Log.e("zjy", "ImageLoader->run(): mW-mH==" + reqWidth + "\t" + reqHeight);
                     Bitmap bm = decodeSampledBitmapFromResource(path, reqWidth,
                             reqHeight);
                     addBitmapToLruCache(path, bm);

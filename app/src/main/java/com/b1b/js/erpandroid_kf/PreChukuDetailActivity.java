@@ -103,6 +103,10 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 case 7:
                     DialogUtils.getSpAlert(PreChukuDetailActivity.this, "打印出现错误，请检查打印机是否正常工作", "提示").show();
                     break;
+                case 8:
+                    DialogUtils.safeShowDialog(PreChukuDetailActivity.this, DialogUtils.getSpAlert(PreChukuDetailActivity.this,
+                            "查询不到相关信息", "提示"));
+                    break;
 
             }
         }
@@ -252,6 +256,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
+                    zHandler.sendEmptyMessage(8);
                     e.printStackTrace();
                 }
             }
@@ -314,12 +319,14 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         map.put("pid", pid);
         map.put("uid", uid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintView");
-//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
-//                .ChuKuServer);
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponseByTime(request, SoapEnvelope.VER11, WebserviceUtils
-                .ChuKuServer, 120);
-        Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + response);
-        JSONObject object = new JSONObject(response.toString());
+        SoapObject response = WebserviceUtils.getSoapObjResponse(request, SoapEnvelope.VER11, WebserviceUtils
+                .ChuKuServer, 30 * 1000);
+        String result = "";
+        if (response != null) {
+            result = response.getPropertyAsString("GetOutStorageNotifyPrintViewResult");
+        }
+        Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + result);
+        JSONObject object = new JSONObject(result);
         JSONArray array = object.getJSONArray("表");
         info = new PreChukuInfo();
         for (int i = 0; i < array.length(); i++) {

@@ -87,21 +87,24 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
                         if ("1".equals(checkid)) {
                             nomarlUpload = false;
                         }
+                        boolean delete = !date.equals(current);
                         if (nomarlUpload) {
-                            if (!date.equals(current)) {
-                                upOK = upload(nomarlUpload, log, remotePath);
+                            if (delete) {
+                                upOK = upload( log, remotePath);
                             }
                         } else {
                             if ("all".equals(deviceID)) {
-                                upOK = upload(nomarlUpload, log, remotePath);
-                            }else if ( localID.equals(deviceID)) {
-                                upOK = upload(nomarlUpload, log, remotePath);
-                            } else  if (!date.equals(current)) {
-                                upOK = upload(nomarlUpload, log, remotePath);
+                                upOK = upload( log, remotePath);
+
+                            }else if (localID.equals(deviceID)) {
+                                upOK = upload( log, remotePath);
                             }
                         }
                         if (upOK) {
                             sp.edit().putString("date", current).apply();
+                            if (delete) {
+                                log.delete();
+                            }
                         }
                     }
                 }.start();
@@ -113,19 +116,14 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
         Thread.setDefaultUncaughtExceptionHandler(this);
     }
 
-    private boolean upload(boolean ifDelete, File log, String remotePath) {
+    private boolean upload(File log, String remotePath) {
         FTPUtils utils = new FTPUtils(FTPUtils.mainAddress, 21, FTPUtils.mainName, FTPUtils.mainPwd);
         boolean upOK = false;
         FileInputStream fis = null;
         try {
             fis = new FileInputStream(log);
             utils.login();
-            boolean isUploaded = utils.upload(fis, remotePath);
-            if (isUploaded) {
-                if (ifDelete)
-                    log.delete();
-                upOK = true;
-            }
+            upOK= utils.upload(fis, remotePath);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -142,6 +140,7 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
 
     @Override
     public void uncaughtException(Thread thread, Throwable ex) {
+        ex.printStackTrace();
         StringBuilder sb = new StringBuilder();
         String exMsg = ex.getMessage();
         Throwable cause = ex.getCause();
@@ -149,11 +148,20 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
         sb.append(exMsg+"\n");
         if (cause != null) {
             sb.append("caused by:"+cause.getMessage()+"\n");
+            StackTraceElement[] cStackTraces = cause.getStackTrace();
+            for (StackTraceElement e : cStackTraces) {
+                String className = e.getClassName();
+                if (className.contains("b1b") || className.contains("utils") || className.contains("printer")
+                        || className.contains("zhy")) {
+                    sb.append(className + "." + e.getMethodName() +"("+e.getFileName()+":"+ e.getLineNumber()+")\n");
+                }
+            }
         }
         for (StackTraceElement s : stacks) {
-            if (s.getClassName().contains("b1b") || s.getClassName().contains("utils") || s.getClassName().contains("printer")
-                    || s.getClassName().contains("zhy")) {
-                sb.append(s.getClassName() + "." + s.getMethodName() +"("+s.getFileName()+":"+ s.getLineNumber()+")\n");
+            String className = s.getClassName();
+            if (className.contains("b1b") || className.contains("utils") || className.contains("printer")
+                    || className.contains("zhy")) {
+                sb.append(className + "." + s.getMethodName() +"("+s.getFileName()+":"+ s.getLineNumber()+")\n");
             }
         }
         myLogger.writeError("uncatch exception:" + sb.toString());

@@ -159,6 +159,10 @@ public class MenuActivity extends AppCompatActivity {
                         intent.setClass(MenuActivity.this, CaigoudanTakePicActivity.class);
                         startActivity(intent);
                         break;
+                    case "采购验货":
+                        intent.setClass(MenuActivity.this, CaigouYanhuoActivity.class);
+                        startActivity(intent);
+                        break;
                     case "特殊":
                         AlertDialog.Builder specialDialog = new AlertDialog.Builder(MenuActivity.this);
                         View v = LayoutInflater.from(MenuActivity.this).inflate(R.layout.admin_manager_layout, null);
@@ -273,6 +277,7 @@ public class MenuActivity extends AppCompatActivity {
         //        listItems.add(map);
         ArrayList<MyMenuItem> data = new ArrayList<>();
         data.add(new MyMenuItem(R.mipmap.menu_chuku, "出库单", "查看出库单和出库通知单"));
+//        data.add(new MyMenuItem(R.mipmap.menu_yanhuo, "采购验货", "采购验货功能，包含拍照"));
         if ("101".equals(MyApp.id)) {
             data.add(new MyMenuItem(R.mipmap.menu_chuku, "特殊", "101"));
         }

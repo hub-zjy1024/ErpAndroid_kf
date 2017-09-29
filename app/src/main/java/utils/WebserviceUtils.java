@@ -31,9 +31,11 @@ public class WebserviceUtils {
     public static final String PMServer = "PMServer.svc";
     public static final String IC360Server = "IC360Server.svc";
     public static final String ChuKuServer = "ChuKuServer.svc";
+    public static final String SF_SERVER = "SF_Server.svc";
     private static final int VERSION_10 = SoapEnvelope.VER10;
     private static final int VERSION_11 = SoapEnvelope.VER11;
     private static final int VERSION_12 = SoapEnvelope.VER12;
+    public static final int DEF_TIMEOUT = 30 * 1000;
     /**
      扫描二维码的返回请求码
      */

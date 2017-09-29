@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -23,13 +25,16 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.MyApp;
+import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,6 +60,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -67,17 +73,19 @@ import printer.sfutils.XmlDomUtils;
 import utils.DialogUtils;
 import utils.MyToast;
 import utils.Myuuid;
+import utils.WebserviceUtils;
+import utils.dbutils.MyDbManger;
 
 public class SetYundanActivity extends AppCompatActivity {
-
-    private Map<String, String> map;
     private List<Province> provinces;
     String jAddress;
+    String payByWho;
+
     String jComapany = "";
     String jProvince = "";
     String jCity = "";
-    String jCounty;
-
+    String jCounty = "";
+    MyDbManger manger = new MyDbManger(SetYundanActivity.this, "newyundan");
     String payType;
     String jTel;
     String jName;
@@ -85,9 +93,9 @@ public class SetYundanActivity extends AppCompatActivity {
     String dTel;
     String dName;
     String dCompany;
-    String dProvince;
-    String dCity;
-    String dCounty;
+    String dProvince = "";
+    String dCity = "";
+    String dCounty = "";
     EditText edJPerson;
     EditText edJTel;
     EditText edJAddress;
@@ -124,7 +132,13 @@ public class SetYundanActivity extends AppCompatActivity {
                     edJAddress.setText(jAddress);
                     edJTel.setText(jTel);
                     edJPerson.setText(jName);
-
+                    tvPayBy.setText(payByWho);
+                    if (payByWho.equals("寄货方")) {
+                        spiPayType.setSelection(0);
+                    } else if (payByWho.equals("收货方")) {
+                        spiPayType.setSelection(1);
+                    }
+                    edAccount.setText(account);
                     eddTel.setText(dTel);
                     eddAddress.setText(dAddress);
                     eddPerson.setText(dName);
@@ -135,7 +149,7 @@ public class SetYundanActivity extends AppCompatActivity {
                             (SetYundanActivity.this);
                     builder.setTitle("提示");
                     builder.setMessage("下单失败:" + msg.obj.toString());
-                    builder.show();
+                    DialogUtils.safeShowDialog(SetYundanActivity.this, builder.create());
                     break;
                 case 3:
                     DialogUtils.dismissDialog(pd);
@@ -156,13 +170,13 @@ public class SetYundanActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 pd.setMessage("正在插入单号信息");
                                 pd.show();
-                                new Thread(){
+                                new Thread() {
                                     @Override
                                     public void run() {
                                         try {
                                             String result = updatePrintCount(tvPid.getText().toString(), desOrderid);
                                             if (result.equals("成功")) {
-                                                mhandler.sendEmptyMessage(5);
+                                                mhandler.sendEmptyMessage(9);
                                             } else {
                                                 mhandler.sendEmptyMessage(6);
                                             }
@@ -177,7 +191,7 @@ public class SetYundanActivity extends AppCompatActivity {
                             }
                         });
                         builder2.setNegativeButton("否", null);
-                        builder2.show();
+                        DialogUtils.safeShowDialog(SetYundanActivity.this, builder2.create());
                     }
                     break;
                 case 4:
@@ -186,19 +200,37 @@ public class SetYundanActivity extends AppCompatActivity {
                             (SetYundanActivity.this);
                     builder3.setTitle("提示");
                     builder3.setMessage("月结账号获取失败，当前不可用寄付月结！！！");
-                    builder3.show();
+                    DialogUtils.safeShowDialog(SetYundanActivity.this, builder3.create());
                     break;
                 case 5:
                     DialogUtils.dismissDialog(pd);
                     Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
                             "操作成功", "提示");
-                    spAlert1.show();
+                    DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
                     break;
                 case 6:
                     DialogUtils.dismissDialog(pd);
-                    Dialog spAlert = DialogUtils.getSpAlert(SetYundanActivity.this, "提示",
-                            "插入单号信息失败,请重新插入！！！");
-                    spAlert.show();
+                    Dialog spAlert = DialogUtils.getSpAlert(SetYundanActivity.this,
+                            "插入单号信息失败,请重新插入！！！", "提示");
+                    tvState.setText("关联运单号失败！！！");
+                    tvState.setTextColor(Color.RED);
+                    DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert);
+                    break;
+                case 7:
+                    DialogUtils.dismissDialog(pd);
+                    DialogUtils.safeShowDialog(SetYundanActivity.this, DialogUtils.getSpAlert(SetYundanActivity.this,
+                            "网络质量较差，请重新尝试！！！", "提示"));
+                    break;
+                case 8:
+                    DialogUtils.dismissDialog(pd);
+                    DialogUtils.safeShowDialog(SetYundanActivity.this, DialogUtils.getSpAlert(SetYundanActivity.this,
+                            "连接打印服务器失败，请重新尝试！！！", "提示"));
+                    break;
+                case 9:
+                    DialogUtils.dismissDialog(pd);
+                    btnReInsert.setBackgroundColor(Color.GRAY);
+                    tvState.setText("关联运单号成功：" + desOrderid);
+                    tvState.setTextColor(Color.GREEN);
                     break;
             }
         }
@@ -210,19 +242,25 @@ public class SetYundanActivity extends AppCompatActivity {
     private Spinner spiPrinter;
     private EditText edBags;
     private TextView tvOrderID;
-    private Button rePrint;
+    private Button btnRePrint;
     private Button btnReInsert;
     private CheckBox cboTest;
     private RadioButton rdo210;
     private String mYundanType;
     private TextView cboDiaohuo;
-    private boolean isDiaohuo=false;
+    private boolean isDiaohuo = false;
     private Spinner spiDiaohuo;
+    private TextView tvState;
+    private TextView tvPayBy;
+    private Spinner spiPayType;
+    private EditText edAccount;
+    private EditText edMorePid;
 
     //    6200151
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         setContentView(R.layout.activity_set_yundan);
         //        Spinner spiProvince = (Spinner) findViewById(R.id
         //                .activity_set_yundan_spi_province);
@@ -237,13 +275,13 @@ public class SetYundanActivity extends AppCompatActivity {
                 .activity_set_yundan_spi_bags);
         final Button btn150 = (Button) findViewById(R.id
                 .activity_set_yundan_btnCommit1);
-        rePrint = (Button) findViewById(R.id
+        btnRePrint = (Button) findViewById(R.id
                 .activity_set_yundan_btnReprint);
         final Button btnReview = (Button) findViewById(R.id
                 .activity_set_yundan_btnReview);
         final ImageView iv = (ImageView) findViewById(R.id
                 .activity_set_yundan_iv);
-        final Spinner spiPayType = (Spinner) findViewById(R.id
+        spiPayType = (Spinner) findViewById(R.id
                 .activity_set_yundan_spi_paytype);
         final Spinner spiServerType = (Spinner) findViewById(R.id
                 .activity_set_yundan_spi_servetype);
@@ -255,22 +293,41 @@ public class SetYundanActivity extends AppCompatActivity {
                 .activity_set_yundan_cbo_duanxin);
         final CheckBox boxEsign = (CheckBox) findViewById(R.id
                 .activity_set_yundan_cbo_esign);
-       cboTest = (CheckBox) findViewById(R.id
+        final Button btnChukudan = (Button) findViewById(R.id
+                .activity_set_yundan_btn_printchukudan);
+        final Button btnScan = (Button) findViewById(R.id
+                .activity_set_yundan_btn_scan);
+        final Button btnAddmore = (Button) findViewById(R.id
+                .activity_set_yundan_btn_addmore);
+        edMorePid = (EditText) findViewById(R.id
+                .activity_set_yundan_ed_morepid);
+
+        cboTest = (CheckBox) findViewById(R.id
                 .activity_set_yundan_cbotest);
-       spiDiaohuo = (Spinner) findViewById(R.id
+        spiDiaohuo = (Spinner) findViewById(R.id
                 .activity_set_yundan_spi_diaohuo);
         tvOrderID = (TextView) findViewById(R.id
                 .activity_set_yundan_tv_orderid);
+        tvState = (TextView) findViewById(R.id
+                .activity_set_yundan_tv_insertinfo_state);
         rdo210 = (RadioButton) findViewById(R.id
                 .activity_set_yundan_rdo_210);
         cboDiaohuo = (TextView) findViewById(R.id.activity_set_yundan_cbo_diaohuo);
 
         final CheckBox boxTakepic = (CheckBox) findViewById(R.id
                 .activity_set_yundan_cbo_takepic);
+        final CheckBox cboAddMore = (CheckBox) findViewById(R.id
+                .activity_set_yundan_cbo_addmore);
+
+        final LinearLayout moreContainer = (LinearLayout) findViewById(R.id
+                .activity_set_yundan_container_addmore);
+
         final EditText edBaojia = (EditText) findViewById(R.id
                 .activity_set_yundan_ed_baojia);
         edJPerson = (EditText) findViewById(R.id
                 .activity_set_yundan_ed_j_person);
+        edAccount = (EditText) findViewById(R.id
+                .activity_set_yundan_ed_account);
         edJTel = (EditText) findViewById(R.id
                 .activity_set_yundan_ed_j_tel);
         edJAddress = (EditText) findViewById(R.id
@@ -286,8 +343,96 @@ public class SetYundanActivity extends AppCompatActivity {
 
         tvPid = (TextView) findViewById(R.id
                 .activity_set_yundan_tv_pid);
+        tvPayBy = (TextView) findViewById(R.id
+                .activity_set_yundan_tv_payby);
         btnReInsert = (Button) findViewById(R.id
                 .activity_set_yundan_btnReInsert);
+        btnChukudan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SetYundanActivity.this, PreChukuDetailActivity.class);
+                Intent lastIntent = getIntent();
+                String pid = lastIntent.getStringExtra("pid");
+                intent.putExtra("pid", pid);
+                startActivity(intent);
+            }
+        });
+        btnAddmore.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String targetPid = edMorePid.getText().toString().trim();
+                if (targetPid.equals("")) {
+                    MyToast.showToast(SetYundanActivity.this, "请输入单据号");
+                } else {
+                    if (desOrderid == null) {
+                        MyToast.showToast(SetYundanActivity.this, "请先下单");
+                        return;
+                    }
+                    pd.setMessage("正在关联其他单据号");
+                    pd.show();
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            super.run();
+                            try {
+                                String ok = insertYundanInfo(targetPid, desOrderid, ddestcode);
+                                if ("成功".equals(ok)) {
+                                    mhandler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            DialogUtils.dismissDialog(pd);
+                                            Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
+                                                    "关联其他单号成功", "提示");
+                                            DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
+                                        }
+                                    });
+                                } else {
+                                    mhandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        DialogUtils.dismissDialog(pd);
+                                        Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
+                                                "关联其他单号失败！！！", "提示");
+                                        DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
+                                    }
+                                    });
+                                }
+                            } catch (IOException e) {
+                               mhandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        DialogUtils.dismissDialog(pd);
+                                        Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
+                                                "连接服务器超时", "提示");
+                                        DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
+                                    }
+                                });
+                                e.printStackTrace();
+                            } catch (XmlPullParserException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }.start();
+                }
+            }
+        });
+        cboAddMore.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    moreContainer.setVisibility(View.VISIBLE);
+                } else {
+                    moreContainer.setVisibility(View.GONE);
+                }
+            }
+        });
+        btnScan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SetYundanActivity.this, CaptureActivity.class);
+                startActivityForResult(intent, CaptureActivity.REQ_CODE);
+            }
+        });
         final Intent intent = getIntent();
         String sendFlag = intent.getStringExtra("flag");
         if (sendFlag != null) {
@@ -295,9 +440,9 @@ public class SetYundanActivity extends AppCompatActivity {
         }
         if ("101".equals(MyApp.id)) {
             cboTest.setVisibility(View.VISIBLE);
-        }else{
-        cboTest.setVisibility(View.GONE);
-         }
+        } else {
+            cboTest.setVisibility(View.GONE);
+        }
         ArrayList<String> diaohuoList = new ArrayList<String>();
         diaohuoList.add("北京中转-->深圳市福田区");
         diaohuoList.add("北京中转-->深圳市龙岗区");
@@ -326,36 +471,37 @@ public class SetYundanActivity extends AppCompatActivity {
 
         spiDiaohuo.setAdapter(new ArrayAdapter<String>(SetYundanActivity.this, R.layout.item_province, R.id
                 .item_province_tv, diaohuoList));
-       final List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();    HashMap<String, String> map = new HashMap<String, String>();
-        map.put("name", "王朋");
-        map.put("key", "北京中转");
-        map.put("phone", "010-62105503");
-        map.put("address", "北京市海淀区知春路108号豪景大厦C座1503");
-        list.add(map);
-        map = new HashMap<String, String>();
-        map.put("name", "商庆房");
-        map.put("key", "深圳市龙岗区");
-        map.put("phone", "0755-83764658");
-        map.put("address", "深圳市龙岗区吉华路393号英达丰科技园");
-        list.add(map);
-        map = new HashMap<String, String>();
-        map.put("name", "李娜");
-        map.put("key", "深圳市福田区");
-        map.put("phone", "0755-83764658");
-        map.put("address", "深圳市福田区中航路鼎城大厦1920室");
-        list.add(map);
-        map = new HashMap<String, String>();
-        map.put("name", "王永松");
-        map.put("key", "上海");
-        map.put("phone", "021-61170776");
-        map.put("address", "上海市宝山区城银路518号A座2楼201室");
-        list.add(map);
-        map = new HashMap<String, String>();
-        map.put("name", "盧少欣");
-        map.put("key", "香港");
-        map.put("phone", "852-34264941");
-        map.put("address", "香港九龙官塘鸿图道76号联运工业大厦2楼B室");
-        list.add(map);
+        final List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+        HashMap<String, String> addressMap = new HashMap<String, String>();
+        addressMap.put("name", "王朋");
+        addressMap.put("key", "北京中转");
+        addressMap.put("phone", "010-62105503");
+        addressMap.put("address", "北京市海淀区知春路108号豪景大厦C座1503");
+        list.add(addressMap);
+        addressMap = new HashMap<String, String>();
+        addressMap.put("name", "商庆房");
+        addressMap.put("key", "深圳市龙岗区");
+        addressMap.put("phone", "0755-83764658");
+        addressMap.put("address", "深圳市龙岗区吉华路393号英达丰科技园");
+        list.add(addressMap);
+        addressMap = new HashMap<String, String>();
+        addressMap.put("name", "李娜");
+        addressMap.put("key", "深圳市福田区");
+        addressMap.put("phone", "0755-83764658");
+        addressMap.put("address", "深圳市福田区中航路鼎城大厦1920室");
+        list.add(addressMap);
+        addressMap = new HashMap<String, String>();
+        addressMap.put("name", "王永松");
+        addressMap.put("key", "上海");
+        addressMap.put("phone", "021-61170776");
+        addressMap.put("address", "上海市宝山区城银路518号A座2楼201室");
+        list.add(addressMap);
+        addressMap = new HashMap<String, String>();
+        addressMap.put("name", "盧少欣");
+        addressMap.put("key", "香港");
+        addressMap.put("phone", "852-34264941");
+        addressMap.put("address", "香港九龙官塘鸿图道76号联运工业大厦2楼B室");
+        list.add(addressMap);
         spiDiaohuo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -363,7 +509,7 @@ public class SetYundanActivity extends AppCompatActivity {
                 String[] detail = itemAtPosition.split("-->");
                 String from = detail[0];
                 String to = detail[1];
-                for(HashMap<String,String> s:list){
+                for (HashMap<String, String> s : list) {
                     if (from.equals(s.get("key"))) {
                         edJPerson.setText(s.get("name"));
                         edJTel.setText(s.get("phone"));
@@ -399,13 +545,14 @@ public class SetYundanActivity extends AppCompatActivity {
                 }
                 pd.setMessage("正在重新插入单号信息");
                 pd.show();
-                new Thread(){
+                new Thread() {
                     @Override
                     public void run() {
                         try {
                             String result = updatePrintCount(tvPid.getText().toString(), desOrderid);
+                            result = insertYundanInfo(tvPid.getText().toString(), desOrderid, ddestcode);
                             if (result.equals("成功")) {
-                                mhandler.sendEmptyMessage(5);
+                                mhandler.sendEmptyMessage(9);
                             } else {
                                 mhandler.sendEmptyMessage(6);
                             }
@@ -423,9 +570,9 @@ public class SetYundanActivity extends AppCompatActivity {
         pd = new ProgressDialog(this);
         pd.setTitle("提示");
         pd.setMessage("正在打印中");
-        btn210.setFocusable(true);
-        btn210.setFocusableInTouchMode(true);
-        btn210.requestFocus();
+        //        btn210.setFocusable(true);
+        //        btn210.setFocusableInTouchMode(true);
+        //        btn210.requestFocus();
         spiBags.setAdapter(new ArrayAdapter<String>(this, R.layout.lv_item_printer, R
                 .id.spinner_item_tv, new String[]{"1", "2", "3", "4",}));
         spiBags.setVisibility(View.GONE);
@@ -452,7 +599,7 @@ public class SetYundanActivity extends AppCompatActivity {
         spiPayType.setAdapter(new ArrayAdapter<>(this, R.layout.item_province, R.id
                 .item_province_tv, pay));
 
-        String[] serverTypes = new String[]{"2-顺丰隔日(陆)","1-顺丰次日(空)" , "5-顺丰次晨",
+        String[] serverTypes = new String[]{"2-顺丰隔日(陆)", "1-顺丰次日(空)", "5-顺丰次晨",
                 "6-顺丰即日", "7-物流普运", "18-重货快运"};
         spiServerType.setAdapter(new ArrayAdapter<>(this, R.layout.item_province,
                 R.id.item_province_tv, serverTypes));
@@ -464,10 +611,8 @@ public class SetYundanActivity extends AppCompatActivity {
                 Intent intent = getIntent();
                 String pid = intent.getStringExtra("pid");
                 String client = intent.getStringExtra("client");
-                Log.e("zjy", "SetYundanActivity->run(): pid==" + pid);
                 try {
                     String result = getSFClientInfo(client);
-                    Log.e("zjy", "address->run(): result==" + result);
                     JSONObject address = new JSONObject(result);
                     JSONArray aJarray = address.getJSONArray("表");
                     for (int i = 0; i < aJarray.length(); i++) {
@@ -492,6 +637,7 @@ public class SetYundanActivity extends AppCompatActivity {
                         JSONObject obj = table.getJSONObject(i);
                         jAddress = obj.getString("寄件地址1");
                         jComapany = obj.getString("寄件公司");
+                        payByWho = obj.getString("谁付运费");
                         if (jAddress.contains("北京市")) {
                             jProvince = "北京市";
                             jCity = "北京市";
@@ -585,48 +731,167 @@ public class SetYundanActivity extends AppCompatActivity {
         }.start();
         Log.e("zjy", "SetYundanActivity->onCreate(): goodInfos==" + intent
                 .getStringExtra("goodInfos"));
-        tvPid.setText(intent.getStringExtra("pid"));
+        String pid = intent.getStringExtra("pid");
+        tvPid.setText(pid);
+        //        HashMap<String, String> maps = new HashMap<>();
+        //       maps = manger.serachYundan(pid);
+        //        final String orderid = maps.get("orderid");
+        //        final String destcode = maps.get("destcode");
+        //        if (orderid != null) {
+        //            tvOrderID.setText("当前单据已有单号：" + orderid);
+        //            btnReview.setEnabled(true);
+        //            desOrderid = orderid;
+        //            ddestcode = destcode;
+        //            dgoodInfos = maps.get("goodInfos");
+        //            dserverType = maps.get("serverType");
+        //            dbaojia = Double.parseDouble(maps.get("baojia"));
+        //            dpayPart = maps.get("payPart");
+        //            dpayType = maps.get("payType");
+        //            dcardID = maps.get("cardID");
+        //            dprintName = maps.get("printName");
+        //            dhasE = maps.get("hasE");
+        //            dyundanType = maps.get("yundanType");
+        //            btnRePrint.setEnabled(true);
+        //        }
         btn150.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
             }
         });
-        rePrint.setOnClickListener(new View.OnClickListener() {
+        btnRePrint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (desOrderid != null && dyundanType == null) {
+                    if (flag != 1) {
+                        Toast.makeText(SetYundanActivity.this, "获取寄送信息失败，请稍等或返回重新进入", Toast
+                                .LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if (boxBaojia.isChecked()) {
+                        String strBaojia = edBaojia.getText().toString();
+                        if (strBaojia.equals("")) {
+                            Toast.makeText(SetYundanActivity.this, "必须输入保价金额", Toast
+                                    .LENGTH_SHORT).show();
+                            return;
+                        }
+                    }
+                    jName = edJPerson.getText().toString();
+                    jAddress = edJAddress.getText().toString();
+                    jTel = edJTel.getText().toString();
+                    dName = eddPerson.getText().toString();
+                    dAddress = eddAddress.getText().toString();
+                    dTel = eddTel.getText().toString();
+                    final String bags = edBags.getText().toString().trim();
+                    if (bags.equals("")) {
+                        Toast.makeText(SetYundanActivity.this, "请输入包裹数", Toast
+                                .LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (jTel.equals("")) {
+                        Toast.makeText(SetYundanActivity.this, "必须输入寄件人电话", Toast
+                                .LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (jAddress.equals("")) {
+                        Toast.makeText(SetYundanActivity.this, "必须输入寄件人地址", Toast
+                                .LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (jName.equals("")) {
+                        Toast.makeText(SetYundanActivity.this, "必须输入寄件人姓名", Toast
+                                .LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (dTel.equals("")) {
+                        Toast.makeText(SetYundanActivity.this, "必须输入收件人电话", Toast
+                                .LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (dAddress.equals("")) {
+                        Toast.makeText(SetYundanActivity.this, "必须输入收件人地址", Toast
+                                .LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (dName.equals("")) {
+                        Toast.makeText(SetYundanActivity.this, "必须输入收件人姓名", Toast
+                                .LENGTH_SHORT).show();
+                        return;
+                    }
+                    String printType = TYPE_210;
+                    if (!rdo210.isChecked()) {
+                        printType = TYPE_150;
+                    }
+                    String goodInfos = "url1-500,url2-6000,url3-700";
+                    goodInfos = intent.getStringExtra("goodInfos");
+                    String cardID = "";
+                    String payPart = "";
+                    String payType = spiPayType.getSelectedItem().toString();
+                    String serverType = "标准快递";
+                    String stype = spiServerType.getSelectedItem().toString();
+                    serverType = stype.split("-")[1];
+                    String serverID = stype.split("-")[0];
+                    double baojia = 12050;
+                    String strBaojia = edBaojia.getText().toString();
+                    Object selectP = spiPrinter.getSelectedItem();
+                    String printName = "";
+                    String hasE = "0";
+                    if (serverID.equals("2")) {
+                        hasE = "1";
+                        serverType = "顺丰隔日";
+                    } else if (serverID.equals("1")) {
+                        serverType = "顺丰次日";
+                    }
+                    if (selectP != null) {
+                        printName = selectP.toString();
+                    }
+                    if (strBaojia.equals("")) {
+                        baojia = -1;
+                    } else {
+                        baojia = Double.valueOf(strBaojia);
+                    }
+                    if (payType.equals("寄付月结")) {
+                        if (account == null || "".equals(account)) {
+                            mhandler.sendEmptyMessage(4);
+                            return;
+                        }
+                        if (!storageID.equals("102")) {
+                            payPart = "0755BL";
+                        } else {
+                            cardID = account;
+                        }
+                    } else if (payType.equals("到方付")) {
+                    } else if (payType.equals("第三方付")) {
+                        payPart = "0755BL";
+                    }
+                    dgoodInfos = goodInfos;
+                    dcardID = cardID;
+                    dpayPart = payPart;
+                    dpayType = payType;
+                    dserverType = serverType;
+                    dbaojia = baojia;
+                    dprintName = printName;
+                    dyundanType = printType;
+                    dhasE = hasE;
+                }
                 pd.setMessage("正在打印中");
                 pd.show();
                 new Thread() {
                     @Override
                     public void run() {
-                        String result = "";
                         try {
-                            startPrint(desOrderid, dgoodInfos, dcardID, dpayPart, dpayType, dserverType,
+                            boolean ok = startPrint(desOrderid, dgoodInfos, dcardID, dpayPart, dpayType, dserverType,
                                     dbaojia, dprintName,
                                     dhasE, ddestcode, dyundanType);
-                            result = updatePrintCount(tvPid.getText().toString(), desOrderid);
-                            if (result.equals("成功")) {
-                                Message errorMesg = mhandler.obtainMessage(5);
-                                mhandler.sendMessage(errorMesg);
+                            if (!ok) {
+                                Message message = mhandler.obtainMessage(3);
+                                message.arg1 = 1;
+                                mhandler.sendMessage(message);
                             } else {
-                                mhandler.sendEmptyMessage(6);
+                                mhandler.obtainMessage(5).sendToTarget();
                             }
                         } catch (IOException e) {
-                            if (result.equals("")) {
-                                mhandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        DialogUtils.dismissDialog(pd);
-                                        Dialog spAlert = DialogUtils.getSpAlert(SetYundanActivity.this, "提示",
-                                                "打印出现错误！！！");
-                                        spAlert.show();
-                                    }
-                                });
-                            } else {
-                                mhandler.sendEmptyMessage(6);
-                            }
-                            e.printStackTrace();
-                        } catch (XmlPullParserException e) {
+                            mhandler.obtainMessage(8).sendToTarget();
                             e.printStackTrace();
                         }
                     }
@@ -637,12 +902,10 @@ public class SetYundanActivity extends AppCompatActivity {
         btn210.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String times = intent.getStringExtra("times");
-                //检测打印次数
-                if (times.length() > 0) {
+                if (ddestcode != null) {
                     AlertDialog.Builder builder = new AlertDialog.Builder
                             (SetYundanActivity.this);
-                    builder.setMessage("已经打印过了,是否继续打印");
+                    builder.setMessage("已经下单过了,是否重新下单");
                     builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -668,7 +931,9 @@ public class SetYundanActivity extends AppCompatActivity {
                             boxDuanxin, boxEsign, boxTakepic, edJAddress,
                             edJPerson, edJTel, eddAddress, eddPerson, eddTel, printType);
                 }
-
+                //                String times = intent.getStringExtra("times");
+                //                checkPrintCouts(times, boxBaojia, edBaojia, intent, spiPayType, spiServerType, boxDuanxin,
+                // boxEsign, boxTakepic);
             }
         });
         //预览
@@ -789,6 +1054,55 @@ public class SetYundanActivity extends AppCompatActivity {
                 }.start();
             }
         });
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                //                GetBD_YunDanInfoByID
+                String pid = tvPid.getText().toString();
+                try {
+                    String result = getOnlineSavedYdInfo(pid);
+                    Log.e("zjy", "SetYundanActivity->run(): onlineYundan==" + result);
+                    //                    "objid":"613","parentid":"0","objname":"1176338","objvalue":"616606640489",
+                    // "objtype":"顺丰","objexpress":"010",
+                    JSONObject obj = new JSONObject(result);
+                    JSONArray root = obj.getJSONArray("表");
+                    if (root.length() > 0) {
+                        JSONObject t = root.getJSONObject(0);
+                        String orderID = t.getString("objvalue");
+                        String destcode = t.getString("objexpress");
+                        ddestcode = destcode;
+                        desOrderid = orderID;
+                        mhandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                tvOrderID.setText("当前单据已有单号：" + desOrderid);
+                                btnRePrint.setEnabled(true);
+                            }
+                        });
+                    }
+                    Log.e("zjy", "SetYundanActivity->run(): onlineYundanInfo==" + result.toString());
+                } catch (IOException e) {
+                    mhandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            tvOrderID.setText("查询关联单号失败，请重新进入");
+                        }
+                    });
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    mhandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            tvOrderID.setText("还未下单，请下单");
+                        }
+                    });
+                    e.printStackTrace();
+                }
+            }
+        }.start();
         //        spiProvince.setOnItemSelectedListener(new AdapterView
         // .OnItemSelectedListener() {
         //            @Override
@@ -878,7 +1192,7 @@ public class SetYundanActivity extends AppCompatActivity {
         //            }
         //        });
         InputStream in = getResources().openRawResource(R.raw.province);
-        map = new HashMap<>();
+        addressMap = new HashMap<>();
         provinces = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in,
@@ -909,6 +1223,66 @@ public class SetYundanActivity extends AppCompatActivity {
         //                R.id.item_province_tv, provinces));
 
     }
+    //    GetBD_YunDanInfoByID
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CaptureActivity.REQ_CODE && resultCode == RESULT_OK) {
+            if (data != null) {
+                String result = data.getStringExtra("result");
+                edMorePid.setText(result);
+            }
+        }
+    }
+
+
+    //>{"表":[{"objid":"613","parentid":"0","objname":"1176338","objvalue":"616606640489","objtype":"顺丰","objexpress":"010",
+    // "objtime":"2017/9/20 11:50:15"}] }</
+
+    public String getOnlineSavedYdInfo(String pid) throws IOException, XmlPullParserException {
+        //        GetBD_YunDanInfoByID;
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        map.put("pid", pid);
+        SoapObject req = WebserviceUtils.getRequest(map, "GetBD_YunDanInfoByID");
+        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope.VER11, WebserviceUtils.SF_SERVER);
+        return res.toString();
+    }
+
+    private void checkPrintCouts(String times, final CheckBox boxBaojia, final EditText edBaojia, final Intent intent, final
+    Spinner spiPayType, final Spinner spiServerType, final CheckBox boxDuanxin, final CheckBox boxEsign, final CheckBox
+                                         boxTakepic) {
+
+        if (times.length() > 0) {
+            AlertDialog.Builder builder = new AlertDialog.Builder
+                    (SetYundanActivity.this);
+            builder.setMessage("已经打印过了,是否继续打印");
+            builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String printType = TYPE_210;
+                    if (!rdo210.isChecked()) {
+                        printType = TYPE_150;
+                    }
+                    orderAndPrint(boxBaojia, edBaojia, intent, spiPayType,
+                            spiServerType,
+                            boxDuanxin, boxEsign, boxTakepic, edJAddress,
+                            edJPerson, edJTel, eddAddress, eddPerson, eddTel,
+                            printType);
+                }
+            });
+            builder.setNegativeButton("否", null);
+            builder.show();
+        } else {
+            String printType = TYPE_210;
+            if (!rdo210.isChecked()) {
+                printType = TYPE_150;
+            }
+            orderAndPrint(boxBaojia, edBaojia, intent, spiPayType, spiServerType,
+                    boxDuanxin, boxEsign, boxTakepic, edJAddress,
+                    edJPerson, edJTel, eddAddress, eddPerson, eddTel, printType);
+        }
+    }
 
     private void orderAndPrint(final CheckBox boxBaojia, final EditText edBaojia, final
     Intent intent, final Spinner spiPayType, final Spinner spiServerType, final
@@ -922,7 +1296,7 @@ public class SetYundanActivity extends AppCompatActivity {
                                EditText edDTel, final String yundanType) {
 
         if (flag != 1) {
-            Toast.makeText(SetYundanActivity.this, "获取寄送信息失败，请返回重新进入", Toast
+            Toast.makeText(SetYundanActivity.this, "获取寄送信息失败，请稍等或返回重新进入", Toast
                     .LENGTH_SHORT).show();
             return;
         }
@@ -982,6 +1356,7 @@ public class SetYundanActivity extends AppCompatActivity {
         new Thread() {
             @Override
             public void run() {
+
                 String orderID = "666655554444";
                 String goodInfos = "url1-500,url2-6000,url3-700";
                 goodInfos = intent.getStringExtra("goodInfos");
@@ -1066,20 +1441,20 @@ public class SetYundanActivity extends AppCompatActivity {
                             cargos.add(cargo);
                         }
                     }
+                    //                    GetBD_YunDanInfoByID
                     String xml = SFWsUtils.createOrderXml(SFWsUtils.ORDER_SERVICE,
                             order, cargos, null);
                     String destcode = "110";
                     boolean test = cboTest.isChecked();
                     if (!test) {
                         Map<String, String> resMap = getOrderResponse(xml);
-                        for (Map.Entry<String, String> entry : resMap.entrySet()) {
-                            Log.e("zjy", "SetYundanActivity->run(): entry==" + entry.getKey
-                                    () + "-value:" + entry.getValue());
-                        }
                         String head = resMap.get("head");
                         if (head.equals("ERR")) {
                             Message msg = mhandler.obtainMessage(1);
                             msg.obj = resMap.get("error");
+                            MyApp.myLogger.writeError(SetYundanActivity.class, resMap.get("errorCode") + "\t" + msg.obj + "\t" +
+                                    dProvince + "\t" + dCity + "\t" + dCounty +
+                                    "\t" + dAddress + "\t" + tvPid.getText().toString());
                             mhandler.sendMessage(msg);
                             return;
                         }
@@ -1102,46 +1477,84 @@ public class SetYundanActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             tvOrderID.setText("下单成功，返回单号：" + finalOrderID);
-                            rePrint.setEnabled(true);
+                            btnRePrint.setEnabled(true);
                         }
                     });
-                    okCounts++;
-                    startPrint(orderID, goodInfos, cardID, payPart, payType, serverType, baojia,
-                            printName, hasE, destcode, yundanType);
-//                    startPostPrint(orderID, goodInfos, cardID, payPart, payType, serverType, baojia,
-//                            printName, hasE, destcode, yundanType);
-
-                    okCounts++;
+                    //                    InsertBD_YunDanInfo
+                    //                    manger.insertYundan(tvPid.getText().toString(), orderID, destcode, goodInfos, cardID,
+                    // payPart, payType,
+                    //                            serverType, baojia, printName, hasE, yundanType);
+                    //                    startPostPrint(orderID, goodInfos, cardID, payPart, payType, serverType, baojia,
+                    //                            printName, hasE, destcode, yundanType);
                     try {
+                        String result = "";
                         if (test) {
-                            mhandler.sendEmptyMessage(5);
-                            return;
-                        }
-                        String result = updatePrintCount(tvPid.getText().toString(), desOrderid);
-                        okCounts++;
-                        if (result.equals("成功")) {
-                            mhandler.sendEmptyMessage(5);
+                            result = "成功";
                         } else {
+                            String pid = tvPid.getText().toString();
+                            result = updatePrintCount(pid, desOrderid);
+                            result = insertYundanInfo(pid, orderID, destcode);
+                        }
+                        if (!result.equals("成功")) {
                             mhandler.sendEmptyMessage(6);
+                        } else {
+                            mhandler.sendEmptyMessage(9);
                         }
                     } catch (IOException e) {
-                        mhandler.sendEmptyMessage(6);
+                        Message upMsg = mhandler.obtainMessage(3);
+                        upMsg.arg1 = 2;
+                        mhandler.sendMessage(upMsg);
                         e.printStackTrace();
                     } catch (XmlPullParserException e) {
                         e.printStackTrace();
+                    }
+                    try {
+                        boolean printOk = startPrint(orderID, goodInfos, cardID, payPart, payType, serverType, baojia,
+                                printName, hasE, destcode, yundanType);
+                        if (!printOk) {
+                            Message message = mhandler.obtainMessage(3);
+                            message.arg1 = 1;
+                            mhandler.sendMessage(message);
+                            throw new IOException("print error");
+                        } else {
+                            mhandler.sendEmptyMessage(5);
+                        }
+                    } catch (IOException e) {
+                        String exMsg = e.getMessage();
+                        if ("print error".equals(exMsg)) {
+                            MyApp.myLogger.writeError("print error" + tvPid.getText().toString());
+                        } else {
+                            mhandler.obtainMessage(8).sendToTarget();
+                        }
                     }
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
                     Message msg = mhandler.obtainMessage(3);
-                    msg.arg1 = okCounts;
-                    mhandler.sendEmptyMessage(3);
+                    msg.arg1 = 0;
+                    mhandler.sendMessage(msg);
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 }
             }
         }.start();
+    }
+
+    private String insertYundanInfo(String pid, String orderID, String destcode) throws IOException, XmlPullParserException {
+
+        LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+        map.put("objname", pid);
+        map.put("objvalue", orderID);
+        map.put("express", destcode);
+        SoapObject parm = WebserviceUtils.getRequest(map, "InsertBD_YunDanInfo");
+        SoapPrimitive insertResult = WebserviceUtils.getSoapPrimitiveResponse(parm, SoapEnvelope
+                .VER11, WebserviceUtils.SF_SERVER);
+        Log.e("zjy", "SetYundanActivity->run(): insert Res==" + insertResult);
+        if (insertResult.toString().equals("成功")) {
+            MyApp.myLogger.writeInfo("SFprint--insertYundanInfo:OK" + pid);
+        }
+        return insertResult.toString();
     }
 
     @NonNull
@@ -1211,6 +1624,7 @@ public class SetYundanActivity extends AppCompatActivity {
             return false;
         }
     }
+
     @NonNull
     private boolean startPostPrint(String orderID, String goodInfos, String cardID, String payPart, String payType, String
             serverType, double baojia, String printName, String hasE, String destcode, String yundanType) throws IOException {
@@ -1226,7 +1640,6 @@ public class SetYundanActivity extends AppCompatActivity {
         conn.setConnectTimeout(20 * 1000);
         OutputStream out = conn.getOutputStream();
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "utf-8"));
-        map = new HashMap<>();
         writer.write("orderID=" + orderID + "\n");
         writer.write("hasE=" + hasE + "\n");
         writer.write("yundanType=" + yundanType + "\n");
@@ -1286,7 +1699,6 @@ public class SetYundanActivity extends AppCompatActivity {
         String verifyCode = new String(byteCode, "UTF-8");
         object.addProperty("arg0", xml);
         object.addProperty("arg1", verifyCode);
-        Log.e("zjy", "SFActivity->getOrderResponse(): check==" + verifyCode);
         SoapSerializationEnvelope envelope =
                 SFWsUtils.getEnvelope(object,
                         SoapEnvelope.VER11, null, SFWsUtils
@@ -1369,11 +1781,13 @@ public class SetYundanActivity extends AppCompatActivity {
         if (isDiaohuo) {
             return "成功";
         }
+        String newOrder = orderID.replace(",", "/");
+        ;
         //       UpdateYunDanInfoByPrintCountResult
         SoapObject request = new SoapObject("http://tempuri.org/",
                 "UpdateYunDanInfoByPrintCount");
         request.addProperty("pid", pid);
-        request.addProperty("yundanID", orderID);
+        request.addProperty("yundanID", newOrder);
         SoapSerializationEnvelope envelope1 = new
                 SoapSerializationEnvelope
                 (SoapEnvelope.VER11);
@@ -1386,6 +1800,9 @@ public class SetYundanActivity extends AppCompatActivity {
         trans.call(action, envelope1);
         SoapPrimitive sp = (SoapPrimitive) envelope1.getResponse();
         Log.e("zjy", "SFActivity->updatePrintCount(): updateCount==" + sp.toString());
+        if ("成功".equals(sp.toString())) {
+            MyApp.myLogger.writeInfo("SFprint--updatePrintCount:OK" + pid);
+        }
         return sp.toString();
     }
 

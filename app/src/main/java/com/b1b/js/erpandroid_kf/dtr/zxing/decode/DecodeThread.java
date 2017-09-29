@@ -16,19 +16,20 @@
 
 package com.b1b.js.erpandroid_kf.dtr.zxing.decode;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.DecodeHintType;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-
-import android.os.Handler;
-import android.os.Looper;
-
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.DecodeHintType;
 
 /**
  * This thread does all the heavy lifting of decoding the images.
@@ -92,6 +93,7 @@ public class DecodeThread extends Thread {
 	@Override
 	public void run() {
 		Looper.prepare();
+		Log.e("zjy", "DecodeThread->run(): newDecodeHandler==");
 		handler = new DecodeHandler(activity, hints);
 		handlerInitLatch.countDown();
 		Looper.loop();

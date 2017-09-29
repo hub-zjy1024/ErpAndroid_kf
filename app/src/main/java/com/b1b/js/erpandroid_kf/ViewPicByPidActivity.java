@@ -118,6 +118,10 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                                          public void onClick(View v) {
                                              final String pid = edPid.getText().toString().trim();
                                              imgsData.clear();
+                                             if (pid.equals("")) {
+                                                 MyToast.showToast(ViewPicByPidActivity.this, "请输入单据号");
+                                                 return;
+                                             }
                                              adapter.notifyDataSetChanged();
                                              File imgFile = MyFileUtils.getFileParent();
                                              if (imgFile == null) {
@@ -159,6 +163,10 @@ public class ViewPicByPidActivity extends AppCompatActivity {
             File imgFile = MyFileUtils.getFileParent();
             if (imgFile == null) {
                 MyToast.showToast(ViewPicByPidActivity.this, "当前无可用的存储设备");
+                return;
+            }
+            if (pid.equals("")) {
+                MyToast.showToast(ViewPicByPidActivity.this, "请输入单据号");
                 return;
             }
             startSearch(pid);

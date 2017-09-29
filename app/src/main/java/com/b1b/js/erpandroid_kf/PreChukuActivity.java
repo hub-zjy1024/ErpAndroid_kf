@@ -25,7 +25,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -112,9 +111,20 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
         map.put("pid", pid);
         map.put("uid", uid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintViewList");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
-        Log.e("zjy", "PreChukuActivity->getPreChukuList(): response==" + response);
-        return response.toString();
+//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapObject reObj = WebserviceUtils.getSoapObjResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer,
+                WebserviceUtils.DEF_TIMEOUT);
+        if (reObj == null) {
+            MyApp.myLogger.writeError(PreChukuActivity.class, "SoapOject null！！！" + pid + "\t" + uid);
+            return "";
+        }
+        Log.e("zjy", "PreChukuActivity->getList(): soapObject==" + reObj.toString());
+        String result = reObj.getPropertyAsString("GetOutStorageNotifyPrintViewListResult");
+        if (result.equals("anyType{}")) {
+            return "";
+        }
+        return result;
+//        return response.toString();
     }
 
     @Override
@@ -180,10 +190,6 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
                     return;
                 }
                 SoftKeyboardUtils.closeInputMethod(edPid, PreChukuActivity.this);
-                MyApp.myLogger.writeInfo("prechuku:closeInputMethod 1");
-                Log.e("zjy", "PreChukuActivity->onClick(): next==" + "");
-                SoftKeyboardUtils.closeInputMethod(edPid, PreChukuActivity.this);
-                MyApp.myLogger.writeInfo("prechuku:closeInputMethod 2");
                 getPreChukuList(temS, temE, id);
                 break;
         }

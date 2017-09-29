@@ -33,6 +33,11 @@ public class UploadUtils {
         return date;
     }
 
+    public static String getCurrentAtSS() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return sdf.format(new Date());
+    }
+
     public static String getCurrentDate() {
         Calendar calendar = Calendar.getInstance();
         String str = calendar.get(Calendar.YEAR) + "_" + (calendar.get(Calendar.MONTH) + 1) + "_" + calendar.get(Calendar

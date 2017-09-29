@@ -16,9 +16,6 @@
 
 package com.b1b.js.erpandroid_kf.dtr.zxing.camera;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.concurrent.RejectedExecutionException;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.hardware.Camera;
@@ -26,11 +23,15 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.concurrent.RejectedExecutionException;
+
 public class AutoFocusManager implements Camera.AutoFocusCallback {
 
 	private static final String TAG = AutoFocusManager.class.getSimpleName();
 
-	private static final long AUTO_FOCUS_INTERVAL_MS = 2000L;
+	private static final long AUTO_FOCUS_INTERVAL_MS = 700L;
 	private static final Collection<String> FOCUS_MODES_CALLING_AF;
 
 	static {
