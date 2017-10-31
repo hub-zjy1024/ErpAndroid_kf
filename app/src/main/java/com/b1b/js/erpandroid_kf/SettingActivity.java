@@ -9,8 +9,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import utils.MyToast;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -18,6 +16,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import utils.MyToast;
 
 public class SettingActivity extends AppCompatActivity {
 
@@ -45,17 +45,21 @@ public class SettingActivity extends AppCompatActivity {
         Button btnSave = (Button) findViewById(R.id.activity_setting_btnsave);
         final EditText edPrinterIP = (EditText) findViewById(R.id.activity_setting_edip);
         final EditText edPrinterServer = (EditText) findViewById(R.id.activity_setting_ed_printerserver);
+        final EditText edDiaohuoAccount = (EditText) findViewById(R.id.activity_setting_ed_diaohuo_account);
         final SharedPreferences sp = getSharedPreferences("UserInfo", 0);
         String localPrinterIP = sp.getString("printerIP", "");
         final String serverIP = sp.getString("serverPrinter", "");
+        final String diaohuoAccount = sp.getString("diaohuoAccount", "");
         edPrinterIP.setText(localPrinterIP);
         edPrinterServer.setText(serverIP);
+        edDiaohuoAccount.setText(diaohuoAccount);
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Pattern pattern = Pattern.compile("((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))");
                 final String ip = edPrinterIP.getText().toString().trim();
                 final String serverIp = edPrinterServer.getText().toString().trim();
+                final String diaohuoAccount = edDiaohuoAccount.getText().toString().trim();
                 Matcher matcher = pattern.matcher(ip);
                 Matcher serverMatcher = pattern.matcher(serverIp);
                 boolean matches = matcher.matches();
@@ -75,6 +79,9 @@ public class SettingActivity extends AppCompatActivity {
                         sp.edit().putString("serverPrinter", serverIp).commit();
                         MyToast.showToast(SettingActivity.this, "保存预出库打印机ip地址成功");
                     }
+                }
+                if (!diaohuoAccount.equals("")) {
+                    sp.edit().putString("diaohuoAccount", diaohuoAccount).commit();
                 }
 //                new Thread(){
 //                    @Override

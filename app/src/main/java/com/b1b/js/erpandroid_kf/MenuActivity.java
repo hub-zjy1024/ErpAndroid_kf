@@ -19,6 +19,7 @@ import android.widget.SimpleAdapter;
 
 import com.b1b.js.erpandroid_kf.adapter.MenuAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
+import com.b1b.js.erpandroid_kf.service.LogUploadService;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -291,5 +292,12 @@ public class MenuActivity extends AppCompatActivity {
         data.add(new MyMenuItem(R.mipmap.menu_print, "打印(暂仅供北京使用)", "顺丰下单并打印功能,以及打印手机接受的文件的功能"));
         MenuAdapter adapter = new MenuAdapter(data, this, R.layout.menu_item);
         menuList.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.e("zjy", "MenuActivity->onDestroy(): ==");
+        startService(new Intent(this, LogUploadService.class));
     }
 }

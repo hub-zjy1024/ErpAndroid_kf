@@ -15,10 +15,12 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 
+import printer.entity.PrinterInterface;
+
 /**
  Created by 张建宇 on 2017/4/28. */
 
-public class MyPrinter {
+public class MyPrinter implements PrinterInterface{
     private static int[] CMD_INIT = new int[]{27, 64};
     private static int[] CMD_PRINT_GO = new int[]{27, 100, 0};
     private static int[] CMD_COD128 = new int[]{29, 107, 74};
@@ -184,6 +186,11 @@ public class MyPrinter {
         if (mOut != null) {
             mOut.write(cmd);
         }
+    }
+
+    @Override
+    public void printCode(String code) {
+
     }
 
     /**

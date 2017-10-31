@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -30,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import printer.adapter.SFYundanAdapter;
 import printer.entity.Yundan;
 import utils.SoftKeyboardUtils;
 
@@ -38,7 +38,7 @@ public class SFActivity extends AppCompatActivity {
     private List<Yundan> yundanData;
     private EditText edPid;
     private EditText edPartNo;
-    private ArrayAdapter<Yundan> adapter;
+    private SFYundanAdapter adapter;
 
 
     private Handler mHandler = new Handler() {
@@ -72,8 +72,10 @@ public class SFActivity extends AppCompatActivity {
         edPid = (EditText) findViewById(R.id.yundan_ed_pid);
         edPartNo = (EditText) findViewById(R.id.yundan_ed_partno);
         ListView lv = (ListView) findViewById(R.id.yundan_lv);
-        adapter = new ArrayAdapter<Yundan>(this, android.R.layout.simple_list_item_1,
-                yundanData);
+//        adapter = new ArrayAdapter<Yundan>(this, android.R.layout.simple_list_item_1,
+//                yundanData);
+        adapter = new SFYundanAdapter(yundanData, this, R.layout.item_sfyundanlist);
+
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -107,6 +109,7 @@ public class SFActivity extends AppCompatActivity {
                 intent.putExtra("client", item.getCustomer());
                 intent.putExtra("pid", item.getPid());
                 intent.putExtra("times", item.getPrint());
+                intent.putExtra("type", item.getType());
                 startActivity(intent);
             }
         });
@@ -206,7 +209,9 @@ public class SFActivity extends AppCompatActivity {
             String partNo = obj.getString("型号");
             String count = obj.getString("数量");
             String pihao = obj.getString("批号");
+            String type = obj.getString("单据类型");
             Yundan yundan = new Yundan();
+            yundan.setType(type);
             yundan.setPid(sPid);
             yundan.setCreateDate(createDate);
             yundan.setState(state);

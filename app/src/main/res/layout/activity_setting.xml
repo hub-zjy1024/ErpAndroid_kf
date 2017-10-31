@@ -2,6 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_setting"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -21,42 +22,73 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/default_padding_top">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-        <TextView
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="预出库打印机ip地址："/>
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/activity_setting_edip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:met_clearButton="true"
+                app:met_primaryColor="@color/main_ed_primaryColor"
+                android:hint="请输入预出库打印机的地址"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="打印服务器ip地址："/>
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/activity_setting_ed_printerserver"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:met_clearButton="true"
+                app:met_primaryColor="@color/main_ed_primaryColor"
+                android:hint="请输入打印服务器地址"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="调货账号："/>
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/activity_setting_ed_diaohuo_account"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                app:met_clearButton="true"
+                app:met_primaryColor="@color/main_ed_primaryColor"
+                android:hint="请输入月结账号"/>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/activity_setting_btnsave"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="预出库打印机ip地址："/>
-
-        <com.rengwuxian.materialedittext.MaterialEditText
-            android:id="@+id/activity_setting_edip"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="请输入预出库打印机的地址"/>
+            android:text="保存"/>
 
     </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="打印服务器ip地址："/>
-
-        <com.rengwuxian.materialedittext.MaterialEditText
-            android:id="@+id/activity_setting_ed_printerserver"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="请输入打印服务器地址"/>
-
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/activity_setting_btnsave"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="保存"/>
 
 </LinearLayout>

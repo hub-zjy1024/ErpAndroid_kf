@@ -59,7 +59,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="子母单必选"
-                    android:textColor="#ea6969"
+                    android:textColor="@color/color_alert_red"
                     />
             </LinearLayout>
 
@@ -191,25 +191,35 @@
             </LinearLayout>
         </LinearLayout>
 
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/activity_set_yundan_cbo_diaohuo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="调货去向："/>
-
-            <Spinner
-                android:id="@+id/activity_set_yundan_spi_diaohuo"
+            android:gravity="center_vertical"
+            >
+            <LinearLayout
+                android:id="@+id/activity_set_yundan_container_diaohuo"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_alert_red"
+                android:gravity="center_vertical"
+                android:visibility="visible">
 
-            </Spinner>
+                <TextView
+                    android:id="@+id/activity_set_yundan_tv_diaohuo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="调货去向："/>
+
+                <Spinner
+                    android:id="@+id/activity_set_yundan_spi_diaohuo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                </Spinner>
+            </LinearLayout>
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

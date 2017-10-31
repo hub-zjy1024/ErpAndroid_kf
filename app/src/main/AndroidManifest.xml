@@ -103,6 +103,8 @@
         <activity android:name=".YanhuoCheckActivity"/>
         <activity android:name=".AboutActivity">
         </activity>
+
+        <service android:name=".service.LogUploadService"/>
     </application>
 
 </manifest>

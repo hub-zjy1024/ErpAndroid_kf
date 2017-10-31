@@ -11,6 +11,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import printer.entity.PrinterInterface;
+import printer.entity.XiaopiaoInfo;
+
 /**
  Created by 张建宇 on 2017/5/2. */
 
@@ -30,17 +33,18 @@ public class PrinterStyle {
         printer.setCharHeight(2);
         printer.printTextLn(info.getOutType());
         printer.setFont(1);
-//        printer.printTextLn(info.getSalesman() + "-" + info.getEmployeeID() + "-" + pid.substring(0, 3)+ "\t[VIP]");
-        printer.printTextLn(info.getSalesman() + "-" + info.getEmployeeID() + "-" + pid.substring(0, 3)+"\t"+(info.getIsVip().equals("1")?"[VIP]":""));
+        //        printer.printTextLn(info.getSalesman() + "-" + info.getEmployeeID() + "-" + pid.substring(0, 3)+ "\t[VIP]");
+        printer.printTextLn(info.getSalesman() + "-" + info.getEmployeeID() + "-" + pid.substring(0, 3) + "\t" + (info.getIsVip
+                ().equals("1") ? "[VIP]" : ""));
         printer.setFont(0);
         printer.printTextLn("DeptID:" + getStringAtLength(info.getDeptID(), 8, 7) + "\t" + "Client:" + info.getClient());
-        printer.printTextLn("PactID:" +getStringAtLength(info.getPactID(),8,7)  + "\t" + "oType:" + info.getOutType());
+        printer.printTextLn("PactID:" + getStringAtLength(info.getPactID(), 8, 7) + "\t" + "oType:" + info.getOutType());
         List<PreChukuDetailInfo> detailInfos = info.getDetailInfos();
         if (detailInfos != null) {
             for (int i = 0; i < detailInfos.size(); i++) {
                 PreChukuDetailInfo dInfo = detailInfos.get(i);
                 //一行47个字符
-//                printer.printTextLn((i + 1) + ".-----------------------------------------");
+                //                printer.printTextLn((i + 1) + ".-----------------------------------------");
                 // TODO: 2017/7/24 修改打印格式
                 String date = dInfo.getInitialDate();
                 Date compareDate = new Date(117, 6, 1);
@@ -58,12 +62,13 @@ public class PrinterStyle {
                         isShow = true;
                     }
                 }
-//                1160454
+                //                1160454
                 if (isShow) {
                     printer.printTextLn((i + 1) + ".---供应商等级:[" + dInfo.getProLevel() + "]---需检测入库时间:" + dInfo.getInitialDate());
                 } else {
                     printer.printTextLn((i + 1) + ".---供应商等级:[" + dInfo.getProLevel() + "]-------------------------");
                 }
+                printer.printTextLn("明细ID:" + getStringAtLength(dInfo.getDetailID(), 8, 7) + "M");
                 printer.printTextLn("@@型号:" + getStringAtLength(dInfo.getPartNo(), 20, 0));
                 String fz = getStringAtLength(dInfo.getFengzhuang(), 10, 5);
                 String ph = getStringAtLength(dInfo.getPihao(), 10, 5);
@@ -125,5 +130,20 @@ public class PrinterStyle {
             }
         }
         return newString;
+    }
+
+    public void printXiaopiao(PrinterInterface printer, XiaopiaoInfo info) {
+        try {
+            printer.printTextLn("型号:" + info.getPartNo());
+            printer.printTextLn("数量:" + info.getCounts() + "\t" + "产地:" + info.getProduceFrom());
+            printer.printTextLn("厂家:" + info.getFactory() + "\t" + "批号:" + info.getPihao());
+            printer.printTextLn("封装:" + info.getFengzhuang() + "\t" + "描述:" + info.getDescription());
+            printer.printCode(info.getCodeStr());
+            printer.printCode(info.getBelowCode());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 }

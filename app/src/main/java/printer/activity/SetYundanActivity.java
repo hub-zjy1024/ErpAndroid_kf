@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -122,6 +121,8 @@ public class SetYundanActivity extends AppCompatActivity {
     private ArrayAdapter<String> printerAdapter;
     private List<String> spiItems;
     private ProgressDialog pd;
+    private List<Map<String, String>> addrList = new ArrayList<>();
+
     Handler mhandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -129,19 +130,25 @@ public class SetYundanActivity extends AppCompatActivity {
             switch (msg.what) {
                 case 0:
                     flag = 1;
-                    edJAddress.setText(jAddress);
-                    edJTel.setText(jTel);
-                    edJPerson.setText(jName);
                     tvPayBy.setText(payByWho);
                     if (payByWho.equals("寄货方")) {
                         spiPayType.setSelection(0);
                     } else if (payByWho.equals("收货方")) {
                         spiPayType.setSelection(1);
                     }
-                    edAccount.setText(account);
-                    eddTel.setText(dTel);
-                    eddAddress.setText(dAddress);
-                    eddPerson.setText(dName);
+                    if (!isDiaohuo) {
+                        edAccount.setText(account);
+                        edJPerson.setText(jName);
+                        edJAddress.setText(jAddress);
+                        edJTel.setText(jTel);
+                        eddTel.setText(dTel);
+                        eddAddress.setText(dAddress);
+                        eddPerson.setText(dName);
+                    } else {
+                        final SharedPreferences sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
+                        String saveAccount = sp.getString("diaohuoAccount", "");
+                        edAccount.setText(saveAccount);
+                    }
                     break;
                 case 1:
                     DialogUtils.dismissDialog(pd);
@@ -175,6 +182,7 @@ public class SetYundanActivity extends AppCompatActivity {
                                     public void run() {
                                         try {
                                             String result = updatePrintCount(tvPid.getText().toString(), desOrderid);
+                                            result = insertYundanInfo(tvPid.getText().toString(), desOrderid, ddestcode);
                                             if (result.equals("成功")) {
                                                 mhandler.sendEmptyMessage(9);
                                             } else {
@@ -247,7 +255,6 @@ public class SetYundanActivity extends AppCompatActivity {
     private CheckBox cboTest;
     private RadioButton rdo210;
     private String mYundanType;
-    private TextView cboDiaohuo;
     private boolean isDiaohuo = false;
     private Spinner spiDiaohuo;
     private TextView tvState;
@@ -306,13 +313,15 @@ public class SetYundanActivity extends AppCompatActivity {
                 .activity_set_yundan_cbotest);
         spiDiaohuo = (Spinner) findViewById(R.id
                 .activity_set_yundan_spi_diaohuo);
+        final LinearLayout diaohuoContainer = (LinearLayout) findViewById(R.id
+                .activity_set_yundan_container_diaohuo);
+
         tvOrderID = (TextView) findViewById(R.id
                 .activity_set_yundan_tv_orderid);
         tvState = (TextView) findViewById(R.id
                 .activity_set_yundan_tv_insertinfo_state);
         rdo210 = (RadioButton) findViewById(R.id
                 .activity_set_yundan_rdo_210);
-        cboDiaohuo = (TextView) findViewById(R.id.activity_set_yundan_cbo_diaohuo);
 
         final CheckBox boxTakepic = (CheckBox) findViewById(R.id
                 .activity_set_yundan_cbo_takepic);
@@ -388,17 +397,17 @@ public class SetYundanActivity extends AppCompatActivity {
                                     });
                                 } else {
                                     mhandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        DialogUtils.dismissDialog(pd);
-                                        Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
-                                                "关联其他单号失败！！！", "提示");
-                                        DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
-                                    }
+                                        @Override
+                                        public void run() {
+                                            DialogUtils.dismissDialog(pd);
+                                            Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
+                                                    "关联其他单号失败！！！", "提示");
+                                            DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
+                                        }
                                     });
                                 }
                             } catch (IOException e) {
-                               mhandler.post(new Runnable() {
+                                mhandler.post(new Runnable() {
                                     @Override
                                     public void run() {
                                         DialogUtils.dismissDialog(pd);
@@ -434,8 +443,8 @@ public class SetYundanActivity extends AppCompatActivity {
             }
         });
         final Intent intent = getIntent();
-        String sendFlag = intent.getStringExtra("flag");
-        if (sendFlag != null) {
+        String sendFlag = intent.getStringExtra("type");
+        if ("2".equals(sendFlag)) {
             isDiaohuo = true;
         }
         if ("101".equals(MyApp.id)) {
@@ -444,6 +453,7 @@ public class SetYundanActivity extends AppCompatActivity {
             cboTest.setVisibility(View.GONE);
         }
         ArrayList<String> diaohuoList = new ArrayList<String>();
+        diaohuoList.add("请-->选择调货方向");
         diaohuoList.add("北京中转-->深圳市福田区");
         diaohuoList.add("北京中转-->深圳市龙岗区");
         diaohuoList.add("北京中转-->上海");
@@ -469,8 +479,8 @@ public class SetYundanActivity extends AppCompatActivity {
         diaohuoList.add("上海-->深圳市福田区");
         diaohuoList.add("上海-->香港");
 
-        spiDiaohuo.setAdapter(new ArrayAdapter<String>(SetYundanActivity.this, R.layout.item_province, R.id
-                .item_province_tv, diaohuoList));
+//        spiDiaohuo.setAdapter(new ArrayAdapter<String>(SetYundanActivity.this, R.layout.item_province, R.id
+//                .item_province_tv, diaohuoList));
         final List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
         HashMap<String, String> addressMap = new HashMap<String, String>();
         addressMap.put("name", "王朋");
@@ -509,16 +519,26 @@ public class SetYundanActivity extends AppCompatActivity {
                 String[] detail = itemAtPosition.split("-->");
                 String from = detail[0];
                 String to = detail[1];
-                for (HashMap<String, String> s : list) {
-                    if (from.equals(s.get("key"))) {
-                        edJPerson.setText(s.get("name"));
-                        edJTel.setText(s.get("phone"));
-                        edJAddress.setText(s.get("address"));
-                    }
-                    if (to.equals(s.get("key"))) {
-                        eddPerson.setText(s.get("name"));
-                        eddTel.setText(s.get("phone"));
-                        eddAddress.setText(s.get("address"));
+//                for (HashMap<String, String> s : list) {
+//                    if (from.equals(s.get("key"))) {
+//                        edJPerson.setText(s.get("name"));
+//                        edJTel.setText(s.get("phone"));
+//                        edJAddress.setText(s.get("address"));
+//                    }
+//                    if (to.equals(s.get("key"))) {
+//                        eddPerson.setText(s.get("name"));
+//                        eddTel.setText(s.get("phone"));
+//                        eddAddress.setText(s.get("address"));
+//                    }
+//                }
+                for (Map<String, String> map : addrList) {
+                    if (from.equals(map.get("key1")) && to.equals(map.get("key2"))) {
+                        edJPerson.setText(map.get("name1"));
+                        edJTel.setText(map.get("phone1"));
+                        edJAddress.setText(map.get("address1"));
+                        eddPerson.setText(map.get("name2"));
+                        eddTel.setText(map.get("phone2"));
+                        eddAddress.setText(map.get("address2"));
                     }
                 }
             }
@@ -528,13 +548,12 @@ public class SetYundanActivity extends AppCompatActivity {
 
             }
         });
+        Log.e("zjy", "SetYundanActivity->onCreate(): isdiaohuo==" + isDiaohuo);
         if (isDiaohuo) {
             flag = 1;
-            spiDiaohuo.setVisibility(View.VISIBLE);
-            cboDiaohuo.setVisibility(View.VISIBLE);
+            diaohuoContainer.setVisibility(View.VISIBLE);
         } else {
-            cboDiaohuo.setVisibility(View.GONE);
-            spiDiaohuo.setVisibility(View.GONE);
+            diaohuoContainer.setVisibility(View.GONE);
         }
         btnReInsert.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -570,13 +589,10 @@ public class SetYundanActivity extends AppCompatActivity {
         pd = new ProgressDialog(this);
         pd.setTitle("提示");
         pd.setMessage("正在打印中");
-        //        btn210.setFocusable(true);
-        //        btn210.setFocusableInTouchMode(true);
-        //        btn210.requestFocus();
         spiBags.setAdapter(new ArrayAdapter<String>(this, R.layout.lv_item_printer, R
                 .id.spinner_item_tv, new String[]{"1", "2", "3", "4",}));
         spiBags.setVisibility(View.GONE);
-        SharedPreferences sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
+        final SharedPreferences sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
         serverIP = sp.getString("serverPrinter", "");
         boxBaojia.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener
                 () {
@@ -631,6 +647,41 @@ public class SetYundanActivity extends AppCompatActivity {
                 String detail = null;
                 try {
                     detail = searchByPid(pid);
+                    String addressJson = getDHAddresss();
+                    JSONObject addJObj = new JSONObject(addressJson);
+                    JSONArray addTable = addJObj.getJSONArray("表");
+//                    {"objid":"5","FromStorageID":"云岗库房","ToStotageID":"北京中转库","FromName":"商庆房",
+//                            "FromPhone":"0755-83764658","FromAddress":""
+//                            "深圳市龙岗区吉华路393号英达丰科技园","ToName":"王鹏",
+//                            "ToPhone":"010-62105503","ToAddress":"北京市海淀区知春路108号豪景大厦C座1503",
+//                            "AccountNo":""},
+                    List<String> titles = new ArrayList<String>();
+                    titles.add("请-->选择调货方向");
+                    for (int j = 0; j < addTable.length(); j++) {
+                        JSONObject obj = addTable.getJSONObject(j);
+                        String from = obj.getString("FromStorageID");
+                        String to = obj.getString("ToStotageID");
+                        HashMap<String, String> map = new HashMap<String, String>();
+                        map.put("key1", from);
+                        map.put("name1", obj.getString("FromName"));
+                        map.put("phone1", obj.getString("FromPhone"));
+                        map.put("address1", obj.getString("FromAddress"));
+                        map.put("account", obj.getString("AccountNo"));
+                        map.put("key2", to);
+                        map.put("name2", obj.getString("ToName"));
+                        map.put("phone2", obj.getString("ToPhone"));
+                        map.put("address2", obj.getString("ToAddress"));
+                        addrList.add(map);
+                        titles.add(from + "-->" + to);
+                    }
+                    final ArrayAdapter adapter = new ArrayAdapter<String>(SetYundanActivity.this,R.layout.item_province,
+                            R.id.item_province_tv, titles);
+                    mhandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            spiDiaohuo.setAdapter(adapter);
+                        }
+                    });
                     JSONObject root = new JSONObject(detail);
                     JSONArray table = root.getJSONArray("表");
                     for (int i = 0; i < table.length(); i++) {
@@ -655,14 +706,6 @@ public class SetYundanActivity extends AppCompatActivity {
                             jCity = "";
                             jCounty = "";
                         }
-                        //                        edJPerson.setText(obj.getString("业务员"));
-                        //                        edJTel.setText(obj.getString("寄件电话"));
-                        //                        edJAddress.setText(obj.getString
-                        // ("寄件地址1"));
-                        //                        eddPerson.setText(obj.getString("收件人"));
-                        //                        eddAddress.setText(obj.getString
-                        // ("收件地址"));
-                        //                        eddTel.setText(obj.getString("收件电话"));
                         jTel = obj.getString("寄件电话");
                         jName = obj.getString("业务员");
                         dAddress = obj.getString("收件地址");
@@ -725,6 +768,15 @@ public class SetYundanActivity extends AppCompatActivity {
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
+                    mhandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            DialogUtils.dismissDialog(pd);
+                            Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
+                                    "打印机地址有误，请重新配置", "提示");
+                            DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
+                        }
+                    });
                     e.printStackTrace();
                 }
             }
@@ -782,6 +834,7 @@ public class SetYundanActivity extends AppCompatActivity {
                     dName = eddPerson.getText().toString();
                     dAddress = eddAddress.getText().toString();
                     dTel = eddTel.getText().toString();
+                    account = edAccount.getText().toString().trim();
                     final String bags = edBags.getText().toString().trim();
                     if (bags.equals("")) {
                         Toast.makeText(SetYundanActivity.this, "请输入包裹数", Toast
@@ -936,124 +989,6 @@ public class SetYundanActivity extends AppCompatActivity {
                 // boxEsign, boxTakepic);
             }
         });
-        //预览
-        btnReview.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (flag != 1) {
-                    Toast.makeText(SetYundanActivity.this, "获取寄送信息失败，请检查网络，重新进入", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                iv.setImageBitmap(null);
-                if (reviewBitmap != null && !reviewBitmap.isRecycled())
-                    reviewBitmap.recycle();
-
-                new Thread() {
-                    @Override
-                    public void run() {
-                        String ip = "http://" + serverIP + ":8080";
-                        String orderID = "123456789123";
-                        String goodInfos = "url1-500,url2-6000,url3-700";
-                        goodInfos = intent.getStringExtra("goodInfos");
-                        String strURL = ip + "/PrinterServer/ReviewServlet?";
-                        double baojia = 12050;
-                        String strBaojia = edBaojia.getText().toString();
-                        if (strBaojia.equals("")) {
-                            baojia = -1;
-                        } else {
-                            baojia = Double.valueOf(strBaojia);
-                        }
-                        String cardID = "";
-
-                        String payMan = "";
-                        String payType = spiPayType.getSelectedItem().toString();
-                        String serverType = "标准快递";
-                        String destcode = "1234";
-                        String stype = spiServerType.getSelectedItem().toString();
-                        String hasE = "0";
-                        if (serverType.equals("电商特惠")) {
-                            hasE = "1";
-                        }
-                        if (payType.equals("寄付月结")) {
-                            if (account == null || "".equals(account)) {
-                                mhandler.sendEmptyMessage(4);
-                                return;
-                            }
-                        } else if (payType.equals("第三方付")) {
-                            payMan = "北京";
-
-
-                        }
-                        if (!payType.equals("到方付")) {
-                            cardID = account;
-                        }
-                        serverType = stype.split("-")[1];
-                        try {
-                            strURL += "orderID=" + URLEncoder.encode(orderID,
-                                    "UTF-8");
-                            strURL += "&yundanType=" + URLEncoder.encode(TYPE_210,
-                                    "UTF-8");
-                            strURL += "&hasE=" + URLEncoder.encode(hasE,
-                                    "UTF-8");
-                            strURL += "&goodinfos=" + URLEncoder.encode(goodInfos,
-                                    "UTF-8");
-                            strURL += "&cardID=" + URLEncoder.encode(cardID,
-                                    "UTF-8");
-                            strURL += "&baojiaprice=" + URLEncoder.encode(String
-                                            .valueOf(baojia),
-                                    "UTF-8");
-                            strURL += "&payPerson=" + URLEncoder.encode(payMan,
-                                    "UTF-8");
-                            strURL += "&payType=" + URLEncoder.encode(payType,
-                                    "UTF-8");
-                            strURL += "&serverType=" + URLEncoder.encode(serverType,
-                                    "UTF-8");
-                            strURL += "&destcode=" + URLEncoder.encode(destcode,
-                                    "UTF-8");
-                            // &baojiaprice=100&cardID=12345678&payType=寄方&payPerson
-                            // =&serverType=标准快递&j_name=张
-                            // 三&j_phone=1234567&j_address=北京市海淀区&d_name=李四&d_phone
-                            // =18865240122&d_address=湖北省荆州市
-                            strURL += "&j_name=" + URLEncoder.encode(jName,
-                                    "UTF-8");
-                            strURL += "&j_phone=" + URLEncoder.encode(jTel,
-                                    "UTF-8");
-                            strURL += "&j_address=" + URLEncoder.encode(jAddress,
-                                    "UTF-8");
-                            strURL += "&d_name=" + URLEncoder.encode(dName,
-                                    "UTF-8");
-                            strURL += "&d_phone=" + URLEncoder.encode(dTel,
-                                    "UTF-8");
-                            strURL += "&d_address=" + URLEncoder.encode(dAddress,
-                                    "UTF-8");
-                            URL url = new URL(strURL);
-                            HttpURLConnection conn = (HttpURLConnection) url
-                                    .openConnection();
-                            conn.setConnectTimeout(20 * 1000);
-                            final InputStream in = conn.getInputStream();
-                            try {
-                                reviewBitmap = BitmapFactory.decodeStream(in);
-                                mhandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (!reviewBitmap.isRecycled())
-                                            iv.setImageBitmap(reviewBitmap);
-                                    }
-                                });
-                            } catch (OutOfMemoryError outOfMemoryError) {
-                                outOfMemoryError.printStackTrace();
-                            }
-
-                        } catch (MalformedURLException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }.start();
-            }
-        });
         new Thread() {
             @Override
             public void run() {
@@ -1081,7 +1016,6 @@ public class SetYundanActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    Log.e("zjy", "SetYundanActivity->run(): onlineYundanInfo==" + result.toString());
                 } catch (IOException e) {
                     mhandler.post(new Runnable() {
                         @Override
@@ -1192,7 +1126,6 @@ public class SetYundanActivity extends AppCompatActivity {
         //            }
         //        });
         InputStream in = getResources().openRawResource(R.raw.province);
-        addressMap = new HashMap<>();
         provinces = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in,
@@ -1235,10 +1168,6 @@ public class SetYundanActivity extends AppCompatActivity {
             }
         }
     }
-
-
-    //>{"表":[{"objid":"613","parentid":"0","objname":"1176338","objvalue":"616606640489","objtype":"顺丰","objexpress":"010",
-    // "objtime":"2017/9/20 11:50:15"}] }</
 
     public String getOnlineSavedYdInfo(String pid) throws IOException, XmlPullParserException {
         //        GetBD_YunDanInfoByID;
@@ -1373,6 +1302,7 @@ public class SetYundanActivity extends AppCompatActivity {
                 Object selectP = spiPrinter.getSelectedItem();
                 String printName = "";
                 String hasE = "0";
+                account = edAccount.getText().toString().trim();
                 if (serverID.equals("2")) {
                     hasE = "1";
                     serverType = "顺丰隔日";
@@ -1584,10 +1514,6 @@ public class SetYundanActivity extends AppCompatActivity {
                 "UTF-8");
         strURL += "&serverType=" + URLEncoder.encode(serverType,
                 "UTF-8");
-        // &baojiaprice=100&cardID=12345678&payType=寄方&payPerson
-        // =&serverType=标准快递&j_name=张
-        // 三&j_phone=1234567&j_address=北京市海淀区&d_name=李四&d_phone
-        // =18865240122&d_address=湖北省荆州市
         strURL += "&j_name=" + URLEncoder.encode(jName,
                 "UTF-8");
         strURL += "&j_phone=" + URLEncoder.encode(jTel,
@@ -1755,12 +1681,10 @@ public class SetYundanActivity extends AppCompatActivity {
         return sp.toString();
     }
 
-    public String getHetongInfo(String pid) throws IOException, XmlPullParserException {
-        //        http://172.16.6.160:8006/
-        //        GetHeTongFileInfo
+    private String getDHAddresss() throws IOException, XmlPullParserException {
         SoapObject request = new SoapObject("http://tempuri.org/",
-                "GetHeTongFileInfo");
-        request.addProperty("pid", pid);
+                "GetBD_DHAddress");
+        //设置版本号，ver11，和ver12比较常见
         SoapSerializationEnvelope envelope1 = new
                 SoapSerializationEnvelope
                 (SoapEnvelope.VER11);
@@ -1768,13 +1692,14 @@ public class SetYundanActivity extends AppCompatActivity {
         //.net开发的webservice必须加入
         envelope1.dotNet = true;
         HttpTransportSE trans = new HttpTransportSE("http://172.16.6" +
-                ".160:8006/MartService.svc?wsdl", 15 * 1000);
-        String action = "http://tempuri.org/IMartService/GetHeTongFileInfo";
+                ".160:8006/SF_Server.svc?wsdl", 15 * 1000);
+        String action = "http://tempuri.org/ISF_Server/GetBD_DHAddress";
         trans.call(action, envelope1);
         SoapPrimitive sp = (SoapPrimitive) envelope1.getResponse();
-        Log.e("zjy", "SFActivity->GetHeTongFileInfo(): updateCount==" + sp.toString());
+        Log.e("zjy", "SFActivity->getDHAddresss(): daohouAddress==" + sp.toString());
         return sp.toString();
     }
+
 
     public String updatePrintCount(String pid, String orderID) throws IOException,
             XmlPullParserException {
@@ -1782,7 +1707,6 @@ public class SetYundanActivity extends AppCompatActivity {
             return "成功";
         }
         String newOrder = orderID.replace(",", "/");
-        ;
         //       UpdateYunDanInfoByPrintCountResult
         SoapObject request = new SoapObject("http://tempuri.org/",
                 "UpdateYunDanInfoByPrintCount");

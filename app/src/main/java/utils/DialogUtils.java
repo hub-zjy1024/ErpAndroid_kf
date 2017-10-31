@@ -16,6 +16,12 @@ public class DialogUtils {
         }
     }
 
+    public static void cancelDialog(Dialog dialog) {
+        if (dialog != null && dialog.isShowing()) {
+            dialog.cancel();
+        }
+    }
+
     public static Dialog getSpAlert(Context mContext, String msg, String title) {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setTitle(title);
@@ -35,8 +41,8 @@ public class DialogUtils {
                                     DialogInterface
                                             .OnClickListener rl, String rStr) {
         AlertDialog dialog = (AlertDialog) getSpAlert(mContext, msg, title);
-        dialog.setButton2(lStr, ll);
-        dialog.setButton(rStr, rl);
+        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, lStr, ll);
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, rStr, rl);
         return dialog;
     }
 }

@@ -215,7 +215,9 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
                         container.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                camera.autoFocus(null);
+                                if (camera != null) {
+                                    camera.autoFocus(null);
+                                }
                             }
                         });
                          auto = new AutoFoucusMgr( camera);
@@ -516,7 +518,9 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
             @Override
             public void onCancel(DialogInterface dialog) {
                 photo.recycle();
-                camera.startPreview();
+                if (camera != null) {
+                    camera.startPreview();
+                }
             }
         });
         pd.setMessage("正在上传");

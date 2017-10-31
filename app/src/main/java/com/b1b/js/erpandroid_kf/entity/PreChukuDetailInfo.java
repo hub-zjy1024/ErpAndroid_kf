@@ -15,6 +15,7 @@ public class PreChukuDetailInfo {
     private String leftCounts;
     private String proLevel;
     private String initialDate;
+    private String detailID;
 
     public String getProLevel() {
         return proLevel;
@@ -22,6 +23,14 @@ public class PreChukuDetailInfo {
 
     public void setProLevel(String proLevel) {
         this.proLevel = proLevel;
+    }
+
+    public String getDetailID() {
+        return detailID;
+    }
+
+    public void setDetailID(String detailID) {
+        this.detailID = detailID;
     }
 
     public String getInitialDate() {

@@ -18,6 +18,7 @@ public class Yundan {
     private String partNo;
     private String counts;
     private String pihao;
+    private String type;
 
     @Override
     public String toString() {
@@ -140,5 +141,13 @@ public class Yundan {
 
     public void setPihao(String pihao) {
         this.pihao = pihao;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

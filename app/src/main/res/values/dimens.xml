@@ -5,5 +5,6 @@
     <dimen name="activity_title_height">40dp</dimen>
     <dimen name="activity_title_textsize">20sp</dimen>
     <dimen name="bg_drable_padding">8dp</dimen>
+    <dimen name="def_text_size">18sp</dimen>
     <dimen name="btn_padding">8dp</dimen>
 </resources>

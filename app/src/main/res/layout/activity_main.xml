@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="20dp"
-        android:src="@mipmap/appicon"/>
+        android:src="@mipmap/app_logo"/>
 
     <EditText
         android:id="@+id/login_username"

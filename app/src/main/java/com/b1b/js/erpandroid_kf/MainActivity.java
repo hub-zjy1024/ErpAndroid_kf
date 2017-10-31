@@ -17,7 +17,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -282,10 +281,9 @@ public class MainActivity extends AppCompatActivity {
             if (!saveDate.equals(current)) {
                 MyApp.myLogger.writeInfo("phonecode:" + phoneCode);
                 MyApp.myLogger.writeInfo("dyj-version:" + code);
-                logSp.edit().putString("date", current).apply();
             }
         }
-        downPd = new ProgressDialog(MainActivity.this);
+
         checkUpdate(code);
         //        readCache();
         btnLogin.setOnClickListener(new View.OnClickListener() {
@@ -381,13 +379,23 @@ public class MainActivity extends AppCompatActivity {
             MyApp.myLogger.writeError("apk versioncode==0");
             return;
         }
+        downPd = new ProgressDialog(MainActivity.this);
+        downPd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        downPd.setTitle("更新");
+        downPd.setMax(100);
+        downPd.setMessage("下载中");
+        downPd.setProgress(0);
         new Thread() {
             @Override
             public void run() {
                 boolean ifUpdate = false;
+                String saveName = "dyjkfapp.apk";
+                String downUrl = "http://172.16.6.160:8006/DownLoad/dyj_kf/dyjkfapp.apk";
+                String specialUrl= "http://172.16.6.160:8006/DownLoad/dyj_kf/debug-update.txt";
+                String checkUrl = "http://172.16.6.160:8006/DownLoad/dyj_kf/updateXml.txt";
                 try {
 //                    boolean ifUpdate = checkVersion(nowCode);
-                    HashMap<String, String> updateInfo = getUpdateXml("http://172.16.6.160:8006/DownLoad/dyj_kf/updateXml.txt");
+                    HashMap<String, String> updateInfo = getUpdateXml(checkUrl);
                     if (updateInfo != null) {
                         String sCode=updateInfo.get("code");
                         final String sContent = updateInfo.get("content");
@@ -410,29 +418,20 @@ public class MainActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                    String downUrl = "http://172.16.6.160:8006/DownLoad/dyjkfapp.apk";
-                    String downUrl = "http://172.16.6.160:8006/DownLoad/dyj_kf/dyjkfapp.apk";
                     if (ifUpdate) {
                         zHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                //必须设定进图条样式
-                                downPd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                                downPd.setTitle("更新");
-                                downPd.setMax(100);
-                                downPd.setMessage("下载中");
-                                downPd.setProgress(0);
                                 downPd.show();
                             }
                         });
                         try {
-                            updateAPK(MainActivity.this, zHandler, downUrl);
+                            updateAPK(MainActivity.this, zHandler, downUrl, saveName);
                         } catch (IOException e) {
                             zHandler.sendEmptyMessage(11);
                             e.printStackTrace();
                         }
                     } else {
-                        String specialUrl= "http://172.16.6.160:8006/DownLoad/dyj_kf/debug-update.txt";
                         HashMap<String, String> map = null;
                         try {
                             map = specialUpdate(specialUrl);
@@ -459,16 +458,11 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void run() {
                                             //必须设定进图条样式
-                                            downPd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                                            downPd.setTitle("更新");
-                                            downPd.setMax(100);
-                                            downPd.setMessage("下载中");
-                                            downPd.setProgress(0);
                                             downPd.show();
                                         }
                                     });
                                     try {
-                                        updateAPK(MainActivity.this, zHandler, apkUrl);
+                                        updateAPK(MainActivity.this, zHandler, downUrl, saveName);
                                         speUpdate.edit().putString("checkid", onlineCheckID).commit();
                                     } catch (IOException e) {
                                         zHandler.sendEmptyMessage(11);
@@ -478,17 +472,11 @@ public class MainActivity extends AppCompatActivity {
                                     zHandler.post(new Runnable() {
                                         @Override
                                         public void run() {
-                                            //必须设定进图条样式
-                                            downPd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                                            downPd.setTitle("更新");
-                                            downPd.setMax(100);
-                                            downPd.setMessage("下载中");
-                                            downPd.setProgress(0);
                                             downPd.show();
                                         }
                                     });
                                     try {
-                                        updateAPK(MainActivity.this, zHandler, apkUrl);
+                                        updateAPK(MainActivity.this, zHandler, downUrl, saveName);
                                         speUpdate.edit().putString("checkid", onlineCheckID).commit();
                                     } catch (IOException e) {
                                         zHandler.sendEmptyMessage(11);
@@ -608,7 +596,6 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
-
             }
         }.start();
     }
@@ -794,7 +781,9 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
-    public void updateAPK(Context context, Handler mHandler, String downUrl) throws IOException {
+
+    public void updateAPK(Context context, Handler mHandler, String downUrl, String saveName) throws IOException {
+
         URL url = new URL(downUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(3 * 1000);
@@ -803,7 +792,7 @@ public class MainActivity extends AppCompatActivity {
             InputStream is = conn.getInputStream();
             int size = conn.getContentLength();
             File targetDir = MyFileUtils.getFileParent();
-            File file1 = new File(targetDir, "dyjkfapp.apk");
+            File file1 = new File(targetDir,saveName);
             FileOutputStream fos = new FileOutputStream(file1);
             int len = 0;
             int hasRead = 0;
@@ -830,20 +819,19 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
-//                Message msg = mHandler.obtainMessage(8);
-//                msg.arg1 = percent;
-//                mHandler.sendMessage(msg);
+                //                Message msg = mHandler.obtainMessage(8);
+                //                msg.arg1 = percent;
+                //                mHandler.sendMessage(msg);
                 //写入时第三个参数使用len
                 fos.write(buf, 0, len);
             }
             fos.flush();
             is.close();
             fos.close();
-            MyApp.myLogger.writeInfo("update download" );
+            MyApp.myLogger.writeInfo("update download");
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            File file = new File(targetDir, "dyjkfapp.apk");
+            File file = new File(targetDir, saveName);
             if (file.exists()) {
-                MimeTypeMap.getSingleton().getMimeTypeFromExtension(".apk");
                 intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);

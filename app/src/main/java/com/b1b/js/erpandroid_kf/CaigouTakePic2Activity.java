@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.os.Build;
@@ -210,6 +211,12 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                     try {
                         // 设置用于显示拍照影像的SurfaceHolder对象
                         camera.setPreviewDisplay(holder);
+                        int sw = getWindowManager().getDefaultDisplay().getWidth();
+                        int sh = getWindowManager().getDefaultDisplay().getHeight();
+                        Point finalSize = TakePicActivity.getSuitablePreviewSize(parameters, sw, sh);
+                        if (finalSize != null) {
+                            parameters.setPreviewSize(finalSize.x, finalSize.y);
+                        }
                         //初始化操作在开始预览之前完成
                         if (sp.getInt("width", -1) != -1) {
                             int width = sp.getInt("width", -1);
@@ -224,7 +231,9 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                         container.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                camera.autoFocus(null);
+                                if (camera != null) {
+                                    camera.autoFocus(null);
+                                }
                             }
                         });
                          auto = new AutoFoucusMgr(camera);

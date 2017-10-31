@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.os.Build;
@@ -83,6 +84,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
     private final static int FTP_CONNECT_FAIL = 3;
     private final static int PICUPLOAD_SUCCESS = 0;
     private final static int PICUPLOAD_ERROR = 1;
+    private String kfFTP = MyApp.ftpUrl;
     int cid;
     int did;
     private Handler mHandler = new Handler() {
@@ -209,6 +211,12 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     try {
                         // 设置用于显示拍照影像的SurfaceHolder对象
                         camera.setPreviewDisplay(holder);
+                        int sw = getWindowManager().getDefaultDisplay().getWidth();
+                        int sh = getWindowManager().getDefaultDisplay().getHeight();
+                        Point finalSize = TakePicActivity.getSuitablePreviewSize(parameters, sw, sh);
+                        if (finalSize != null) {
+                            parameters.setPreviewSize(finalSize.x, finalSize.y);
+                        }
                         //初始化操作在开始预览之前完成
                         if (sp.getInt("width", -1) != -1) {
                             int width = sp.getInt("width", -1);
@@ -220,10 +228,13 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                             showSizeChoiceDialog(parameters);
                         }
                         camera.startPreview();
+                        isPreview = true;
                         container.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                camera.autoFocus(null);
+                                if (camera != null && isPreview) {
+                                    camera.autoFocus(null);
+                                }
                             }
                         });
                          auto = new AutoFoucusMgr(camera);
@@ -364,7 +375,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
             if (mOrientationListener.canDetectOrientation()) {
                 mOrientationListener.enable();
             } else {
-                Log.e("zjy", "TakePicActivity->attachToSensor(): 获取相机方向失败==");
+                MyApp.myLogger.writeError(TakePic2Activity.class, "获取相机方向失败,Detect fail");
                 mOrientationListener.disable();
                 rotation = 0;
             }
@@ -420,6 +431,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     @Override
                     public void onPictureTaken(byte[] data, Camera camera) {
                         try {
+                            isPreview = false;
                             Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
                             Matrix matrixs = new Matrix();
                             matrixs.setRotate(90 + rotation);
@@ -433,6 +445,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                 photo.recycle();
                             }
                             camera.startPreview();
+                            isPreview = true;
                             showSizeChoiceDialog(parameters);
                             toolbar.setVisibility(View.GONE);
                         }
@@ -446,6 +459,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     photo = null;
                 }
                 camera.startPreview();
+                isPreview = true;
                 btn_takepic.setEnabled(true);
                 toolbar.setVisibility(View.GONE);
                 break;
@@ -456,6 +470,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     MyToast.showToast(TakePic2Activity.this, "图片过大，请选择合适的尺寸");
                     btn_takepic.setEnabled(true);
                     camera.startPreview();
+                    isPreview = true;
                     toolbar.setVisibility(View.GONE);
                     showSizeChoiceDialog(parameters);
                     return;
@@ -465,13 +480,14 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     MyToast.showToast(TakePic2Activity.this, "无法获取存储路径，请换用普通拍照功能");
                     return;
                 }
-                if (MyApp.ftpUrl == null || "".equals(MyApp.ftpUrl)) {
+                if (kfFTP == null || "".equals(kfFTP)) {
                     if(!"101".equals(MyApp.id)){
                         MyToast.showToast(TakePic2Activity.this, "读取上传地址失败，请重启程序");
                         return;
                     }
                 }
                 camera.startPreview();
+                isPreview = true;
                 toolbar.setVisibility(View.GONE);
                 btn_takepic.setEnabled(true);
                 int id = (int) (Math.random() * 1000000);
@@ -546,7 +562,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
 //                                        ftpUtil=  new ftpUtil(mUrl, 21, "zjy", "123456");
                                         remotePath = UploadUtils.KF_DIR + remoteName + ".jpg";
                                     } else {
-                                        mUrl = MyApp.ftpUrl;
+                                        mUrl = kfFTP;
                                         ftpUtil = new FTPUtils(mUrl, 21,FtpManager.ftpName,
                                                 FtpManager.ftpPassword);
                                         remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";

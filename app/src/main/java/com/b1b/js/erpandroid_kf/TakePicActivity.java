@@ -43,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
+import utils.DialogUtils;
 import utils.FTPUtils;
 import utils.FtpManager;
 import utils.ImageWaterUtils;
@@ -64,13 +65,14 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     private LinearLayout toolbar;
     private Camera.Parameters parameters;
     private Camera camera;
-    private boolean isPreview = true;
+    private boolean isPreview = false;
     private Bitmap photo;
     private List<Camera.Size> picSizes;
     AutoFoucusMgr auto;
     private ProgressDialog pd;
     private String pid;
     private int commitTimes = 0;
+    private String kfFTP = MyApp.ftpUrl;
     private MaterialDialog resultDialog;
     private final static int FTP_CONNECT_FAIL = 3;
     private final static int PICUPLOAD_SUCCESS = 0;
@@ -218,6 +220,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                             showSizeChoiceDialog(parameters);
                         }
                         camera.startPreview();
+                        isPreview = true;
                         //                        String brand = Build.BRAND;
                         //                        if (brand != null) {
                         //                            if (brand.toUpperCase().equals("HONOR")) {
@@ -234,14 +237,9 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         container.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                camera.autoFocus(new Camera.AutoFocusCallback() {
-                                    @Override
-                                    public void onAutoFocus(boolean success, Camera camera) {
-                                        if (success) {
-                                            camera.cancelAutoFocus();
-                                        }
-                                    }
-                                });
+                                if (camera != null && isPreview) {
+                                    camera.autoFocus(null);
+                                }
                             }
                         });
                         auto = new AutoFoucusMgr(camera);
@@ -272,7 +270,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
      @param parameters
      @deprecated
      */
-    private Point getSuitablePreviewSize(Camera.Parameters parameters, int screenW, int screenH) {
+    public static Point getSuitablePreviewSize(Camera.Parameters parameters, int screenW, int screenH) {
         Camera.Size defSize = parameters.getPreviewSize();
         if (defSize.width == screenH && defSize.height == screenW) {
             return null;
@@ -415,7 +413,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             if (mOrientationListener.canDetectOrientation()) {
                 mOrientationListener.enable();
             } else {
-                Log.e("zjy", "TakePicActivity->attachToSensor(): 获取相机方向失败==");
+                MyApp.myLogger.writeError(TakePicActivity.class, "获取相机方向失败,Detect fail");
                 mOrientationListener.disable();
                 rotation = 0;
             }
@@ -475,6 +473,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 camera.takePicture(null, null, new Camera.PictureCallback() {
                     @Override
                     public void onPictureTaken(byte[] data, Camera camera) {
+                        isPreview = false;
                         try {
                             Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
                             Matrix matrixs = new Matrix();
@@ -490,6 +489,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                                 photo.recycle();
                             }
                             camera.startPreview();
+                            isPreview = true;
                             showSizeChoiceDialog(parameters);
                             toolbar.setVisibility(View.GONE);
 
@@ -509,7 +509,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             //提交
             case R.id.main_commit:
-                if (MyApp.ftpUrl == null || "".equals(MyApp.ftpUrl)) {
+                if (kfFTP == null || "".equals(kfFTP)) {
                     if (!"101".equals(MyApp.id)) {
                         MyToast.showToast(TakePicActivity.this, "读取上传地址失败，请重启程序");
                         return;
@@ -564,7 +564,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                                                 .mainPwd);
                                         remotePath = UploadUtils.KF_DIR + remoteName + ".jpg";
                                     } else {
-                                        mUrl = MyApp.ftpUrl;
+                                        mUrl = kfFTP;
                                         ftpUtil = new FTPUtils(mUrl, 21, FtpManager.ftpName, FtpManager.ftpPassword);
                                         remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
                                     }
@@ -630,7 +630,10 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             public void onCancel(DialogInterface dialog) {
                 if (photo != null)
                     photo.recycle();
-                camera.startPreview();
+                if (camera != null) {
+                    camera.startPreview();
+                    isPreview = true;
+                }
             }
         });
         pd.setMessage("正在上传");
@@ -739,9 +742,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void showFinalDialog(String message) {
-        if (pd != null && pd.isShowing()) {
-            pd.cancel();
-        }
+        DialogUtils.cancelDialog(pd);
         resultDialog.setMessage(message);
         resultDialog.show();
     }

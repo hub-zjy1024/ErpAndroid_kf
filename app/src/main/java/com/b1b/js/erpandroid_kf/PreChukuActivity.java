@@ -114,15 +114,19 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
 //        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
         SoapObject reObj = WebserviceUtils.getSoapObjResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer,
                 WebserviceUtils.DEF_TIMEOUT);
-        if (reObj == null) {
+
+        String result = "";
+        if (reObj != null) {
+            Object resResult = reObj.getProperty("GetOutStorageNotifyPrintViewListResult");
+            if (resResult != null) {
+                result = resResult.toString();
+            } else {
+                MyApp.myLogger.writeError(PreChukuActivity.class, "getProperty  null！！！" + pid + "\t" + uid);
+            }
+        } else {
             MyApp.myLogger.writeError(PreChukuActivity.class, "SoapOject null！！！" + pid + "\t" + uid);
-            return "";
         }
-        Log.e("zjy", "PreChukuActivity->getList(): soapObject==" + reObj.toString());
-        String result = reObj.getPropertyAsString("GetOutStorageNotifyPrintViewListResult");
-        if (result.equals("anyType{}")) {
-            return "";
-        }
+        Log.e("zjy", "PreChukuActivity->getList(): result==" + result);
         return result;
 //        return response.toString();
     }

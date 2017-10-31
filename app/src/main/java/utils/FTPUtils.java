@@ -27,7 +27,7 @@ public class FTPUtils {
     private String username;
     private String password;
     private ProtocolCommandListener listener;
-    public static final String DEF_FTP="172.16.6.22";
+    public static final String DEF_FTP = "172.16.6.22";
     public static final String ftpName = "dyjftp";
     public static final String ftpPassword = "dyjftp";
     public static final String mainAddress = "172.16.6.22";
@@ -89,6 +89,7 @@ public class FTPUtils {
     public synchronized void login() throws IOException {
         login(15);
     }
+
     /**
      登录FTP
      @throws IOException
@@ -102,11 +103,11 @@ public class FTPUtils {
         //连接超时
         mClient.setConnectTimeout(timeout * 1000);
         mClient.connect(hostname, port);
-//        只能在连接成功之后使用
+        //        只能在连接成功之后使用
         //ftp命令响应超时
-//        mClient.setSoTimeout(timeout * 1000);
-//        mClient.setControlEncoding("UTF-8");
-//        mClient.setControlKeepAliveTimeout(2);
+        //        mClient.setSoTimeout(timeout * 1000);
+        //        mClient.setControlEncoding("UTF-8");
+        //        mClient.setControlKeepAliveTimeout(2);
         if (!mClient.login(username, password))
             throw new IOException("FTP登陆失败，请检测登陆用户名和密码是否正确!");
         //只能在登陆成功后设置下面的才有效果
@@ -127,7 +128,14 @@ public class FTPUtils {
     }
 
     public synchronized boolean makeDir(String path) throws IOException { /* 创建配置对象*/
-        return mClient.makeDirectory(path);
+        int index = path.indexOf("/");
+        String nPath = path.substring(0, index);
+        while (nPath != null) {
+            mClient.makeDirectory(nPath);
+            index = path.indexOf("/", index);
+            nPath = path.substring(0, index);
+        }
+        return true;
     }
 
     /**
@@ -227,10 +235,9 @@ public class FTPUtils {
         int last = remoteFilePath.lastIndexOf("/");
         if (last != 0 && last != -1) {
             String path = remoteFilePath.substring(0, last);
-            //            toTargetDir(path);
             boolean dirExists = fileExists(path);
             if (!dirExists) {
-                mClient.makeDirectory(path);
+                mkDirs(path);
                 Log.e("zjy", "FTPUtils->upload(): makeDir==" + path);
             }
         }
@@ -262,7 +269,7 @@ public class FTPUtils {
 
     public synchronized boolean fileExists(String remoteFilePath) {
         try {
-            FTPFile[]  ftpFiles = mClient.listFiles(remoteFilePath);
+            FTPFile[] ftpFiles = mClient.listFiles(remoteFilePath);
             if (ftpFiles != null && ftpFiles.length > 0) {
                 return true;
             }
@@ -277,10 +284,31 @@ public class FTPUtils {
      Exception
      */
     public void download(OutputStream localOut, String remoteFilePath) throws IOException {
-        boolean result =
-                mClient.retrieveFile(remoteFilePath, localOut);
+        boolean result =mClient.retrieveFile(remoteFilePath, localOut);
         if (!result) {
             throw new IOException("文件下载失败!");
+        }
+    }
+
+    /**
+     某些FTP服务器不支持一次创建多级目录，所以需要循环创建
+     @param dirPath
+     @throws IOException
+     */
+    public synchronized void mkDirs(String dirPath) throws IOException {
+        int index = dirPath.indexOf("/");
+        String nPath = "";
+        while (!nPath.equals(dirPath)) {
+            index = dirPath.indexOf("/", index + 1);
+            if (index == -1 || index == dirPath.length() - 1) {
+                nPath = dirPath;
+            } else {
+                nPath = dirPath.substring(0, index);
+            }
+            mClient.makeDirectory(nPath);
+            if (nPath.equals(dirPath)) {
+                break;
+            }
         }
     }
 }

@@ -323,7 +323,14 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 .ChuKuServer, 30 * 1000);
         String result = "";
         if (response != null) {
-            result = response.getPropertyAsString("GetOutStorageNotifyPrintViewResult");
+            Object resResult = response.getProperty("GetOutStorageNotifyPrintViewResult");
+            if (resResult != null) {
+                result = resResult.toString();
+            } else {
+                MyApp.myLogger.writeError(PreChukuDetailActivity.class, "getProperty  null！！！" + pid + "\t" + uid);
+            }
+        } else {
+            MyApp.myLogger.writeError(PreChukuDetailActivity.class, "detail response null！！！" + pid + "\t" + uid);
         }
         Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + result);
         JSONObject object = new JSONObject(result);
@@ -354,9 +361,11 @@ public class PreChukuDetailActivity extends AppCompatActivity {
             String p = obj.getString("位置");
             String notes = obj.getString("备注");
             String counts = obj.getString("数量");
+            String detailID = obj.getString("PDID");
             String leftCounts = String.valueOf(Integer.parseInt(obj.getString("BalanceQ")) - Integer.parseInt(counts));
             PreChukuDetailInfo dinfo = new PreChukuDetailInfo(partNo, fengzhuang, pihao, factory, description, notes, p, counts,
                     leftCounts);
+            dinfo.setDetailID(detailID);
             dinfo.setProLevel(obj.getString("DengJi"));
             dinfo.setInitialDate(obj.getString("InstorageData"));
             list.add(dinfo);
