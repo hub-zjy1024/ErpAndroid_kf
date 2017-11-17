@@ -50,6 +50,11 @@ public class KaoQinActivity extends AppCompatActivity {
         Button btnSaixuan = (Button) findViewById(R.id.kq_saixuan);
         inputDate.setText(getCurrentDate());
         inputId.setText(MyApp.id);
+        if ("101".equals(MyApp.id)) {
+            inputId.setVisibility(View.VISIBLE);
+        } else {
+            inputId.setVisibility(View.GONE);
+        }
         adapter = new KqAdapter(data, KaoQinActivity.this, R.layout.kaoqin_lvitems);
         listView.setAdapter(adapter);
         btnSaixuan.setOnClickListener(new View.OnClickListener() {

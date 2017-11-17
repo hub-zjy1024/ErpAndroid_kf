@@ -1,6 +1,10 @@
 package printer.activity;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -8,11 +12,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.R;
+import com.b1b.js.erpandroid_kf.SettingActivity;
+import com.b1b.js.erpandroid_kf.YundanPrintAcitivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 
 import org.json.JSONArray;
@@ -64,6 +72,8 @@ public class SFActivity extends AppCompatActivity {
         }
     };
 
+    private String prefExpress = "";
+    private CheckBox changeExpress;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,8 +82,7 @@ public class SFActivity extends AppCompatActivity {
         edPid = (EditText) findViewById(R.id.yundan_ed_pid);
         edPartNo = (EditText) findViewById(R.id.yundan_ed_partno);
         ListView lv = (ListView) findViewById(R.id.yundan_lv);
-//        adapter = new ArrayAdapter<Yundan>(this, android.R.layout.simple_list_item_1,
-//                yundanData);
+        changeExpress = (CheckBox) findViewById(R.id.sf_cbo_chage);
         adapter = new SFYundanAdapter(yundanData, this, R.layout.item_sfyundanlist);
 
         lv.setAdapter(adapter);
@@ -85,7 +94,7 @@ public class SFActivity extends AppCompatActivity {
                     Log.e("zjy", "SFActivity->onItemClick(): noYundan==");
                     return;
                 }
-                Intent intent = new Intent(SFActivity.this, SetYundanActivity.class);
+                final Intent intent = new Intent(SFActivity.this, SetYundanActivity.class);
                 Yundan item = (Yundan) parent.getItemAtPosition(position);
                 String goodInfos = "";
                 int n = 0;
@@ -110,10 +119,82 @@ public class SFActivity extends AppCompatActivity {
                 intent.putExtra("pid", item.getPid());
                 intent.putExtra("times", item.getPrint());
                 intent.putExtra("type", item.getType());
-                startActivity(intent);
+                if (prefExpress.equals("")) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(SFActivity.this);
+                    builder.setTitle("请选择快递");
+                    builder.setItems(new String[]{"顺丰快递", "跨越快递(深圳可用)"}, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            switch (which) {
+                                case 0:
+                                    intent.setClass(SFActivity.this, SetYundanActivity.class);
+                                    startActivity(intent);
+                                    MyApp.myLogger.writeInfo("<page> SFprint");
+                                    break;
+                                case 1:
+                                    intent.setClass(SFActivity.this, YundanPrintAcitivity.class);
+                                    startActivity(intent);
+                                    MyApp.myLogger.writeInfo("<page> fileprint");
+                                    break;
+                            }
+                        }
+                    });
+                    builder.setNegativeButton("配置默认快递", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent sIntent = new Intent(SFActivity.this, SettingActivity.class);
+                            startActivity(sIntent);
+                        }
+                    });
+                    builder.show();
+                } else if (changeExpress.isChecked()) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(SFActivity.this);
+                    builder.setTitle("请选择快递");
+                    builder.setItems(new String[]{"顺丰快递", "跨越快递(深圳可用)"}, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            switch (which) {
+                                case 0:
+                                    intent.setClass(SFActivity.this, SetYundanActivity.class);
+                                    startActivity(intent);
+                                    MyApp.myLogger.writeInfo("<page> SFprint");
+                                    break;
+                                case 1:
+                                    intent.setClass(SFActivity.this, YundanPrintAcitivity.class);
+                                    startActivity(intent);
+                                    MyApp.myLogger.writeInfo("<page> fileprint");
+                                    break;
+                            }
+                        }
+                    });
+                    builder.setNegativeButton("配置默认快递", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent sIntent = new Intent(SFActivity.this, SettingActivity.class);
+                            startActivity(sIntent);
+                        }
+                    });
+                    builder.show();
+                }else if (prefExpress.equals(getString(R.string.express_sf))) {
+                    intent.setClass(SFActivity.this, SetYundanActivity.class);
+                    startActivity(intent);
+                    MyApp.myLogger.writeInfo("<page> SFprint");
+                } else if (prefExpress.equals(getString(R.string.express_ky))) {
+                    intent.setClass(SFActivity.this, YundanPrintAcitivity.class);
+                    startActivity(intent);
+                    MyApp.myLogger.writeInfo("<page> fileprint");
+                }
+
             }
         });
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences sp = getSharedPreferences("UserInfo", Context.MODE_PRIVATE);
+        prefExpress = sp.getString("prefExpress", "");
     }
 
     public void myOnclick(View view) {
@@ -133,7 +214,7 @@ public class SFActivity extends AppCompatActivity {
                 break;
             case R.id.sf_btnSFdiaohuo:
                 Intent dhIntent = new Intent(SFActivity.this, SetYundanActivity.class);
-                dhIntent.putExtra("flag", "diaohuo");
+                dhIntent.putExtra("prefExpress", "diaohuo");
                 dhIntent.putExtra("pid", "00000");
                 dhIntent.putExtra("times", "");
                 startActivity(dhIntent);

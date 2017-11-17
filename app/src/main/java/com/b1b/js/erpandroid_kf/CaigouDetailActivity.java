@@ -41,7 +41,6 @@ import java.util.LinkedHashMap;
 
 import utils.DialogUtils;
 import utils.FTPUtils;
-import utils.HttpUtils;
 import utils.MyToast;
 import utils.WebserviceUtils;
 
@@ -457,7 +456,8 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         String createDate = date;
         String hetongID = pid;
         String fileID = corpID;
-        String strUrl = HttpUtils.host + "PrinterServer/HetongServlet?";
+        String host = "http://192.168.10.65:8080/";
+        String strUrl = host + "PrinterServer/HetongServlet?";
         // pid=1024521?proFullName=北京市供货商&hetongID=101110&proShortName=bjgh&goodInfos=name1,name2,name3,
         // &proPhone=13452525623&proAddress=北京市海淀区中关村&proReceiveMan=晨晨&createDate=2017-07-13
         try {

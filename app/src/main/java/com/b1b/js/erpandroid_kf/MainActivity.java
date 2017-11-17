@@ -76,8 +76,6 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog pd;
     private ProgressDialog downPd;
     private ProgressDialog scanDialog;
-    private String updateLog;
-    private String downPath;
     private TextView tvVersion;
     private final int SCANCODE_LOGIN_SUCCESS = 4;
     private final int NEWWORK_ERROR = 2;
@@ -208,23 +206,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                     break;
                 case 7:
-                    //                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    //                    builder.setTitle("提示");
-                    //                    builder.setMessage("当前有新版本可用，是否更新?\n更新内容：\n" + updateLog);
-                    //                    builder.setCancelable(false);
-                    //                    builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
-                    //                        @Override
-                    //                        public void onClick(DialogInterface dialog, int which) {
-                    //                            startUpdate();
-                    //                        }
-                    //                    });
-                    //                    builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
-                    //                        @Override
-                    //                        public void onClick(DialogInterface dialog, int which) {
-                    //
-                    //                        }
-                    //                    });
-                    //                    builder.show();
                     break;
                 case 9:
                     break;
@@ -234,11 +215,6 @@ public class MainActivity extends AppCompatActivity {
                 case 11:
                     downPd.cancel();
                     MyToast.showToast(MainActivity.this, "下载失败");
-                    break;
-                case 12:
-                    String info = tvVersion.getText().toString().trim();
-                    info = info + "，更新说明:" + "\n" + updateLog;
-                    tvVersion.setText(info);
                     break;
             }
         }
@@ -289,7 +265,8 @@ public class MainActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590") || phoneCode.endsWith("864394010742122") || phoneCode.endsWith("A0000043F41515")) {
+                if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590") || phoneCode.endsWith
+                        ("864394010742122") || phoneCode.endsWith("A0000043F41515") || phoneCode.endsWith("866462026203849")|| phoneCode.endsWith("869552022575930")) {
                     login("101", "62105300");
 //                    login("2984", "000000");
                 }
@@ -390,9 +367,9 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 boolean ifUpdate = false;
                 String saveName = "dyjkfapp.apk";
-                String downUrl = "http://172.16.6.160:8006/DownLoad/dyj_kf/dyjkfapp.apk";
-                String specialUrl= "http://172.16.6.160:8006/DownLoad/dyj_kf/debug-update.txt";
-                String checkUrl = "http://172.16.6.160:8006/DownLoad/dyj_kf/updateXml.txt";
+                String downUrl = WebserviceUtils.ROOT_URL+"DownLoad/dyj_kf/dyjkfapp.apk";
+                String specialUrl= WebserviceUtils.ROOT_URL+"DownLoad/dyj_kf/debug-update.txt";
+                String checkUrl = WebserviceUtils.ROOT_URL+"DownLoad/dyj_kf/updateXml.txt";
                 try {
 //                    boolean ifUpdate = checkVersion(nowCode);
                     HashMap<String, String> updateInfo = getUpdateXml(checkUrl);
@@ -664,44 +641,6 @@ public class MainActivity extends AppCompatActivity {
         }.start();
     }
 
-    /**
-     @param localVersion 当前应用的版本号
-     @return
-     @throws SocketTimeoutException
-     @throws IOException             */
-    public boolean checkVersion(int localVersion) throws IOException {
-        boolean ifUpdate = false;
-        String url = "http://172.16.6.160:8006/DownLoad/readme.txt";
-        URL urll = new URL(url);
-        HttpURLConnection conn = (HttpURLConnection) urll.openConnection();
-        conn.setConnectTimeout(5 * 1000);
-        conn.setReadTimeout(10000);
-        if (conn.getResponseCode() == 200) {
-            InputStream is = conn.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-            String len = reader.readLine();
-            StringBuilder stringBuilder = new StringBuilder();
-            while (len != null) {
-                stringBuilder.append(len);
-                len = reader.readLine();
-            }
-            String[] info = stringBuilder.toString().split("&");
-            if (info.length > 0) {
-                try {
-                    if (Integer.parseInt(info[1]) > localVersion) {
-                        ifUpdate = true;
-                    }
-                    updateLog = info[3] + "\n" + info[2];
-                    Message msg = zHandler.obtainMessage(12);
-                    msg.sendToTarget();
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
-                }
-            }
-            is.close();
-        }
-        return ifUpdate;
-    }
 
     /**
      @return

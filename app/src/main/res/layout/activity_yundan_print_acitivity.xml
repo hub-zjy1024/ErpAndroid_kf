@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/bijia_title_background"
+            android:gravity="center"
+            android:text="跨越快递"
+            android:textColor="@color/color_white"
+            android:textSize="20sp"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/tv_title"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            >
+
+            <LinearLayout
+                android:id="@+id/yundanprint_ji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="单据号："
+                        android:textSize="@dimen/def_text_size"/>
+
+                    <TextView
+                        android:id="@+id/yundanprint_tv_pid"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/def_text_size"
+                        />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="10dp"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="付款方:"/>
+
+                        <TextView
+                            android:id="@+id/yundanprint_tv_payby"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/alertcolor_bg_whight"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="备注："
+                        android:textSize="@dimen/def_text_size"/>
+
+                    <TextView
+                        android:id="@+id/yundanprint_tv_note"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/color_alert_red"
+                        android:textSize="@dimen/def_text_size"
+
+                        />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="寄件人"/>
+
+                    <EditText
+                        android:id="@+id/yundanprint_ed_j_person"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:focusableInTouchMode="true"
+                        android:hint="寄件人"
+                        android:textColor="#000000"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="寄件人电话"/>
+
+                    <EditText
+                        android:id="@+id/yundanprint_ed_j_tel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="寄件电话"
+                        android:inputType="number"
+                        android:maxLines="1"
+                        android:textColor="#000000"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="详细地址："/>
+
+                    <EditText
+                        android:id="@+id/yundanprint_ed_j_addresss"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="详细地址"
+                        android:textColor="#000000"/>
+                </LinearLayout>
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/yundanprint_shou"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/yundanprint_ji"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="收件人"/>
+
+                    <EditText
+                        android:id="@+id/yundanprint_ed_d_person"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="收件人"
+                        android:textColor="#000000"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="收件人电话"/>
+
+                    <EditText
+                        android:id="@+id/yundanprint_ed_d_tel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="收件人电话"
+                        android:inputType="number"
+                        android:maxLines="1"
+                        android:textColor="#000000"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="详细地址"/>
+
+                    <EditText
+                        android:id="@+id/yundanprint_ed_d_address"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="详细地址"
+                        android:textColor="#000000"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        android:text="件数:"/>
+
+                    <EditText
+                        android:id="@+id/yundanprint_ed_counts"
+                        android:layout_width="50dp"
+                        android:layout_height="match_parent"
+                        android:inputType="number"
+                        android:text="1"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:text="快递时效:"/>
+
+                    <Spinner
+                        android:id="@+id/yundanprint_spi_type"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="月结账号："/>
+
+                    <EditText
+                        android:id="@+id/yundanprint_ed_account"
+                        android:layout_width="100dp"
+                        android:layout_height="wrap_content"
+                        android:hint="月结账号"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:text="付款方式:"/>
+
+                    <Spinner
+                        android:id="@+id/yundanprint_spi_paytype"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="打印机:"/>
+
+                        <Spinner
+                            android:id="@+id/yundanprint_spi_printer"
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+
+
+                    <Button
+                        android:id="@+id/yundanprint_btn_print"
+                        style="@style/zjy_button_nomarl_alpha100"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="下单并打印"/>
+
+                    <Button
+                        android:id="@+id/yundanprint_btnReprint"
+                        style="@style/zjy_button_nomarl_alpha100"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:enabled="false"
+                        android:text="重新打印"/>
+
+                    <Button
+                        android:id="@+id/yundanprint_btnReInsert"
+                        style="@style/zjy_button_nomarl_alpha100"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:enabled="true"
+                        android:text="重新关联运单"/>
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <Button
+                        android:id="@+id/yundanprint_btn_printchukudan"
+                        style="@style/zjy_button_nomarl_alpha100"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="打印出库单"/>
+
+                    <CheckBox
+                        android:id="@+id/yundanprint_cbo_addmore"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="25dp"
+                        android:text="当前运单号关联到其他单据"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/yundanprint_container_addmore"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone">
+
+                    <com.rengwuxian.materialedittext.MaterialEditText
+                        android:id="@+id/yundanprint_ed_morepid"
+                        android:layout_width="150dp"
+                        android:layout_height="wrap_content"
+                        android:hint="其他单据号"
+                        android:inputType="number"
+                        app:met_clearButton="true"
+                        app:met_primaryColor="@color/colorPrimary"/>
+
+                    <Button
+                        android:id="@+id/yundanprint_btn_addmore"
+                        style="@style/zjy_button_nomarl_alpha100"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="@dimen/default_padding_bottom"
+                        android:text="关联"/>
+
+                    <Button
+                        android:id="@+id/yundanprint_btn_scan"
+                        style="@style/zjy_button_nomarl_alpha100"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="@dimen/default_padding_bottom"
+                        android:text="扫码"/>
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/yundanprint_tv_orderid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"/>
+
+                <TextView
+                    android:id="@+id/yundanprint_tv_insertinfo_state"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"/>
+            </LinearLayout>
+            <!-- <LinearLayout
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_below="@id/yundanprint_shou"
+                 android:orientation="vertical">
+             </LinearLayout>-->
+        </RelativeLayout>
+    </RelativeLayout>
+
+</ScrollView>

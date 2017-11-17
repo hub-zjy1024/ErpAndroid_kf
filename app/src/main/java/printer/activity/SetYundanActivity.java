@@ -16,7 +16,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -72,6 +71,7 @@ import printer.sfutils.XmlDomUtils;
 import utils.DialogUtils;
 import utils.MyToast;
 import utils.Myuuid;
+import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 import utils.dbutils.MyDbManger;
 
@@ -267,7 +267,7 @@ public class SetYundanActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        SoftKeyboardUtils.hideKeyBoard(this);
         setContentView(R.layout.activity_set_yundan);
         //        Spinner spiProvince = (Spinner) findViewById(R.id
         //                .activity_set_yundan_spi_province);
@@ -1006,12 +1006,13 @@ public class SetYundanActivity extends AppCompatActivity {
                         JSONObject t = root.getJSONObject(0);
                         String orderID = t.getString("objvalue");
                         String destcode = t.getString("objexpress");
+                        final String exName = t.getString("objtype");
                         ddestcode = destcode;
                         desOrderid = orderID;
                         mhandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                tvOrderID.setText("当前单据已有单号：" + desOrderid);
+                                tvOrderID.setText("当前单据已有单号：" +exName+ desOrderid);
                                 btnRePrint.setEnabled(true);
                             }
                         });
@@ -1169,7 +1170,7 @@ public class SetYundanActivity extends AppCompatActivity {
         }
     }
 
-    public String getOnlineSavedYdInfo(String pid) throws IOException, XmlPullParserException {
+    public static String getOnlineSavedYdInfo(String pid) throws IOException, XmlPullParserException {
         //        GetBD_YunDanInfoByID;
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("pid", pid);
@@ -1661,7 +1662,7 @@ public class SetYundanActivity extends AppCompatActivity {
         return sp.toString();
     }
 
-    private String searchByPid(String pid) throws IOException, XmlPullParserException {
+    public static String searchByPid(String pid) throws IOException, XmlPullParserException {
         SoapObject request = new SoapObject("http://tempuri.org/",
                 "GetYunDanInfos");
         request.addProperty("pid", pid);

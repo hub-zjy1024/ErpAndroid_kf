@@ -79,4 +79,19 @@ public class Md5 {
         return null;
     }
 
+    // 方法二
+    public static byte[] getMD5Bytes(String str, String charset) {
+
+        try {
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            md5.update(str.getBytes(charset));
+            return md5.digest();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

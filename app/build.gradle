@@ -1,25 +1,39 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        release {
+            keyAlias 'zjy'
+            keyPassword 'love840502'
+            storeFile file('D:/Zjys/zjys_keystore.jks')
+            storePassword 'love840502'
+        }
+    }
     compileSdkVersion 23
     buildToolsVersion '26'
     defaultConfig {
         applicationId "com.b1b.js.erpandroid_kf"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 28
-        versionName "3.6"
+        versionCode 31
+        versionName "3.9"
     }
-    buildTypes {
+    /*buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
-    }
-    /*  compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
     }*/
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles 'proguard-rules.txt'
+            signingConfig signingConfigs.release
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
 }
 
 dependencies {

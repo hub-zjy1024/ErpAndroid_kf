@@ -163,6 +163,8 @@ public class ViewPicByPidActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        imgsData.clear();
+        adapter.notifyDataSetChanged();
         String pid = getIntent().getStringExtra("pid");
         if (pid != null) {
             edPid.setText(pid);
@@ -204,35 +206,6 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                     FTPClient client = new FTPClient();
                     List<FTPImgInfo> list = new ArrayList<>();
                     int searchSize = array.length();
-//                    for (int i = 0; i < searchSize; i++) {
-//                        JSONObject tObj = array.getJSONObject(i);
-//                        String imgName = tObj.getString("pictureName");
-//                        String imgUrl = tObj.getString("pictureURL");
-//                        String urlNoShema = imgUrl.substring(6);
-//                        String remoteAbsolutePath = urlNoShema.substring(urlNoShema.indexOf("/"));
-//                        try {
-//                            remoteAbsolutePath = new String(remoteAbsolutePath.getBytes("utf-8"), "iso-8859-1");
-//                            String imgFtp = urlNoShema.substring(0, urlNoShema.indexOf("/"));
-//                            FTPImgInfo fti = new FTPImgInfo();
-//                            File fileParent = MyFileUtils.getFileParent();
-//                            File file = new File(fileParent, "dyj_img/" + imgName);
-//                            //图片未下载的需要下载
-//                            if (!file.exists()) {
-//                                downLoadPic(client, remoteAbsolutePath, imgFtp, fti, file, list);
-//                                mHandler.obtainMessage(4, searchSize, i).sendToTarget();
-//                            } else {
-//                                fti.setImgPath(file.getAbsolutePath());
-//                                list.add(fti);
-//                            }
-//                        } catch (UnsupportedEncodingException e) {
-//                            e.printStackTrace();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                            mHandler.sendEmptyMessage(3);
-//                        }
-//                    }
-//                    Message msg = mHandler.obtainMessage(0, list);
-//                    mHandler.sendMessage(msg);
                     FTPUtils mFtpClient=null;
                     String tempUrl = "";
                     downloadResult = "";
@@ -263,8 +236,13 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                             //图片未下载的需要下载
                             if (!file.exists()) {
                                 if (!tempUrl.equals(imgFtp)) {
-                                    mFtpClient = new FTPUtils(finalHost, port, FtpManager.mainName, FtpManager
-                                            .mainPwd);
+                                    if (finalHost.equals(FtpManager.mainAddress)) {
+                                        mFtpClient = new FTPUtils(finalHost, port, FtpManager.mainName, FtpManager
+                                                .mainPwd);
+                                    } else {
+                                        mFtpClient = new FTPUtils(finalHost, port, FtpManager.ftpName, FtpManager
+                                                .ftpPassword);
+                                    }
                                 }
                                 Log.e("zjy", "ViewPicByPidActivity->run(): fileName==" + imgUrl);
                                 if (!mFtpClient.serverIsOpen()) {

@@ -18,8 +18,6 @@ import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.KucunFBActivity;
 import com.b1b.js.erpandroid_kf.R;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
@@ -28,6 +26,9 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.Date;
+
+import utils.UploadUtils;
+import utils.WebserviceUtils;
 
 public class PushService extends Service {
     private Handler mHandler = new Handler(Looper.getMainLooper()) {
@@ -77,7 +78,6 @@ public class PushService extends Service {
                                         WebserviceUtils.MartService);
                                 Log.e("zjy", "PushService->run(): GetInseorange==" + response2.toString());
                                 sp.edit().putString("content", response2.toString()).commit();
-
                                 NotificationCompat.Builder notice = new NotificationCompat.Builder(PushService.this);
                                 notice.setContentText("当前有" + response2.toString() + "条库存发布消息需要进行处理");
                                 notice.setContentTitle("消息通知");

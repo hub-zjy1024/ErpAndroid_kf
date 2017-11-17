@@ -1,8 +1,10 @@
 package utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 /**
@@ -30,5 +32,13 @@ public class SoftKeyboardUtils {
         imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,
                 0);
 
+    }
+    /**
+     * 必须在setContentView之前使用！！！！
+     *
+     * @param activity
+     */
+    public static void hideKeyBoard(Activity activity) {
+        activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 }

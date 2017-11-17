@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_setting"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -25,6 +25,29 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="@dimen/default_padding_top">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/def_text_size"
+                android:text="库房选择："/>
+
+            <Spinner
+                android:id="@+id/activity_setting_spiKF"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+        <TextView
+            android:id="@+id/activity_setting_tvkf"
+            android:layout_width="wrap_content"
+            android:textSize="@dimen/def_text_size"
+            android:textColor="@color/color_alert_red"
+            android:layout_height="wrap_content"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -32,15 +55,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="预出库打印机ip地址："/>
+                android:text="出库小票打印机IP："/>
 
             <com.rengwuxian.materialedittext.MaterialEditText
                 android:id="@+id/activity_setting_edip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:hint="出库小票打印机IP"
                 app:met_clearButton="true"
-                app:met_primaryColor="@color/main_ed_primaryColor"
-                android:hint="请输入预出库打印机的地址"/>
+                app:met_primaryColor="@color/main_ed_primaryColor"/>
 
         </LinearLayout>
 
@@ -57,9 +80,9 @@
                 android:id="@+id/activity_setting_ed_printerserver"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:hint="请输入打印服务器地址"
                 app:met_clearButton="true"
-                app:met_primaryColor="@color/main_ed_primaryColor"
-                android:hint="请输入打印服务器地址"/>
+                app:met_primaryColor="@color/main_ed_primaryColor"/>
 
         </LinearLayout>
 
@@ -76,11 +99,47 @@
                 android:id="@+id/activity_setting_ed_diaohuo_account"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:hint="请输入月结账号"
                 android:inputType="number"
                 app:met_clearButton="true"
-                app:met_primaryColor="@color/main_ed_primaryColor"
-                android:hint="请输入月结账号"/>
+                app:met_primaryColor="@color/main_ed_primaryColor"/>
 
+        </LinearLayout>
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="默认快递:"
+                />
+
+            <RadioGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/activity_setting_rdo_ky"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/express_ky"/>
+
+
+                <RadioButton
+                    android:id="@+id/activity_setting_rdo_SF"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="20dp"
+                    android:text="@string/express_sf"
+                    />
+            </RadioGroup>
         </LinearLayout>
 
         <Button

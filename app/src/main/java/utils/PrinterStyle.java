@@ -1,5 +1,6 @@
 package utils;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.entity.PreChukuDetailInfo;
@@ -11,8 +12,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import printer.entity.PrinterInterface;
 import printer.entity.XiaopiaoInfo;
+import utils.btprint.MyBluePrinter;
 
 /**
  Created by 张建宇 on 2017/5/2. */
@@ -74,7 +75,7 @@ public class PrinterStyle {
                 String ph = getStringAtLength(dInfo.getPihao(), 10, 5);
                 String fc = getStringAtLength(dInfo.getFactory(), 10, 5);
                 String ms = getStringAtLength(dInfo.getDescription(), 10, 5);
-                String place = getStringAtLength(dInfo.getP(), 13, 2);
+                String place = getStringAtLength(dInfo.getPlace(), 13, 2);
                 String bz = getStringAtLength(dInfo.getNotes(), 4, 5);
                 String counts = getStringAtLength(dInfo.getCounts(), 10, 5);
                 String leftCounts = dInfo.getLeftCounts();
@@ -132,18 +133,41 @@ public class PrinterStyle {
         return newString;
     }
 
-    public void printXiaopiao(PrinterInterface printer, XiaopiaoInfo info) {
-        try {
-            printer.printTextLn("型号:" + info.getPartNo());
-            printer.printTextLn("数量:" + info.getCounts() + "\t" + "产地:" + info.getProduceFrom());
-            printer.printTextLn("厂家:" + info.getFactory() + "\t" + "批号:" + info.getPihao());
-            printer.printTextLn("封装:" + info.getFengzhuang() + "\t" + "描述:" + info.getDescription());
-            printer.printCode(info.getCodeStr());
-            printer.printCode(info.getBelowCode());
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static void printXiaopiao(Context mContext, MyBluePrinter printer) {
+        String msg = "12344567979";
+        printer.printBarCode(mContext, msg, 50, true);
+        printer.printTextLn(msg);
+        printer.printTextLn(msg);
+    }
+
+    public synchronized static void printXiaopiao2(Context mContext, MyBluePrinter printer, XiaopiaoInfo info) {
+        int len[] = new int[]{15, 0};
+        printer.printText("\t" + info.getDeptNo() + "_" + info.getTime() + "\t" + info.getBelowCode());
+        printer.newLine();
+        printer.printText("型号:" + info.getPartNo());
+        printer.newLine();
+        String[] str = new String[]{"数量:" + info.getCounts(), "产地:" + info.getProduceFrom()};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+        str = new String[]{"厂家:" + info.getFactory(), "批号:" + info.getPihao()};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+        str = new String[]{"封装:" + info.getFengzhuang(), "描述:" + info.getDescription()};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+//        str = new String[]{"位置:" + info.getPlace(), "备注:" + info.getNote()};
+        str = new String[]{"位置:" + info.getPlace(), "备注:"};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+        printer.setZiTiSize(0);
+        if (info.getFlag().equals("1")) {
+            printer.printText("z" + info.getCompany() + "z");
+        } else if (info.getFlag().equals("2")) {
+            printer.printText("p" + info.getCompany() + "p");
         }
-
-
+        printer.newLine();
+        printer.newLine();
+        printer.setZiTiSize(1);
+        printer.printBarCodeWithDifferentBelow(mContext, info.getCodeStr(), 50, info.getCodeStr() + "M");
     }
 }

@@ -10,7 +10,7 @@ public class PreChukuDetailInfo {
     private String factory;
     private String description;
     private String notes;
-    private String p;
+    private String place;
     private String counts;
     private String leftCounts;
     private String proLevel;
@@ -44,14 +44,14 @@ public class PreChukuDetailInfo {
     public PreChukuDetailInfo() {
     }
 
-    public PreChukuDetailInfo(String partNo, String fengzhuang, String pihao, String factory, String description, String notes, String p, String counts, String leftCounts) {
+    public PreChukuDetailInfo(String partNo, String fengzhuang, String pihao, String factory, String description, String notes, String place, String counts, String leftCounts) {
         this.partNo = partNo;
         this.fengzhuang = fengzhuang;
         this.pihao = pihao;
         this.factory = factory;
         this.description = description;
         this.notes = notes;
-        this.p = p;
+        this.place = place;
         this.counts = counts;
         this.leftCounts = leftCounts;
     }
@@ -107,12 +107,12 @@ public class PreChukuDetailInfo {
         this.notes = notes;
     }
 
-    public String getP() {
-        return p;
+    public String getPlace() {
+        return place;
     }
 
-    public void setP(String p) {
-        this.p = p;
+    public void setPlace(String place) {
+        this.place = place;
     }
 
     public String getCounts() {
@@ -140,7 +140,7 @@ public class PreChukuDetailInfo {
                 "厂家=" + factory + "\n"+
                 "描述=" + description + "\n"+
                 "备注=" + notes + "\n"+
-                "位置=" + p + "\n"+
+                "位置=" + place + "\n"+
                 "数量=" + counts + "\n"+
                 "剩余数量=" + leftCounts ;
     }

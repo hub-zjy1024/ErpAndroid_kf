@@ -36,6 +36,9 @@ public class MenuActivity extends AppCompatActivity {
     private SimpleAdapter simpleAdapter;
     private List<Map<String, String>> listItems = new ArrayList<>();
     private AlertDialog choiceMethodDialog;
+    private final String rukuTag = "入库标签打印";
+    private final String tag_Print = "打印";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,6 +167,10 @@ public class MenuActivity extends AppCompatActivity {
                         intent.setClass(MenuActivity.this, CaigouYanhuoActivity.class);
                         startActivity(intent);
                         break;
+                    case rukuTag:
+                        intent.setClass(MenuActivity.this, RukuTagPrintAcitivity.class);
+                        startActivity(intent);
+                        break;
                     case "特殊":
                         AlertDialog.Builder specialDialog = new AlertDialog.Builder(MenuActivity.this);
                         View v = LayoutInflater.from(MenuActivity.this).inflate(R.layout.admin_manager_layout, null);
@@ -181,10 +188,10 @@ public class MenuActivity extends AppCompatActivity {
                         specialDialog.setView(v);
                         specialDialog.show();
                         break;
-                    case "打印(暂仅供北京使用)":
+                    case tag_Print:
                         AlertDialog.Builder builder = new AlertDialog.Builder(MenuActivity.this);
                         builder.setTitle("打印");
-                        builder.setItems(new String[]{"SF打印", "打印手机文件", "配置打印地址"}, new DialogInterface.OnClickListener() {
+                        builder.setItems(new String[]{"运单打印", "打印手机文件", "配置打印地址"}, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Intent intent;
@@ -278,7 +285,7 @@ public class MenuActivity extends AppCompatActivity {
         //        listItems.add(map);
         ArrayList<MyMenuItem> data = new ArrayList<>();
         data.add(new MyMenuItem(R.mipmap.menu_chuku, "出库单", "查看出库单和出库通知单"));
-//        data.add(new MyMenuItem(R.mipmap.menu_yanhuo, "采购验货", "采购验货功能，包含拍照"));
+        //        data.add(new MyMenuItem(R.mipmap.menu_yanhuo, "采购验货", "采购验货功能，包含拍照"));
         if ("101".equals(MyApp.id)) {
             data.add(new MyMenuItem(R.mipmap.menu_chuku, "特殊", "101"));
         }
@@ -289,7 +296,8 @@ public class MenuActivity extends AppCompatActivity {
         data.add(new MyMenuItem(R.mipmap.menu_pic, "查看单据关联图片", "查询单据与相关联的照片"));
         data.add(new MyMenuItem(R.mipmap.menu_panku, "盘库", "货物位置管理"));
         data.add(new MyMenuItem(R.mipmap.menu_caigou_96, "采购拍照", "采购单拍照功能"));
-        data.add(new MyMenuItem(R.mipmap.menu_print, "打印(暂仅供北京使用)", "顺丰下单并打印功能,以及打印手机接受的文件的功能"));
+        data.add(new MyMenuItem(R.mipmap.menu_print, tag_Print, "顺丰下单并打印功能,以及打印手机接受的文件的功能"));
+//        data.add(new MyMenuItem(R.mipmap.menu_print, rukuTag, "蓝牙打印，打印入库标签"));
         MenuAdapter adapter = new MenuAdapter(data, this, R.layout.menu_item);
         menuList.setAdapter(adapter);
     }

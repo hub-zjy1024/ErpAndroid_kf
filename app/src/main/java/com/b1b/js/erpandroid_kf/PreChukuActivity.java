@@ -92,6 +92,7 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(PreChukuActivity.this, PreChukuDetailActivity.class);
                 intent.putExtra("pid", data.get(position).getPid());
+                intent.putExtra("storageID", data.get(position).getStorageID());
                 startActivity(intent);
             }
         });

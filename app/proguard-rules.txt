@@ -5,19 +5,28 @@
 -keep public class * extends android.content.ContentProvider
 -keep public class * extends android.app.backup.BackupAgentHelper
 -keep public class * extends android.preference.Preference
--keepclasseswithmembernames class * {
+-keep public class * extends android.support.**
+-keep public class com.Android.vending.licensing.ILicensingService
+-dontwarn  com.squareup.picasso.**
+
+-keep class com.squareup.picasso.** {  *;}
+#-includedescriptorclasses public class com.squareup.picasso.** { *; }
+-dontwarn  org.xmlpull.v1.**
+-keep public class org.xmlpull.v1.** { *; }
+#-keep class org.apache.** {*;}
+-keepclasseswithmembernames public class * {
     native <methods>;  #保持 native 的方法不去混淆
 }
 
--keepclasseswithmembers class * {
+-keepclasseswithmembers public class * {
     public <init>(android.content.Context, android.util.AttributeSet);  #保持自定义控件类不被混淆，指定格式的构造方法不去混淆
 }
 
--keepclasseswithmembers class * {
+-keepclasseswithmembers public class * {
     public <init>(android.content.Context, android.util.AttributeSet, int);
 }
 
--keepclassmembers class * extends android.app.Activity {
+-keepclassmembers public class * extends android.app.Activity {
     public void *(android.view.View); #保持指定规则的方法不被混淆（Android layout 布局文件中为控件配置的onClick方法不能混淆）
 }
 
@@ -65,16 +74,16 @@
 }
 #对WebView的简单说明下：经过实战检验,做腾讯QQ登录，如果引用他们提供的jar，若不加防止WebChromeClient混淆的代码，oauth认证无法回调，反编译基代码后可看到他们有用到WebChromeClient，加入此代码即可。
 
--keepclassmembernames class com.cgv.cn.movie.common.bean.** { *; }  #转换JSON的JavaBean，类成员名称保护，使其不被混淆
+-keepclassmembernames class com.b1b.js.erpandroid_kf.entity.** { *; }  #转换JSON的JavaBean，类成员名称保护，使其不被混淆
 
 ##################################################################
 # 下面都是项目中引入的第三方 jar 包。第三方 jar 包中的代码不是我们的目标和关心的对象，故而对此我们全部忽略不进行混淆。
 ##################################################################
--libraryjars  libs/commons-net-3.6.jar
--libraryjars  libs/ksoap2-android-assembly-2.6.0-jar-with-dependencies.jar
--libraryjars  libs/zxing.jar
 -dontwarn android.support.v4.**
+-dontwarn android.support.v7.**
 -keep class android.support.v4.** { *; }
 -keep interface android.support.v4.** { *; }
+-keep class android.support.v7.** { *; }
+-keep interface android.support.v7.** { *; }
 -keep public class * extends android.support.v4.**
 -keep public class * extends android.app.Fragment

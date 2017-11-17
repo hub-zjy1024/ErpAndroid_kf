@@ -36,16 +36,21 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import printer.entity.XiaopiaoInfo;
 import utils.DialogUtils;
 import utils.MyPrinter;
 import utils.MyToast;
 import utils.PrinterStyle;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
+import utils.btprint.MyBluePrinter;
 
 public class PreChukuDetailActivity extends AppCompatActivity {
 
@@ -63,6 +68,8 @@ public class PreChukuDetailActivity extends AppCompatActivity {
     List<PreChukuDetailInfo> list = new ArrayList<PreChukuDetailInfo>();
     private String pAddress;
     private String localKuqu = "";
+    private MyBluePrinter btPrinter;
+
     private Handler zHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -111,6 +118,9 @@ public class PreChukuDetailActivity extends AppCompatActivity {
             }
         }
     };
+    private Button btnPrintTag;
+    private int reqBtCode = 500;
+    private String storageID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +128,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_pre_chuku_detail);
         lv = (ListView) findViewById(R.id.pre_chuku_detail_lv);
         btnPrint = (Button) findViewById(R.id.pre_chuku_detail_print);
+        btnPrintTag = (Button) findViewById(R.id.pre_chuku_detail_printtag);
         tvState = (TextView) findViewById(R.id.pre_chuku_detail_state);
         btnReconnect = (Button) findViewById(R.id.pre_chuku_detail_reconnect);
         Button btnSet = (Button) findViewById(R.id.pre_chuku_detail_set);
@@ -133,6 +144,12 @@ public class PreChukuDetailActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(PreChukuDetailActivity.this, SettingActivity.class);
                 startActivity(intent);
+            }
+        });
+        btnPrintTag.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivityForResult(new Intent(PreChukuDetailActivity.this, PrintSettingActivity.class), reqBtCode);
             }
         });
         btnReconnect.setOnClickListener(new View.OnClickListener() {
@@ -243,6 +260,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 }.start();
             }
         });
+         storageID = getIntent().getStringExtra("storageID");
         new Thread(){
             @Override
             public void run() {
@@ -307,6 +325,34 @@ public class PreChukuDetailActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == reqBtCode && resultCode == RESULT_OK) {
+             btPrinter = PrintSettingActivity.getPrint();
+            List<PreChukuDetailInfo> detailInfos = info.getDetailInfos();
+            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+            SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy/MM/dd");
+
+            for(int i = 0; i< detailInfos.size(); i++) {
+                PreChukuDetailInfo pdinfo = detailInfos.get(i);
+                String finalDate =info.getCreateDate();
+                try {
+                    Date tempDate = sdf1.parse(info.getCreateDate());
+                    finalDate = sdf2.format(tempDate);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                XiaopiaoInfo xInfo = new XiaopiaoInfo(pdinfo.getPartNo(), info.getPartNo(), finalDate, info
+                        .getDeptID(), pdinfo
+                        .getCounts(), pdinfo.getFactory(), "", pdinfo.getPihao(), pdinfo.getFengzhuang(), pdinfo.getDescription
+                        (), pdinfo.getPlace(), info
+                        .getMainNotes(), null, pdinfo.getDetailID(), storageID);
+                PrinterStyle.printXiaopiao2(this, btPrinter, xInfo);
+            }
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         pAddress = sp.getString("printerIP", "");
@@ -350,6 +396,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 info.setKuqu(obj.getString("库区"));
                 info.setMainNotes(obj.getString("note"));
                 info.setIsVip(obj.getString("IsVIP"));
+                info.setCreateDate(obj.getString("制单日期").substring(0, 10));
                 boolean isXiankuan = obj.getBoolean("IsXianHuoXianJie");
                 info.setXiankuan(isXiankuan);
             }
@@ -362,6 +409,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
             String notes = obj.getString("备注");
             String counts = obj.getString("数量");
             String detailID = obj.getString("PDID");
+//            String detailID = obj.getString("PDID");
             String leftCounts = String.valueOf(Integer.parseInt(obj.getString("BalanceQ")) - Integer.parseInt(counts));
             PreChukuDetailInfo dinfo = new PreChukuDetailInfo(partNo, fengzhuang, pihao, factory, description, notes, p, counts,
                     leftCounts);
@@ -390,6 +438,9 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         super.onDestroy();
         if(mPrinter != null){
             mPrinter.close();
+        }
+        if (btPrinter != null) {
+            btPrinter.close();
         }
     }
 

@@ -63,6 +63,15 @@
             android:layout_weight="1"
             android:enabled="false"
             android:text="打印"/>
+        <Button
+            android:id="@+id/pre_chuku_detail_printtag"
+            style="@style/zjy_button_nomarl_alpha100"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:visibility="gone"
+            android:text="bt打印"/>
 
         <Button
             android:id="@+id/pre_chuku_detail_reconnect"

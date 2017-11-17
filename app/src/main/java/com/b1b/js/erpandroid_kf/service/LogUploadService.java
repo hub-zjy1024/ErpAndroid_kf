@@ -21,10 +21,11 @@ import java.util.HashMap;
 
 import utils.FTPUtils;
 import utils.UploadUtils;
+import utils.WebserviceUtils;
 
 public class LogUploadService extends Service {
     //配置url、log文件名称、log保存地址、ftp用户名密码
-    final String targeUrl = "http://172.16.6.160:8006/DownLoad/dyj_kf/logcheck.txt";
+    final String targeUrl = WebserviceUtils.ROOT_URL + "DownLoad/dyj_kf/logcheck.txt";
     final String logFileName = "dyj_log.txt";
     final String savedDir = "/Zjy/log_kf/"+ UploadUtils.getCurrentYearAndMonth() + "/";
     private int startTime = 9;

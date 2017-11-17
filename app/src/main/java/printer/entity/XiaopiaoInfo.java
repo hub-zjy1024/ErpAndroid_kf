@@ -18,11 +18,13 @@ public class XiaopiaoInfo {
     private String note;
     private String flag;
     private String codeStr;
-    private String belowCode;
+    private String storageID;
+    private String company;
+    private String pid;
 
     public XiaopiaoInfo(String partNo, String topID, String time, String deptNo, String counts, String factory, String
             produceFrom, String pihao, String fengzhuang, String description, String place, String note, String flag, String
-            codeStr, String belowCode) {
+            codeStr, String storageID, String company) {
         this.partNo = partNo;
         this.topID = topID;
         this.time = time;
@@ -37,7 +39,36 @@ public class XiaopiaoInfo {
         this.note = note;
         this.flag = flag;
         this.codeStr = codeStr;
-        this.belowCode = belowCode;
+        this.storageID = storageID;
+        this.company = company;
+    }
+
+    public XiaopiaoInfo(String partNo, String topID, String time, String deptNo, String counts, String factory, String
+            produceFrom, String pihao, String fengzhuang, String description, String place, String note, String flag, String
+            codeStr, String storageID) {
+        this.partNo = partNo;
+        this.topID = topID;
+        this.time = time;
+        this.deptNo = deptNo;
+        this.counts = counts;
+        this.factory = factory;
+        this.produceFrom = produceFrom;
+        this.pihao = pihao;
+        this.fengzhuang = fengzhuang;
+        this.description = description;
+        this.place = place;
+        this.note = note;
+        this.flag = flag;
+        this.codeStr = codeStr;
+        this.storageID = storageID;
+    }
+
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
     }
 
     public String getPartNo() {
@@ -153,10 +184,39 @@ public class XiaopiaoInfo {
     }
 
     public String getBelowCode() {
-        return belowCode;
+        return storageID;
     }
 
     public void setBelowCode(String belowCode) {
-        this.belowCode = belowCode;
+        this.storageID = belowCode;
+    }
+
+    @Override
+    public String toString() {
+        return "单据号='" + pid + '\'' + "\n" +
+                "型号='" + partNo + '\'' + "\n" +
+                "topID='" + topID + '\'' + "\n" +
+                "制单日期='" + time + '\'' + "\n" +
+                "部门号='" + deptNo + '\'' + "\n" +
+                "数量='" + counts + '\'' + "\n" +
+                "厂家='" + factory + '\'' + "\n" +
+                "产地='" + produceFrom + '\'' + "\n" +
+                "批号='" + pihao + '\'' + "\n" +
+                "封装='" + fengzhuang + '\'' + "\n" +
+                "描述='" + description + '\'' + "\n" +
+                "位置='" + place + '\'' + "\n" +
+                "备注='" + note + '\'' + "\n" +
+                "表示='" + flag + '\'' + "\n" +
+                "明细ID='" + codeStr + '\'' + "\n" +
+                "库房ID='" + storageID + '\'' + "\n" +
+                "开票公司='" + company + '\'' + "\n" ;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
     }
 }
