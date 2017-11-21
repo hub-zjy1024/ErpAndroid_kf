@@ -44,13 +44,7 @@
         <activity android:name=".ObtainPicFromPhone"/>
         <activity android:name=".CheckActivity"/>
         <activity android:name=".SetCheckInfoActivity"/>
-        <activity android:name=".CaigouActivity"/>
-        <activity android:name=".CaigoudanEditActivity"/>
         <activity android:name=".TakePicPankuActivity"/>
-        <activity android:name=".BijiaActivity"/>
-        <activity android:name=".BijiaDetailAcitiviy"/>
-        <activity android:name=".AddBijiaActivity">
-        </activity>
         <activity android:name=".ViewPicByPidActivity">
         </activity>
         <activity android:name=".PicDetailActivity">

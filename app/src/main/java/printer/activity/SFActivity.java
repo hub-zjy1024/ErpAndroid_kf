@@ -193,8 +193,8 @@ public class SFActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        SharedPreferences sp = getSharedPreferences("UserInfo", Context.MODE_PRIVATE);
-        prefExpress = sp.getString("prefExpress", "");
+        SharedPreferences sp = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
+        prefExpress = sp.getString(SettingActivity.PREF_EXPRESS, "");
     }
 
     public void myOnclick(View view) {

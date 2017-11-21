@@ -235,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
         cboAutol = (CheckBox) findViewById(R.id.login_autol);
         tvVersion = (TextView) findViewById(R.id.main_version);
         sp = getSharedPreferences("UserInfo", 0);
-        final String phoneCode = CaigoudanEditActivity.getPhoneCode(MainActivity.this);
+        final String phoneCode = UploadUtils.getPhoneCode(MainActivity.this);
         Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
         MyFileUtils.obtainFileDir(MainActivity.this);
         //检查更新

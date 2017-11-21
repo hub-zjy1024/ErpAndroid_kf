@@ -21,8 +21,6 @@ import com.b1b.js.erpandroid_kf.adapter.TableAdapter;
 import com.b1b.js.erpandroid_kf.entity.KucunFBInfo;
 import com.b1b.js.erpandroid_kf.task.MyBaseTask;
 import com.b1b.js.erpandroid_kf.task.TaskCallback;
-import utils.MyToast;
-import utils.WebserviceUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,6 +39,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import utils.MyToast;
+import utils.UploadUtils;
+import utils.WebserviceUtils;
 
 public class KucunFBActivity extends AppCompatActivity {
 
@@ -224,7 +226,7 @@ public class KucunFBActivity extends AppCompatActivity {
                     return;
                 }
                 String ip = currentIp;
-                String dogSN = CaigoudanEditActivity.getPhoneCode(KucunFBActivity.this);
+                String dogSN = UploadUtils.getPhoneCode(KucunFBActivity.this);
                 LinkedHashMap<String, Object> map = new LinkedHashMap<>();
                 map.put("detailID", fbInfo.getDetailID());
                 map.put("price", price);
@@ -268,7 +270,7 @@ public class KucunFBActivity extends AppCompatActivity {
                 super.run();
                 KucunFBInfo fbInfo = data.get(position);
                 String ip = currentIp;
-                String dogSN = CaigoudanEditActivity.getPhoneCode(KucunFBActivity.this);
+                String dogSN = UploadUtils.getPhoneCode(KucunFBActivity.this);
                 try {
                     String res = setFBState(fbInfo.getDetailID(), isFB, MyApp.id, ip, dogSN);
                     Message msg = zHandler.obtainMessage(ERROR_CHANGE);

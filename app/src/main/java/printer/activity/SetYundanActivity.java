@@ -32,6 +32,7 @@ import android.widget.Toast;
 import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
+import com.b1b.js.erpandroid_kf.SettingActivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 
 import org.json.JSONArray;
@@ -145,7 +146,7 @@ public class SetYundanActivity extends AppCompatActivity {
                         eddAddress.setText(dAddress);
                         eddPerson.setText(dName);
                     } else {
-                        final SharedPreferences sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
+                        final SharedPreferences sp = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
                         String saveAccount = sp.getString("diaohuoAccount", "");
                         edAccount.setText(saveAccount);
                     }
@@ -592,8 +593,8 @@ public class SetYundanActivity extends AppCompatActivity {
         spiBags.setAdapter(new ArrayAdapter<String>(this, R.layout.lv_item_printer, R
                 .id.spinner_item_tv, new String[]{"1", "2", "3", "4",}));
         spiBags.setVisibility(View.GONE);
-        final SharedPreferences sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
-        serverIP = sp.getString("serverPrinter", "");
+        final SharedPreferences sp = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
+        serverIP = sp.getString(SettingActivity.PRINTERSERVER, "");
         boxBaojia.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener
                 () {
             @Override

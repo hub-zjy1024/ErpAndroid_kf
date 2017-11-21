@@ -137,7 +137,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         lv.setAdapter(detailAdapter);
         pDialog = new ProgressDialog(PreChukuDetailActivity.this);
         pDialog.setCancelable(false);
-        sp = getSharedPreferences("UserInfo", Context.MODE_PRIVATE);
+        sp = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
         pAddress = sp.getString("printerIP", "");
         btnSet.setOnClickListener(new View.OnClickListener() {
             @Override

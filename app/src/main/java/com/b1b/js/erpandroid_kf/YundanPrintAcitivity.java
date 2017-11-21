@@ -133,6 +133,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     private EditText edMorePid;
     private TextView tvNote;
     private String kdName = "";
+    private SharedPreferences spKF;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -212,7 +213,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
 
             }
         });
-        SharedPreferences userInfo = getSharedPreferences("UserInfo", MODE_PRIVATE);
+        SharedPreferences userInfo = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
         String configJson = userInfo.getString(SettingActivity.CONFIG_JSON, "");
         try {
             Log.e("zjy", "YundanPrintAcitivity->onCreate(): configJson==" + configJson);
@@ -224,7 +225,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
             KyExpressUtils.uuid = "";
             KyExpressUtils.key = KyExpressUtils.uuid = "";
             edAccount.setText("");
-            MyApp.myLogger.writeError("KYprint:" + e.toString());
+            MyApp.myLogger.writeError("KYprint:no config" + e.toString());
             e.printStackTrace();
         }
         btnRePrint = (Button) findViewById(R.id.yundanprint_btnReprint);
@@ -426,7 +427,8 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 }.start();
             }
         });
-        printerAddress = getSharedPreferences("UserInfo", Context.MODE_PRIVATE).getString("serverPrinter", "");
+        spKF = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
+        printerAddress = spKF.getString(SettingActivity.PRINTERSERVER, "");
         alertDg = (AlertDialog) DialogUtils.getSpAlert(this, "提示", "提示");
         pd = new ProgressDialog(this);
         pd.setTitle("请稍等");
@@ -538,7 +540,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        printerAddress = getSharedPreferences("UserInfo", Context.MODE_PRIVATE).getString("serverPrinter", "");
+        printerAddress = spKF.getString(SettingActivity.PRINTERSERVER, "");
     }
 
     @NonNull

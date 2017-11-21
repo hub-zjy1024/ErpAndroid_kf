@@ -65,6 +65,8 @@ public class SettingActivity extends AppCompatActivity {
     public static final String SFACCOUNT = "sfAccount";
     public static final String CONFIG_JSON = "configJson";
     public static final String CHUKU_PRINTER = "chukuPrinter";
+    public static final String PREF_KF = "pref_kf";
+    public static final String PREF_EXPRESS = "prefExpress";
 
     private List<Map<String, Object>> mlist = new ArrayList<>();
     final List<String> kfNames = new ArrayList<>();
@@ -88,7 +90,7 @@ public class SettingActivity extends AppCompatActivity {
         final Spinner spiKF = (Spinner) findViewById(R.id.activity_setting_spiKF);
         final TextView tvSavedKf = (TextView) findViewById(R.id.activity_setting_tvkf);
         final RadioButton rdoKY = (RadioButton) findViewById(R.id.activity_setting_rdo_ky);
-         sp = getSharedPreferences("UserInfo", 0);
+        sp = getSharedPreferences(PREF_KF, 0);
         aDialog = (AlertDialog) DialogUtils.getSpAlert(this, "msg", "提示");
         sAdapter = new SimpleAdapter(this, mlist, R.layout.item_province, new String[]{NAME}, new int[]{R.id.item_province_tv});
         spiKF.setAdapter(sAdapter);
@@ -107,29 +109,27 @@ public class SettingActivity extends AppCompatActivity {
                 SharedPreferences.Editor editor = sp.edit();
                 if (!ip.equals("")) {
                     if (!matches) {
-                        MyToast.showToast(SettingActivity.this, "请输入的预出库打印机的ip格式");
+                        MyToast.showToast(SettingActivity.this, "保存失败，请输入正确的小票打印机ip格式");
                         return;
                     }
                 }
-                editor.putString("printerIP", ip).commit();
+                editor.putString("printerIP", ip);
                 if (!serverIp.equals("")) {
                     if (!serverMatcher.matches()) {
-                        MyToast.showToast(SettingActivity.this, "请输入正确的ip格式");
+                        MyToast.showToast(SettingActivity.this, "保存失败，请输入正确的ip格式");
                         return;
                     }
                 }
-                editor.putString("serverPrinter", serverIp).commit();
-
-                editor.putString("diaohuoAccount", diaohuoAccount).commit();
+                editor.putString(PRINTERSERVER, serverIp);
+                editor.putString("diaohuoAccount", diaohuoAccount);
                 if (rdoKY.isChecked()) {
-                    editor.putString("prefExpress", getString(R.string.express_ky)).commit();
+                    editor.putString(PREF_EXPRESS, getString(R.string.express_ky));
                 } else if (rdoSF.isChecked()) {
-                    editor.putString("prefExpress", getString(R.string.express_sf)).commit();
+                    editor.putString(PREF_EXPRESS, getString(R.string.express_sf));
                 }
                 Map<String, Object> selectedItem = (Map<String, Object>) spiKF.getSelectedItem();
                 if (selectedItem != null) {
                     editor.putString(NAME, selectedItem.get(NAME).toString());
-                    editor.putString(PRINTERSERVER, selectedItem.get(PRINTERSERVER).toString());
                     editor.putString(KYUUID, selectedItem.get(KYUUID).toString());
                     editor.putString(KYKEY, selectedItem.get(KYKEY).toString());
                     editor.putString(KYACCOUNT, selectedItem.get(KYACCOUNT).toString());
@@ -139,6 +139,7 @@ public class SettingActivity extends AppCompatActivity {
                     editor.putString(CONFIG_JSON, selectedItem.get(CONFIG_JSON).toString());
                 }
                 editor.commit();
+                setViewValue(tvSavedKf, rdoSF, rdoKY, edPrinterIP, edPrinterServer, edDiaohuoAccount);
                 MyToast.showToast(SettingActivity.this, "保存成功");
             }
         });
@@ -170,8 +171,8 @@ public class SettingActivity extends AppCompatActivity {
             edPrinterServer,EditText edDiaohuoAccount) {
 
         String localPrinterIP = sp.getString("printerIP", "");
-        final String serverIP = sp.getString("serverPrinter", "");
-        final String prefExpress = sp.getString("prefExpress", "");
+        final String serverIP = sp.getString(PRINTERSERVER, "");
+        final String prefExpress = sp.getString(PREF_EXPRESS, "");
         final String saveKF = sp.getString(NAME, "");
         tvSavedKf.setText("当前存储的库房是：" + saveKF);
         //        String[] kfNames = new String[]{"深圳", "北京中转库"};
