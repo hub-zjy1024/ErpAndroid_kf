@@ -45,24 +45,25 @@ public class ChukuTongZhiInfo {
 //            "描述": "10uF_±10%_50V_X7R_1210"
     @Override
     public String toString() {
-        return "单据号='" + pid + '\'' +
-                "\n制单日期='" + pDate + '\'' +
-                "\n公司='" + company + '\'' +
-                "\n部门='" + deptName + '\'' +
-                "\n员工='" + uName + '\'' +
-                "\n制单人='" + byName + '\'' +
-                "\n单据类型='" + pType + '\'' +
-                "\n单据状态='" + state + '\'' +
-                "\n发货类型='" + fhType + '\'' +
-                "\n型号='" + goodNo + '\'' +
-                "\n数量='" + counts + '\'' +
-                "\n进价='" + inPrice + '\'' +
-                "\n售价='" + outPrice + '\'' +
-                "\n成本='" + basicPrice + '\'' +
-                "\n销售额='" + sellCounts + '\'' +
-                "\n厂家='" + factory + '\'' +
-                "\n封装='" + fengzhuang + '\'' +
-                "\n描述='" + description + '\'';
+        return
+                toStringSmall() + "\n" +
+                        "公司='" + company + "\n" + "" +
+                        "部门='" + deptName + "\n" + "" +
+                        "员工='" + uName + "\n" + "" +
+                        "进价='" + inPrice + "\n" +
+                        "售价='" + outPrice + "\n" +
+                        "成本='" + basicPrice + "\n" +
+                        "销售额='" + sellCounts + "\n";
+             
+    }
+    public String toStringSmall(){
+        return "单据号=" + pid + "     "+pDate + "\n"+
+                "单据类型=" + pType + "     "+"单据状态=" + state + "\n"+
+                "型号=" + goodNo + "\n"+
+                "数量=" + counts + "     "+ "描述=" + description +"\n"+
+                "厂家=" + factory + "     "+ "封装=" + fengzhuang + "\n"+
+                "制单人=" + byName + "     " +"发货类型=" + fhType ;
+
     }
 
     public String getPid() {

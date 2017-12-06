@@ -10,28 +10,26 @@ public class ChuKuDanInfo {
     @Override
     public String toString() {
         return
-                "单据号='" + pid + '\'' +
-                        "\n仓库='" + repository + '\'' +
-                        "\n部门='" + deptName + '\'' +
-                        "\n部门号='" + deptNo + '\'' +
-                        "\n出库类型='" + ckType + '\'' +
-                        "\n制单日期='" + pdate + '\'' +
-                        "\n总成本='" + totalBasicPrice + '\'' +
-                        "\n总销售额='" + totalSellPrice + '\'' +
-                        "\n毛利='" + profit + '\'' +
-                        "\n业务员='" + uname + '\'' +
-                        "\n客户='" + customer + '\'' +
-                        "\n客户名称='" + cname + '\'' +
-                        "\n合约日期='" + heyueDate + '\'' +
-                        "\n开票类型='" + billingType + '\'' +
-                        "\n开票公司='" + billingCompany + '\'' +
-                        "\n型号='" + partNo + '\'' +
-                        "\n数量='" + counts + '\'' +
-                        "\n进价='" + inPrice + '\'' +
-                        "\n售价='" + outPrice + '\'' +
-                        "\n销售额='" + sellCounts + '\'' +
-                        "\n厂家='" + factory + '\'' +
-                        "\n备注='" + remarks + '\'';
+                toStringSmall() + "\n" +
+                        "合约日期=" + heyueDate+ "\n" +
+                        "进价=" + inPrice + "    " + "售价=" + outPrice + "\n" +
+                        "总成本=" + totalBasicPrice + "     " + "总销售额=" + totalSellPrice + "\n" +
+                        "毛利=" + profit ;
+
+    }
+
+    public String toStringSmall() {
+        return
+                "PID=" + pid + "     " + ckType + "   " +billingType+ "\n" +
+                        "制单日期=" + pdate + "\n" +
+                        "型号=" + partNo + "\n" +
+                        "数量=" + counts + "     " + "厂家=" + factory + "\n" +
+                        "仓库=" + repository + "     " + "部门=" + deptName + "-" + deptNo + "\n" +
+                        "业务员=" + uname + "     " + "客户=" + customer+ "\n" +
+                        "客户名称=" + cname+ "\n" +
+                        "开票公司=" + billingCompany + "\n" +
+                        "备注=" + remarks
+                ;
     }
 
     private String repository;

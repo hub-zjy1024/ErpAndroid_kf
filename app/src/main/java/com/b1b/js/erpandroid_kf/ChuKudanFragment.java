@@ -7,9 +7,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -103,6 +105,18 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
         tvStime.setOnClickListener(this);
         calendar = Calendar.getInstance();
         lv.setAdapter(adapter);
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView tvMore = (TextView) view.findViewById(R.id.chukudan_items_tvMore);
+                TextView tv = (TextView) view.findViewById(R.id.chukudan_items_tv);
+                ChuKuDanInfo item = (ChuKuDanInfo) parent.getItemAtPosition(position);
+                tv.setText(item.toString());
+                tvMore.setVisibility(View.GONE);
+                return true;
+            }
+
+        });
         //默认半年内，查询结果最多100条
 //        getData("2309", "", "", getStringDateBefore(180), getFormatDate(new Date()));
         return view;
@@ -138,6 +152,7 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
                 try {
                     String json = getGetChuKuInfoList("", uid, stime, etime, pid, partNo);
                     List<ChuKuDanInfo> list = MyJsonUtils.getCKDList(json);
+                    Log.e("zjy", "ChuKudanFragment->run(): JSon==" + json);
                     if (list != null && list.size() > 0) {
                         Message msg = handler.obtainMessage(0, list);
                         handler.sendMessage(msg);

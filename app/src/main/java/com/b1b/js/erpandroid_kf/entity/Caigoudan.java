@@ -47,20 +47,15 @@ public class Caigoudan {
     @Override
     public String toString() {
         return
-                " 单据号=" + pid + "\n" +
+                " PID=" + pid + "   " + createdDate + "\n" +
                         " 型号=" + partNo + "\n" +
-                        " 单据状态=" + state + "\n" +
-                        " 制单时间=" + createdDate + "\n" +
+                        " 状态=" + state +  " 采购地=" + caigouPlace + "\n" +
                         " 数量=" + counts + "\n" +
-                        " 进价=" + inPrice + "\n" +
-                        " 售价=" + salePrice + "\n" +
+                        " 进价=" + inPrice +  " 售价=" + salePrice + "\n" +
                         " 供应商=" + provider + "\n" +
-                        " 询价员=" + askPriceMan + "\n" +
-                        " 采购员=" + caigouName + "\n" +
-                        " 采购地=" + caigouPlace + "\n" +
-                        " 客户编码=" + clientID + "\n" +
-                        " 备注=" + note + "\n" +
-                        " 是否国外=" + ((isForeignClient) ? "是" : "否");
+                        " 询价员=" + askPriceMan + "   采购员=" + caigouName + "\n" +
+                        " 客户编码=" + clientID  + "   是否国外=" + ((isForeignClient) ? "是" : "否")+ "\n" +
+                        " 备注=" + note ;
 
     }
 

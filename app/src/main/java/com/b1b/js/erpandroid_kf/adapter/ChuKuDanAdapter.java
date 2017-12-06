@@ -49,20 +49,21 @@ public class ChuKuDanAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.chukudanlist_items, parent, false);
             mHolder = new ViewHolder();
             mHolder.tv = (TextView) convertView.findViewById(R.id.chukudan_items_tv);
+            mHolder.tvMore = (TextView) convertView.findViewById(R.id.chukudan_items_tvMore);
             convertView.setTag(mHolder);
         } else {
             mHolder = (ViewHolder) convertView.getTag();
         }
         if (getCount() >=position) {
             ChuKuDanInfo info = list.get(position);
-            mHolder.tv.setText(info.toString());
+            mHolder.tv.setText(info.toStringSmall());
         }
-
-
+        mHolder.tvMore.setVisibility(View.VISIBLE);
         return convertView;
     }
 
     class ViewHolder {
         TextView tv;
+        TextView tvMore;
     }
 }

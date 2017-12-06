@@ -44,6 +44,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import kyeexpress.KyExpressUtils;
 import kyeexpress.YundanJson;
@@ -633,10 +634,18 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 info.col_006 = dCompany;
                 info.col_010 = dName;
                 info.col_007 = dAddress;
-                info.col_009 = dTel;
+                String telReg = "^1[34578]\\d{9}$";
+                Pattern telPattern = Pattern.compile(telReg);
+                if (!telPattern.matcher(dTel).matches()) {
+                    info.col_008 = dTel;
+                    info.col_009 = "";
+                    MyApp.myLogger.writeBug("KY:dTel Error:" + dTel + "\tpid" + pid);
+                } else {
+                    info.col_008 = "";
+                    info.col_009 = dTel;
+                }
                 info.sjTelQH = "";
                 info.sjTelFJH = "";
-                info.col_008 = dTel;
                 info.col_037 = cardID;
                 info.col_013 = payType;
                 info.col_019 = "托寄";

@@ -3,6 +3,7 @@ package printer.activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -74,7 +75,6 @@ import utils.MyToast;
 import utils.Myuuid;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
-import utils.dbutils.MyDbManger;
 
 public class SetYundanActivity extends AppCompatActivity {
     private List<Province> provinces;
@@ -85,7 +85,6 @@ public class SetYundanActivity extends AppCompatActivity {
     String jProvince = "";
     String jCity = "";
     String jCounty = "";
-    MyDbManger manger = new MyDbManger(SetYundanActivity.this, "newyundan");
     String payType;
     String jTel;
     String jName;
@@ -124,6 +123,7 @@ public class SetYundanActivity extends AppCompatActivity {
     private ProgressDialog pd;
     private List<Map<String, String>> addrList = new ArrayList<>();
 
+    private Context mContext = this;
     Handler mhandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -145,6 +145,7 @@ public class SetYundanActivity extends AppCompatActivity {
                         eddTel.setText(dTel);
                         eddAddress.setText(dAddress);
                         eddPerson.setText(dName);
+                        tvNote.setText(note);
                     } else {
                         final SharedPreferences sp = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
                         String saveAccount = sp.getString("diaohuoAccount", "");
@@ -154,15 +155,15 @@ public class SetYundanActivity extends AppCompatActivity {
                 case 1:
                     DialogUtils.dismissDialog(pd);
                     AlertDialog.Builder builder = new AlertDialog.Builder
-                            (SetYundanActivity.this);
+                            (mContext);
                     builder.setTitle("提示");
                     builder.setMessage("下单失败:" + msg.obj.toString());
-                    DialogUtils.safeShowDialog(SetYundanActivity.this, builder.create());
+                    DialogUtils.safeShowDialog(mContext, builder.create());
                     break;
                 case 3:
                     DialogUtils.dismissDialog(pd);
                     AlertDialog.Builder builder2 = new AlertDialog.Builder
-                            (SetYundanActivity.this);
+                            (mContext);
                     builder2.setTitle("提示");
                     int arg1 = msg.arg1;
                     if (arg1 == 0) {
@@ -200,39 +201,39 @@ public class SetYundanActivity extends AppCompatActivity {
                             }
                         });
                         builder2.setNegativeButton("否", null);
-                        DialogUtils.safeShowDialog(SetYundanActivity.this, builder2.create());
+                        DialogUtils.safeShowDialog(mContext, builder2.create());
                     }
                     break;
                 case 4:
                     DialogUtils.dismissDialog(pd);
                     AlertDialog.Builder builder3 = new AlertDialog.Builder
-                            (SetYundanActivity.this);
+                            (mContext);
                     builder3.setTitle("提示");
                     builder3.setMessage("月结账号获取失败，当前不可用寄付月结！！！");
-                    DialogUtils.safeShowDialog(SetYundanActivity.this, builder3.create());
+                    DialogUtils.safeShowDialog(mContext, builder3.create());
                     break;
                 case 5:
                     DialogUtils.dismissDialog(pd);
-                    Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
+                    Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
                             "操作成功", "提示");
-                    DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
+                    DialogUtils.safeShowDialog(mContext, spAlert1);
                     break;
                 case 6:
                     DialogUtils.dismissDialog(pd);
-                    Dialog spAlert = DialogUtils.getSpAlert(SetYundanActivity.this,
+                    Dialog spAlert = DialogUtils.getSpAlert(mContext,
                             "插入单号信息失败,请重新插入！！！", "提示");
                     tvState.setText("关联运单号失败！！！");
                     tvState.setTextColor(Color.RED);
-                    DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert);
+                    DialogUtils.safeShowDialog(mContext, spAlert);
                     break;
                 case 7:
                     DialogUtils.dismissDialog(pd);
-                    DialogUtils.safeShowDialog(SetYundanActivity.this, DialogUtils.getSpAlert(SetYundanActivity.this,
+                    DialogUtils.safeShowDialog(mContext, DialogUtils.getSpAlert(mContext,
                             "网络质量较差，请重新尝试！！！", "提示"));
                     break;
                 case 8:
                     DialogUtils.dismissDialog(pd);
-                    DialogUtils.safeShowDialog(SetYundanActivity.this, DialogUtils.getSpAlert(SetYundanActivity.this,
+                    DialogUtils.safeShowDialog(mContext, DialogUtils.getSpAlert(mContext,
                             "连接打印服务器失败，请重新尝试！！！", "提示"));
                     break;
                 case 9:
@@ -263,6 +264,8 @@ public class SetYundanActivity extends AppCompatActivity {
     private Spinner spiPayType;
     private EditText edAccount;
     private EditText edMorePid;
+    private String note;
+    private TextView tvNote;
 
     //    6200151
     @Override
@@ -353,6 +356,8 @@ public class SetYundanActivity extends AppCompatActivity {
 
         tvPid = (TextView) findViewById(R.id
                 .activity_set_yundan_tv_pid);
+        tvNote = (TextView) findViewById(R.id
+                .activity_set_yundan_note);
         tvPayBy = (TextView) findViewById(R.id
                 .activity_set_yundan_tv_payby);
         btnReInsert = (Button) findViewById(R.id
@@ -360,7 +365,7 @@ public class SetYundanActivity extends AppCompatActivity {
         btnChukudan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(SetYundanActivity.this, PreChukuDetailActivity.class);
+                Intent intent = new Intent(mContext, PreChukuDetailActivity.class);
                 Intent lastIntent = getIntent();
                 String pid = lastIntent.getStringExtra("pid");
                 intent.putExtra("pid", pid);
@@ -372,10 +377,10 @@ public class SetYundanActivity extends AppCompatActivity {
             public void onClick(View v) {
                 final String targetPid = edMorePid.getText().toString().trim();
                 if (targetPid.equals("")) {
-                    MyToast.showToast(SetYundanActivity.this, "请输入单据号");
+                    MyToast.showToast(mContext, "请输入单据号");
                 } else {
                     if (desOrderid == null) {
-                        MyToast.showToast(SetYundanActivity.this, "请先下单");
+                        MyToast.showToast(mContext, "请先下单");
                         return;
                     }
                     pd.setMessage("正在关联其他单据号");
@@ -391,9 +396,9 @@ public class SetYundanActivity extends AppCompatActivity {
                                         @Override
                                         public void run() {
                                             DialogUtils.dismissDialog(pd);
-                                            Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
+                                            Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
                                                     "关联其他单号成功", "提示");
-                                            DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
+                                            DialogUtils.safeShowDialog(mContext, spAlert1);
                                         }
                                     });
                                 } else {
@@ -401,9 +406,9 @@ public class SetYundanActivity extends AppCompatActivity {
                                         @Override
                                         public void run() {
                                             DialogUtils.dismissDialog(pd);
-                                            Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
+                                            Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
                                                     "关联其他单号失败！！！", "提示");
-                                            DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
+                                            DialogUtils.safeShowDialog(mContext, spAlert1);
                                         }
                                     });
                                 }
@@ -412,9 +417,9 @@ public class SetYundanActivity extends AppCompatActivity {
                                     @Override
                                     public void run() {
                                         DialogUtils.dismissDialog(pd);
-                                        Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
+                                        Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
                                                 "连接服务器超时", "提示");
-                                        DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
+                                        DialogUtils.safeShowDialog(mContext, spAlert1);
                                     }
                                 });
                                 e.printStackTrace();
@@ -439,7 +444,7 @@ public class SetYundanActivity extends AppCompatActivity {
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(SetYundanActivity.this, CaptureActivity.class);
+                Intent intent = new Intent(mContext, CaptureActivity.class);
                 startActivityForResult(intent, CaptureActivity.REQ_CODE);
             }
         });
@@ -480,7 +485,7 @@ public class SetYundanActivity extends AppCompatActivity {
         diaohuoList.add("上海-->深圳市福田区");
         diaohuoList.add("上海-->香港");
 
-//        spiDiaohuo.setAdapter(new ArrayAdapter<String>(SetYundanActivity.this, R.layout.item_province, R.id
+//        spiDiaohuo.setAdapter(new ArrayAdapter<String>(mContext, R.layout.item_province, R.id
 //                .item_province_tv, diaohuoList));
         final List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
         HashMap<String, String> addressMap = new HashMap<String, String>();
@@ -549,7 +554,6 @@ public class SetYundanActivity extends AppCompatActivity {
 
             }
         });
-        Log.e("zjy", "SetYundanActivity->onCreate(): isdiaohuo==" + isDiaohuo);
         if (isDiaohuo) {
             flag = 1;
             diaohuoContainer.setVisibility(View.VISIBLE);
@@ -560,7 +564,7 @@ public class SetYundanActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (desOrderid == null) {
-                    MyToast.showToast(SetYundanActivity.this, "还未下单");
+                    MyToast.showToast(mContext, "还未下单");
                     return;
                 }
                 pd.setMessage("正在重新插入单号信息");
@@ -651,11 +655,6 @@ public class SetYundanActivity extends AppCompatActivity {
                     String addressJson = getDHAddresss();
                     JSONObject addJObj = new JSONObject(addressJson);
                     JSONArray addTable = addJObj.getJSONArray("表");
-//                    {"objid":"5","FromStorageID":"云岗库房","ToStotageID":"北京中转库","FromName":"商庆房",
-//                            "FromPhone":"0755-83764658","FromAddress":""
-//                            "深圳市龙岗区吉华路393号英达丰科技园","ToName":"王鹏",
-//                            "ToPhone":"010-62105503","ToAddress":"北京市海淀区知春路108号豪景大厦C座1503",
-//                            "AccountNo":""},
                     List<String> titles = new ArrayList<String>();
                     titles.add("请-->选择调货方向");
                     for (int j = 0; j < addTable.length(); j++) {
@@ -675,7 +674,7 @@ public class SetYundanActivity extends AppCompatActivity {
                         addrList.add(map);
                         titles.add(from + "-->" + to);
                     }
-                    final ArrayAdapter adapter = new ArrayAdapter<String>(SetYundanActivity.this,R.layout.item_province,
+                    final ArrayAdapter adapter = new ArrayAdapter<String>(mContext,R.layout.item_province,
                             R.id.item_province_tv, titles);
                     mhandler.post(new Runnable() {
                         @Override
@@ -712,6 +711,7 @@ public class SetYundanActivity extends AppCompatActivity {
                         dAddress = obj.getString("收件地址");
                         dTel = obj.getString("收件电话");
                         dName = obj.getString("收件人");
+                        note = obj.getString("Note");
                         dCompany = obj.getString("收件公司");
                         payType = obj.getString("谁付运费");
                         corpID = obj.getString("InvoiceCorp");
@@ -773,9 +773,9 @@ public class SetYundanActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             DialogUtils.dismissDialog(pd);
-                            Dialog spAlert1 = DialogUtils.getSpAlert(SetYundanActivity.this,
+                            Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
                                     "打印机地址有误，请重新配置", "提示");
-                            DialogUtils.safeShowDialog(SetYundanActivity.this, spAlert1);
+                            DialogUtils.safeShowDialog(mContext, spAlert1);
                         }
                     });
                     e.printStackTrace();
@@ -816,7 +816,7 @@ public class SetYundanActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (desOrderid != null && dyundanType == null) {
                     if (flag != 1) {
-                        Toast.makeText(SetYundanActivity.this, "获取寄送信息失败，请稍等或返回重新进入", Toast
+                        Toast.makeText(mContext, "获取寄送信息失败，请稍等或返回重新进入", Toast
                                 .LENGTH_SHORT).show();
                         return;
                     }
@@ -824,7 +824,7 @@ public class SetYundanActivity extends AppCompatActivity {
                     if (boxBaojia.isChecked()) {
                         String strBaojia = edBaojia.getText().toString();
                         if (strBaojia.equals("")) {
-                            Toast.makeText(SetYundanActivity.this, "必须输入保价金额", Toast
+                            Toast.makeText(mContext, "必须输入保价金额", Toast
                                     .LENGTH_SHORT).show();
                             return;
                         }
@@ -838,37 +838,37 @@ public class SetYundanActivity extends AppCompatActivity {
                     account = edAccount.getText().toString().trim();
                     final String bags = edBags.getText().toString().trim();
                     if (bags.equals("")) {
-                        Toast.makeText(SetYundanActivity.this, "请输入包裹数", Toast
+                        Toast.makeText(mContext, "请输入包裹数", Toast
                                 .LENGTH_SHORT).show();
                         return;
                     }
                     if (jTel.equals("")) {
-                        Toast.makeText(SetYundanActivity.this, "必须输入寄件人电话", Toast
+                        Toast.makeText(mContext, "必须输入寄件人电话", Toast
                                 .LENGTH_SHORT).show();
                         return;
                     }
                     if (jAddress.equals("")) {
-                        Toast.makeText(SetYundanActivity.this, "必须输入寄件人地址", Toast
+                        Toast.makeText(mContext, "必须输入寄件人地址", Toast
                                 .LENGTH_SHORT).show();
                         return;
                     }
                     if (jName.equals("")) {
-                        Toast.makeText(SetYundanActivity.this, "必须输入寄件人姓名", Toast
+                        Toast.makeText(mContext, "必须输入寄件人姓名", Toast
                                 .LENGTH_SHORT).show();
                         return;
                     }
                     if (dTel.equals("")) {
-                        Toast.makeText(SetYundanActivity.this, "必须输入收件人电话", Toast
+                        Toast.makeText(mContext, "必须输入收件人电话", Toast
                                 .LENGTH_SHORT).show();
                         return;
                     }
                     if (dAddress.equals("")) {
-                        Toast.makeText(SetYundanActivity.this, "必须输入收件人地址", Toast
+                        Toast.makeText(mContext, "必须输入收件人地址", Toast
                                 .LENGTH_SHORT).show();
                         return;
                     }
                     if (dName.equals("")) {
-                        Toast.makeText(SetYundanActivity.this, "必须输入收件人姓名", Toast
+                        Toast.makeText(mContext, "必须输入收件人姓名", Toast
                                 .LENGTH_SHORT).show();
                         return;
                     }
@@ -958,7 +958,7 @@ public class SetYundanActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (ddestcode != null) {
                     AlertDialog.Builder builder = new AlertDialog.Builder
-                            (SetYundanActivity.this);
+                            (mContext);
                     builder.setMessage("已经下单过了,是否重新下单");
                     builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
                         @Override
@@ -1067,7 +1067,7 @@ public class SetYundanActivity extends AppCompatActivity {
         //                        if (list.size() == 0) {
         //                            List<String> partList = new ArrayList<String>();
         //                            spiPart.setAdapter(new ArrayAdapter<String>
-        //                                    (SetYundanActivity.this,
+        //                                    (mContext,
         //                                            R.layout.item_province, R.id
         // .item_province_tv,
         //                                            partList));
@@ -1186,7 +1186,7 @@ public class SetYundanActivity extends AppCompatActivity {
 
         if (times.length() > 0) {
             AlertDialog.Builder builder = new AlertDialog.Builder
-                    (SetYundanActivity.this);
+                    (mContext);
             builder.setMessage("已经打印过了,是否继续打印");
             builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
                 @Override
@@ -1227,7 +1227,7 @@ public class SetYundanActivity extends AppCompatActivity {
                                EditText edDTel, final String yundanType) {
 
         if (flag != 1) {
-            Toast.makeText(SetYundanActivity.this, "获取寄送信息失败，请稍等或返回重新进入", Toast
+            Toast.makeText(mContext, "获取寄送信息失败，请稍等或返回重新进入", Toast
                     .LENGTH_SHORT).show();
             return;
         }
@@ -1235,7 +1235,7 @@ public class SetYundanActivity extends AppCompatActivity {
         if (boxBaojia.isChecked()) {
             String strBaojia = edBaojia.getText().toString();
             if (strBaojia.equals("")) {
-                Toast.makeText(SetYundanActivity.this, "必须输入保价金额", Toast
+                Toast.makeText(mContext, "必须输入保价金额", Toast
                         .LENGTH_SHORT).show();
                 return;
             }
@@ -1248,37 +1248,37 @@ public class SetYundanActivity extends AppCompatActivity {
         dTel = edDTel.getText().toString();
         final String bags = edBags.getText().toString().trim();
         if (bags.equals("")) {
-            Toast.makeText(SetYundanActivity.this, "请输入包裹数", Toast
+            Toast.makeText(mContext, "请输入包裹数", Toast
                     .LENGTH_SHORT).show();
             return;
         }
         if (jTel.equals("")) {
-            Toast.makeText(SetYundanActivity.this, "必须输入寄件人电话", Toast
+            Toast.makeText(mContext, "必须输入寄件人电话", Toast
                     .LENGTH_SHORT).show();
             return;
         }
         if (jAddress.equals("")) {
-            Toast.makeText(SetYundanActivity.this, "必须输入寄件人地址", Toast
+            Toast.makeText(mContext, "必须输入寄件人地址", Toast
                     .LENGTH_SHORT).show();
             return;
         }
         if (jName.equals("")) {
-            Toast.makeText(SetYundanActivity.this, "必须输入寄件人姓名", Toast
+            Toast.makeText(mContext, "必须输入寄件人姓名", Toast
                     .LENGTH_SHORT).show();
             return;
         }
         if (dTel.equals("")) {
-            Toast.makeText(SetYundanActivity.this, "必须输入收件人电话", Toast
+            Toast.makeText(mContext, "必须输入收件人电话", Toast
                     .LENGTH_SHORT).show();
             return;
         }
         if (dAddress.equals("")) {
-            Toast.makeText(SetYundanActivity.this, "必须输入收件人地址", Toast
+            Toast.makeText(mContext, "必须输入收件人地址", Toast
                     .LENGTH_SHORT).show();
             return;
         }
         if (dName.equals("")) {
-            Toast.makeText(SetYundanActivity.this, "必须输入收件人姓名", Toast
+            Toast.makeText(mContext, "必须输入收件人姓名", Toast
                     .LENGTH_SHORT).show();
             return;
         }
@@ -1598,11 +1598,7 @@ public class SetYundanActivity extends AppCompatActivity {
         String res = builder.toString();
         Log.e("zjy", "SetYundanActivity->run(): print_result==" + builder
                 .toString());
-        if (res.equals("ok")) {
-            return true;
-        } else {
-            return false;
-        }
+        return res.equals("ok");
     }
 
     @NonNull
@@ -1706,6 +1702,7 @@ public class SetYundanActivity extends AppCompatActivity {
     public String updatePrintCount(String pid, String orderID) throws IOException,
             XmlPullParserException {
         if (isDiaohuo) {
+            MyApp.myLogger.writeInfo(SetYundanActivity.class, "下单调货：" + pid);
             return "成功";
         }
         String newOrder = orderID.replace(",", "/");

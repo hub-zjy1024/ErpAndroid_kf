@@ -14,6 +14,7 @@ import java.util.List;
 
 import printer.entity.XiaopiaoInfo;
 import utils.btprint.MyBluePrinter;
+import utils.btprint.SPrinter;
 
 /**
  Created by 张建宇 on 2017/5/2. */
@@ -169,5 +170,38 @@ public class PrinterStyle {
         printer.newLine();
         printer.setZiTiSize(1);
         printer.printBarCodeWithDifferentBelow(mContext, info.getCodeStr(), 50, info.getCodeStr() + "M");
+    }
+
+    public synchronized static void printXiaopiao2( SPrinter printer, XiaopiaoInfo info) {
+
+        int len[] = new int[]{15, 0};
+        printer.printText("\t" + info.getDeptNo() + "_" + info.getTime() + "\t" + info.getBelowCode());
+        printer.newLine();
+        printer.printText("型号:" + info.getPartNo());
+        printer.newLine();
+        String[] str = new String[]{"数量:" + info.getCounts(), "产地:" + info.getProduceFrom()};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+        str = new String[]{"厂家:" + info.getFactory(), "批号:" + info.getPihao()};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+        str = new String[]{"封装:" + info.getFengzhuang(), "描述:" + info.getDescription()};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+        //        str = new String[]{"位置:" + info.getPlace(), "备注:" + info.getNote()};
+        str = new String[]{"位置:" + info.getPlace(), "备注:"};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+        printer.setZiTiSize(0);
+        if (info.getFlag().equals("1")) {
+            printer.printText("z" + info.getCompany() + "z");
+        } else if (info.getFlag().equals("2")) {
+            printer.printText("p" + info.getCompany() + "p");
+        }
+        printer.newLine();
+        printer.setZiTiSize(1);
+        printer.printBarCode(info.getCodeStr(), 1, 1, 25);
+        printer.newLine();
+        printer.newLine();
     }
 }

@@ -37,20 +37,20 @@ public class CheckInfo {
     @Override
     public String toString() {
         return
-                "单据号='" + pid + '\'' +
-                        "\n制单日期='" + pdate + '\'' +
-                        "\n单据类型='" + ptype + '\'' +
-                        "\n单据状态='" + pstate + '\'' +
-                        "\n公司='" + company + '\'' +
-                        "\n部门='" + deptName + '\'' +
-                        "\n员工='" + uname + '\'' +
-                        "\n型号='" + partNo + '\'' +
-                        "\n数量='" + counts + '\'' +
-                        "\n出库库房='" + outfrom + '\'' +
-                        "\n客户='" + customer + '\'' +
-                        "\n发货类型='" + fhType + '\'' +
-                        "\n开票公司='" + kpCompany + '\'' +
-                        "\n预出库打印='" + prePrint + '\'';
+                toSmallString() + "\n" +
+                        "\n" + "公司=" + company +
+                        "\n" + "部门=" + deptName +
+                        "\n" + "发货类型=" + fhType +
+                        "\n" + "开票公司=" + kpCompany +
+                        "\n" + "预出库打印=" + prePrint;
+    }
+    public String toSmallString(){
+        return "单据号=" + pid + "   " + pdate +
+                "\n" + "单据类型=" + ptype + "   " + "状态=" + pstate +
+                "\n" + "型号=" + partNo +
+                "\n" + "数量=" + counts+ "   "+"员工=" + uname+
+                "\n"+"出库库房=" + outfrom +
+                "\n"+"客户=" + customer ;
     }
 
     public String getKpCompany() {

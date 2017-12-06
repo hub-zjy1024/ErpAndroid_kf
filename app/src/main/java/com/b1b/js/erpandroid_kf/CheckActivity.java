@@ -13,7 +13,9 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
+import android.widget.TextView;
 
+import com.android.dev.BarcodeAPI;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
@@ -66,6 +68,12 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                     mAdapter.notifyDataSetChanged();
                     MyToast.showToast(CheckActivity.this, "查询失败，网络状态不佳");
                     break;
+                case BarcodeAPI.BARCODE_READ:
+                    if (msg.obj != null) {
+                        edPid.setText((String) msg.obj + "\n");
+                        getData(2, msg.obj.toString(), "");
+                    }
+                    break;
             }
             if (pd != null) {
                 pd.cancel();
@@ -104,6 +112,18 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                 startActivity(intent);
             }
         });
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView tv = (TextView) view.findViewById(R.id.chukudan_items_tv);
+                CheckInfo item = (CheckInfo) parent.getItemAtPosition(position);
+                tv.setText(item.toString());
+                TextView tvMore = (TextView) view.findViewById(R.id.chukudan_items_tvMore);
+                tvMore.setVisibility(View.GONE);
+                return true;
+            }
+        });
+        BarcodeAPI.getInstance().m_handler=mHandler;
         lv.setAdapter(mAdapter);
         pd = new ProgressDialog(this);
         pd.setTitle("提示");

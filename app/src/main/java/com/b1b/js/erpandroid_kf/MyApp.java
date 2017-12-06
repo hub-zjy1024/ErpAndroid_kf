@@ -1,7 +1,11 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.Application;
+import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,85 +23,7 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
     @Override
     public void onCreate() {
         super.onCreate();
-//        final SharedPreferences sp = getSharedPreferences("uploadlog", MODE_PRIVATE);
-//        final String date = sp.getString("date", "");
-//        final String current = UploadUtils.getCurrentDate();
-//        final File root = Environment.getExternalStorageDirectory();
-//        final String targeUrl = "http://172.16.6.160:8006/DownLoad/dyj_kf/logcheck.txt";
         final String logFileName = "dyj_log.txt";
-//        final String savedDir = "/Zjy/log_kf/"+ UploadUtils.getCurrentYearAndMonth() + "/";
-//        final SharedPreferences userInfo = getSharedPreferences("UserInfo", MODE_PRIVATE);
-//        String id = userInfo.getString("name", "");
-//        String phoneCode = UploadUtils.getPhoneCode(getApplicationContext());
-//        String remoteName = UploadUtils.getCurrentDay() + "_" + id + "_" + phoneCode + "_log.txt";
-//        final String remotePath = savedDir + remoteName;
-//        if (root.length() > 0) {
-//            final File log = new File(root, logFileName);
-//            if (log.exists()) {
-//                new Thread() {
-//                    @Override
-//                    public void run() {
-//                        super.run();
-//                        boolean upOK = false;
-//                        HashMap<String, String> map = new HashMap<String, String>();
-//                        URL urll = null;
-//                        try {
-//                            urll = new URL(targeUrl);
-//                            HttpURLConnection conn = (HttpURLConnection) urll.openConnection();
-//                            conn.setConnectTimeout(15 * 1000);
-//                            conn.setReadTimeout(15 * 1000);
-//                            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-//                                InputStream is = conn.getInputStream();
-//                                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-//                                String len = reader.readLine();
-//                                StringBuilder stringBuilder = new StringBuilder();
-//                                while (len != null) {
-//                                    String[] line = len.split("=");
-//                                    map.put(line[0], line[1]);
-//                                    stringBuilder.append(len);
-//                                    len = reader.readLine();
-//                                }
-//                                is.close();
-//                                Log.e("zjy", "MainActivity.java->checkVersion(): readme==" + stringBuilder.toString());
-//                            }
-//                        } catch (MalformedURLException e) {
-//                            e.printStackTrace();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                        //                            uploadby=daycheckid=0
-//                        String checkid = map.get("checkid");
-//                        String deviceID = map.get("deviceID");
-//                        String localID = UploadUtils.getDeviceID(getApplicationContext());
-//                        boolean nomarlUpload = true;
-//                        if ("1".equals(checkid)) {
-//                            nomarlUpload = false;
-//                        }
-//                        boolean notToday = !date.equals(current);
-//                        if (nomarlUpload) {
-//                            if (notToday) {
-//                                upOK = upload( log, remotePath);
-//                            }
-//                        } else {
-//                            if ("all".equals(deviceID)) {
-//                                upOK = upload( log, remotePath);
-//
-//                            }else if (localID.equals(deviceID)) {
-//                                upOK = upload( log, remotePath);
-//                            }
-//                        }
-//                        if (upOK) {
-//                            if (notToday) {
-//                                log.delete();
-//                                sp.edit().putString("date", current).apply();
-//                            }
-//                        }
-//                    }
-//                }.start();
-//            } else {
-//                sp.edit().putString("date", current).apply();
-//            }
-//        }
         myLogger = new LogRecoder(logFileName, null);
         Thread.setDefaultUncaughtExceptionHandler(this);
     }
@@ -105,32 +31,19 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
 
     @Override
     public void uncaughtException(Thread thread, Throwable ex) {
-        ex.printStackTrace();
-        StringBuilder sb = new StringBuilder();
-        String exMsg = ex.getMessage();
-        Throwable cause = ex.getCause();
-        StackTraceElement[] stacks = ex.getStackTrace();
-        sb.append(exMsg+"\n");
-        if (cause != null) {
-            sb.append("caused by:"+cause.getMessage()+"\n");
-            StackTraceElement[] cStackTraces = cause.getStackTrace();
-            for (StackTraceElement e : cStackTraces) {
-                String className = e.getClassName();
-                if (className.contains("b1b") || className.contains("utils") || className.contains("printer")
-                        || className.contains("zhy")) {
-                    sb.append(className + "." + e.getMethodName() +"("+e.getFileName()+":"+ e.getLineNumber()+")\n");
-                }
-            }
+        ByteArrayOutputStream bao=new ByteArrayOutputStream();
+        PrintWriter writer=new PrintWriter(bao);
+        ex.printStackTrace(writer);
+        writer.flush();
+        String error="";
+        try {
+            error = new String(bao.toByteArray(), "utf-8");
+            myLogger.writeError("Error uncatch exception:" +error);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
-        for (StackTraceElement s : stacks) {
-            String className = s.getClassName();
-            if (className.contains("b1b") || className.contains("utils") || className.contains("printer")
-                    || className.contains("zhy")) {
-                sb.append(className + "." + s.getMethodName() +"("+s.getFileName()+":"+ s.getLineNumber()+")\n");
-            }
-        }
-        myLogger.writeError("uncatch exception:" + sb.toString());
+        writer.close();
+        Log.e("zjy", "MyApp->uncaughtException(): detail==" + error);
         android.os.Process.killProcess(android.os.Process.myPid());
-        System.exit(1);
     }
 }

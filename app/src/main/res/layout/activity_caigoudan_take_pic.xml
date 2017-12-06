@@ -8,56 +8,70 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.CaigoudanTakePicActivity">
-
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="5dp">
-
-        <com.rengwuxian.materialedittext.MaterialEditText
-            android:id="@+id/activity_caigoudan_take_pic_ed_pid"
-            android:layout_width="0dp"
+        android:layout_height="wrap_content" android:orientation="vertical">
+        <TextView
+            android:id="@+id/caigouedit_title"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/bijia_title_background"
+            android:gravity="center"
+            android:text="采购拍照"
+            android:textColor="@color/color_white"
+            android:textSize="20sp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:met_clearButton="true"
-            app:met_primaryColor="@color/colorPrimary"
-            android:inputType="number"
-            android:layout_weight="1"
-            android:hint="单据号"/>
+            android:padding="5dp">
 
-        <com.rengwuxian.materialedittext.MaterialEditText
-            android:id="@+id/activity_caigoudan_take_pic_ed_partno"
-            android:layout_width="0dp"
-            app:met_clearButton="true"
-            app:met_primaryColor="@color/colorPrimary"
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/activity_caigoudan_take_pic_ed_pid"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:met_clearButton="true"
+                app:met_primaryColor="@color/colorPrimary"
+                android:inputType="number"
+                android:layout_weight="1"
+                android:hint="单据号"/>
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/activity_caigoudan_take_pic_ed_partno"
+                android:layout_width="0dp"
+                app:met_clearButton="true"
+                app:met_primaryColor="@color/colorPrimary"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="型号"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="型号"/>
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp">
+
+            <Button
+                android:id="@+id/activity_caigoudan_take_pic_btn_search"
+                style="@style/zjy_button_light"
+                android:text="搜索"/>
+
+            <Button
+                android:id="@+id/activity_caigoudan_take_pic_btn_saoma"
+                style="@style/zjy_button_light"
+                android:layout_marginLeft="20dp"
+                android:text="扫码"/>
+        </LinearLayout>
+
+
+
+        <ListView
+            android:id="@+id/activity_caigoudan_take_pic_lv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        </ListView>
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp">
-
-        <Button
-            android:id="@+id/activity_caigoudan_take_pic_btn_search"
-            style="@style/zjy_button_light"
-            android:text="搜索"/>
-
-        <Button
-            android:id="@+id/activity_caigoudan_take_pic_btn_saoma"
-            style="@style/zjy_button_light"
-            android:layout_marginLeft="20dp"
-            android:text="扫码"/>
-    </LinearLayout>
-
-
-
-    <ListView
-        android:id="@+id/activity_caigoudan_take_pic_lv"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </ListView>
 
 </LinearLayout>

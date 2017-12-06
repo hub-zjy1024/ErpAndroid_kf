@@ -25,8 +25,10 @@ public class SFYundanAdapter extends MyBaseAdapter<Yundan> {
         YdHolder holder = (YdHolder) baseHolder;
         TextView tv = (TextView) convertView.findViewById(R.id.sf_tv);
         TextView tvFlag = (TextView) convertView.findViewById(R.id.sf_flag);
+        TextView tvmore = (TextView) convertView.findViewById(R.id.sf_more);
         holder.tv = tv;
         holder.tvFlag = tvFlag;
+        holder.tvmore = tvmore;
 
     }
 
@@ -40,7 +42,8 @@ public class SFYundanAdapter extends MyBaseAdapter<Yundan> {
             holder.tvFlag.setText(null);
             holder.tvFlag.setVisibility(View.GONE);
         }
-        holder.tv.setText(currentData.toString());
+        holder.tv.setText(currentData.toStringSmall());
+        holder.tvmore.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -51,6 +54,7 @@ public class SFYundanAdapter extends MyBaseAdapter<Yundan> {
     public class YdHolder extends MyBasedHolder{
         public TextView tv;
         public TextView tvFlag;
+        public TextView tvmore;
 
     }
 }

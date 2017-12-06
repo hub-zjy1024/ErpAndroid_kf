@@ -207,7 +207,6 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
                 try {
                     MyApp.myLogger.writeInfo("prechuku:getList" + MyApp.id);
                     String res = getList(temS, temE, "", id, Integer.parseInt(MyApp.id));
-                    MyApp.myLogger.writeInfo("prechuku:getList ok" + MyApp.id);
                     JSONObject root = new JSONObject(res);
                     JSONArray array = root.getJSONArray("表");
                     for (int i = 0; i < array.length(); i++) {

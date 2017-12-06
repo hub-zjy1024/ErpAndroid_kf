@@ -1,9 +1,9 @@
 package com.b1b.js.erpandroid_kf;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -35,27 +35,34 @@ import java.util.regex.Pattern;
 
 import utils.DialogUtils;
 import utils.MyToast;
+import utils.SafeHandler;
 import utils.WebserviceUtils;
 
 public class SettingActivity extends AppCompatActivity {
 
-    private Handler zHandler = new Handler() {
+    static class LHandler extends SafeHandler{
+
+        private LHandler(Activity mContext) {
+            super(mContext);
+        }
+
         @Override
         public void handleMessage(Message msg) {
-            super.handleMessage(msg);
+            SettingActivity activity = (SettingActivity) mContext.get();
             switch (msg.what) {
-                case 0:
-                    MyToast.showToast(SettingActivity.this, "保存打印机ip地址成功");
-                    break;
                 case 1:
-                    MyToast.showToast(SettingActivity.this, "插入失败");
+                    activity.aDialog.setMessage("解析数据出错");
+                    activity.aDialog.show();
                     break;
                 case 2:
-                    MyToast.showToast(SettingActivity.this, "当前网络质量较差，连接超时");
+                    activity.aDialog.setMessage("获取库房信息失败：" + activity.getString(R.string.bad_connection));
+                    activity.aDialog.show();
                     break;
             }
         }
-    };
+    }
+
+    private LHandler zHandler = new LHandler(this);
     public static final String NAME = "kfName";
     public static final String KYACCOUNT = "kyAccount";
     public static final String KYUUID = "kyUuid";
@@ -69,15 +76,11 @@ public class SettingActivity extends AppCompatActivity {
     public static final String PREF_EXPRESS = "prefExpress";
 
     private List<Map<String, Object>> mlist = new ArrayList<>();
-    final List<String> kfNames = new ArrayList<>();
     ArrayAdapter<String> adapter;
     private SimpleAdapter sAdapter;
     private AlertDialog aDialog;
     private SharedPreferences sp;
 
-    /**
-     @param savedInstanceState
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,6 +95,9 @@ public class SettingActivity extends AppCompatActivity {
         final RadioButton rdoKY = (RadioButton) findViewById(R.id.activity_setting_rdo_ky);
         sp = getSharedPreferences(PREF_KF, 0);
         aDialog = (AlertDialog) DialogUtils.getSpAlert(this, "msg", "提示");
+        LinkedHashMap<String, Object> initMap = new LinkedHashMap<>();
+        initMap.put(NAME, "请选择");
+        mlist.add(initMap);
         sAdapter = new SimpleAdapter(this, mlist, R.layout.item_province, new String[]{NAME}, new int[]{R.id.item_province_tv});
         spiKF.setAdapter(sAdapter);
         setViewValue(tvSavedKf, rdoSF, rdoKY, edPrinterIP, edPrinterServer, edDiaohuoAccount);
@@ -127,8 +133,12 @@ public class SettingActivity extends AppCompatActivity {
                 } else if (rdoSF.isChecked()) {
                     editor.putString(PREF_EXPRESS, getString(R.string.express_sf));
                 }
-                Map<String, Object> selectedItem = (Map<String, Object>) spiKF.getSelectedItem();
+                @SuppressWarnings("unchecked") Map<String, Object> selectedItem = (Map<String, Object>) spiKF.getSelectedItem();
                 if (selectedItem != null) {
+                    if ("请选择".equals(selectedItem.get(NAME))) {
+                        MyToast.showToast(SettingActivity.this, "请先选择库房");
+                        return;
+                    }
                     editor.putString(NAME, selectedItem.get(NAME).toString());
                     editor.putString(KYUUID, selectedItem.get(KYUUID).toString());
                     editor.putString(KYKEY, selectedItem.get(KYKEY).toString());
@@ -138,18 +148,24 @@ public class SettingActivity extends AppCompatActivity {
                     editor.putString(CHUKU_PRINTER, selectedItem.get(CHUKU_PRINTER).toString());
                     editor.putString(CONFIG_JSON, selectedItem.get(CONFIG_JSON).toString());
                 }
-                editor.commit();
+                boolean commit = editor.commit();
+                if (commit) {
+                    MyToast.showToast(SettingActivity.this, "保存成功");
+                } else {
+                    MyToast.showToast(SettingActivity.this, "保存失败！！");
+                }
                 setViewValue(tvSavedKf, rdoSF, rdoKY, edPrinterIP, edPrinterServer, edDiaohuoAccount);
-                MyToast.showToast(SettingActivity.this, "保存成功");
             }
         });
         spiKF.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.e("zjy", "SettingActivity->onItemSelected(): isselect==");
-                Map<String, Object> itemAtPosition = (Map<String, Object>) parent.getItemAtPosition(position);
-                edPrinterServer.setText(itemAtPosition.get(PRINTERSERVER).toString());
-                edPrinterIP.setText(itemAtPosition.get(CHUKU_PRINTER).toString());
+                @SuppressWarnings("unchecked")  Map<String, Object> itemAtPosition = (Map<String, Object>) parent.getItemAtPosition(position);
+                if (!"请选择".equals(itemAtPosition.get(NAME))) {
+                    edPrinterServer.setText(itemAtPosition.get(PRINTERSERVER).toString());
+                    edPrinterIP.setText(itemAtPosition.get(CHUKU_PRINTER).toString());
+                }
             }
 
             @Override
@@ -174,7 +190,7 @@ public class SettingActivity extends AppCompatActivity {
         final String serverIP = sp.getString(PRINTERSERVER, "");
         final String prefExpress = sp.getString(PREF_EXPRESS, "");
         final String saveKF = sp.getString(NAME, "");
-        tvSavedKf.setText("当前存储的库房是：" + saveKF);
+        tvSavedKf.setText(String.format("当前存储的库房是：%s", saveKF));
         //        String[] kfNames = new String[]{"深圳", "北京中转库"};
 
         if (prefExpress.equals(getResources().getString(R.string.express_sf))) {
@@ -227,22 +243,10 @@ public class SettingActivity extends AppCompatActivity {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            zHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    aDialog.setMessage("获取库房信息失败：" + getString(R.string.bad_connection));
-                    aDialog.show();
-                }
-            });
+            zHandler.sendEmptyMessage(2);
             e.printStackTrace();
         } catch (final JSONException e) {
-            zHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    aDialog.setMessage("解析出错：" + e.toString());
-                    aDialog.show();
-                }
-            });
+            zHandler.sendEmptyMessage(1);
             e.printStackTrace();
         }
     }

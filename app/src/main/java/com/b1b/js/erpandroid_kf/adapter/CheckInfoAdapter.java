@@ -50,17 +50,20 @@ public class CheckInfoAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.chukudanlist_items, parent, false);
             holder = new ViewHolder();
             holder.tv = (TextView) convertView.findViewById(R.id.chukudan_items_tv);
+            holder.tvMore = (TextView) convertView.findViewById(R.id.chukudan_items_tvMore);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
         if (getCount() != 0) {
-            holder.tv.setText(list.get(position).toString());
+            holder.tv.setText(list.get(position).toSmallString());
         }
+        holder.tvMore.setVisibility(View.VISIBLE);
         return convertView;
     }
 
     class ViewHolder {
         TextView tv;
+        TextView tvMore;
     }
 }

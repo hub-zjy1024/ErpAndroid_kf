@@ -23,20 +23,19 @@ public class Yundan {
     @Override
     public String toString() {
         return
-                "单据号='" + pid + "\n" +
-                        "制单日期='" + createDate + "'\n" +
-                        "单据状态='" + state +  "'\n" +
-                        "部门号='" + deptID +  "'\n" +
-                        "销售员='" + saleMan +  "'\n" +
-                        "仓库名='" + storageName + "'\n" +
-                        "客户='" + customer +  "'\n" +
-                        "回执号='" + recieveBackNo +  "'\n" +
-                        "打印次数='" + print +  "'\n" +
-                        "收回单='" + shouHuiDan +  "'\n" +
-                        "型号='" + partNo + "'\n" +
-                        "数量='" + counts +  "'\n" +
-                        "批号='" + pihao
+                toStringSmall() + "\n"+
+                        "回执号=" + recieveBackNo + "\n" +
+                        "收回单=" + shouHuiDan
                 ;
+    }
+
+    public String toStringSmall(){
+        return  "PID=" + pid + "  " + createDate + "\n" +
+                "状态=" + state + "   " + "仓库名=" + storageName + "\n" +
+                "部门=" + deptID + "   " + "销售员=" + saleMan + "\n" +
+                "客户=" + customer + "   " + "打印次数=" + print + "\n" +
+                "型号=" + partNo + "\n" +
+                "数量=" + counts + "   "+ "批号=" + pihao ;
     }
 
     public String getPid() {

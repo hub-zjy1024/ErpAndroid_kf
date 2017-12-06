@@ -15,29 +15,30 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 
+import com.android.dev.BarcodeAPI;
 import com.b1b.js.erpandroid_kf.adapter.MenuAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
 import com.b1b.js.erpandroid_kf.service.LogUploadService;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import printer.activity.SFActivity;
 import printer.activity.ToolbarTestActivity;
-import utils.MyToast;
+import utils.UploadUtils;
 
 public class MenuActivity extends AppCompatActivity {
     private ListView menuList;
-    private SimpleAdapter simpleAdapter;
-    private List<Map<String, String>> listItems = new ArrayList<>();
-    private AlertDialog choiceMethodDialog;
-    private final String rukuTag = "入库标签打印";
+    private final String tag_Ruku = "入库标签打印";
     private final String tag_Print = "打印";
+    private final String tag_Kaoqin = "考勤";
+    private final String tag_Chukudan = "出库单";
+    private final String tag_ChukudanPrint = "出库单打印";
+    private final String tag_Viewpic = "查看单据关联图片";
+    private final String tag_Panku ="盘库";
+    private final String tag_CaigouTakePic ="采购拍照";
+    private final String tag_ChukuCheck ="出库审核(拍照)";
+    private final String tag_Admin ="特殊";
 
 
     @Override
@@ -45,64 +46,14 @@ public class MenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu_layout);
         menuList = (ListView) findViewById(R.id.lv);
-        simpleAdapter = new SimpleAdapter(this, listItems, R.layout.menu_items, new String[]{"title"}, new int[]{R.id
-                .menu_title});
         // 为菜单项设置点击事件
         setItemOnclickListener();
         addItem();
-        // 设置adapter
-        //        menuList.setAdapter(simpleAdapter);
-        simpleAdapter.notifyDataSetChanged();
-        AlertDialog.Builder builder = new AlertDialog.Builder(MenuActivity.this);
-        builder.setTitle("上传方式选择");
-        builder.setItems(new String[]{"拍照", "从手机选择", "后台上传"}, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                MyApp.myLogger.writeInfo("菜单拍照：" + which);
-                switch (which) {
-                    case 0:
-                        Intent intent1 = new Intent(MenuActivity.this, TakePicActivity.class);
-                        startActivity(intent1);
-                        MyApp.myLogger.writeInfo("takepic");
-                        break;
-                    case 1:
-                        Intent intent2 = new Intent(MenuActivity.this, ObtainPicFromPhone.class);
-                        startActivity(intent2);
-                        MyApp.myLogger.writeInfo("obtain");
-                        break;
-                    case 2:
-                        Intent intent3 = new Intent(MenuActivity.this, TakePic2Activity.class);
-                        MyApp.myLogger.writeInfo("takepic2");
-                        startActivity(intent3);
-                        break;
-                }
-            }
-        });
-        choiceMethodDialog = builder.create();
-    }
-
-    private void checkImgFileSize(final File file, int size) {
-        String[] files = file.list();
-        if (files.length > size) {
-            AlertDialog.Builder mBd = new AlertDialog.Builder(MenuActivity.this);
-            mBd.setTitle("提示");
-            mBd.setMessage("缓存图片超过200张，是否清理一下");
-            mBd.setPositiveButton("是", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    MyToast.showToast(MenuActivity.this, "清理缓存完成");
-                    final File[] files = file.listFiles();
-                    for (File f : files) {
-                        f.delete();
-                    }
-                }
-            });
-            mBd.setNegativeButton("否", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                }
-            });
-            mBd.show();
+//        86511114021521
+        String phoneCode = UploadUtils.getPhoneCode(this);
+        if (phoneCode.endsWith("86511114021521")) {
+            Log.e("zjy", "MenuActivity->onCreate(): open==");
+            BarcodeAPI.getInstance().open();
         }
     }
 
@@ -115,63 +66,45 @@ public class MenuActivity extends AppCompatActivity {
                 String value = data.content;
                 Intent intent = new Intent();
                 switch (value) {
-                    case "出库单":
+                    case tag_Chukudan:
                         intent.setClass(MenuActivity.this, ChuKuActivity.class);
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> chukudan");
                         break;
-                    case "出库审核(拍照)":
+                    case tag_ChukuCheck:
                         intent.setClass(MenuActivity.this, CheckActivity.class);
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> chukucheck");
                         break;
-                    case "考勤":
+                    case tag_Kaoqin:
                         intent.setClass(MenuActivity.this, KaoQinActivity.class);
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> kaoqin");
                         break;
-                    case "上传图片(3种方式)":
-                        if (!choiceMethodDialog.isShowing() && choiceMethodDialog != null) {
-                            choiceMethodDialog.show();
-                        }
-                        break;
-                    case "盘库":
+                    case tag_Panku:
                         intent.setClass(MenuActivity.this, PankuActivity.class);
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> panku");
                         break;
-                    case "查看单据关联图片":
+                    case tag_Viewpic:
                         intent.setClass(MenuActivity.this, ViewPicByPidActivity.class);
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> searchpic");
                         break;
-                    case "出库单打印":
+                    case tag_ChukudanPrint:
                         intent.setClass(MenuActivity.this, PreChukuActivity.class);
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> chukudanprint");
                         break;
-                    case "配置":
-                        intent.setClass(MenuActivity.this, SettingActivity.class);
-                        startActivity(intent);
-                        break;
-                    case "库存发布":
-                        intent.setClass(MenuActivity.this, KucunFBActivity.class);
-                        startActivity(intent);
-                        MyApp.myLogger.writeInfo("<page> kucunfabu");
-                        break;
-                    case "采购拍照":
+                    case tag_CaigouTakePic:
                         intent.setClass(MenuActivity.this, CaigoudanTakePicActivity.class);
                         startActivity(intent);
                         break;
-                    case "采购验货":
-                        intent.setClass(MenuActivity.this, CaigouYanhuoActivity.class);
-                        startActivity(intent);
-                        break;
-                    case rukuTag:
+                    case tag_Ruku:
                         intent.setClass(MenuActivity.this, RukuTagPrintAcitivity.class);
                         startActivity(intent);
                         break;
-                    case "特殊":
+                    case tag_Admin:
                         AlertDialog.Builder specialDialog = new AlertDialog.Builder(MenuActivity.this);
                         View v = LayoutInflater.from(MenuActivity.this).inflate(R.layout.admin_manager_layout, null);
                         final EditText edID = (EditText) v.findViewById(R.id.admin_manager_ed_id);
@@ -246,58 +179,30 @@ public class MenuActivity extends AppCompatActivity {
                 getDialog(MenuActivity.this, "提示", "后台还有" + size + "张图片未上传完成，强制退出将导致图片上传失败", true, null, null, "否", null).show();
                 return true;
             }
+        } else if (keyCode == KeyEvent.KEYCODE_MUTE && event.getRepeatCount() == 0) {
+            BarcodeAPI.getInstance().scan();
+            return true;
         }
+
         return super.onKeyDown(keyCode, event);
     }
 
 
     // 添加菜单项
     private void addItem() {
-        Map<String, String> map = new HashMap<>();
-        map.put("title", "出库单");
-        listItems.add(map);
-        //        map = new HashMap<>();
-        //        map.put("title", "出库单打印");
-        //        listItems.add(map);
-        map = new HashMap<>();
-        map.put("title", "出库审核(拍照)");
-        listItems.add(map);
-        map = new HashMap<>();
-        map.put("title", "考勤");
-        listItems.add(map);
-        map = new HashMap<>();
-        map.put("title", "上传图片(3种方式)");
-        listItems.add(map);
-        map = new HashMap<>();
-        map.put("title", "查看单据关联图片");
-        listItems.add(map);
-        map = new HashMap<>();
-        map.put("title", "盘库");
-        listItems.add(map);
-        map = new HashMap<>();
-        map.put("title", "采购拍照");
-        listItems.add(map);
-        //        map = new HashMap<>();
-        //        map.put("title", "库存发布");
-        //        listItems.add(map);
-        //        map = new HashMap<>();
-        //        map.put("title", "配置");
-        //        listItems.add(map);
         ArrayList<MyMenuItem> data = new ArrayList<>();
-        data.add(new MyMenuItem(R.mipmap.menu_chuku, "出库单", "查看出库单和出库通知单"));
-        //        data.add(new MyMenuItem(R.mipmap.menu_yanhuo, "采购验货", "采购验货功能，包含拍照"));
+        data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Chukudan, "查看出库单和出库通知单"));
         if ("101".equals(MyApp.id)) {
-            data.add(new MyMenuItem(R.mipmap.menu_chuku, "特殊", "101"));
+            data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Admin, "101"));
         }
-        data.add(new MyMenuItem(R.mipmap.menu_preprint, "出库单打印", "出库单单据信息打印"));
-        data.add(new MyMenuItem(R.mipmap.menu_check, "出库审核(拍照)", "出库审核功能和审核完成的拍照功能"));
-        data.add(new MyMenuItem(R.mipmap.menu_kaoqin, "考勤", "查询考勤状态"));
-        //        data.add(new MyMenuItem(R.mipmap.menu_photo, "上传图片(3种方式)", "通过三种不同的方式上传图片"));
-        data.add(new MyMenuItem(R.mipmap.menu_pic, "查看单据关联图片", "查询单据与相关联的照片"));
-        data.add(new MyMenuItem(R.mipmap.menu_panku, "盘库", "货物位置管理"));
-        data.add(new MyMenuItem(R.mipmap.menu_caigou_96, "采购拍照", "采购单拍照功能"));
+        data.add(new MyMenuItem(R.mipmap.menu_preprint, tag_ChukudanPrint, "出库单单据信息打印"));
+        data.add(new MyMenuItem(R.mipmap.menu_check, tag_ChukuCheck, "出库审核功能和审核完成的拍照功能"));
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Print, "顺丰下单并打印功能,以及打印手机接受的文件的功能"));
-//        data.add(new MyMenuItem(R.mipmap.menu_print, rukuTag, "蓝牙打印，打印入库标签"));
+        data.add(new MyMenuItem(R.mipmap.menu_pic, tag_Viewpic, "查询单据关联的照片"));
+        data.add(new MyMenuItem(R.mipmap.menu_panku, tag_Panku, "货物位置管理"));
+        data.add(new MyMenuItem(R.mipmap.menu_caigou_96, tag_CaigouTakePic, "采购单拍照功能"));
+        data.add(new MyMenuItem(R.mipmap.menu_kaoqin, tag_Kaoqin, "查询考勤状态"));
+                data.add(new MyMenuItem(R.mipmap.menu_print, tag_Ruku, "蓝牙打印，打印入库标签"));
         MenuAdapter adapter = new MenuAdapter(data, this, R.layout.menu_item);
         menuList.setAdapter(adapter);
     }
@@ -305,7 +210,6 @@ public class MenuActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e("zjy", "MenuActivity->onDestroy(): ==");
         startService(new Intent(this, LogUploadService.class));
     }
 }

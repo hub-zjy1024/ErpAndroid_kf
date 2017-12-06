@@ -150,7 +150,7 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
             }
         });
         caigoudans = new ArrayList<>();
-        caigouAdapter = new ArrayAdapter<Caigoudan>(this, R.layout.spinner_simple_item, R.id.spinner_item_tv, caigoudans);
+        caigouAdapter = new ArrayAdapter<Caigoudan>(this, R.layout.zjy_spinner_simple_item, R.id.spinner_item_tv, caigoudans);
         lv.setAdapter(caigouAdapter);
     }
 

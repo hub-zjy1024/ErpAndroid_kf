@@ -24,6 +24,8 @@ import java.util.Set;
 
 import utils.MyToast;
 import utils.btprint.MyBluePrinter;
+import utils.btprint.MyPrinterParent;
+import utils.btprint.SPrinter;
 
 public class PrintSettingActivity extends ListActivity {
     private String TAG = "BtSetting";
@@ -36,6 +38,7 @@ public class PrintSettingActivity extends ListActivity {
     Context _context;
     SimpleAdapter simpleAdapter;
     MyBluePrinter printer;
+    MyPrinterParent printer2;
     List<Map<String, Object>> listData = new ArrayList<Map<String, Object>>();
     private long nowTime = 0;
     private Handler bHandler = new Handler() {
@@ -44,16 +47,21 @@ public class PrintSettingActivity extends ListActivity {
             super.handleMessage(msg);
             switch (msg.what) {
                 case MyBluePrinter.STATE_SCAN_FINISHED:
+                    Log.e("zjy", "PrintSettingActivity->handleMessage(): scan finish==");
+//                    addBindedDevice();
+                    simpleAdapter.notifyDataSetChanged();
                     MyToast.showToast(PrintSettingActivity.this, "扫描完成");
                     layoutscan.setVisibility(View.INVISIBLE);
                     break;
                 case MyBluePrinter.STATE_CONNECTED:
                     MyToast.showToast(PrintSettingActivity.this, "连接成功");
-                    if (msg.obj == null) {
-                        mPrinter = printer;
-                    }
-                    getSharedPreferences("UserInfo", MODE_PRIVATE).edit().putString("btPrinterMac", mPrinter.getAddress())
-                            .commit();
+//                    if (msg.obj == null) {
+//                        mPrinter = printer;
+//                    }
+
+//                    getSharedPreferences("UserInfo", MODE_PRIVATE).edit().putString("btPrinterMac", mPrinter.getAddress())
+//                            .commit();
+                    mPrinter2 = printer2;
                     setResult(RESULT_OK);
                     finish();
                     break;
@@ -64,14 +72,19 @@ public class PrintSettingActivity extends ListActivity {
         }
     };
     private static MyBluePrinter mPrinter;
+    private static MyPrinterParent mPrinter2;
 
     public static MyBluePrinter getPrint() {
         return mPrinter;
     }
 
+    public static MyPrinterParent getSPrint() {
+        return mPrinter2;
+    }
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_printsetting); /* 允许主线程连接网络*/
+        setContentView(R.layout.activity_printsetting);
         sp = getSharedPreferences("SuccessDevice", 0);
         _context = this;
         layoutscan = (LinearLayout) findViewById(R.id.layoutscan);
@@ -99,7 +112,8 @@ public class PrintSettingActivity extends ListActivity {
                     listData.clear();
                     simpleAdapter.notifyDataSetChanged();
                 }
-                printer.scan();
+//                printer.scan();
+                printer2.scan();
             }
         });
         printer = new MyBluePrinter(PrintSettingActivity.this, bHandler, new MyBluePrinter
@@ -120,7 +134,35 @@ public class PrintSettingActivity extends ListActivity {
                 simpleAdapter.notifyDataSetChanged();
             }
         });
-        printer.open();
+        printer2 = new SPrinter( bHandler,PrintSettingActivity.this, new MyBluePrinter
+                .OnReceiveDataHandleEvent() {
+            @Override
+            public void OnReceive(BluetoothDevice var1) {
+                Log.e("zjy", "PrintSettingActivity->OnReceive(): device==" + var1.getAddress() + "\t" +
+                        var1.getBondState() + "\t" + var1.getName());
+                Map<String, Object> map = new HashMap<String, Object>();
+                if (var1.getName() != null) {
+                    map.put("title", var1.getName());
+                } else {
+                    map.put("title", "未知");
+                }
+                map.put("deviceAddress", var1.getAddress());
+                map.put("device", var1);
+                listData.add(map);
+//                simpleAdapter.notifyDataSetChanged();
+            }
+        });
+        new Thread(){
+            @Override
+            public void run() {
+//                        printer.open();
+                printer2.open();
+            }
+        };
+        addBindedDevice();
+    }
+
+    private void addBindedDevice() {
         Set<BluetoothDevice> bindedDevice = printer.getBindedDevice();
         for (BluetoothDevice d : bindedDevice) {
             Log.e("zjy", "PrintSettingActivity->onCreate(): d==" + d.getName());
@@ -136,6 +178,7 @@ public class PrintSettingActivity extends ListActivity {
     protected void onDestroy() {
         super.onDestroy();
         printer.unregistReceiver();
+        ((SPrinter)printer2).unRegisterReceiver();
     }
 
     @Override
@@ -150,7 +193,8 @@ public class PrintSettingActivity extends ListActivity {
     protected void onListItemClick(ListView listView, View v, int position, long id) {
         Map map = (Map) listView.getItemAtPosition(position);
         //        printer.connect((BluetoothDevice) map.get("device"));
-        printer.connect(map.get("deviceAddress").toString());
+//        printer.connect(map.get("deviceAddress").toString());
+        printer2.connect(map.get("deviceAddress").toString());
     }
 
     @Override

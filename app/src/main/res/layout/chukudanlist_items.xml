@@ -9,6 +9,13 @@
         android:id="@+id/chukudan_items_tv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textSize="18sp"/>
+        android:textSize="@dimen/def_text_size_small"/>
+    <TextView
+        android:id="@+id/chukudan_items_tvMore"
+        android:layout_width="wrap_content"
+        android:text="长按显示更多..."
+        android:textColor="@color/title_background"
+        android:textSize="@dimen/def_text_size_small"
+        android:layout_height="wrap_content"/>
 
 </LinearLayout>

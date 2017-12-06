@@ -89,13 +89,12 @@ public class MyBluePrinter extends MyPrinterParent {
                 context.startActivity(intent);
             } else {
                 adapter.enable();
-                //
             }
-        }
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         mServerThread = new ServerThread();
         mServerThread.start();

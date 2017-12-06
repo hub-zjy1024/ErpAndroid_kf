@@ -6,8 +6,9 @@
     <TextView
         android:id="@+id/spinner_item_tv"
         android:layout_width="match_parent"
-        android:textSize="20sp"
+        android:textSize="@dimen/def_text_size"
         android:text="测试"
+        android:textColor="@color/color_black"
         android:layout_height="wrap_content"/>
 
 </LinearLayout>

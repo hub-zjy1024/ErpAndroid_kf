@@ -15,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.MyApp;
@@ -134,7 +135,7 @@ public class SFActivity extends AppCompatActivity {
                                 case 1:
                                     intent.setClass(SFActivity.this, YundanPrintAcitivity.class);
                                     startActivity(intent);
-                                    MyApp.myLogger.writeInfo("<page> fileprint");
+                                    MyApp.myLogger.writeInfo("<page> KYPrint");
                                     break;
                             }
                         }
@@ -162,7 +163,7 @@ public class SFActivity extends AppCompatActivity {
                                 case 1:
                                     intent.setClass(SFActivity.this, YundanPrintAcitivity.class);
                                     startActivity(intent);
-                                    MyApp.myLogger.writeInfo("<page> fileprint");
+                                    MyApp.myLogger.writeInfo("<page> KYPrint");
                                     break;
                             }
                         }
@@ -182,9 +183,20 @@ public class SFActivity extends AppCompatActivity {
                 } else if (prefExpress.equals(getString(R.string.express_ky))) {
                     intent.setClass(SFActivity.this, YundanPrintAcitivity.class);
                     startActivity(intent);
-                    MyApp.myLogger.writeInfo("<page> fileprint");
+                    MyApp.myLogger.writeInfo("<page> KYPrint");
                 }
 
+            }
+        });
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView tv = (TextView) view.findViewById(R.id.sf_tv);
+                TextView tvAlert = (TextView) view.findViewById(R.id.sf_more);
+                Yundan item = (Yundan) parent.getItemAtPosition(position);
+                tv.setText(item.toString());
+                tvAlert.setVisibility(View.GONE);
+                return true;
             }
         });
 

@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -20,10 +21,6 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.ChuKuTongZhiAdapter;
 import com.b1b.js.erpandroid_kf.entity.ChukuTongZhiInfo;
-import utils.MyJsonUtils;
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
 
 import org.json.JSONException;
 import org.ksoap2.SoapEnvelope;
@@ -38,6 +35,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import utils.MyJsonUtils;
+import utils.MyToast;
+import utils.SoftKeyboardUtils;
+import utils.WebserviceUtils;
 
 
 /**
@@ -105,6 +107,17 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
         tvEtime.setOnClickListener(this);
         btnSearch.setOnClickListener(this);
         btnCleartime.setOnClickListener(this);
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView tv = (TextView) view.findViewById(R.id.chukudan_items_tv);
+                ChukuTongZhiInfo item = (ChukuTongZhiInfo) parent.getItemAtPosition(position);
+                tv.setText(item.toString());
+                TextView tvMore = (TextView) view.findViewById(R.id.chukudan_items_tvMore);
+                tvMore.setVisibility(View.GONE);
+                return true;
+            }
+        });
         //        getData("2309", "", "", getStringDateBefore(180), getFormatDate(new Date()));
         return view;
     }
@@ -224,5 +237,9 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
         return response.toString();
     }
 
-
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mHandler.removeCallbacksAndMessages(null);
+    }
 }

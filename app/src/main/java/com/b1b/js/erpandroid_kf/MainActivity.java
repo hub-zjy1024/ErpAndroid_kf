@@ -266,7 +266,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590") || phoneCode.endsWith
-                        ("864394010742122") || phoneCode.endsWith("A0000043F41515") || phoneCode.endsWith("866462026203849")|| phoneCode.endsWith("869552022575930")) {
+                        ("864394010742122") || phoneCode.endsWith("A0000043F41515")|| phoneCode.endsWith("86511114021521")
+                        || phoneCode.endsWith("866462026203849")|| phoneCode.endsWith("869552022575930")) {
                     login("101", "62105300");
 //                    login("2984", "000000");
                 }

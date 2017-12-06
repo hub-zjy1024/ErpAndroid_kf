@@ -93,7 +93,7 @@ public class KaoQinActivity extends AppCompatActivity {
         map.put("month", arr[0]);
         map.put("uid", arr[1]);
         map.put("checkWord", "");
-        new WebServicesTask<String>(new WebCallback<String>() {
+        new WebServicesTask<>(new WebCallback<String>() {
             @Override
             public void errorCallback(Throwable e) {
                 MyToast.showToast(KaoQinActivity.this, "网络较差");

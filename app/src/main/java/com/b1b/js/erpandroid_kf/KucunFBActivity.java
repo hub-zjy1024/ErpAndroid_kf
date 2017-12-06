@@ -1,7 +1,6 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,11 +15,10 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.adapter.KucunFBAdapter;
 import com.b1b.js.erpandroid_kf.adapter.TableAdapter;
 import com.b1b.js.erpandroid_kf.entity.KucunFBInfo;
-import com.b1b.js.erpandroid_kf.task.MyBaseTask;
-import com.b1b.js.erpandroid_kf.task.TaskCallback;
+import com.b1b.js.erpandroid_kf.task.WebCallback;
+import com.b1b.js.erpandroid_kf.task.WebServicesTask;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,7 +45,6 @@ import utils.WebserviceUtils;
 public class KucunFBActivity extends AppCompatActivity {
 
     private List<KucunFBInfo> data;
-    private KucunFBAdapter mAdapter;
     private ListView lv;
     private static final int ERROR_NET = 1;
     private static final int SUCCESS_SEARCH = 0;
@@ -137,7 +134,6 @@ public class KucunFBActivity extends AppCompatActivity {
         setContentView(R.layout.activity_kucun_fb);
         lv = (ListView) findViewById(R.id.kucunfb_lv);
         data = new ArrayList<>();
-        mAdapter = new KucunFBAdapter(data, this, R.layout.kucun_fb_lv_items);
         cboBeihuo = (CheckBox) findViewById(R.id.kucunfb_isbeihuo);
         cboFabu = (CheckBox) findViewById(R.id.kucunfb_cbo_only_fabu);
         cboZero = (CheckBox) findViewById(R.id.kucunfb_cbo_zero);
@@ -233,12 +229,17 @@ public class KucunFBActivity extends AppCompatActivity {
                 map.put("uid", MyApp.id);
                 map.put("ip", ip);
                 map.put("dogSN", dogSN);
-                MyBaseTask task = new MyBaseTask("SetPriceInfo", WebserviceUtils.MartService, map, new TaskCallback() {
+                WebServicesTask<String> task = new WebServicesTask<>(new WebCallback<String>() {
                     @Override
-                    public void callback(String result) {
-                        if (result == null) {
+                    public void errorCallback(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void okCallback(String obj) {
+                        if (obj == null) {
                             MyToast.showToast(KucunFBActivity.this, "连接服务器失败，请检查网络");
-                        } else if (result.equals("1")) {
+                        } else if (obj.equals("1")) {
                             fbInfo.setFabuPrice(price);
                             AlertDialog.Builder builder = new AlertDialog.Builder(KucunFBActivity.this);
                             builder.setTitle("成功");
@@ -247,10 +248,14 @@ public class KucunFBActivity extends AppCompatActivity {
                             dismissDialog();
                             tableAdapter.notifyDataSetChanged();
                         }
-                        Log.e("zjy", "KucunFBActivity->run():send partno==" + fbInfo.getPartNo());
                     }
-                });
-                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+
+                    @Override
+                    public void otherCallback(Object obj) {
+
+                    }
+                }, map);
+                task.execute("SetPriceInfo", WebserviceUtils.MartService);
             }
         });
         builder.setView(v);

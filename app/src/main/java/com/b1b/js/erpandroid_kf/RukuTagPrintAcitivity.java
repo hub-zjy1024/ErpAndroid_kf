@@ -38,6 +38,7 @@ import utils.MyToast;
 import utils.PrinterStyle;
 import utils.WebserviceUtils;
 import utils.btprint.MyBluePrinter;
+import utils.btprint.SPrinter;
 
 public class RukuTagPrintAcitivity extends AppCompatActivity {
     private Handler mHandler = new Handler() {
@@ -63,6 +64,7 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
         }
     };
     private MyBluePrinter printer;
+    private SPrinter printer2;
     private Context mContext = this;
     private int reqCode = 500;
     private TextView tvState;
@@ -184,7 +186,8 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
                         for(int i=0;i<infos.size();i++) {
                             XiaopiaoInfo tInfo = infos.get(i);
 //                            PrinterStyle.printXiaopiao(mContext, printer);
-                            PrinterStyle.printXiaopiao2(mContext, printer, tInfo);
+//                            PrinterStyle.printXiaopiao2(mContext, printer, tInfo);
+                            PrinterStyle.printXiaopiao2(printer2, tInfo);
                             try {
                                 Thread.sleep(1000);
                             } catch (InterruptedException e) {
@@ -212,14 +215,23 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
 
                 }
             });
-            new Thread() {
-                @Override
-                public void run() {
-                    printer.open();
-                    printer.connect(printerAddress);
-                }
-            }.start();
+
         }
+        printer2 = new SPrinter(mHandler, mContext, new MyBluePrinter.OnReceiveDataHandleEvent() {
+            @Override
+            public void OnReceive(BluetoothDevice var1) {
+
+            }
+        });
+        new Thread() {
+            @Override
+            public void run() {
+                //                    printer.open();
+                //                    printer.connect(printerAddress);
+                printer2.open();
+                printer2.connect(printerAddress);
+            }
+        }.start();
     }
 
     @Override
@@ -230,6 +242,7 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
                 printer = PrintSettingActivity.getPrint();
                 tvState.setTextColor(Color.GREEN);
                 tvState.setText("已连接");
+                printer2 = (SPrinter) PrintSettingActivity.getSPrint();
             } else if (requestCode == CaptureActivity.REQ_CODE) {
                 if (data != null) {
                     String result = data.getStringExtra("result");
@@ -244,6 +257,9 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
         super.onDestroy();
         if (printer != null) {
             printer.close();
+        }
+        if (printer2 != null) {
+            printer2.close();
         }
     }
 
