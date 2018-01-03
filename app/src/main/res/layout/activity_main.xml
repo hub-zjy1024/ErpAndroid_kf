@@ -76,7 +76,12 @@
         android:text="注：只能使用扫码登录"
         android:textColor="#be3232"
         />
-
+    <Button
+        android:text="条码打印(离线)"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:background="@drawable/btn_click"
+        android:id="@+id/activity_main_btn_code"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

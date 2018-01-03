@@ -29,8 +29,18 @@ public class MyImageUtls {
      * @param targetHeight
      * @return
      */
-    public static LruCache<String, Bitmap> bitmapCache = new LruCache<>(1024 * 100 *
-            1024);
+    public static LruCache<String, Bitmap> bitmapCache = new LruCache<String, Bitmap>(1024 * 100 *
+            1024){
+        @Override
+        protected int sizeOf(String key, Bitmap value) {
+            return super.sizeOf(key, value);
+        }
+
+        @Override
+        public void resize(int maxSize) {
+            super.resize(maxSize);
+        }
+    };
     public static Bitmap getSmallBitmap(String filePath, int targetWidth, int targetHeight) {
         Options opt = new Options();
         opt.inJustDecodeBounds = true;

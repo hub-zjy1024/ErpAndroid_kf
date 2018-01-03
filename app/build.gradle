@@ -14,8 +14,8 @@ android {
         applicationId "com.b1b.js.erpandroid_kf"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 34
-        versionName "4.1"
+        versionCode 38
+        versionName "4.5"
     }
     /*buildTypes {
         release {

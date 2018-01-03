@@ -5,17 +5,17 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
-import com.android.dev.BarcodeAPI;
+import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
@@ -36,7 +36,7 @@ import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 
-public class CheckActivity extends AppCompatActivity implements View.OnClickListener {
+public class CheckActivity extends ScanBaseActivity implements View.OnClickListener {
 
     private ListView lv;
     private EditText edPid;
@@ -68,18 +68,14 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                     mAdapter.notifyDataSetChanged();
                     MyToast.showToast(CheckActivity.this, "查询失败，网络状态不佳");
                     break;
-                case BarcodeAPI.BARCODE_READ:
-                    if (msg.obj != null) {
-                        edPid.setText((String) msg.obj + "\n");
-                        getData(2, msg.obj.toString(), "");
-                    }
-                    break;
             }
             if (pd != null) {
                 pd.cancel();
             }
         }
     };
+    private CheckBox cboStart;
+    private boolean isScan = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +87,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
         btnSearch = (Button) findViewById(R.id.check_btn_search);
         btnScancode = (Button) findViewById(R.id.check_btn_scancode);
         rdb_checkFirst = (RadioButton) findViewById(R.id.check_rdb_first);
+        cboStart = (CheckBox) findViewById(R.id.check_cbo_autostart);
         btnSearch.setOnClickListener(this);
         btnScancode.setOnClickListener(this);
         rdb_checkFirst.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -123,24 +120,62 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                 return true;
             }
         });
-        BarcodeAPI.getInstance().m_handler=mHandler;
         lv.setAdapter(mAdapter);
         pd = new ProgressDialog(this);
         pd.setTitle("提示");
         pd.setMessage("正在查询。。。");
     }
 
-    public void getData(final int typeId, final String pid, final String partNo) {
+    @Override
+    public int getLayoutResId() {
+        return R.layout.activity_check;
+    }
 
+    @Override
+    public void resultBack(String result) {
+        edPid.setText(result);
+        try {
+            Integer.parseInt(result);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            MyToast.showToast(CheckActivity.this, getString(R.string.error_numberformate));
+            return ;
+        }
+        pid = result;
+        partNo = edPartno.getText().toString().trim();
+        data.clear();
+        mAdapter.notifyDataSetChanged();
+        if (pd != null && !pd.isShowing()) {
+            pd.show();
+        }
+    }
+
+    public void getData(final int typeId, final String pid, final String partNo, final boolean auto) {
         new Thread() {
             @Override
             public void run() {
                 try {
-                    String json = getChuKuCheckInfoByTypeID(typeId, pid, partNo,MyApp.id);
+                    String json = getChuKuCheckInfoByTypeID(typeId, pid, partNo, MyApp.id);
                     List<CheckInfo> list = MyJsonUtils.getCheckInfo(json);
                     if (list != null && list.size() > 0) {
                         data.addAll(list);
-                        mHandler.sendEmptyMessage(0);
+                        final Intent intent = new Intent(CheckActivity.this, SetCheckInfoActivity.class);
+                        CheckInfo fInfo = list.get(0);
+                        intent.putExtra("pid", fInfo.getPid());
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                SoftKeyboardUtils.closeInputMethod(edPartno, CheckActivity.this);
+                                mAdapter.notifyDataSetChanged();
+                                if (pd != null && pd.isShowing()) {
+                                    pd.cancel();
+                                }
+                                MyToast.showToast(CheckActivity.this, "查询到" + data.size() + "条数据");
+                                if (auto) {
+                                    startActivity(intent);
+                                }
+                            }
+                        });
                     }
                 } catch (IOException e) {
                     mHandler.sendEmptyMessage(2);
@@ -181,7 +216,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
                     pd.show();
                 }
                 SoftKeyboardUtils.closeInputMethod(edPid, CheckActivity.this);
-                getData(2, pid, partNo);
+                getData(2, pid, partNo, false);
                 break;
             case R.id.check_btn_scancode:
                 Intent intent = new Intent(CheckActivity.this, CaptureActivity.class);
@@ -201,7 +236,12 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
             }
             pid = edPid.getText().toString().trim();
             partNo = edPartno.getText().toString().trim();
-            getData(2, pid, partNo);
+            if (isScan) {
+                getData(2, pid, partNo, cboStart.isChecked());
+                isScan = false;
+            } else {
+                getData(2, pid, partNo, false);
+            }
         }
         isFirst = false;
     }
@@ -212,6 +252,7 @@ public class CheckActivity extends AppCompatActivity implements View.OnClickList
         if (requestCode == 100 && resultCode == RESULT_OK) {
             pid = data.getStringExtra("result");
             edPid.setText(pid);
+            isScan = true;
         }
     }
 }

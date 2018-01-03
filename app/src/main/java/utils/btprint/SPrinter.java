@@ -2,7 +2,6 @@ package utils.btprint;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -15,6 +14,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -25,6 +25,7 @@ public class SPrinter extends MyPrinterParent{
 
     private Handler mHandler;
     private int mState;
+    public static final int STATE_OPENED = 12;
     private BluetoothDevice mDevice;
     private BluetoothAdapter mAdapter;
     private OutputStream dataOut;
@@ -37,19 +38,23 @@ public class SPrinter extends MyPrinterParent{
     private static final int page_height = 75 * MULTIPLE;
     private static final int margin_horizontal = 2 * MULTIPLE;
     private static final int top_left_x = margin_horizontal;
-    private static final int margin_vertical = 2 * MULTIPLE;
+    private static  final int margin_vertical = 2 * MULTIPLE;
 
     private MyBluePrinter.OnReceiveDataHandleEvent discoverListner;
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            Log.e("zjy", "SFPRINTT->onReceive(): receive==" + action);
+            Log.e("zjy", "SPrinter->onReceive(): action==" + action);
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                Log.e("zjy", "SFPRINTT->onReceive(): deviceName==" + device.getName() + "=" + device.getAddress());
                 discoverListner.OnReceive(device);
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 sendMsg(STATE_SCAN_FINISHED);
+            } else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                int extras1 = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -3);
+                if (extras1 == BluetoothAdapter.STATE_ON) {
+                    sendMsg(STATE_OPENED);
+                }
             }
         }
     };
@@ -112,7 +117,10 @@ public class SPrinter extends MyPrinterParent{
         }
     }
 
-
+    public Set<BluetoothDevice> getBindedDevice() {
+        Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
+        return bondedDevices;
+    }
     public void drawBarCode(int start_x, int start_y, String text,int type, int linewidth, int height){
         drawBarCode(start_x, start_y, 0, 0, 0, 0, 0, text, type, linewidth, height);
     }
@@ -153,16 +161,13 @@ public class SPrinter extends MyPrinterParent{
             barcodeType = "UPCE";
         }
         String str = "BA " + area_start_x + " " + area_start_y + " " + area_end_x + " " + area_end_y + " " + xa + "\r\n";
-        Log.e("zjy", "SPrinter->drawBarCode(): str==" +str );
         this.printText(str);
         String st1 = "B";
         String str2 = st1 + " " + barcodeType + " 1 " + linewidth + " " + height + " " + area_start_x + " " + start_y + " " +
                 text + "\r\n";
         this.printText(str2);
-        Log.e("zjy", "SPrinter->drawBarCode(): str2==" +str2 );
         String str3 = "BA 0 0 0 0 3\r\n";
         this.printText(str3);
-        Log.e("zjy", "SPrinter->drawBarCode(): str3==" +str3 );
     }
 
     public void sendMsg(int what) {
@@ -172,65 +177,43 @@ public class SPrinter extends MyPrinterParent{
 
     /** code128
      @param code
-     @param codeNote
+     @param lablePlace 条码内容显示位置，0：不显示，1：上面，2：下面，3：上下都有
      @param width
      @param height
      */
-    public void printBarCode(String code, int codeNote, int width, int height) {
+    public void printBarCode(String code, int lablePlace, int width, int height) {
         SPrintBarcode barcode2 = new SPrintBarcode((byte) 73, width, height,
-                codeNote, code);
+                lablePlace, code);
         write(barcode2.getBarcodeData());
     }
     @Override
     public void open() {
-        if (!isOpen()) {
-//            if (withAlert) {
-//                Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//                mContext.startActivity(intent);
-//            } else {
-//
-//            }
-            mAdapter.enable();
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        Log.e("zjy", "SPrinter->open(): isOpen==" + isOpen());
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-//
-//        mContext.registerReceiver(mReceiver, filter);
-//        filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-//        mContext.registerReceiver(mReceiver, filter);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         mContext.registerReceiver(mReceiver, filter);
-
+        Log.e("zjy", "SPrinter->open(): startRegister==");
         isUnregist = false;
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    BluetoothServerSocket btServer = mAdapter.listenUsingRfcommWithServiceRecord("SFPRINTT", uuid);
-                    btServer.accept();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
+//        mAdapter.enable();
+        mContext.startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
     }
 
     @Override
     public void close() {
         mAdapter.disable();
-        if (!isUnregist) {
-            mContext.unregisterReceiver(mReceiver);
-            isUnregist = true;
-        }
+        unRegisterReceiver();
     }
 
     @Override
     public void scan() {
+        if (isUnregist) {
+            IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+            filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+            filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+            mContext.registerReceiver(mReceiver, filter);
+            Log.e("zjy", "SPrinter->open(): startRegister==");
+            isUnregist = false;
+        }
         if (mAdapter.isDiscovering()) {
             mAdapter.cancelDiscovery();
         }
@@ -253,7 +236,6 @@ public class SPrinter extends MyPrinterParent{
             btSocket = mDevice.createRfcommSocketToServiceRecord(uuid);
             btSocket.connect();
             dataOut= btSocket.getOutputStream();
-            Log.e("zjy", "SPrinter->connect(): connected==" + dataOut.toString());
             sendMsg(STATE_CONNECTED);
         } catch (IOException e) {
             e.printStackTrace();
@@ -289,7 +271,6 @@ public class SPrinter extends MyPrinterParent{
         byte[] data = null;
         try {
             data = content.getBytes(this.charsetName);
-            Log.e("zjy", "SPrinter->printText(): date.length==" + data.length);
             write(data);
             return true;
         } catch (UnsupportedEncodingException var4) {
@@ -300,6 +281,7 @@ public class SPrinter extends MyPrinterParent{
     public void unRegisterReceiver(){
         if (!isUnregist) {
             mContext.unregisterReceiver(mReceiver);
+            isUnregist = true;
         }
     }
     public void setPrinter(int command, int value) {

@@ -80,7 +80,11 @@
         android:id="@+id/test_iv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
-
+    <CheckBox
+        android:id="@+id/ruku_cbo_offline"
+        android:layout_width="wrap_content"
+        android:text="仅打印条码"
+        android:layout_height="wrap_content"/>
     <ListView
         android:id="@+id/ruku_lv"
         android:layout_width="match_parent"

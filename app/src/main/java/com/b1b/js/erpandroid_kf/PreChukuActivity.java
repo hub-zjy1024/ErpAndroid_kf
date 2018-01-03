@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -16,6 +15,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuAdapter2;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
@@ -37,7 +37,7 @@ import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 
-public class PreChukuActivity extends AppCompatActivity implements View.OnClickListener {
+public class PreChukuActivity extends ScanBaseActivity implements View.OnClickListener {
 
     private Button btnSearch;
     private Button btnSTime;
@@ -101,6 +101,29 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
         btnSTime.setOnClickListener(this);
         btnETime.setOnClickListener(this);
         btnClearDate.setOnClickListener(this);
+    }
+
+    @Override
+    public int getLayoutResId() {
+        return R.layout.activity_pre_chuku;
+    }
+
+    @Override
+    public void resultBack(String result) {
+        if (MyApp.id == null) {
+            MyToast.showToast(PreChukuActivity.this, "程序出现错误，请重启");
+            return;
+        }
+        edPid.setText(result);
+        boolean isANum = MyToast.checkNumber(result);
+        if (isANum) {
+            data.clear();
+            adapter.notifyDataSetChanged();
+            SoftKeyboardUtils.closeInputMethod(edPid, PreChukuActivity.this);
+            getPreChukuList("", "", Integer.parseInt(result));
+        } else {
+            MyToast.showToast(PreChukuActivity.this, getString(R.string.error_numberformate));
+        }
     }
 
     public String getList(String beginDate, String endDate, String partNo, int pid, int uid) throws IOException, XmlPullParserException {
@@ -238,7 +261,6 @@ public class PreChukuActivity extends AppCompatActivity implements View.OnClickL
                             }
                         }
                     }
-                    Log.e("zjy", "PreChukuActivity->run(): data.size==" + data.size());
                     zHandler.sendEmptyMessage(REQUEST_SUCCESS);
                 } catch (IOException e) {
                     zHandler.sendEmptyMessage(REQUEST_ERROR);

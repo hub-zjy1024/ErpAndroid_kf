@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,7 +18,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.adapter.PankuAdapter;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.PankuInfo;
 
 import org.json.JSONArray;
@@ -39,7 +40,7 @@ import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 
-public class PankuActivity extends AppCompatActivity {
+public class PankuActivity extends ScanBaseActivity {
 
     private EditText edID;
     private EditText edPartNo;
@@ -159,6 +160,7 @@ public class PankuActivity extends AppCompatActivity {
         edID = (EditText) findViewById(R.id.panku_id);
         edPartNo = (EditText) findViewById(R.id.panku_partno);
         btnSearch = (Button) findViewById(R.id.panku_search);
+        Button btnScan = (Button) findViewById(R.id.panku_scan);
         lv = (ListView) findViewById(R.id.panku_lv);
         pkData = new ArrayList<>();
         View empty = findViewById(R.id.panku_lv_emptyview);
@@ -184,34 +186,78 @@ public class PankuActivity extends AppCompatActivity {
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SoftKeyboardUtils.closeInputMethod(edID, PankuActivity.this);
-                final String id = edID.getText().toString().trim();
-                final String partno = edPartNo.getText().toString().trim();
-                pkData.clear();
-                mAdapter.notifyDataSetChanged();
-                pdDialog.show();
-                new Thread() {
-                    @Override
-                    public void run() {
-                        super.run();
-                        try {
-                            List<PankuInfo> pankuList = getPankuList(id, partno);
-                            pkData.addAll(pankuList);
-                            mHandler.sendEmptyMessage(GET_DATA);
-                        } catch (IOException e) {
-                            mHandler.sendEmptyMessage(GET_FAIL);
-                            e.printStackTrace();
-                        } catch (XmlPullParserException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
-                            mHandler.sendEmptyMessage(GET_NUll);
-                            e.printStackTrace();
-                        }
-                    }
-                }.start();
+                getData();
 
             }
         });
+        btnScan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(PankuActivity.this, CaptureActivity.class);
+                startActivityForResult(intent, CaptureActivity.REQ_CODE);
+            }
+        });
+    }
+    private void getData() {
+        SoftKeyboardUtils.closeInputMethod(edID, PankuActivity.this);
+        final String id = edID.getText().toString().trim();
+        final String partno = edPartNo.getText().toString().trim();
+        pkData.clear();
+        mAdapter.notifyDataSetChanged();
+        pdDialog.show();
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                try {
+                    List<PankuInfo> pankuList = getPankuList(id, partno);
+                    pkData.addAll(pankuList);
+                    mHandler.sendEmptyMessage(GET_DATA);
+                } catch (IOException e) {
+                    mHandler.sendEmptyMessage(GET_FAIL);
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    mHandler.sendEmptyMessage(GET_NUll);
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
+    @Override
+    public int getLayoutResId() {
+        return R.layout.activity_panku;
+    }
+
+    @Override
+    public void resultBack(String result) {
+        edID.setText(result);
+        try {
+            Integer.parseInt(result);
+            getData();
+        } catch (NumberFormatException e) {
+            MyToast.showToast(this, getString(R.string.error_numberformate));
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == CaptureActivity.REQ_CODE) {
+                String result = data.getStringExtra("result");
+                edID.setText(result);
+                try {
+                    Integer.parseInt(result);
+                    getData();
+                } catch (NumberFormatException e) {
+                    MyToast.showToast(this, "扫码结果有误");
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     //    string GetDataListForPanKu(string id, string part);

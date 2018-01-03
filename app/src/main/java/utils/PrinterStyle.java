@@ -173,8 +173,8 @@ public class PrinterStyle {
     }
 
     public synchronized static void printXiaopiao2( SPrinter printer, XiaopiaoInfo info) {
-
         int len[] = new int[]{15, 0};
+        printer.newLine();
         printer.printText("\t" + info.getDeptNo() + "_" + info.getTime() + "\t" + info.getBelowCode());
         printer.newLine();
         printer.printText("型号:" + info.getPartNo());
@@ -200,7 +200,9 @@ public class PrinterStyle {
         }
         printer.newLine();
         printer.setZiTiSize(1);
-        printer.printBarCode(info.getCodeStr(), 1, 1, 25);
+        printer.printBarCode(info.getCodeStr(), 0, 1, 43);
+        printer.printText("M" + info.getCodeStr());
+        printer.newLine();
         printer.newLine();
         printer.newLine();
     }

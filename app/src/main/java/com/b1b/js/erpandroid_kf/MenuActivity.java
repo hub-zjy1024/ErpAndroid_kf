@@ -16,7 +16,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.android.dev.BarcodeAPI;
 import com.b1b.js.erpandroid_kf.adapter.MenuAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
 import com.b1b.js.erpandroid_kf.service.LogUploadService;
@@ -25,7 +24,6 @@ import java.util.ArrayList;
 
 import printer.activity.SFActivity;
 import printer.activity.ToolbarTestActivity;
-import utils.UploadUtils;
 
 public class MenuActivity extends AppCompatActivity {
     private ListView menuList;
@@ -49,12 +47,6 @@ public class MenuActivity extends AppCompatActivity {
         // 为菜单项设置点击事件
         setItemOnclickListener();
         addItem();
-//        86511114021521
-        String phoneCode = UploadUtils.getPhoneCode(this);
-        if (phoneCode.endsWith("86511114021521")) {
-            Log.e("zjy", "MenuActivity->onCreate(): open==");
-            BarcodeAPI.getInstance().open();
-        }
     }
 
     private void setItemOnclickListener() {
@@ -179,9 +171,6 @@ public class MenuActivity extends AppCompatActivity {
                 getDialog(MenuActivity.this, "提示", "后台还有" + size + "张图片未上传完成，强制退出将导致图片上传失败", true, null, null, "否", null).show();
                 return true;
             }
-        } else if (keyCode == KeyEvent.KEYCODE_MUTE && event.getRepeatCount() == 0) {
-            BarcodeAPI.getInstance().scan();
-            return true;
         }
 
         return super.onKeyDown(keyCode, event);
@@ -201,8 +190,8 @@ public class MenuActivity extends AppCompatActivity {
         data.add(new MyMenuItem(R.mipmap.menu_pic, tag_Viewpic, "查询单据关联的照片"));
         data.add(new MyMenuItem(R.mipmap.menu_panku, tag_Panku, "货物位置管理"));
         data.add(new MyMenuItem(R.mipmap.menu_caigou_96, tag_CaigouTakePic, "采购单拍照功能"));
+        data.add(new MyMenuItem(R.mipmap.menu_print, tag_Ruku, "蓝牙打印，打印入库标签"));
         data.add(new MyMenuItem(R.mipmap.menu_kaoqin, tag_Kaoqin, "查询考勤状态"));
-                data.add(new MyMenuItem(R.mipmap.menu_print, tag_Ruku, "蓝牙打印，打印入库标签"));
         MenuAdapter adapter = new MenuAdapter(data, this, R.layout.menu_item);
         menuList.setAdapter(adapter);
     }

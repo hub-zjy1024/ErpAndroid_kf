@@ -83,6 +83,13 @@
             android:layout_marginLeft="20dp"
             android:drawableLeft="@mipmap/qrcode"
             android:text="扫码"/>
+        <CheckBox
+            android:id="@+id/check_cbo_autostart"
+            android:text="扫完自动跳转"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"/>
+
     </RadioGroup>
 
     <TextView

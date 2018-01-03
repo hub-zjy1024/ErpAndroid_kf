@@ -1530,6 +1530,10 @@ public class SetYundanActivity extends AppCompatActivity {
                 "UTF-8");
         strURL += "&d_address=" + URLEncoder.encode(dAddress,
                 "UTF-8");
+        strURL += "&j_company=" + URLEncoder.encode(jComapany,
+                "UTF-8");
+        strURL += "&d_company=" + URLEncoder.encode(dCompany,
+                "UTF-8");
         Log.e("zjy", "SetYundanActivity->startPrint(): StrUrl==" + strURL);
         URL url = new URL(strURL);
         HttpURLConnection conn = (HttpURLConnection) url

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">BarScan</string>
+    <string name="action_settings">Settings</string>
+    <string name="btn_clear">Clear</string>
+      <string name="btn_power">Power</string>
+        <string name="btn_scan">Scan</string>
+     <string name="action_sound">Sound</string>
+       <string name="action_vibrator">Vibrator</string>
+   <string name="ScanText">Continuous Mode:</string>
+        <string name="Sanner_Mode">Continu Mode:</string>
+       
+ <string name="PowerText">Power Mode:</string>
+</resources>

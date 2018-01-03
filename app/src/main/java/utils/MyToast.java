@@ -26,6 +26,16 @@ public class MyToast {
         mToast.show();
     }
 
+    public static boolean checkNumber(String str) {
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private MyToast() {
     }
 }

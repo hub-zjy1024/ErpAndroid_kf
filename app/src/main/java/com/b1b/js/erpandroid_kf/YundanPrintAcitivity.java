@@ -44,7 +44,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import kyeexpress.KyExpressUtils;
 import kyeexpress.YundanJson;
@@ -214,6 +213,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
 
             }
         });
+        alertDg = (AlertDialog) DialogUtils.getSpAlert(this, "提示", "提示");
         SharedPreferences userInfo = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
         String configJson = userInfo.getString(SettingActivity.CONFIG_JSON, "");
         try {
@@ -226,6 +226,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
             KyExpressUtils.uuid = "";
             KyExpressUtils.key = KyExpressUtils.uuid = "";
             edAccount.setText("");
+            showAlert("请先配置库房信息");
             MyApp.myLogger.writeError("KYprint:no config" + e.toString());
             e.printStackTrace();
         }
@@ -430,7 +431,6 @@ public class YundanPrintAcitivity extends AppCompatActivity {
         });
         spKF = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
         printerAddress = spKF.getString(SettingActivity.PRINTERSERVER, "");
-        alertDg = (AlertDialog) DialogUtils.getSpAlert(this, "提示", "提示");
         pd = new ProgressDialog(this);
         pd.setTitle("请稍等");
         pd.setMessage("正在打印中。。。");
@@ -450,17 +450,18 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                     InputStream in = conn.getInputStream();
                     InputStreamReader reader = new InputStreamReader(in, "UTF-8");
                     BufferedReader bis = new BufferedReader(reader);
-                    String s = "";
-                    String result = "";
+                    String s;
+                    StringBuilder bd = new StringBuilder();
                     while ((s = bis.readLine()) != null) {
-                        result += s;
+                        bd.append(s);
                     }
+                    String result = bd.toString();
                     Log.e("zjy", "SetYundan->run():printer: reuslt=="
                             + result);
                     if (!result.equals("")) {
                         String[] printers = result.split(",");
                         for (String p : printers) {
-                            if (p.equals("Ky_Printer")) {
+                            if (p.equals("KY_Printer")) {
                                 spiItems.add(0, p);
                             } else {
                                 spiItems.add(p);
@@ -477,7 +478,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
-                    showAlert("打印机地址有误，请重新配置");
+                    showAlert("连接打印服务器失败，请检查网络或重新配置IP地址");
                     e.printStackTrace();
                 }
             }
@@ -485,7 +486,17 @@ public class YundanPrintAcitivity extends AppCompatActivity {
         new Thread() {
             @Override
             public void run() {
-                getDetailInfo(pid);
+                try {
+                    getDetailInfo(pid);
+                } catch (IOException e) {
+                    showAlert("错误：" + getString(R.string.bad_connection));
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    showAlert("数据解析出错：" + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         }.start();
         new Thread() {
@@ -579,6 +590,10 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 "UTF-8");
         strURL += "&d_address=" + URLEncoder.encode(dAddress,
                 "UTF-8");
+        strURL += "&j_company=" + URLEncoder.encode(jComapany,
+                "UTF-8");
+        strURL += "&d_company=" + URLEncoder.encode(dCompany,
+                "UTF-8");
         Log.e("zjy", "SetYundanActivity->printKyYundan(): StrUrl==" + strURL);
         URL url = new URL(strURL);
         HttpURLConnection conn = (HttpURLConnection) url
@@ -634,16 +649,8 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 info.col_006 = dCompany;
                 info.col_010 = dName;
                 info.col_007 = dAddress;
-                String telReg = "^1[34578]\\d{9}$";
-                Pattern telPattern = Pattern.compile(telReg);
-                if (!telPattern.matcher(dTel).matches()) {
-                    info.col_008 = dTel;
-                    info.col_009 = "";
-                    MyApp.myLogger.writeBug("KY:dTel Error:" + dTel + "\tpid" + pid);
-                } else {
-                    info.col_008 = "";
-                    info.col_009 = dTel;
-                }
+                info.col_008 = dTel;
+                info.col_009 = dTel;
                 info.sjTelQH = "";
                 info.sjTelFJH = "";
                 info.col_037 = cardID;
@@ -694,8 +701,6 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                     try {
                         String insertResult = insertYundanInfo(pid, receiveID, destcode, "跨越");
                         changeInsertState(insertResult, pid);
-                        //                        printKyYundan(serverIP, yundanID, goodInfos, cardID, payType, counts,
-                        // printName, ddestcode, yundanType);
                         boolean printOk = printKyYundan(printerAddress, yundanID, dgoodInfos, dcardID, dpayType, counts,
                                 dprintName,
                                 ddestcode
@@ -717,8 +722,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
         }.start();
     }
 
-    public void getDetailInfo(String pid) {
-        try {
+    public void getDetailInfo(String pid) throws IOException, XmlPullParserException, JSONException {
             String detail = SetYundanActivity.searchByPid(pid);
             JSONObject root = new JSONObject(detail);
             JSONArray table = root.getJSONArray("表");
@@ -738,19 +742,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 //                storageID = obj.getString("StorageID");
             }
             mHandler.sendEmptyMessage(0);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
-
-    //    {
-    //        "retMsg":"提交成功", "YDCode":"20112325362", "DestinationAirport":
-    //        "朝阳四季青点部", "DeliveryPoint":"", "destAreaCode":"010"
-    //    }
     public void showAlert(final String msg) {
         DialogUtils.dismissDialog(alertDg);
         if (Looper.myLooper() == Looper.getMainLooper()) {

@@ -130,26 +130,4 @@ public class LogRecoder {
         }
     }
 
-    public static String getErrorMsg(Throwable t) {
-        StringBuilder err = new StringBuilder();
-        err.append(t.toString());
-        err.append("\n");
-        String indent = "";
-        StackTraceElement[] stack = t.getStackTrace();
-        if (stack != null) {
-            for (int i = 0; i < stack.length; i++) {
-                err.append(indent);
-                err.append("\tat ");
-                err.append(stack[i].toString());
-                err.append("\n");
-            }
-        }
-        Throwable cause = t.getCause();
-        if (cause != null) {
-            err.append(indent);
-            err.append("Caused by: ");
-        }
-        return err.toString();
-    }
-
 }

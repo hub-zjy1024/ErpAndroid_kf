@@ -8,15 +8,16 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.adapter.XiaopiaoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 
@@ -38,14 +39,15 @@ import utils.MyToast;
 import utils.PrinterStyle;
 import utils.WebserviceUtils;
 import utils.btprint.MyBluePrinter;
+import utils.btprint.MyPrinterParent;
 import utils.btprint.SPrinter;
 
-public class RukuTagPrintAcitivity extends AppCompatActivity {
+public class RukuTagPrintAcitivity extends ScanBaseActivity {
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case MyBluePrinter.STATE_CONNECTED:
+                case MyPrinterParent.STATE_CONNECTED:
                     MyToast.showToast(mContext, "连接成功");
                     tvState.setTextColor(Color.GREEN);
                     tvState.setText("已连接");
@@ -58,7 +60,16 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
                 case 3:
                     xpAdapter.notifyDataSetChanged();
                     break;
-                case 4:
+                case SPrinter.STATE_OPENED:
+                    if (!btAddress.equals("")) {
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                super.run();
+                                printer2.connect(btAddress);
+                            }
+                        }.start();
+                    }
                     break;
             }
         }
@@ -76,6 +87,12 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
     private XiaopiaoAdapter xpAdapter;
     private Button btnSearch;
     private ImageView ivTest;
+    private String btAddress;
+    private TextView tvTitle;
+    private boolean isOffline = false;
+    public static String extraMode = "mode";
+    public static String MODE_OFFLINE = "offline";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,9 +101,11 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
         tvState = (TextView) findViewById(R.id.rukutag_activity_tv_state);
         edPid = (EditText) findViewById(R.id.rukutag_activity_ed_pid);
         btnSetting = (Button) findViewById(R.id.rukutag_activity_btn_setting);
+        tvTitle = (TextView) findViewById(R.id.rukutag_activity_title);
         btnScan = (Button) findViewById(R.id.rukutag_activity_btn_scancode);
         btnPrint = (Button) findViewById(R.id.rukutag_activity_btn_print);
         btnSearch = (Button) findViewById(R.id.rukutag_activity_btn_search);
+        final CheckBox cboOffline = (CheckBox) findViewById(R.id.ruku_cbo_offline);
         ivTest = (ImageView) findViewById(R.id.test_iv);
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,7 +117,8 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                ivTest.setImageBitmap(BarcodeCreater.creatBarcode(RukuTagPrintAcitivity.this, "123487523", 40 * 8, 50, true, 10));
+                //                ivTest.setImageBitmap(BarcodeCreater.creatBarcode(RukuTagPrintAcitivity.this, "123487523", 40
+                // * 8, 50, true, 10));
                 final String pid = edPid.getText().toString();
                 if (pid.equals("")) {
                     MyToast.showToast(mContext, "请输入单据号");
@@ -108,66 +128,16 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
                     infos.clear();
                     xpAdapter.notifyDataSetChanged();
                 }
-                new Thread() {
-                    @Override
-                    public void run() {
-                        super.run();
-                        try {
-//                            PrinterStyle.printXiaopiao(mContext, printer);
-//{
-//"PID":"1234567", "仓库":"深圳赛格", "部门":"上海峰科国内", "制单日期":"2011/5/16 10:26:17", "业务员":"王丽", "采购员":
-//"王丽", "总成本":"7102.00", "原销售额":"0.00", "型号":"ST7FLIT15BF1M6", "数量":"2000", "进价":"3.5510", "金额":
-//"7102.00", "备注":"(自动生成)来自国外订单:64872[已加密]", "detailPID":"1455253", "供应商":
-//"Yosun Hong Kong Corporation Limited", "分公司":"ALLIC分公司", "开票类型":"增值税票", "厂家":"ST", "批号":"-", "描述":
-//"A", "封装":"SOIC20", "FormID":"GWCG-64872", "旧单据明细号":"8d2ca7599dac145a|1", "开票公司":
-//"北京时代信科电子技术有限公司", "InvoiceCorp":"38", "InvoiceType":"1", "付款公司":"", "PayComID":""
-//
-//}
-                            String detailInfo = getDetailInfo(pid);
-                            Log.e("zjy", "RukuTagPrintAcitivity->run(): detailInfo==" + detailInfo);
-                            JSONObject jobj = new JSONObject(detailInfo);
-                            JSONArray jarray = jobj.getJSONArray("表");
-                            for (int i = 0; i < jarray.length(); i++) {
-                                JSONObject tj = jarray.getJSONObject(i);
-                                String parno = tj.getString("型号");
-                                String pid = tj.getString("PID");
-                                String time = tj.getString("制单日期");
-                                String temp[] = time.split(" ");
-                                if (temp.length > 1) {
-                                    time = temp[0];
-                                }
-                                String deptno = tj.getString("DeptID");
-                                String counts = tj.getString("数量");
-                                String factory = tj.getString("厂家");
-                                String producefrom = "";
-                                String pihao = tj.getString("批号");
-                                String fengzhuang = tj.getString("封装");
-                                String description = tj.getString("描述");
-                                String place = "";
-                                String storageID = tj.getString("StorageID");
-                                String flag = tj.getString("InvoiceType");
-                                String company = tj.getString("开票公司");
-                                String notes = tj.getString("备注");
-                                String detailPID = tj.getString("detailPID");
-                                XiaopiaoInfo info = new XiaopiaoInfo(parno, deptno, time, deptno, counts, factory,
-                                        producefrom, pihao, fengzhuang, description, place, notes, flag, detailPID, storageID,
-                                        company);
-                                info.setPid(pid);
-                                infos.add(info);
-                            }
-                            mHandler.sendEmptyMessage(3);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (XmlPullParserException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-                }.start();
+                getData(pid);
             }
         });
+        final String mode = getIntent().getStringExtra(extraMode);
+        if (MODE_OFFLINE.equals(mode)) {
+            btnSearch.setVisibility(View.GONE);
+            cboOffline.setVisibility(View.GONE);
+            tvTitle.setText("条码打印");
+            isOffline = true;
+        }
         btnSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -179,14 +149,44 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                new Thread(){
+                new Thread() {
                     @Override
                     public void run() {
                         super.run();
-                        for(int i=0;i<infos.size();i++) {
+                        String code = edPid.getText().toString();
+                        if (cboOffline.isChecked()) {
+                            if (!code.equals("")) {
+                                printer2.printBarCode(code, 0, 1, 80);
+                                printer2.printText(code);
+                                printer2.newLine();
+                                printer2.newLine();
+                                printer2.newLine();
+                            } else {
+                                MyToast.showToast(RukuTagPrintAcitivity.this, "请输入明细ID");
+                            }
+                            return;
+                        }
+                        if (isOffline && !code.equals("")) {
+                            if (!code.equals("")) {
+                                printer2.printBarCode(code, 0, 1, 80);
+                                printer2.printText(code);
+                                printer2.newLine();
+                                printer2.newLine();
+                                printer2.newLine();
+                            } else {
+                                mHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        MyToast.showToast(RukuTagPrintAcitivity.this, "请输入明细ID");
+                                    }
+                                });
+                            }
+                            return;
+                        }
+                        for (int i = 0; i < infos.size(); i++) {
                             XiaopiaoInfo tInfo = infos.get(i);
-//                            PrinterStyle.printXiaopiao(mContext, printer);
-//                            PrinterStyle.printXiaopiao2(mContext, printer, tInfo);
+                            //                            PrinterStyle.printXiaopiao(mContext, printer);
+                            //                            PrinterStyle.printXiaopiao2(mContext, printer, tInfo);
                             PrinterStyle.printXiaopiao2(printer2, tInfo);
                             try {
                                 Thread.sleep(1000);
@@ -201,10 +201,10 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
         infos = new ArrayList<>();
         xpAdapter = new XiaopiaoAdapter(this, infos, R.layout.item_rukutag);
         lv.setAdapter(xpAdapter);
-
         SharedPreferences userInfo = getSharedPreferences("UserInfo", Context.MODE_PRIVATE);
-        final String printerAddress = userInfo.getString("btPrinterMac", "");
-        if (printerAddress.equals("")) {
+        btAddress = userInfo.getString("btPrinterMac", "");
+        Log.e("zjy", "RukuTagPrintAcitivity->run(): printerAddress==" + btAddress);
+        if (btAddress.equals("")) {
             Intent intent = new Intent(mContext, PrintSettingActivity.class);
             startActivityForResult(intent, reqCode);
         } else {
@@ -212,28 +212,93 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
                     .OnReceiveDataHandleEvent() {
                 @Override
                 public void OnReceive(BluetoothDevice var1) {
-
                 }
             });
-
+            printer2 = new SPrinter(mHandler, mContext, new MyBluePrinter.OnReceiveDataHandleEvent() {
+                @Override
+                public void OnReceive(BluetoothDevice var1) {
+                    Log.e("zjy", "RukuTagPrintAcitivity->OnReceive(): Discovery2==");
+                }
+            });
+            new Thread() {
+                @Override
+                public void run() {
+                    printer2.open();
+                    if (printer2.isOpen()) {
+                        printer2.connect(btAddress);
+                    }
+                }
+            }.start();
         }
-        printer2 = new SPrinter(mHandler, mContext, new MyBluePrinter.OnReceiveDataHandleEvent() {
-            @Override
-            public void OnReceive(BluetoothDevice var1) {
+    }
 
-            }
-        });
+    @Override
+    public int getLayoutResId() {
+        return R.layout.activity_ruku_tag_print_acitivity;
+    }
+
+    @Override
+    public void resultBack(String result) {
+        boolean isNum = MyToast.checkNumber(result);
+        edPid.setText(result);
+        if (isNum) {
+            infos.clear();
+            xpAdapter.notifyDataSetChanged();
+            getData(result);
+        } else {
+            MyToast.showToast(this, getString(R.string.error_numberformate));
+        }
+    }
+
+    private void getData(final String pid) {
         new Thread() {
             @Override
             public void run() {
-                //                    printer.open();
-                //                    printer.connect(printerAddress);
-                printer2.open();
-                printer2.connect(printerAddress);
+                super.run();
+                try {
+                    String detailInfo = getDetailInfo(pid);
+                    Log.e("zjy", "RukuTagPrintAcitivity->run(): detailInfo==" + detailInfo);
+                    JSONObject jobj = new JSONObject(detailInfo);
+                    JSONArray jarray = jobj.getJSONArray("表");
+                    for (int i = 0; i < jarray.length(); i++) {
+                        JSONObject tj = jarray.getJSONObject(i);
+                        String parno = tj.getString("型号");
+                        String pid = tj.getString("PID");
+                        String time = tj.getString("制单日期");
+                        String temp[] = time.split(" ");
+                        if (temp.length > 1) {
+                            time = temp[0];
+                        }
+                        String deptno = tj.getString("DeptID");
+                        String counts = tj.getString("数量");
+                        String factory = tj.getString("厂家");
+                        String producefrom = "";
+                        String pihao = tj.getString("批号");
+                        String fengzhuang = tj.getString("封装");
+                        String description = tj.getString("描述");
+                        String place = "";
+                        String storageID = tj.getString("StorageID");
+                        String flag = tj.getString("InvoiceType");
+                        String company = tj.getString("开票公司");
+                        String notes = tj.getString("备注");
+                        String detailPID = tj.getString("detailPID");
+                        XiaopiaoInfo info = new XiaopiaoInfo(parno, deptno, time, deptno, counts, factory,
+                                producefrom, pihao, fengzhuang, description, place, notes, flag, detailPID, storageID,
+                                company);
+                        info.setPid(pid);
+                        infos.add(info);
+                    }
+                    mHandler.sendEmptyMessage(3);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }.start();
     }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -247,6 +312,24 @@ public class RukuTagPrintAcitivity extends AppCompatActivity {
                 if (data != null) {
                     String result = data.getStringExtra("result");
                     edPid.setText(result);
+                    infos.clear();
+                    xpAdapter.notifyDataSetChanged();
+                    try {
+                        Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                        MyToast.showToast(mContext, "扫码结果不为数字");
+                        return;
+                    }
+                    if (isOffline) {
+                        printer2.printBarCode(result, 0, 1, 80);
+                        printer2.printText(result);
+                        printer2.newLine();
+                        printer2.newLine();
+                        printer2.newLine();
+                    } else {
+                        getData(result);
+                    }
                 }
             }
         }

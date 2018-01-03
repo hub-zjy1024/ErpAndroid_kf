@@ -38,7 +38,10 @@ public abstract class MyBaseAdapter<T> extends BaseAdapter {
         } else {
             holder = (MyBasedHolder) convertView.getTag();
         }
-        T currentT = data.get(position);
+        T currentT = null;
+        if (position <data.size()) {
+            currentT = data.get(position);
+        }
         if (currentT != null) {
             initHolder(currentT, holder);
         }

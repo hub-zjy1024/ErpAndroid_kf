@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -18,6 +17,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
@@ -40,9 +40,10 @@ import java.util.List;
 
 import printer.adapter.SFYundanAdapter;
 import printer.entity.Yundan;
+import utils.MyToast;
 import utils.SoftKeyboardUtils;
 
-public class SFActivity extends AppCompatActivity {
+public class SFActivity extends ScanBaseActivity {
 
     private List<Yundan> yundanData;
     private EditText edPid;
@@ -203,6 +204,25 @@ public class SFActivity extends AppCompatActivity {
     }
 
     @Override
+    public int getLayoutResId() {
+        return R.layout.activity_sf;
+    }
+
+    @Override
+    public void resultBack(String result) {
+        edPid.setText(result);
+        SoftKeyboardUtils.closeInputMethod(edPid, this);
+        boolean isNum = MyToast.checkNumber(result);
+        if (isNum) {
+            yundanData.clear();
+            adapter.notifyDataSetChanged();
+            getYundanResult();
+        }else {
+            MyToast.showToast(this, getString(R.string.error_numberformate));
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         SharedPreferences sp = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
@@ -213,7 +233,7 @@ public class SFActivity extends AppCompatActivity {
         switch (view.getId()) {
             case R.id.sf_btnSFScan:
                 Intent intent = new Intent(SFActivity.this, CaptureActivity.class);
-                startActivityForResult(intent, 300);
+                startActivityForResult(intent, CaptureActivity.REQ_CODE);
                 break;
             case R.id.sf_btnSFservice:
 
@@ -260,7 +280,7 @@ public class SFActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 300&&resultCode==RESULT_OK) {
+        if (requestCode == CaptureActivity.REQ_CODE && resultCode == RESULT_OK) {
             String pid = data.getStringExtra("result");
             edPid.setText(pid);
             yundanData.clear();

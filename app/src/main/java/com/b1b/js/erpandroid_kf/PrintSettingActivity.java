@@ -34,6 +34,7 @@ public class PrintSettingActivity extends ListActivity {
     private TextView tv_status;
     private Thread updateStatusThread;
     private boolean update = true;
+    private String macAddr;
     private SharedPreferences sp;
     Context _context;
     SimpleAdapter simpleAdapter;
@@ -58,15 +59,16 @@ public class PrintSettingActivity extends ListActivity {
 //                    if (msg.obj == null) {
 //                        mPrinter = printer;
 //                    }
-
-//                    getSharedPreferences("UserInfo", MODE_PRIVATE).edit().putString("btPrinterMac", mPrinter.getAddress())
-//                            .commit();
                     mPrinter2 = printer2;
+                    getSharedPreferences("UserInfo", MODE_PRIVATE).edit().putString("btPrinterMac", macAddr)
+                            .commit();
                     setResult(RESULT_OK);
                     finish();
                     break;
                 case MyBluePrinter.STATE_DISCONNECTED:
                     MyToast.showToast(PrintSettingActivity.this, "连接失败");
+                    break;
+                case SPrinter.STATE_OPENED:
                     break;
             }
         }
@@ -120,9 +122,8 @@ public class PrintSettingActivity extends ListActivity {
                 .OnReceiveDataHandleEvent() {
             @Override
             public void OnReceive(BluetoothDevice var1) {
-                Log.e("zjy", "PrintSettingActivity->OnReceive(): device==" + var1.getAddress() + "\t" +
-                        var1.getBondState() + "\t" + var1.getName());
-                Map<String, Object> map = new HashMap<String, Object>();
+                Log.e("zjy", "PrintSettingActivity->OnReceive(): discovery==" + var1.getAddress());
+                Map<String, Object> map = new HashMap<>();
                 if (var1.getName() != null) {
                     map.put("title", var1.getName());
                 } else {
@@ -138,9 +139,8 @@ public class PrintSettingActivity extends ListActivity {
                 .OnReceiveDataHandleEvent() {
             @Override
             public void OnReceive(BluetoothDevice var1) {
-                Log.e("zjy", "PrintSettingActivity->OnReceive(): device==" + var1.getAddress() + "\t" +
-                        var1.getBondState() + "\t" + var1.getName());
-                Map<String, Object> map = new HashMap<String, Object>();
+                Log.e("zjy", "PrintSettingActivity->OnReceive(): discovery2==" + var1.getAddress());
+                Map<String, Object> map = new HashMap<>();
                 if (var1.getName() != null) {
                     map.put("title", var1.getName());
                 } else {
@@ -149,7 +149,7 @@ public class PrintSettingActivity extends ListActivity {
                 map.put("deviceAddress", var1.getAddress());
                 map.put("device", var1);
                 listData.add(map);
-//                simpleAdapter.notifyDataSetChanged();
+                simpleAdapter.notifyDataSetChanged();
             }
         });
         new Thread(){
@@ -157,16 +157,16 @@ public class PrintSettingActivity extends ListActivity {
             public void run() {
 //                        printer.open();
                 printer2.open();
+                addBindedDevice();
             }
         };
-        addBindedDevice();
     }
 
     private void addBindedDevice() {
-        Set<BluetoothDevice> bindedDevice = printer.getBindedDevice();
+        Set<BluetoothDevice> bindedDevice = ((SPrinter) printer2).getBindedDevice();
         for (BluetoothDevice d : bindedDevice) {
             Log.e("zjy", "PrintSettingActivity->onCreate(): d==" + d.getName());
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
             map.put("title", d.getName());
             map.put("deviceAddress", d.getAddress());
             map.put("device", d);
@@ -195,6 +195,7 @@ public class PrintSettingActivity extends ListActivity {
         //        printer.connect((BluetoothDevice) map.get("device"));
 //        printer.connect(map.get("deviceAddress").toString());
         printer2.connect(map.get("deviceAddress").toString());
+        macAddr = map.get("deviceAddress").toString();
     }
 
     @Override

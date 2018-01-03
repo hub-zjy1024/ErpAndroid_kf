@@ -14,7 +14,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -22,6 +21,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 
 import org.json.JSONArray;
@@ -64,7 +64,7 @@ import utils.MyToast;
 import utils.UploadUtils;
 import utils.WebserviceUtils;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends ScanBaseActivity {
 
     private EditText edUserName;
     private EditText edPwd;
@@ -234,6 +234,15 @@ public class MainActivity extends AppCompatActivity {
         cboRemp = (CheckBox) findViewById(R.id.login_rpwd);
         cboAutol = (CheckBox) findViewById(R.id.login_autol);
         tvVersion = (TextView) findViewById(R.id.main_version);
+        final Button btnPrintCode = (Button) findViewById(R.id.activity_main_btn_code);
+        btnPrintCode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, RukuTagPrintAcitivity.class);
+                intent.putExtra(RukuTagPrintAcitivity.extraMode, RukuTagPrintAcitivity.MODE_OFFLINE);
+                startActivity(intent);
+            }
+        });
         sp = getSharedPreferences("UserInfo", 0);
         final String phoneCode = UploadUtils.getPhoneCode(MainActivity.this);
         Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
@@ -271,20 +280,33 @@ public class MainActivity extends AppCompatActivity {
                     login("101", "62105300");
 //                    login("2984", "000000");
                 }
-//                startActivity(new Intent(MainActivity.this, TakePicActivity.class));
             }
         });
         btnScancode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                //                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, 100);
-                //                } else {
                 Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
                 startActivityForResult(intent, 200);
-                //                }
             }
         });
+    }
+
+    @Override
+    public int getLayoutResId() {
+        return R.layout.activity_main;
+    }
+
+    @Override
+    public void resultBack(String result) {
+        scanDialog = new ProgressDialog(MainActivity.this);
+        scanDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        scanDialog.setMessage("登录中");
+        scanDialog.setCancelable(false);
+        scanDialog.show();
+        Intent data = new Intent();
+        Log.e("zjy", "MainActivity->resultBack(): codeResult==" + result);
+        data.putExtra("result", result);
+        readCode(data);
     }
 
     @Override
@@ -759,10 +781,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
-                //                Message msg = mHandler.obtainMessage(8);
-                //                msg.arg1 = percent;
-                //                mHandler.sendMessage(msg);
-                //写入时第三个参数使用len
                 fos.write(buf, 0, len);
             }
             fos.flush();
