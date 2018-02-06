@@ -27,7 +27,7 @@ public class LogUploadService extends Service {
     //配置url、log文件名称、log保存地址、ftp用户名密码
     final String targeUrl = WebserviceUtils.ROOT_URL + "DownLoad/dyj_kf/logcheck.txt";
     final String logFileName = "dyj_log.txt";
-    final String savedDir = "/Zjy/log_kf/"+ UploadUtils.getCurrentYearAndMonth() + "/";
+    final String savedDir = "/Zjy/log_kf/" + UploadUtils.getyyMM() + "/";
     private int startTime = 9;
 
     private int endTime = 20;
@@ -60,7 +60,7 @@ public class LogUploadService extends Service {
                     final File log = new File(root, logFileName);
                     final String date = sp.getString("date", "");
                     final String current = UploadUtils.getCurrentDate();
-                    String remoteName = UploadUtils.getCurrentDay() + "_" + id + "_" + phoneCode +
+                    String remoteName = UploadUtils.getDD(new Date()) + "_" + id + "_" + phoneCode +
                             "_log.txt";
                     final String remotePath = savedDir + remoteName;
                     if (log.exists()) {
@@ -108,7 +108,7 @@ public class LogUploadService extends Service {
                     final SharedPreferences userInfo = getSharedPreferences("UserInfo", MODE_PRIVATE);
                     String id = userInfo.getString("name", "");
                     String phoneCode = UploadUtils.getPhoneCode(getApplicationContext());
-                    String remoteName = UploadUtils.getCurrentDay() + "_" + id + "_" + phoneCode +
+                    String remoteName = UploadUtils.getDD(new Date()) + "_" + id + "_" + phoneCode +
                             "_log.txt";
                     final String remotePath = savedDir + remoteName;
                     final File log = new File(root, logFileName);

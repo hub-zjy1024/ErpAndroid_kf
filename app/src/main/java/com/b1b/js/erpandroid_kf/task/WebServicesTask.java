@@ -3,8 +3,6 @@ package com.b1b.js.erpandroid_kf.task;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import utils.WebserviceUtils;
-
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
@@ -12,6 +10,8 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
+
+import utils.WebserviceUtils;
 
 /**
  Created by 张建宇 on 2017/8/17. */
@@ -25,6 +25,7 @@ public class WebServicesTask<T> extends AsyncTask<String, Void, T> {
         this.map = map;
     }
 
+    private Exception tempEx;
     @Override
     protected T doInBackground(String... params) {
         String method = params[0];
@@ -35,10 +36,10 @@ public class WebServicesTask<T> extends AsyncTask<String, Void, T> {
             SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, serviceName);
             return (T)response.toString();
         } catch (IOException e) {
-            callback.errorCallback(e);
+            tempEx = e;
             e.printStackTrace();
         } catch (XmlPullParserException e) {
-            callback.errorCallback(e);
+            tempEx = e;
             e.printStackTrace();
         }
         return null;
@@ -46,6 +47,10 @@ public class WebServicesTask<T> extends AsyncTask<String, Void, T> {
 
     @Override
     protected void onPostExecute(T s) {
-        callback.okCallback(s);
+        if (tempEx != null) {
+            callback.errorCallback(tempEx);
+        } else {
+            callback.okCallback(s);
+        }
     }
 }

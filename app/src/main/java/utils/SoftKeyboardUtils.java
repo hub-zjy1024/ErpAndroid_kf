@@ -15,7 +15,6 @@ public class SoftKeyboardUtils {
         InputMethodManager imm = (InputMethodManager) mContext.getSystemService(Context
                 .INPUT_METHOD_SERVICE);
         boolean isOpen = imm.isActive();
-        Log.e("zjy", "SoftKeyboardUtils->closeInputMethod(): isOpen==" + isOpen);
         if (isOpen) {
             imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
         }

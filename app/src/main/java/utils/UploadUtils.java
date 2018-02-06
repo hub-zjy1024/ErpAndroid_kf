@@ -51,6 +51,19 @@ public class UploadUtils {
         return str;
     }
 
+    public static String getyyMM() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM");
+        String str = sdf.format(new Date());
+        return str;
+    }
+
+    public static String getDD(Date date) {
+        SimpleDateFormat.getTimeInstance(1);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd");
+        String str = sdf.format(date);
+        return str;
+    }
+
     public static String getCurrentDay() {
         Calendar calendar = Calendar.getInstance();
         String str = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));

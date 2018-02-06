@@ -37,9 +37,4 @@
 
     </android.support.v4.view.ViewPager>
 
-    <ListView
-        android:id="@+id/ck_lv"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-
 </LinearLayout>

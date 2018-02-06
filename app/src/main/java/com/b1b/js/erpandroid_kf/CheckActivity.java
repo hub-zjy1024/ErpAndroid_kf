@@ -15,9 +15,8 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
-import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
 
 import org.json.JSONException;
@@ -31,12 +30,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import utils.CameraScanInterface;
 import utils.MyJsonUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 
-public class CheckActivity extends ScanBaseActivity implements View.OnClickListener {
+public class CheckActivity extends BaseScanActivity implements View.OnClickListener,CameraScanInterface{
 
     private ListView lv;
     private EditText edPid;
@@ -89,6 +89,7 @@ public class CheckActivity extends ScanBaseActivity implements View.OnClickListe
         rdb_checkFirst = (RadioButton) findViewById(R.id.check_rdb_first);
         cboStart = (CheckBox) findViewById(R.id.check_cbo_autostart);
         btnSearch.setOnClickListener(this);
+        setcScanInterface(this);
         btnScancode.setOnClickListener(this);
         rdb_checkFirst.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -148,9 +149,12 @@ public class CheckActivity extends ScanBaseActivity implements View.OnClickListe
         if (pd != null && !pd.isShowing()) {
             pd.show();
         }
+        getData(2, pid, partNo, cboStart.isChecked());
     }
 
-    public void getData(final int typeId, final String pid, final String partNo, final boolean auto) {
+    public void getData(final int typeId, final String pid, final String partNo,  boolean auto) {
+        final boolean tempAuto =  Boolean.valueOf(auto);
+
         new Thread() {
             @Override
             public void run() {
@@ -171,7 +175,7 @@ public class CheckActivity extends ScanBaseActivity implements View.OnClickListe
                                     pd.cancel();
                                 }
                                 MyToast.showToast(CheckActivity.this, "查询到" + data.size() + "条数据");
-                                if (auto) {
+                                if (tempAuto) {
                                     startActivity(intent);
                                 }
                             }
@@ -219,8 +223,9 @@ public class CheckActivity extends ScanBaseActivity implements View.OnClickListe
                 getData(2, pid, partNo, false);
                 break;
             case R.id.check_btn_scancode:
-                Intent intent = new Intent(CheckActivity.this, CaptureActivity.class);
-                startActivityForResult(intent, 100);
+//                Intent intent = new Intent(CheckActivity.this, CaptureActivity.class);
+//                startActivityForResult(intent, 100);
+                startScanActivity();
                 break;
 
         }
@@ -247,12 +252,9 @@ public class CheckActivity extends ScanBaseActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 100 && resultCode == RESULT_OK) {
-            pid = data.getStringExtra("result");
-            edPid.setText(pid);
-            isScan = true;
-        }
+    public void getCameraScanResult(String result) {
+        pid = result;
+        edPid.setText(pid);
+        isScan = true;
     }
 }

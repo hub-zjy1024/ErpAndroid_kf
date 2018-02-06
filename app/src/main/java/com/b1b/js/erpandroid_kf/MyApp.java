@@ -38,7 +38,7 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
         String error="";
         try {
             error = new String(bao.toByteArray(), "utf-8");
-            myLogger.writeError("Error uncatch exception:" +error);
+            myLogger.writeError("===Error-uncaughtException-:" +error);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

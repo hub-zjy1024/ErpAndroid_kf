@@ -2,14 +2,20 @@ package utils;
 
 import android.util.Log;
 
+import com.b1b.js.erpandroid_kf.MyApp;
+
 import org.ksoap2.SoapEnvelope;
+import org.ksoap2.SoapFault;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Set;
@@ -53,6 +59,22 @@ public class WebserviceUtils {
      */
     public static String DeviceID = "ZTE-T U880";
 
+    public static class SoapException extends IOException {
+        public SoapException() {
+        }
+
+        public SoapException(String detailMessage) {
+            super(detailMessage);
+        }
+
+        public SoapException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public SoapException(Throwable cause) {
+            super(cause);
+        }
+    }
     /**
      获取Url
      不能随意拼接，得自己根据wsdl文档
@@ -147,7 +169,29 @@ public class WebserviceUtils {
      */
     public static SoapObject getSoapObjResponse(SoapObject request, int envolopeVesion, String serviceName, int timeout) throws
             IOException, XmlPullParserException {
-        SoapObject sob = (SoapObject) (getEnvelope(request, envolopeVesion, serviceName, timeout).bodyIn);
+        Object response = getEnvelope(request, envolopeVesion, serviceName, timeout).bodyIn;
+        if (response == null) {
+            return new SoapObject("", "");
+        } else {
+            if (response instanceof SoapFault) {
+                Exception soapFault = (SoapFault) response;
+                ByteArrayOutputStream bao=new ByteArrayOutputStream();
+                PrintWriter writer=new PrintWriter(bao);
+                soapFault.printStackTrace(writer);
+                writer.flush();
+                String error="";
+                try {
+                    error = new String(bao.toByteArray(), "utf-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                writer.close();
+                MyApp.myLogger.writeError("==========getSoapObjResponse Call ERROR: req:" + request.toString());
+                MyApp.myLogger.writeError("==========getSoapObjResponse Call ERROR:detail:" +error);
+                throw new SoapException(soapFault);
+            }
+        }
+        SoapObject sob = (SoapObject) response;
         return sob;
     }
 
@@ -162,7 +206,29 @@ public class WebserviceUtils {
     public static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, int envolopeVesion, String serviceName) throws
             IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName, 30 * 1000);
-        SoapPrimitive sob = (SoapPrimitive) envelope.getResponse();
+        Object response = envelope.getResponse();
+        if (response == null) {
+            return new SoapPrimitive("", "", "");
+        } else {
+            if (response instanceof SoapFault) {
+                Exception soapFault = (SoapFault) response;
+                ByteArrayOutputStream bao=new ByteArrayOutputStream();
+                PrintWriter writer=new PrintWriter(bao);
+                soapFault.printStackTrace(writer);
+                writer.flush();
+                String error="";
+                try {
+                    error = new String(bao.toByteArray(), "utf-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                writer.close();
+                MyApp.myLogger.writeError("==========Call ERROR: req:" + request.toString());
+                MyApp.myLogger.writeError("==========Call ERROR:detail:" +error);
+                throw new SoapException(soapFault);
+            }
+        }
+        SoapPrimitive sob = (SoapPrimitive) response;
         return sob;
     }
 
@@ -216,10 +282,27 @@ public class WebserviceUtils {
             throws IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = getEnvelope(namespace, method, soapAction, transUrl, properties, envolopeVersion,
                 timeout);
-        SoapObject sObj = null;
-        if (envelope != null) {
-            sObj = (SoapObject) envelope.bodyIn;
+        Object response = envelope.getResponse();
+        if (response == null) {
+            return new SoapObject("", "");
+        } else {
+            if (response instanceof SoapFault) {
+                Exception soapFault = (SoapFault) response;
+                ByteArrayOutputStream bao=new ByteArrayOutputStream();
+                PrintWriter writer=new PrintWriter(bao);
+                soapFault.printStackTrace(writer);
+                writer.flush();
+                String error="";
+                try {
+                    error = new String(bao.toByteArray(), "utf-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                writer.close();
+                throw new SoapException(soapFault);
+            }
         }
+        SoapObject sObj = (SoapObject) response;
         return sObj;
     }
 
@@ -228,10 +311,28 @@ public class WebserviceUtils {
                                                              timeout) throws IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = getEnvelope(namespace, method, soapAction, transUrl, properties, envolopeVersion,
                 timeout);
-        SoapPrimitive soapPrimitive = null;
-        if (envelope != null) {
-            soapPrimitive = (SoapPrimitive) envelope.getResponse();
+        Object response = envelope.getResponse();
+        if (response == null) {
+            return new SoapPrimitive("", "", "");
+        } else {
+            if (response instanceof SoapFault) {
+                Exception soapFault = (SoapFault) response;
+                ByteArrayOutputStream bao=new ByteArrayOutputStream();
+                PrintWriter writer=new PrintWriter(bao);
+                soapFault.printStackTrace(writer);
+                writer.flush();
+                String error="";
+                try {
+                    error = new String(bao.toByteArray(), "utf-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                writer.close();
+                throw new SoapException(soapFault);
+            }
         }
+
+        SoapPrimitive soapPrimitive = (SoapPrimitive) response;
         return soapPrimitive;
     }
 

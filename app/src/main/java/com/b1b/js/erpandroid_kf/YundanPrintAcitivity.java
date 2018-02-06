@@ -15,6 +15,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -31,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
@@ -42,8 +44,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import kyeexpress.KyExpressUtils;
 import kyeexpress.YundanJson;
@@ -87,6 +91,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     private ProgressDialog pd;
     private String pidNotes = "";
 
+    private List<Map<String,String>> addrList;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -106,10 +111,6 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 case 1:
                     DialogUtils.dismissDialog(pd);
                     break;
-
-                case 2:
-                    break;
-
             }
         }
     };
@@ -134,6 +135,10 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     private TextView tvNote;
     private String kdName = "";
     private SharedPreferences spKF;
+    private String kfName = "";
+    private Intent reIntent;
+    private boolean isDiaohuo = false;
+    private Spinner spiDiaohuo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,14 +147,17 @@ public class YundanPrintAcitivity extends AppCompatActivity {
         setContentView(R.layout.activity_yundan_print_acitivity);
         spiType = (Spinner) findViewById(R.id.yundanprint_spi_type);
         spiPayType = (Spinner) findViewById(R.id.yundanprint_spi_paytype);
-        spiPrinter = (Spinner) findViewById(R.id.yundanprint_spi_printer);
+        spiDiaohuo = (Spinner) findViewById(R.id.yundanprint_spi_printer);
+        LinearLayout llDiaohuo = (LinearLayout) findViewById(R.id.yundanprint_ll_diaohuo);
         final String[] serverTypes = new String[]{"陆运件-普", "同城即日-省内", "同城次日-省内", "隔日达-快（空）", "次日达-很快（空）", "当天达-极快（空）"};
         spiType.setAdapter(new ArrayAdapter<String>(mContext, R.layout.item_province, R.id.item_province_tv, serverTypes));
         final String[] payTypes = new String[]{"寄付月结", "到付"};
         spiPayType.setAdapter(new ArrayAdapter<String>(mContext, R.layout.item_province, R.id.item_province_tv, payTypes));
         final List<String> printerItems = new ArrayList<>();
         printerItems.add("请选择打印机");
-        pid = getIntent().getStringExtra("pid");
+        reIntent = getIntent();
+        addrList = new ArrayList<>();
+        pid = reIntent.getStringExtra("pid");
         edJPerson = (EditText) findViewById(R.id.yundanprint_ed_j_person);
         cboAddMore = (CheckBox) findViewById(R.id.yundanprint_cbo_addmore);
         TextView tvPID = (TextView) findViewById(R.id.yundanprint_tv_pid);
@@ -216,9 +224,40 @@ public class YundanPrintAcitivity extends AppCompatActivity {
         alertDg = (AlertDialog) DialogUtils.getSpAlert(this, "提示", "提示");
         SharedPreferences userInfo = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
         String configJson = userInfo.getString(SettingActivity.CONFIG_JSON, "");
+        spiDiaohuo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String itemAtPosition = (String) parent.getItemAtPosition(position);
+                String[] detail = itemAtPosition.split("-->");
+                String from = detail[0];
+                String to = detail[1];
+                for (Map<String, String> map : addrList) {
+                    if (from.equals(map.get("key1")) && to.equals(map.get("key2"))) {
+                        edJPerson.setText(map.get("name1"));
+                        edJTel.setText(map.get("phone1"));
+                        edJAddress.setText(map.get("address1"));
+                        eddPerson.setText(map.get("name2"));
+                        eddTel.setText(map.get("phone2"));
+                        eddAddress.setText(map.get("address2"));
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        String sendFlag = reIntent.getStringExtra("type");
+        if ("2".equals(sendFlag)) {
+            isDiaohuo = true;
+            llDiaohuo.setVisibility(View.VISIBLE);
+        }
+
         try {
             Log.e("zjy", "YundanPrintAcitivity->onCreate(): configJson==" + configJson);
             JSONObject obj = new JSONObject(configJson);
+             kfName = obj.getString(SettingActivity.NAME);
             KyExpressUtils.uuid = obj.getString(SettingActivity.KYUUID);
             KyExpressUtils.key = obj.getString(SettingActivity.KYKEY);
             edAccount.setText(obj.getString(SettingActivity.KYACCOUNT));
@@ -242,6 +281,65 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 }
             }
         });
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                try {
+                    String dhAddresss = getDHAddresss();
+                    List<String> titles = new ArrayList<String>();
+                    JSONObject addJObj = new JSONObject(dhAddresss);
+                    JSONArray addTable = addJObj.getJSONArray("表");
+                    titles.add("请-->选择调货方向");
+                    for (int j = 0; j < addTable.length(); j++) {
+                        JSONObject obj = addTable.getJSONObject(j);
+                        String from = obj.getString("FromStorageID");
+                        String to = obj.getString("ToStotageID");
+                        if (kfName.equals("")) {
+                            titles.add(from + "-->" + to);
+                            HashMap<String, String> map = new HashMap<String, String>();
+                            map.put("key1", from);
+                            map.put("name1", obj.getString("FromName"));
+                            map.put("phone1", obj.getString("FromPhone"));
+                            map.put("address1", obj.getString("FromAddress"));
+                            map.put("account", obj.getString("AccountNo"));
+                            map.put("key2", to);
+                            map.put("name2", obj.getString("ToName"));
+                            map.put("phone2", obj.getString("ToPhone"));
+                            map.put("address2", obj.getString("ToAddress"));
+                            addrList.add(map);
+                        } else if (kfName.equals(from)) {
+                                titles.add(from + "-->" + to);
+                                HashMap<String, String> map = new HashMap<String, String>();
+                                map.put("key1", from);
+                                map.put("name1", obj.getString("FromName"));
+                                map.put("phone1", obj.getString("FromPhone"));
+                                map.put("address1", obj.getString("FromAddress"));
+                                map.put("account", obj.getString("AccountNo"));
+                                map.put("key2", to);
+                                map.put("name2", obj.getString("ToName"));
+                                map.put("phone2", obj.getString("ToPhone"));
+                                map.put("address2", obj.getString("ToAddress"));
+                                addrList.add(map);
+                        }
+                    }
+                    final ArrayAdapter adapter = new ArrayAdapter<String>(mContext, R.layout.item_province,
+                            R.id.item_province_tv, titles);
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            spiDiaohuo.setAdapter(adapter);
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
         btnChukudan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -272,11 +370,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 dAddress = eddAddress.getText().toString();
                 dTel = eddTel.getText().toString();
                 String payType = spiPayType.getSelectedItem().toString();
-                Object seletPrinter = spiPrinter.getSelectedItem();
                 String printer = "";
-                if (seletPrinter != null) {
-                    printer = seletPrinter.toString();
-                }
                 String serverType = spiType.getSelectedItem().toString();
                 serverType = serverType.substring(0, serverType.indexOf("-"));
                 final String bags = edBags.getText().toString().trim();
@@ -315,10 +409,26 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                             .LENGTH_SHORT).show();
                     return;
                 }
-                String goodInfos = getIntent().getStringExtra("goodInfos");
-                pd.setMessage("正在打印中");
-                pd.show();
-                startOrder(goodInfos, account, payType, serverType, counts, dprintName);
+                String goodInfos = reIntent.getStringExtra("goodInfos");
+                final String tGoodInfos = goodInfos;
+                final String tpayType = payType;
+                final String tserverType = serverType;
+                final String tCounts = counts;
+                if(yundanID!=null){
+                    DialogUtils.getSpAlert(mContext, "当前单据已有运单:" + yundanID + "，是否继续", "提示", new DialogInterface
+                            .OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            pd.setMessage("正在打印中");
+                            pd.show();
+                            startOrder(tGoodInfos, account, tpayType, tserverType, tCounts, dprintName);
+                        }
+                    }, "是", null, "否").show();
+                }else{
+                    pd.setMessage("正在打印中");
+                    pd.show();
+                    startOrder(goodInfos, account, payType, serverType, counts, dprintName);
+                }
             }
         });
         btnRePrint.setOnClickListener(new View.OnClickListener() {
@@ -367,13 +477,9 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                             .LENGTH_SHORT).show();
                     return;
                 }
-                Object selectP = spiPrinter.getSelectedItem();
                 String printer = "";
-                if (selectP != null) {
-                    printer = selectP.toString();
-                }
                 String goodInfos = "url1-500,url2-6000,url3-700";
-                goodInfos = getIntent().getStringExtra("goodInfos");
+                goodInfos = reIntent.getStringExtra("goodInfos");
                 String cardID = "";
                 String payType = spiPayType.getSelectedItem().toString();
                 String serverType = spiType.getSelectedItem().toString();
@@ -437,7 +543,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
         final List<String> spiItems = new ArrayList<>();
         final ArrayAdapter<String> printerAdapter = new ArrayAdapter<>(this, R.layout.item_province, R.id.item_province_tv,
                 spiItems);
-        spiPrinter.setAdapter(printerAdapter);
+//        spiPrinter.setAdapter(printerAdapter);
         new Thread() {
             @Override
             public void run() {
@@ -548,7 +654,12 @@ public class YundanPrintAcitivity extends AppCompatActivity {
             }
         }.start();
     }
-
+    private String getDHAddresss() throws IOException, XmlPullParserException {
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        SoapObject req = WebserviceUtils.getRequest(map, "GetBD_DHAddress");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope.VER11, WebserviceUtils.SF_SERVER);
+        return response.toString();
+    }
     @Override
     protected void onResume() {
         super.onResume();
@@ -594,6 +705,8 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 "UTF-8");
         strURL += "&d_company=" + URLEncoder.encode(dCompany,
                 "UTF-8");
+        strURL += "&pid=" + URLEncoder.encode(pid,
+                "UTF-8");
         Log.e("zjy", "SetYundanActivity->printKyYundan(): StrUrl==" + strURL);
         URL url = new URL(strURL);
         HttpURLConnection conn = (HttpURLConnection) url
@@ -621,10 +734,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == CaptureActivity.REQ_CODE) {
-            String result = "";
-            if (data != null) {
-                result = data.getStringExtra("result");
-            }
+            String result = data.getStringExtra("result");
             edMorePid.setText(result);
         }
     }
@@ -700,6 +810,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 if (!receiveID.equals("")) {
                     try {
                         String insertResult = insertYundanInfo(pid, receiveID, destcode, "跨越");
+                        Log.e("zjy", "YundanPrintAcitivity->insertYundanInfo(): result==" + insertResult);
                         changeInsertState(insertResult, pid);
                         boolean printOk = printKyYundan(printerAddress, yundanID, dgoodInfos, dcardID, dpayType, counts,
                                 dprintName,
@@ -763,26 +874,20 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     // 顺丰
     public String insertYundanInfo(String pid, String orderID, String destcode, String objtype) throws IOException,
             XmlPullParserException {
-        if ("101".equals(MyApp.id)) {
-            return "成功";
-        }
+//        if ("101".equals(MyApp.id)) {
+//            return "成功";
+//        }
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("objname", pid);
         map.put("objvalue", orderID);
         map.put("express", destcode);
         map.put("objtype", objtype);
         SoapObject req = WebserviceUtils.getRequest(map, "InsertBD_YunDanInfoOfType");
-//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope.VER11, WebserviceUtils.SF_SERVER);
         SoapObject obj = WebserviceUtils.getSoapObjResponse(req, SoapEnvelope.VER11, WebserviceUtils.SF_SERVER, WebserviceUtils
                 .DEF_TIMEOUT);
-        String result = "";
-        if (obj != null) {
-            Object resResult = obj.getProperty("InsertBD_YunDanInfoOfTypeResult");
-            if (resResult != null) {
-                result = resResult.toString();
-            } else {
-                MyApp.myLogger.writeError(YundanPrintAcitivity.class, "getProperty  null！！！" + pid + "\t" + MyApp.id);
-            }
+        String result =  obj.getPropertySafelyAsString("InsertBD_YunDanInfoOfTypeResult");
+        if (result.equals("")) {
+            MyApp.myLogger.writeError(YundanPrintAcitivity.class, "getProperty  null！！！" + pid + "\t" + MyApp.id);
         }
         return result;
     }

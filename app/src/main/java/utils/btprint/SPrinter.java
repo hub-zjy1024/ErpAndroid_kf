@@ -188,13 +188,6 @@ public class SPrinter extends MyPrinterParent{
     }
     @Override
     public void open() {
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        mContext.registerReceiver(mReceiver, filter);
-        Log.e("zjy", "SPrinter->open(): startRegister==");
-        isUnregist = false;
-//        mAdapter.enable();
         mContext.startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
     }
 
@@ -202,6 +195,16 @@ public class SPrinter extends MyPrinterParent{
     public void close() {
         mAdapter.disable();
         unRegisterReceiver();
+    }
+
+    public synchronized void closeSocket() {
+        try {
+            if (dataOut != null) {
+                dataOut.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -238,6 +241,7 @@ public class SPrinter extends MyPrinterParent{
             dataOut= btSocket.getOutputStream();
             sendMsg(STATE_CONNECTED);
         } catch (IOException e) {
+            sendMsg(STATE_DISCONNECTED);
             e.printStackTrace();
         }
     }

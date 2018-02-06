@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -15,6 +14,7 @@ import android.widget.EditText;
 import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.adapter.ViewPicAdapter;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
 
 import org.apache.commons.net.ftp.FTP;
@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import utils.CameraScanInterface;
 import utils.DialogUtils;
 import utils.FTPUtils;
 import utils.FtpManager;
@@ -43,7 +44,7 @@ import utils.MyFileUtils;
 import utils.MyToast;
 import utils.WebserviceUtils;
 
-public class ViewPicByPidActivity extends AppCompatActivity {
+public class ViewPicByPidActivity extends BaseScanActivity implements CameraScanInterface{
 
     private EditText edPid;
     private GridView gv;
@@ -114,6 +115,14 @@ public class ViewPicByPidActivity extends AppCompatActivity {
         edPid = (EditText) findViewById(R.id.view_pic_edpid);
         gv = (GridView) findViewById(R.id.view_pic_gv);
         btnSearch = (Button) findViewById(R.id.view_pic_btn_search);
+        Button btnScan = (Button) findViewById(R.id.view_pic_btn_scan);
+        setcScanInterface(this);
+        btnScan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startScanActivity();
+            }
+        });
         imgsData = new ArrayList<>();
         adapter = new ViewPicAdapter(imgsData, ViewPicByPidActivity.this, R.layout.item_viewpicbypid);
         gv.setAdapter(adapter);
@@ -158,6 +167,19 @@ public class ViewPicByPidActivity extends AppCompatActivity {
             }
         });
         alertDialog = (AlertDialog) DialogUtils.getSpAlert(this, "", "结果");
+    }
+
+    @Override
+    public int getLayoutResId() {
+        return R.layout.activity_view_pic_by_pid;
+    }
+
+    @Override
+    public void resultBack(String result) {
+        edPid.setText(result);
+        imgsData.clear();
+        adapter.notifyDataSetChanged();
+        startSearch(result);
     }
 
     @Override
@@ -208,7 +230,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                     int searchSize = array.length();
                     FTPUtils mFtpClient=null;
                     String tempUrl = "";
-                    downloadResult = "";
+                    downloadResult = "总共查询到" + searchSize + "张图片\r\n";
                     for (int i = 0; i < searchSize; i++) {
                         JSONObject tObj = array.getJSONObject(i);
                         String imgName = tObj.getString("pictureName");
@@ -338,4 +360,10 @@ public class ViewPicByPidActivity extends AppCompatActivity {
         return response.toString();
     }
 
+
+    @Override
+    public void getCameraScanResult(String result) {
+        edPid.setText(result);
+        startSearch(result);
+    }
 }

@@ -1,7 +1,8 @@
 package com.b1b.js.erpandroid_kf;
 
-import android.bluetooth.BluetoothDevice;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -17,8 +18,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.adapter.XiaopiaoAdapter;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 
 import org.json.JSONArray;
@@ -35,14 +36,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import printer.entity.XiaopiaoInfo;
+import utils.CameraScanInterface;
+import utils.DialogUtils;
 import utils.MyToast;
 import utils.PrinterStyle;
+import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.MyPrinterParent;
 import utils.btprint.SPrinter;
 
-public class RukuTagPrintAcitivity extends ScanBaseActivity {
+public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraScanInterface {
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -58,6 +62,17 @@ public class RukuTagPrintAcitivity extends ScanBaseActivity {
                     tvState.setText("连接失败");
                     break;
                 case 3:
+                    if (cboAuto.isChecked()) {
+                        for (int i = 0; i < infos.size(); i++) {
+                            XiaopiaoInfo tInfo = infos.get(i);
+                            PrinterStyle.printXiaopiao2(printer2, tInfo);
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                     xpAdapter.notifyDataSetChanged();
                     break;
                 case SPrinter.STATE_OPENED:
@@ -92,6 +107,8 @@ public class RukuTagPrintAcitivity extends ScanBaseActivity {
     private boolean isOffline = false;
     public static String extraMode = "mode";
     public static String MODE_OFFLINE = "offline";
+    private CheckBox cboAuto;
+    ProgressDialog pdDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +123,9 @@ public class RukuTagPrintAcitivity extends ScanBaseActivity {
         btnPrint = (Button) findViewById(R.id.rukutag_activity_btn_print);
         btnSearch = (Button) findViewById(R.id.rukutag_activity_btn_search);
         final CheckBox cboOffline = (CheckBox) findViewById(R.id.ruku_cbo_offline);
+        cboAuto = (CheckBox) findViewById(R.id.ruku_cbo_autoprint);
         ivTest = (ImageView) findViewById(R.id.test_iv);
+
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -114,14 +133,16 @@ public class RukuTagPrintAcitivity extends ScanBaseActivity {
                 startActivityForResult(intent, CaptureActivity.REQ_CODE);
             }
         });
+        setcScanInterface(this);
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //                ivTest.setImageBitmap(BarcodeCreater.creatBarcode(RukuTagPrintAcitivity.this, "123487523", 40
                 // * 8, 50, true, 10));
                 final String pid = edPid.getText().toString();
+                SoftKeyboardUtils.closeInputMethod(edPid, mContext);
                 if (pid.equals("")) {
-                    MyToast.showToast(mContext, "请输入单据号");
+                    MyToast.showToast(mContext, "请输入明细ID号");
                     return;
                 }
                 if (infos.size() > 0) {
@@ -157,7 +178,7 @@ public class RukuTagPrintAcitivity extends ScanBaseActivity {
                         if (cboOffline.isChecked()) {
                             if (!code.equals("")) {
                                 printer2.printBarCode(code, 0, 1, 80);
-                                printer2.printText(code);
+                                printer2.printText("M"+code);
                                 printer2.newLine();
                                 printer2.newLine();
                                 printer2.newLine();
@@ -204,31 +225,33 @@ public class RukuTagPrintAcitivity extends ScanBaseActivity {
         SharedPreferences userInfo = getSharedPreferences("UserInfo", Context.MODE_PRIVATE);
         btAddress = userInfo.getString("btPrinterMac", "");
         Log.e("zjy", "RukuTagPrintAcitivity->run(): printerAddress==" + btAddress);
-        if (btAddress.equals("")) {
-            Intent intent = new Intent(mContext, PrintSettingActivity.class);
-            startActivityForResult(intent, reqCode);
-        } else {
-            printer = new MyBluePrinter(this, mHandler, new MyBluePrinter
-                    .OnReceiveDataHandleEvent() {
-                @Override
-                public void OnReceive(BluetoothDevice var1) {
-                }
-            });
-            printer2 = new SPrinter(mHandler, mContext, new MyBluePrinter.OnReceiveDataHandleEvent() {
-                @Override
-                public void OnReceive(BluetoothDevice var1) {
-                    Log.e("zjy", "RukuTagPrintAcitivity->OnReceive(): Discovery2==");
-                }
-            });
-            new Thread() {
-                @Override
-                public void run() {
-                    printer2.open();
-                    if (printer2.isOpen()) {
-                        printer2.connect(btAddress);
+//        printer = new MyBluePrinter(this, mHandler, new MyBluePrinter
+                //                    .OnReceiveDataHandleEvent() {
+                //                @Override
+                //                public void OnReceive(BluetoothDevice var1) {
+                //                }
+                //            });
+        printer2 = new SPrinter(mHandler, mContext, null);
+        new Thread() {
+            @Override
+            public void run() {
+                printer2.open();
+                if (printer2.isOpen()) {
+                    if (btAddress.equals("")) {
+                        return;
                     }
+                    printer2.connect(btAddress);
                 }
-            }.start();
+            }
+        }.start();
+        if (btAddress.equals("")) {
+            DialogUtils.getSpAlert(mContext, "暂无连接打印机记录，是否前往配置", "提示", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent intent = new Intent(mContext, PrintSettingActivity.class);
+                    startActivityForResult(intent, reqCode);
+                }
+            }, "是", null, "否").show();
         }
     }
 
@@ -256,7 +279,7 @@ public class RukuTagPrintAcitivity extends ScanBaseActivity {
             public void run() {
                 super.run();
                 try {
-                    String detailInfo = getDetailInfo(pid);
+                    String detailInfo = getDetailInfoByDetailId(pid);
                     Log.e("zjy", "RukuTagPrintAcitivity->run(): detailInfo==" + detailInfo);
                     JSONObject jobj = new JSONObject(detailInfo);
                     JSONArray jarray = jobj.getJSONArray("表");
@@ -290,10 +313,22 @@ public class RukuTagPrintAcitivity extends ScanBaseActivity {
                     }
                     mHandler.sendEmptyMessage(3);
                 } catch (IOException e) {
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            MyToast.showToast(RukuTagPrintAcitivity.this, "网络质量较差，请稍后重试");
+                        }
+                    });
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            MyToast.showToast(RukuTagPrintAcitivity.this, "查询不到相关信息");
+                        }
+                    });
                     e.printStackTrace();
                 }
             }
@@ -308,29 +343,6 @@ public class RukuTagPrintAcitivity extends ScanBaseActivity {
                 tvState.setTextColor(Color.GREEN);
                 tvState.setText("已连接");
                 printer2 = (SPrinter) PrintSettingActivity.getSPrint();
-            } else if (requestCode == CaptureActivity.REQ_CODE) {
-                if (data != null) {
-                    String result = data.getStringExtra("result");
-                    edPid.setText(result);
-                    infos.clear();
-                    xpAdapter.notifyDataSetChanged();
-                    try {
-                        Integer.parseInt(result);
-                    } catch (NumberFormatException e) {
-                        e.printStackTrace();
-                        MyToast.showToast(mContext, "扫码结果不为数字");
-                        return;
-                    }
-                    if (isOffline) {
-                        printer2.printBarCode(result, 0, 1, 80);
-                        printer2.printText(result);
-                        printer2.newLine();
-                        printer2.newLine();
-                        printer2.newLine();
-                    } else {
-                        getData(result);
-                    }
-                }
             }
         }
     }
@@ -342,7 +354,8 @@ public class RukuTagPrintAcitivity extends ScanBaseActivity {
             printer.close();
         }
         if (printer2 != null) {
-            printer2.close();
+            printer2.closeSocket();
+            printer2.unRegisterReceiver();
         }
     }
 
@@ -353,5 +366,36 @@ public class RukuTagPrintAcitivity extends ScanBaseActivity {
         SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11,
                 WebserviceUtils.ChuKuServer);
         return res.toString();
+    }
+    public String getDetailInfoByDetailId(String pid) throws IOException, XmlPullParserException {
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        map.put("mxid", pid);
+        SoapObject request = WebserviceUtils.getRequest(map, "GetInstorectInfoByMXID");
+        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11,
+                WebserviceUtils.ChuKuServer);
+        return res.toString();
+    }
+
+    @Override
+    public void getCameraScanResult(String result) {
+        edPid.setText(result);
+        infos.clear();
+        xpAdapter.notifyDataSetChanged();
+        try {
+            Integer.parseInt(result);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            MyToast.showToast(mContext, "扫码结果不为数字");
+            return;
+        }
+        if (isOffline) {
+            printer2.printBarCode(result, 0, 1, 80);
+            printer2.printText(result);
+            printer2.newLine();
+            printer2.newLine();
+            printer2.newLine();
+        } else {
+            getData(result);
+        }
     }
 }

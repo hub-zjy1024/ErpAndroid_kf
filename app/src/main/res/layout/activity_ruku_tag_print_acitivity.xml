@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity">
 
     <TextView
@@ -14,7 +15,7 @@
         android:layout_gravity="center_horizontal"
         android:background="@color/bijia_title_background"
         android:gravity="center"
-        android:text="入库标签打印"
+        android:text="库存余额标签打印"
         android:textColor="@color/color_white"
         android:textSize="20sp"/>
 
@@ -24,11 +25,15 @@
         android:paddingLeft="10dp"
         android:paddingRight="10dp">
 
-        <EditText
+        <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/rukutag_activity_ed_pid"
-            android:layout_width="100dp"
+            android:layout_width="150dp"
+            app:met_baseColor="@color/colorPrimary"
+            app:met_clearButton="true"
+            app:met_primaryColor="@color/colorPrimary"
             android:layout_height="wrap_content"
-            android:hint="输入单据号"/>
+            android:inputType="number"
+            android:hint="输入明细号"/>
 
         <Button
             android:id="@+id/rukutag_activity_btn_search"
@@ -80,11 +85,22 @@
         android:id="@+id/test_iv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
-    <CheckBox
-        android:id="@+id/ruku_cbo_offline"
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:text="仅打印条码"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content">
+        <CheckBox
+            android:id="@+id/ruku_cbo_offline"
+            android:layout_width="wrap_content"
+            android:text="仅打印条码"
+            android:layout_height="wrap_content"/>
+        <CheckBox
+            android:layout_marginLeft="10dp"
+            android:id="@+id/ruku_cbo_autoprint"
+            android:layout_width="wrap_content"
+            android:text="扫码完成自动打印"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
     <ListView
         android:id="@+id/ruku_lv"
         android:layout_width="match_parent"

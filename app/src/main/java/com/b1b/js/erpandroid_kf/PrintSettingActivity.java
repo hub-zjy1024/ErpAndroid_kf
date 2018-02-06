@@ -1,6 +1,7 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -51,10 +52,12 @@ public class PrintSettingActivity extends ListActivity {
                     Log.e("zjy", "PrintSettingActivity->handleMessage(): scan finish==");
 //                    addBindedDevice();
                     simpleAdapter.notifyDataSetChanged();
+                    pdScanDialog.cancel();
                     MyToast.showToast(PrintSettingActivity.this, "扫描完成");
                     layoutscan.setVisibility(View.INVISIBLE);
                     break;
                 case MyBluePrinter.STATE_CONNECTED:
+                    pdDialog.cancel();
                     MyToast.showToast(PrintSettingActivity.this, "连接成功");
 //                    if (msg.obj == null) {
 //                        mPrinter = printer;
@@ -66,6 +69,7 @@ public class PrintSettingActivity extends ListActivity {
                     finish();
                     break;
                 case MyBluePrinter.STATE_DISCONNECTED:
+                    pdDialog.cancel();
                     MyToast.showToast(PrintSettingActivity.this, "连接失败");
                     break;
                 case SPrinter.STATE_OPENED:
@@ -75,6 +79,8 @@ public class PrintSettingActivity extends ListActivity {
     };
     private static MyBluePrinter mPrinter;
     private static MyPrinterParent mPrinter2;
+    private ProgressDialog pdDialog;
+    private ProgressDialog pdScanDialog;
 
     public static MyBluePrinter getPrint() {
         return mPrinter;
@@ -89,6 +95,12 @@ public class PrintSettingActivity extends ListActivity {
         setContentView(R.layout.activity_printsetting);
         sp = getSharedPreferences("SuccessDevice", 0);
         _context = this;
+        pdDialog = new ProgressDialog(this);
+        pdDialog.setMessage("正在连接中");
+        pdDialog.setTitle("提示");
+        pdScanDialog = new ProgressDialog(this);
+        pdScanDialog.setMessage("正在搜索蓝牙设备");
+        pdScanDialog.setTitle("提示");
         layoutscan = (LinearLayout) findViewById(R.id.layoutscan);
         tv_status = (TextView) findViewById(R.id.tv_status);
         bt_scan = (Button) findViewById(R.id.bt_scan);
@@ -110,10 +122,9 @@ public class PrintSettingActivity extends ListActivity {
         bt_scan.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (listData.size() > 0) {
-                    listData.clear();
-                    simpleAdapter.notifyDataSetChanged();
-                }
+                pdScanDialog.show();
+                listData.clear();
+                simpleAdapter.notifyDataSetChanged();
 //                printer.scan();
                 printer2.scan();
             }
@@ -192,19 +203,21 @@ public class PrintSettingActivity extends ListActivity {
      */
     protected void onListItemClick(ListView listView, View v, int position, long id) {
         Map map = (Map) listView.getItemAtPosition(position);
-        //        printer.connect((BluetoothDevice) map.get("device"));
-//        printer.connect(map.get("deviceAddress").toString());
-        printer2.connect(map.get("deviceAddress").toString());
         macAddr = map.get("deviceAddress").toString();
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (System.currentTimeMillis() - nowTime < 2000)
-            finish();
-        else {
-            MyToast.showToast(this, "再按一次退出");
-            nowTime = System.currentTimeMillis();
-        }
+        pdDialog.show();
+        bHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                pdDialog.cancel();
+                MyToast.showToast(_context, "连接超时");
+            }
+        }, 30 * 1000);
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                printer2.connect(macAddr);
+            }
+        }.start();
     }
 }

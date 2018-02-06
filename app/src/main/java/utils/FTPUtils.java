@@ -127,17 +127,6 @@ public class FTPUtils {
         return conf;
     }
 
-    public synchronized boolean makeDir(String path) throws IOException { /* 创建配置对象*/
-        int index = path.indexOf("/");
-        String nPath = path.substring(0, index);
-        while (nPath != null) {
-            mClient.makeDirectory(nPath);
-            index = path.indexOf("/", index);
-            nPath = path.substring(0, index);
-        }
-        return true;
-    }
-
     /**
      退出FTP服务器
      */

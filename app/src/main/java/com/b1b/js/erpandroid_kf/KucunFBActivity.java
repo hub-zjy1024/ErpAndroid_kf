@@ -232,7 +232,11 @@ public class KucunFBActivity extends AppCompatActivity {
                 WebServicesTask<String> task = new WebServicesTask<>(new WebCallback<String>() {
                     @Override
                     public void errorCallback(Throwable e) {
-
+                        String msg = "";
+                        if (e != null) {
+                            msg = e.getMessage();
+                        }
+                        MyToast.showToast(KucunFBActivity.this, "连接服务器出现错误"+msg);
                     }
 
                     @Override

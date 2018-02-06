@@ -138,17 +138,9 @@ public class PreChukuActivity extends ScanBaseActivity implements View.OnClickLi
 //        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
         SoapObject reObj = WebserviceUtils.getSoapObjResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer,
                 WebserviceUtils.DEF_TIMEOUT);
-
-        String result = "";
-        if (reObj != null) {
-            Object resResult = reObj.getProperty("GetOutStorageNotifyPrintViewListResult");
-            if (resResult != null) {
-                result = resResult.toString();
-            } else {
-                MyApp.myLogger.writeError(PreChukuActivity.class, "getProperty  null！！！" + pid + "\t" + uid);
-            }
-        } else {
-            MyApp.myLogger.writeError(PreChukuActivity.class, "SoapOject null！！！" + pid + "\t" + uid);
+        String result = reObj.getPropertySafelyAsString("GetOutStorageNotifyPrintViewListResult");
+        if (result.equals("")) {
+            MyApp.myLogger.writeError(PreChukuActivity.class, "getProperty  null！！！" + pid + "\t" + uid);
         }
         Log.e("zjy", "PreChukuActivity->getList(): result==" + result);
         return result;
@@ -211,7 +203,15 @@ public class PreChukuActivity extends ScanBaseActivity implements View.OnClickLi
                 }
                 final String temS = sTime;
                 final String temE = eTime;
-                final int id = Integer.parseInt(pid);
+                int tempID = 0;
+                try {
+                    tempID = Integer.parseInt(pid);
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                    MyToast.showToast(PreChukuActivity.this, "单据号不合法");
+                    return;
+                }
+                final int id = tempID;
                 Log.e("zjy", "PreChukuActivity->onClick(): integer pid==" + id);
                 if (MyApp.id == null) {
                     MyToast.showToast(PreChukuActivity.this, "程序出现错误，请重启");

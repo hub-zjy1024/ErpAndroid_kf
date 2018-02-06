@@ -21,8 +21,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.android.dev.ScanBaseActivity;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -59,12 +58,13 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import utils.CameraScanInterface;
 import utils.MyFileUtils;
 import utils.MyToast;
 import utils.UploadUtils;
 import utils.WebserviceUtils;
 
-public class MainActivity extends ScanBaseActivity {
+public class MainActivity extends BaseScanActivity implements CameraScanInterface {
 
     private EditText edUserName;
     private EditText edPwd;
@@ -205,10 +205,6 @@ public class MainActivity extends ScanBaseActivity {
                         MyToast.showToast(MainActivity.this, "下载完成");
                     }
                     break;
-                case 7:
-                    break;
-                case 9:
-                    break;
                 case 10:
                     MyToast.showToast(MainActivity.this, "部门号或公司号为空");
                     break;
@@ -243,6 +239,7 @@ public class MainActivity extends ScanBaseActivity {
                 startActivity(intent);
             }
         });
+        setcScanInterface(this);
         sp = getSharedPreferences("UserInfo", 0);
         final String phoneCode = UploadUtils.getPhoneCode(MainActivity.this);
         Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
@@ -285,8 +282,9 @@ public class MainActivity extends ScanBaseActivity {
         btnScancode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
-                startActivityForResult(intent, 200);
+//                Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
+//                startActivityForResult(intent, 200);
+                startScanActivity();
             }
         });
     }
@@ -303,10 +301,8 @@ public class MainActivity extends ScanBaseActivity {
         scanDialog.setMessage("登录中");
         scanDialog.setCancelable(false);
         scanDialog.show();
-        Intent data = new Intent();
         Log.e("zjy", "MainActivity->resultBack(): codeResult==" + result);
-        data.putExtra("result", result);
-        readCode(data);
+        readCode(result);
     }
 
     @Override
@@ -560,31 +556,26 @@ public class MainActivity extends ScanBaseActivity {
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 200 && resultCode == RESULT_OK) {
-            scanDialog = new ProgressDialog(MainActivity.this);
-            scanDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            scanDialog.setMessage("登录中");
-            scanDialog.setCancelable(false);
-            scanDialog.show();
-            readCode(data);
+
         }
     }
 
     /**
      读取条码信息
-     @param data onActivtyResult()回调的data
+     @param code onActivtyResult()回调的data
      */
-    private void readCode(final Intent data) {
+    private void readCode(final String code) {
         new Thread() {
             @Override
             public void run() {
-                String code = data.getStringExtra("result");
                 if (code != null) {
                     LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
                     map.put("checkword", "");
                     map.put("code", code);
                     SoapObject object = WebserviceUtils.getRequest(map, "BarCodeLogin");
                     try {
-                        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(object, SoapEnvelope.VER11, WebserviceUtils.MartService);
+                        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(object, SoapEnvelope.VER11,
+                                WebserviceUtils.MartService);
                         Message msg = zHandler.obtainMessage(SCANCODE_LOGIN_SUCCESS);
                         msg.obj = response.toString();
                         zHandler.sendMessage(msg);
@@ -797,5 +788,15 @@ public class MainActivity extends ScanBaseActivity {
                 throw new FileNotFoundException();
             }
         }
+    }
+
+    @Override
+    public void getCameraScanResult(String result) {
+        scanDialog = new ProgressDialog(MainActivity.this);
+        scanDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        scanDialog.setMessage("登录中");
+        scanDialog.setCancelable(false);
+        scanDialog.show();
+        readCode(result);
     }
 }

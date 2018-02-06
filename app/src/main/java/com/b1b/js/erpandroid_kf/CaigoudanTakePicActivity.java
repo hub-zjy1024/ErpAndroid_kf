@@ -1,12 +1,12 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -15,7 +15,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.Caigoudan;
 
 import org.json.JSONArray;
@@ -30,11 +30,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
+import utils.CameraScanInterface;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 
-public class CaigoudanTakePicActivity extends AppCompatActivity {
+public class CaigoudanTakePicActivity extends BaseScanActivity implements CameraScanInterface {
 
     private ListView lv;
     private EditText edPid;
@@ -44,7 +45,7 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
     public static String username = "mingming";
     public static String password = "ryDl42QF";
     public static String ftpAddress = "172.16.6.22";
-
+    final Context packageContext = this;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -54,16 +55,16 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
                     int counts = caigoudans.size();
                     if (counts != 0) {
                         caigouAdapter.notifyDataSetChanged();
-                        MyToast.showToast(CaigoudanTakePicActivity.this, "查询到" + counts + "条数据");
+                        MyToast.showToast(packageContext, "查询到" + counts + "条数据");
                         SoftKeyboardUtils.closeInputMethod(edPartNo, CaigoudanTakePicActivity
                                 .this);
                     }
                     break;
                 case 1:
-                    MyToast.showToast(CaigoudanTakePicActivity.this, "当前网络状态不佳");
+                    MyToast.showToast(packageContext, "当前网络状态不佳");
                     break;
                 case 2:
-                    MyToast.showToast(CaigoudanTakePicActivity.this, "条件有误，请重新输入");
+                    MyToast.showToast(packageContext, "条件有误，请重新输入");
                     break;
 
             }
@@ -82,10 +83,10 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
         btnSaoma.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(CaigoudanTakePicActivity.this, CaptureActivity.class);
-                startActivityForResult(intent, 100);
+                startScanActivity();
             }
         });
+        setcScanInterface(this);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -93,7 +94,8 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
                     return;
                 }
                 final Caigoudan item = (Caigoudan) parent.getItemAtPosition(position);
-                Intent temp = new Intent(CaigoudanTakePicActivity.this, CaigouDetailActivity.class);
+                
+                Intent temp = new Intent(packageContext, CaigouDetailActivity.class);
                 temp.putExtra("corpID", item.getCorpID());
                 temp.putExtra("providerID", item.getProviderID());
                 temp.putExtra("pid", item.getPid());
@@ -102,28 +104,28 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
                 if (true) {
                     return;
                 }
-                AlertDialog.Builder builder = new AlertDialog.Builder(CaigoudanTakePicActivity.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(packageContext);
                 builder.setTitle("上传方式选择");
                 builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0:
-                                Intent intent1 = new Intent(CaigoudanTakePicActivity.this, TakePicActivity.class);
+                                Intent intent1 = new Intent(packageContext, TakePicActivity.class);
                                 intent1.putExtra("flag", "caigou");
                                 intent1.putExtra("pid", item.getPid());
                                 startActivity(intent1);
                                 MyApp.myLogger.writeInfo("takepic-caigou");
                                 break;
                             case 1:
-                                Intent intent2 = new Intent(CaigoudanTakePicActivity.this, ObtainPicFromPhone.class);
+                                Intent intent2 = new Intent(packageContext, ObtainPicFromPhone.class);
                                 intent2.putExtra("flag", "caigou");
                                 intent2.putExtra("pid", item.getPid());
                                 startActivity(intent2);
                                 MyApp.myLogger.writeInfo("obtain-caigou");
                                 break;
                             case 2:
-                                Intent intent3 = new Intent(CaigoudanTakePicActivity.this, CaigouTakePic2Activity.class);
+                                Intent intent3 = new Intent(packageContext, CaigouTakePic2Activity.class);
                                 intent3.putExtra("flag", "caigou");
                                 intent3.putExtra("pid", item.getPid());
                                 MyApp.myLogger.writeInfo("takepic2-caigou");
@@ -139,11 +141,11 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 caigoudans.clear();
-                SoftKeyboardUtils.closeInputMethod(edPid, CaigoudanTakePicActivity.this);
+                SoftKeyboardUtils.closeInputMethod(edPid, packageContext);
                 final String partNo = edPartNo.getText().toString();
                 final String pid = edPid.getText().toString();
                 if (MyApp.id == null) {
-                    MyToast.showToast(CaigoudanTakePicActivity.this, "当前登录人为空，请重新登录");
+                    MyToast.showToast(packageContext, "当前登录人为空，请重新登录");
                     return;
                 }
                 getData(partNo, pid);
@@ -152,6 +154,24 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
         caigoudans = new ArrayList<>();
         caigouAdapter = new ArrayAdapter<Caigoudan>(this, R.layout.zjy_spinner_simple_item, R.id.spinner_item_tv, caigoudans);
         lv.setAdapter(caigouAdapter);
+    }
+
+    @Override
+    public int getLayoutResId() {
+        return R.layout.activity_caigoudan_take_pic;
+    }
+
+    @Override
+    public void resultBack(String result) {
+        final String pid = result;
+        edPid.setText(pid);
+        caigoudans.clear();
+        final String partNo = edPartNo.getText().toString();
+        if (MyApp.id == null) {
+            MyToast.showToast(packageContext, "当前登录人为空，请重新登录");
+            return;
+        }
+        getData("", pid);
     }
 
 
@@ -212,21 +232,21 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
         }.start();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 100 && resultCode == RESULT_OK) {
-            final String pid = data.getStringExtra("result");
-            edPid.setText(pid);
-            caigoudans.clear();
-            final String partNo = edPartNo.getText().toString();
-            if (MyApp.id == null) {
-                MyToast.showToast(CaigoudanTakePicActivity.this, "当前登录人为空，请重新登录");
-                return;
-            }
-            getData("", pid);
-        }
-    }
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == 100 && resultCode == RESULT_OK) {
+//            final String pid = data.getStringExtra("result");
+//            edPid.setText(pid);
+//            caigoudans.clear();
+//            final String partNo = edPartNo.getText().toString();
+//            if (MyApp.id == null) {
+//                MyToast.showToast(packageContext, "当前登录人为空，请重新登录");
+//                return;
+//            }
+//            getData("", pid);
+//        }
+//    }
 
     //采购单图片地址
     //    172.16.6.22
@@ -245,5 +265,18 @@ public class CaigoudanTakePicActivity extends AppCompatActivity {
         SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
                 .MartService);
         return response.toString();
+    }
+
+    @Override
+    public void getCameraScanResult(String result) {
+        final String pid = result;
+        edPid.setText(pid);
+        caigoudans.clear();
+        final String partNo = edPartNo.getText().toString();
+        if (MyApp.id == null) {
+            MyToast.showToast(packageContext, "当前登录人为空，请重新登录");
+            return;
+        }
+        getData("", pid);
     }
 }

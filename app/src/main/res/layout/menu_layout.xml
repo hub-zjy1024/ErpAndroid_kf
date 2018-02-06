@@ -19,6 +19,7 @@
 
     <ListView
         android:id="@+id/lv"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="10dp"
@@ -27,6 +28,16 @@
         android:dividerHeight="1dp"
         android:listSelector="@drawable/item_selector"
         />
+    <GridView
+        android:id="@+id/menu_gv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"
+        android:numColumns="3"
+        android:background="@drawable/border2"/>
+        <!--android:divider="@drawable/divider"-->
+        <!--android:dividerHeight="1dp"-->
+        <!--android:listSelector="@drawable/item_selector"-->
 
 
 </LinearLayout>

@@ -367,16 +367,9 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintView");
         SoapObject response = WebserviceUtils.getSoapObjResponse(request, SoapEnvelope.VER11, WebserviceUtils
                 .ChuKuServer, 30 * 1000);
-        String result = "";
-        if (response != null) {
-            Object resResult = response.getProperty("GetOutStorageNotifyPrintViewResult");
-            if (resResult != null) {
-                result = resResult.toString();
-            } else {
-                MyApp.myLogger.writeError(PreChukuDetailActivity.class, "getProperty  null！！！" + pid + "\t" + uid);
-            }
-        } else {
-            MyApp.myLogger.writeError(PreChukuDetailActivity.class, "detail response null！！！" + pid + "\t" + uid);
+        String result = response.getPropertySafelyAsString("GetOutStorageNotifyPrintViewResult");
+        if (result.equals("")) {
+            MyApp.myLogger.writeError(PreChukuDetailActivity.class, "getProperty  null！！！" + pid + "\t" + uid);
         }
         Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + result);
         JSONObject object = new JSONObject(result);

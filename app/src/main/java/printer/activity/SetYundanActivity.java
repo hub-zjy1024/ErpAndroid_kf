@@ -121,6 +121,7 @@ public class SetYundanActivity extends AppCompatActivity {
     private ArrayAdapter<String> printerAdapter;
     private List<String> spiItems;
     private ProgressDialog pd;
+    private String pid;
     private List<Map<String, String>> addrList = new ArrayList<>();
 
     private Context mContext = this;
@@ -366,8 +367,6 @@ public class SetYundanActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, PreChukuDetailActivity.class);
-                Intent lastIntent = getIntent();
-                String pid = lastIntent.getStringExtra("pid");
                 intent.putExtra("pid", pid);
                 startActivity(intent);
             }
@@ -449,6 +448,8 @@ public class SetYundanActivity extends AppCompatActivity {
             }
         });
         final Intent intent = getIntent();
+        pid = intent.getStringExtra("pid");
+        tvPid.setText(pid);
         String sendFlag = intent.getStringExtra("type");
         if ("2".equals(sendFlag)) {
             isDiaohuo = true;
@@ -464,27 +465,6 @@ public class SetYundanActivity extends AppCompatActivity {
         diaohuoList.add("北京中转-->深圳市龙岗区");
         diaohuoList.add("北京中转-->上海");
         diaohuoList.add("北京中转-->香港");
-
-        diaohuoList.add("深圳市福田区-->北京中转");
-        diaohuoList.add("深圳市福田区-->香港");
-        diaohuoList.add("深圳市福田区-->上海");
-        diaohuoList.add("深圳市福田区-->深圳市龙岗区");
-
-        diaohuoList.add("深圳市龙岗区-->北京中转");
-        diaohuoList.add("深圳市龙岗区-->香港");
-        diaohuoList.add("深圳市龙岗区-->深圳市福田区");
-        diaohuoList.add("深圳市龙岗区-->上海");
-
-        diaohuoList.add("香港-->北京中转");
-        diaohuoList.add("香港-->深圳市龙岗区");
-        diaohuoList.add("香港-->深圳市福田区");
-        diaohuoList.add("香港-->上海");
-
-        diaohuoList.add("上海-->北京中转");
-        diaohuoList.add("上海-->深圳市龙岗区");
-        diaohuoList.add("上海-->深圳市福田区");
-        diaohuoList.add("上海-->香港");
-
 //        spiDiaohuo.setAdapter(new ArrayAdapter<String>(mContext, R.layout.item_province, R.id
 //                .item_province_tv, diaohuoList));
         final List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
@@ -525,18 +505,6 @@ public class SetYundanActivity extends AppCompatActivity {
                 String[] detail = itemAtPosition.split("-->");
                 String from = detail[0];
                 String to = detail[1];
-//                for (HashMap<String, String> s : list) {
-//                    if (from.equals(s.get("key"))) {
-//                        edJPerson.setText(s.get("name"));
-//                        edJTel.setText(s.get("phone"));
-//                        edJAddress.setText(s.get("address"));
-//                    }
-//                    if (to.equals(s.get("key"))) {
-//                        eddPerson.setText(s.get("name"));
-//                        eddTel.setText(s.get("phone"));
-//                        eddAddress.setText(s.get("address"));
-//                    }
-//                }
                 for (Map<String, String> map : addrList) {
                     if (from.equals(map.get("key1")) && to.equals(map.get("key2"))) {
                         edJPerson.setText(map.get("name1"));
@@ -629,8 +597,6 @@ public class SetYundanActivity extends AppCompatActivity {
             @Override
             public void run() {
                 super.run();
-                Intent intent = getIntent();
-                String pid = intent.getStringExtra("pid");
                 String client = intent.getStringExtra("client");
                 try {
                     String result = getSFClientInfo(client);
@@ -653,6 +619,7 @@ public class SetYundanActivity extends AppCompatActivity {
                 try {
                     detail = searchByPid(pid);
                     String addressJson = getDHAddresss();
+                    Log.e("zjy", "SetYundanActivity->run(): diaohuoAddress==" + addressJson);
                     JSONObject addJObj = new JSONObject(addressJson);
                     JSONArray addTable = addJObj.getJSONArray("表");
                     List<String> titles = new ArrayList<String>();
@@ -784,33 +751,6 @@ public class SetYundanActivity extends AppCompatActivity {
         }.start();
         Log.e("zjy", "SetYundanActivity->onCreate(): goodInfos==" + intent
                 .getStringExtra("goodInfos"));
-        String pid = intent.getStringExtra("pid");
-        tvPid.setText(pid);
-        //        HashMap<String, String> maps = new HashMap<>();
-        //       maps = manger.serachYundan(pid);
-        //        final String orderid = maps.get("orderid");
-        //        final String destcode = maps.get("destcode");
-        //        if (orderid != null) {
-        //            tvOrderID.setText("当前单据已有单号：" + orderid);
-        //            btnReview.setEnabled(true);
-        //            desOrderid = orderid;
-        //            ddestcode = destcode;
-        //            dgoodInfos = maps.get("goodInfos");
-        //            dserverType = maps.get("serverType");
-        //            dbaojia = Double.parseDouble(maps.get("baojia"));
-        //            dpayPart = maps.get("payPart");
-        //            dpayType = maps.get("payType");
-        //            dcardID = maps.get("cardID");
-        //            dprintName = maps.get("printName");
-        //            dhasE = maps.get("hasE");
-        //            dyundanType = maps.get("yundanType");
-        //            btnRePrint.setEnabled(true);
-        //        }
-        btn150.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        });
         btnRePrint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -1185,8 +1125,7 @@ public class SetYundanActivity extends AppCompatActivity {
                                          boxTakepic) {
 
         if (times.length() > 0) {
-            AlertDialog.Builder builder = new AlertDialog.Builder
-                    (mContext);
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
             builder.setMessage("已经打印过了,是否继续打印");
             builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
                 @Override
@@ -1534,6 +1473,8 @@ public class SetYundanActivity extends AppCompatActivity {
                 "UTF-8");
         strURL += "&d_company=" + URLEncoder.encode(dCompany,
                 "UTF-8");
+        strURL += "&pid=" + URLEncoder.encode(pid,
+                "UTF-8");
         Log.e("zjy", "SetYundanActivity->startPrint(): StrUrl==" + strURL);
         URL url = new URL(strURL);
         HttpURLConnection conn = (HttpURLConnection) url
@@ -1684,22 +1625,10 @@ public class SetYundanActivity extends AppCompatActivity {
     }
 
     private String getDHAddresss() throws IOException, XmlPullParserException {
-        SoapObject request = new SoapObject("http://tempuri.org/",
-                "GetBD_DHAddress");
-        //设置版本号，ver11，和ver12比较常见
-        SoapSerializationEnvelope envelope1 = new
-                SoapSerializationEnvelope
-                (SoapEnvelope.VER11);
-        envelope1.bodyOut = request;
-        //.net开发的webservice必须加入
-        envelope1.dotNet = true;
-        HttpTransportSE trans = new HttpTransportSE("http://172.16.6" +
-                ".160:8006/SF_Server.svc?wsdl", 15 * 1000);
-        String action = "http://tempuri.org/ISF_Server/GetBD_DHAddress";
-        trans.call(action, envelope1);
-        SoapPrimitive sp = (SoapPrimitive) envelope1.getResponse();
-        Log.e("zjy", "SFActivity->getDHAddresss(): daohouAddress==" + sp.toString());
-        return sp.toString();
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        SoapObject req = WebserviceUtils.getRequest(map, "GetBD_DHAddress");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope.VER11, WebserviceUtils.SF_SERVER);
+        return response.toString();
     }
 
 

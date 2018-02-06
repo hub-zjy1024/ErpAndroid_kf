@@ -458,8 +458,6 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         String fileID = corpID;
         String host = "http://192.168.10.65:8080/";
         String strUrl = host + "PrinterServer/HetongServlet?";
-        // pid=1024521?proFullName=北京市供货商&hetongID=101110&proShortName=bjgh&goodInfos=name1,name2,name3,
-        // &proPhone=13452525623&proAddress=北京市海淀区中关村&proReceiveMan=晨晨&createDate=2017-07-13
         try {
             strUrl += "proFullName=" + URLEncoder.encode(fullName, "UTF-8");
             strUrl += "&proShortName=" + URLEncoder.encode(proShortName, "UTF-8");
@@ -495,23 +493,20 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
     }
 
     public String getHetongInfo(String pid) throws IOException, XmlPullParserException {
-        //        http://172.16.6.160:8006/
-        //        GetHeTongFileInfo
         LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
         properties.put("pid", pid);
         SoapObject req = WebserviceUtils.getRequest(properties, "GetHeTongFileInfo");
-        SoapObject res = WebserviceUtils.getSoapObjResponse(req, SoapEnvelope.VER11, WebserviceUtils.MartService,  WebserviceUtils.DEF_TIMEOUT);
-        String result = res.getPropertyAsString("GetHeTongFileInfoResult");
+        SoapObject res = WebserviceUtils.getSoapObjResponse(req, SoapEnvelope.VER11, WebserviceUtils.MartService,
+                WebserviceUtils.DEF_TIMEOUT);
+        String result = res.getPropertySafelyAsString("GetHeTongFileInfoResult");
         Log.e("zjy", "CaigouDetailActivity->getHetongInfo(): result==" + result);
         if (result.equals("anyType{}")) {
             return "";
         }
-        return res.getPropertyAsString("GetHeTongFileInfoResult");
+        return result;
     }
 
     public void getData(String corpID, String proDetialID) throws IOException, XmlPullParserException, JSONException {
-        //GetPriviteInfo
-        //        GetInvoiceCorpInfo
         LinkedHashMap<String, Object> map1 = new LinkedHashMap<>();
         map1.put("id", corpID);
         SoapObject req = WebserviceUtils.getRequest(map1, "GetInvoiceCorpInfo");
@@ -544,7 +539,6 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
     }
 
     public String getData2(String pid) throws IOException, XmlPullParserException {
-        //        GetOLDMartStockView_mx
         LinkedHashMap<String, Object> map1 = new LinkedHashMap<>();
         map1.put("pid", pid);
         SoapObject req = WebserviceUtils.getRequest(map1, "GetOLDMartStockView_mx");

@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <RelativeLayout
+<RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_height="match_parent">
         <TextView
             android:id="@+id/tv_title"
             android:layout_width="match_parent"
@@ -20,11 +15,56 @@
             android:text="跨越快递"
             android:textColor="@color/color_white"
             android:textSize="20sp"/>
+        <LinearLayout
+        android:id="@+id/yundanprint_ll_main"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/tv_title"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_height="wrap_content">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="单据号："
+            android:textSize="@dimen/def_text_size"/>
+
+        <TextView
+            android:id="@+id/yundanprint_tv_pid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/def_text_size"
+            android:textColor="@color/alertcolor_bg_whight"
+            />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="10dp"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/def_text_size"
+                android:text="付款方:"/>
+
+            <TextView
+                android:id="@+id/yundanprint_tv_payby"
+                android:layout_width="wrap_content"
+                android:textSize="@dimen/def_text_size"
+                android:layout_height="wrap_content"
+                android:textColor="@color/alertcolor_bg_whight"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_below="@id/yundanprint_ll_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/tv_title"
+            android:layout_height="wrap_content"
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             >
@@ -34,44 +74,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="单据号："
-                        android:textSize="@dimen/def_text_size"/>
-
-                    <TextView
-                        android:id="@+id/yundanprint_tv_pid"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="@dimen/def_text_size"
-                        />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_marginLeft="10dp"
-                        android:gravity="center">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="@dimen/def_text_size"
-                            android:text="付款方:"/>
-
-                        <TextView
-                            android:id="@+id/yundanprint_tv_payby"
-                            android:layout_width="wrap_content"
-                            android:textSize="@dimen/def_text_size"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/alertcolor_bg_whight"/>
-                    </LinearLayout>
-                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -89,6 +91,7 @@
                         android:layout_height="wrap_content"
                         android:focusableInTouchMode="true"
                         android:hint="寄件人"
+                        android:maxLines="1"
                         android:textColor="#000000"/>
 
                     <TextView
@@ -120,10 +123,10 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:hint="详细地址"
+                        android:maxLines="3"
                         android:textColor="#000000"/>
                 </LinearLayout>
             </LinearLayout>
-
 
             <LinearLayout
                 android:id="@+id/yundanprint_shou"
@@ -147,6 +150,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:hint="收件人"
+                        android:maxLines="1"
                         android:textColor="#000000"/>
 
                     <TextView
@@ -178,9 +182,18 @@
                         android:id="@+id/yundanprint_ed_d_address"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:maxLines="3"
                         android:hint="详细地址"
                         android:textColor="#000000"/>
                 </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/yundanprint_detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/yundanprint_shou"
+                android:orientation="vertical">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -211,7 +224,23 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"/>
                 </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/yundanprint_ll_diaohuo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="调货去向:"/>
+
+                    <Spinner
+                        android:id="@+id/yundanprint_spi_printer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
@@ -263,22 +292,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="打印机:"/>
-
-                        <Spinner
-                            android:id="@+id/yundanprint_spi_printer"
-                            android:layout_width="100dp"
-                            android:layout_height="wrap_content"/>
-                    </LinearLayout>
 
 
                     <Button
@@ -380,6 +393,7 @@
                  android:orientation="vertical">
              </LinearLayout>-->
         </RelativeLayout>
+</ScrollView>
     </RelativeLayout>
 
-</ScrollView>
+
