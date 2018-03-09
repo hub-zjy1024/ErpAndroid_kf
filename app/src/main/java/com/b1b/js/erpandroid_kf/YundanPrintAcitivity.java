@@ -26,11 +26,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -281,10 +281,9 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 }
             }
         });
-        new Thread() {
+        Runnable dhRunnable = new Runnable() {
             @Override
             public void run() {
-                super.run();
                 try {
                     String dhAddresss = getDHAddresss();
                     List<String> titles = new ArrayList<String>();
@@ -309,18 +308,18 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                             map.put("address2", obj.getString("ToAddress"));
                             addrList.add(map);
                         } else if (kfName.equals(from)) {
-                                titles.add(from + "-->" + to);
-                                HashMap<String, String> map = new HashMap<String, String>();
-                                map.put("key1", from);
-                                map.put("name1", obj.getString("FromName"));
-                                map.put("phone1", obj.getString("FromPhone"));
-                                map.put("address1", obj.getString("FromAddress"));
-                                map.put("account", obj.getString("AccountNo"));
-                                map.put("key2", to);
-                                map.put("name2", obj.getString("ToName"));
-                                map.put("phone2", obj.getString("ToPhone"));
-                                map.put("address2", obj.getString("ToAddress"));
-                                addrList.add(map);
+                            titles.add(from + "-->" + to);
+                            HashMap<String, String> map = new HashMap<String, String>();
+                            map.put("key1", from);
+                            map.put("name1", obj.getString("FromName"));
+                            map.put("phone1", obj.getString("FromPhone"));
+                            map.put("address1", obj.getString("FromAddress"));
+                            map.put("account", obj.getString("AccountNo"));
+                            map.put("key2", to);
+                            map.put("name2", obj.getString("ToName"));
+                            map.put("phone2", obj.getString("ToPhone"));
+                            map.put("address2", obj.getString("ToAddress"));
+                            addrList.add(map);
                         }
                     }
                     final ArrayAdapter adapter = new ArrayAdapter<String>(mContext, R.layout.item_province,
@@ -339,7 +338,8 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(dhRunnable);
         btnChukudan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -657,7 +657,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     private String getDHAddresss() throws IOException, XmlPullParserException {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         SoapObject req = WebserviceUtils.getRequest(map, "GetBD_DHAddress");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope.VER11, WebserviceUtils.SF_SERVER);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.SF_SERVER);
         return response.toString();
     }
     @Override
@@ -743,7 +743,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
             payType, final String serverType, final String counts,
                            final String printName) {
 
-        new Thread() {
+        Runnable orderRun = new Runnable() {
             @Override
             public void run() {
                 //                20112320120
@@ -822,7 +822,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                             showAlert("打印失败，打印出错！！");
                         }
                     } catch (IOException e) {
-                        showAlert("打印出现错误" +getString(R.string.bad_connection));
+                        showAlert("打印出现错误" + getString(R.string.bad_connection));
                         e.printStackTrace();
                     } catch (XmlPullParserException e) {
                         e.printStackTrace();
@@ -830,7 +830,8 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 }
                 mHandler.sendEmptyMessage(1);
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(orderRun);
     }
 
     public void getDetailInfo(String pid) throws IOException, XmlPullParserException, JSONException {
@@ -874,18 +875,17 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     // 顺丰
     public String insertYundanInfo(String pid, String orderID, String destcode, String objtype) throws IOException,
             XmlPullParserException {
-//        if ("101".equals(MyApp.id)) {
-//            return "成功";
-//        }
+        if ("101".equals(MyApp.id)) {
+            return "成功";
+        }
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("objname", pid);
         map.put("objvalue", orderID);
         map.put("express", destcode);
         map.put("objtype", objtype);
-        SoapObject req = WebserviceUtils.getRequest(map, "InsertBD_YunDanInfoOfType");
-        SoapObject obj = WebserviceUtils.getSoapObjResponse(req, SoapEnvelope.VER11, WebserviceUtils.SF_SERVER, WebserviceUtils
-                .DEF_TIMEOUT);
-        String result =  obj.getPropertySafelyAsString("InsertBD_YunDanInfoOfTypeResult");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(map,
+                "InsertBD_YunDanInfoOfType", WebserviceUtils.SF_SERVER);
+        String result = response.toString();
         if (result.equals("")) {
             MyApp.myLogger.writeError(YundanPrintAcitivity.class, "getProperty  null！！！" + pid + "\t" + MyApp.id);
         }

@@ -3,11 +3,13 @@ package utils;
 import android.os.Environment;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -89,6 +91,36 @@ public class LogRecoder {
 
     public synchronized boolean writeError(String logs) {
         return writeString(Type.TYPE_ERROR, logs);
+    }
+
+    public synchronized boolean writeError(Throwable e) {
+        ByteArrayOutputStream bao=new ByteArrayOutputStream();
+        PrintWriter writer=new PrintWriter(bao);
+        e.printStackTrace(writer);
+        writer.flush();
+        String error="";
+        try {
+            error = new String(bao.toByteArray(), "utf-8");
+        } catch (UnsupportedEncodingException eus) {
+            eus.printStackTrace();
+        }
+        String logs =error ;
+        return writeError("Error Exception:" + logs);
+    }
+
+    public synchronized boolean writeError(Throwable e, String msg) {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        PrintWriter writer = new PrintWriter(bao);
+        e.printStackTrace(writer);
+        writer.flush();
+        String error = "";
+        try {
+            error = new String(bao.toByteArray(), "utf-8");
+        } catch (UnsupportedEncodingException eus) {
+            eus.printStackTrace();
+        }
+        String logs = error;
+        return writeError("Error Exception:description=" +msg+" detail:"+ logs);
     }
     public synchronized boolean writeError(Class cla, String logs) {
         return writeString(Type.TYPE_INFO, cla.getSimpleName() + ":" + logs);

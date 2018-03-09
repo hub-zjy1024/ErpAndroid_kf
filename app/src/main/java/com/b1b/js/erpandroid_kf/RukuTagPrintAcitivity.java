@@ -21,11 +21,11 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.adapter.XiaopiaoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -63,27 +63,33 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
                     break;
                 case 3:
                     if (cboAuto.isChecked()) {
-                        for (int i = 0; i < infos.size(); i++) {
-                            XiaopiaoInfo tInfo = infos.get(i);
-                            PrinterStyle.printXiaopiao2(printer2, tInfo);
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
+                        Runnable printRun = new Runnable() {
+                            @Override
+                            public void run() {
+                                for (int i = 0; i < infos.size(); i++) {
+                                    XiaopiaoInfo tInfo = infos.get(i);
+                                    PrinterStyle.printXiaopiao2(printer2, tInfo);
+                                    try {
+                                        Thread.sleep(1000);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
                             }
-                        }
+                        };
+                        TaskManager.getInstance().execute(printRun);
                     }
                     xpAdapter.notifyDataSetChanged();
                     break;
                 case SPrinter.STATE_OPENED:
                     if (!btAddress.equals("")) {
-                        new Thread() {
+                        Runnable connectRun = new Runnable() {
                             @Override
                             public void run() {
-                                super.run();
                                 printer2.connect(btAddress);
                             }
-                        }.start();
+                        };
+                        TaskManager.getInstance().execute(connectRun);
                     }
                     break;
             }
@@ -232,7 +238,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
                 //                }
                 //            });
         printer2 = new SPrinter(mHandler, mContext, null);
-        new Thread() {
+        Runnable connetRunnable = new Runnable() {
             @Override
             public void run() {
                 printer2.open();
@@ -243,7 +249,8 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
                     printer2.connect(btAddress);
                 }
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(connetRunnable);
         if (btAddress.equals("")) {
             DialogUtils.getSpAlert(mContext, "暂无连接打印机记录，是否前往配置", "提示", new DialogInterface.OnClickListener() {
                 @Override
@@ -274,10 +281,9 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
     }
 
     private void getData(final String pid) {
-        new Thread() {
+        Runnable dataRunnable =new Runnable() {
             @Override
             public void run() {
-                super.run();
                 try {
                     String detailInfo = getDetailInfoByDetailId(pid);
                     Log.e("zjy", "RukuTagPrintAcitivity->run(): detailInfo==" + detailInfo);
@@ -332,7 +338,8 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
                     e.printStackTrace();
                 }
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(dataRunnable);
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -363,7 +370,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("pid", pid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetInstorectInfo");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11,
+        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(request,
                 WebserviceUtils.ChuKuServer);
         return res.toString();
     }
@@ -371,7 +378,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("mxid", pid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetInstorectInfoByMXID");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11,
+        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(request,
                 WebserviceUtils.ChuKuServer);
         return res.toString();
     }

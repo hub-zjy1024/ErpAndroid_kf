@@ -19,14 +19,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
+import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.w3c.dom.Document;
@@ -81,6 +82,9 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
     private final int NEWWORK_ERROR = 2;
     private final int FTPCONNECTION_ERROR = 5;
     private String versionName="1";
+    private String tempPassword = "62105300";
+    private int time = 0;
+    TaskManager taskManger = TaskManager.getInstance(5, 9);
     private AlertDialog permissionDialog;
     private Handler zHandler = new Handler() {
         @Override
@@ -224,6 +228,18 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         edUserName = (EditText) findViewById(R.id.login_username);
+        ImageView ivDebug = (ImageView) findViewById(R.id.main_debug);
+        ivDebug.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (time == 5) {
+                    MyToast.showToast(MainActivity.this, "进入debug模式");
+                    tempPassword = "621053000";
+                    return;
+                }
+                time++;
+            }
+        });
         edPwd = (EditText) findViewById(R.id.login_pwd);
         btnLogin = (Button) findViewById(R.id.login_btnlogin);
         btnScancode = (Button) findViewById(R.id.login_scancode);
@@ -274,7 +290,7 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
                 if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590") || phoneCode.endsWith
                         ("864394010742122") || phoneCode.endsWith("A0000043F41515")|| phoneCode.endsWith("86511114021521")
                         || phoneCode.endsWith("866462026203849")|| phoneCode.endsWith("869552022575930")) {
-                    login("101", "62105300");
+                    login("101", tempPassword);
 //                    login("2984", "000000");
                 }
             }
@@ -282,8 +298,6 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
         btnScancode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
-//                startActivityForResult(intent, 200);
                 startScanActivity();
             }
         });
@@ -381,7 +395,7 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
         downPd.setMax(100);
         downPd.setMessage("下载中");
         downPd.setProgress(0);
-        new Thread() {
+        Runnable updateRun=new Runnable() {
             @Override
             public void run() {
                 boolean ifUpdate = false;
@@ -483,7 +497,8 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
                         }
                     }
             }
-        }.start();
+        };
+        taskManger.execute(updateRun);
     }
 
     private void getUserInfoDetail(final String uid) {
@@ -524,7 +539,7 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
         map.put("checker", "1");
         map.put("uid", uid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetUserInfoByUID");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.Login);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.Login);
         Log.e("zjy", "MainActivity.java->run(): info==" + MyApp.id + "\t" + response.toString());
         JSONObject object = new JSONObject(response.toString());
         JSONArray jarr = object.getJSONArray("表");
@@ -565,7 +580,7 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
      @param code onActivtyResult()回调的data
      */
     private void readCode(final String code) {
-        new Thread() {
+        Runnable codeLogin = new Runnable() {
             @Override
             public void run() {
                 if (code != null) {
@@ -574,8 +589,10 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
                     map.put("code", code);
                     SoapObject object = WebserviceUtils.getRequest(map, "BarCodeLogin");
                     try {
-                        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(object, SoapEnvelope.VER11,
+                        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(object,
                                 WebserviceUtils.MartService);
+//                        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse( "BarCodeLogin",map,WebserviceUtils
+//                                .MartService);
                         Message msg = zHandler.obtainMessage(SCANCODE_LOGIN_SUCCESS);
                         msg.obj = response.toString();
                         zHandler.sendMessage(msg);
@@ -588,7 +605,8 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
                     }
                 }
             }
-        }.start();
+        };
+        taskManger.execute(codeLogin);
     }
 
     private void readCache() {
@@ -615,7 +633,7 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
             }
         });
         pd.show();
-        new Thread() {
+        Runnable normalLoginRun = new Runnable() {
             @Override
             public void run() {
                 LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
@@ -629,7 +647,7 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
                     map.put("version", version);
                     SoapPrimitive result = null;
                     SoapObject loginReq = WebserviceUtils.getRequest(map, "AndroidLogin");
-                    result = WebserviceUtils.getSoapPrimitiveResponse(loginReq, SoapEnvelope.VER11, WebserviceUtils.MartService);
+                    result = WebserviceUtils.getSoapPrimitiveResponse(loginReq, WebserviceUtils.MartService);
                     String[] resArray = result.toString().split("-");
                     if (resArray[0].equals("SUCCESS")) {
                         Message msg1 = zHandler.obtainMessage();
@@ -652,7 +670,8 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
                     e.printStackTrace();
                 }
             }
-        }.start();
+        };
+        taskManger.execute(normalLoginRun);
     }
 
 

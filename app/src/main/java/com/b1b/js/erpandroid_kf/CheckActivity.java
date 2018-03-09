@@ -18,9 +18,9 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
+import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONException;
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -155,7 +155,7 @@ public class CheckActivity extends BaseScanActivity implements View.OnClickListe
     public void getData(final int typeId, final String pid, final String partNo,  boolean auto) {
         final boolean tempAuto =  Boolean.valueOf(auto);
 
-        new Thread() {
+        Runnable searchThread = new Runnable() {
             @Override
             public void run() {
                 try {
@@ -191,7 +191,8 @@ public class CheckActivity extends BaseScanActivity implements View.OnClickListe
                     e.printStackTrace();
                 }
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(searchThread);
     }
 
     private String getChuKuCheckInfoByTypeID(int typeId, String pid, String partNo,String uid) throws IOException, XmlPullParserException {
@@ -202,7 +203,7 @@ public class CheckActivity extends BaseScanActivity implements View.OnClickListe
         properties.put("partNo", partNo);
         properties.put("uid", uid);
         SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuCheckInfoByTypeID");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
         return response.toString();
     }
 

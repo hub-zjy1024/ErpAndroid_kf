@@ -67,13 +67,11 @@ public class ListImageDirPopupWindow extends BasePopupWindowForListView<ImageFlo
 
     @Override
     public void init() {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     protected void beforeInitWeNeedSomeParams(Object... params) {
-        // TODO Auto-generated method stub
     }
 
 }

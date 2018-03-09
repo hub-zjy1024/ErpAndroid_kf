@@ -7,8 +7,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -16,7 +14,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.MyApp;
@@ -24,24 +21,19 @@ import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
 import com.b1b.js.erpandroid_kf.YundanPrintAcitivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.task.WebCallback;
 import com.b1b.js.erpandroid_kf.task.WebServicesTask;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
-import org.ksoap2.serialization.SoapSerializationEnvelope;
-import org.ksoap2.transport.HttpTransportSE;
-import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.RejectedExecutionException;
 
 import printer.adapter.SFYundanAdapter;
 import printer.entity.Yundan;
@@ -57,28 +49,6 @@ public class SFActivity extends ScanBaseActivity {
     private SFYundanAdapter adapter;
     List<WebServicesTask> tasks = new LinkedList<>();
 
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case 0:
-                    adapter.notifyDataSetChanged();
-                    break;
-                case 1:
-                    Toast.makeText(SFActivity.this, "查询不到数据，请更换查询条件", Toast
-                            .LENGTH_SHORT).show();
-                    break;
-                case 2:
-                    Toast.makeText(SFActivity.this, "连接服务器失败", Toast
-                            .LENGTH_SHORT).show();
-                    break;
-                case 3:
-                    break;
-
-            }
-        }
-    };
 
     private String prefExpress = "";
     private CheckBox changeExpress;
@@ -332,27 +302,13 @@ public class SFActivity extends ScanBaseActivity {
 
             }
         }, map);
-        t.execute("GetYunDanList", WebserviceUtils.SF_SERVER);
+        try {
+            t.executeOnExecutor(TaskManager.getInstance().getExecutor(), "GetYunDanList", WebserviceUtils.SF_SERVER);
+        } catch (RejectedExecutionException e) {
+            e.printStackTrace();
+            MyToast.showToast(SFActivity.this, "查询太过频繁，请稍后再试。。");
+        }
         tasks.add(t);
-//        new Thread() {
-//            @Override
-//            public void run() {
-//                try {
-//                    String parno = edPartNo.getText().toString();
-//                    String pid = edPid.getText().toString();
-//                    //                    pid = "1154510";
-//                    getYundanList(pid, parno);
-//                } catch (IOException e) {
-//                    mHandler.sendEmptyMessage(2);
-//                    e.printStackTrace();
-//                } catch (XmlPullParserException e) {
-//                    e.printStackTrace();
-//                } catch (JSONException e) {
-//                    mHandler.sendEmptyMessage(1);
-//                    e.printStackTrace();
-//                }
-//            }
-//        }.start();
     }
 
     @Override
@@ -375,6 +331,7 @@ public class SFActivity extends ScanBaseActivity {
             } else {
                 break;
             }
+            webServicesTask.cancel(true);
         }
     }
 
@@ -387,65 +344,5 @@ public class SFActivity extends ScanBaseActivity {
             yundanData.clear();
             getYundanResult();
         }
-    }
-
-    private void getYundanList(String pid, String xh) throws IOException,
-            XmlPullParserException, JSONException {
-        SoapObject requestList = new SoapObject("http://tempuri.org/", "GetYunDanList");
-        requestList.addProperty("pid", pid);
-        requestList.addProperty("xh", xh);
-        /*设置版本号，ver11，和ver12比较常见*/
-        SoapSerializationEnvelope envelopeList = new SoapSerializationEnvelope
-                (SoapEnvelope.VER11);
-        envelopeList.setOutputSoapObject(requestList);
-        envelopeList.dotNet = true;
-        HttpTransportSE transList = new HttpTransportSE("http://172.16.6" +
-                ".160:8006/SF_Server.svc?wsdl", 15 * 1000);
-        String actionLIst = "http://tempuri.org/ISF_Server/GetYunDanList";
-        transList.call(actionLIst, envelopeList);
-        SoapPrimitive soapList = (SoapPrimitive) envelopeList.getResponse();
-        Log.e("zjy", "SFActivity->run(): yundanInfoList==" + soapList
-                .toString());
-        JSONObject object = new JSONObject(soapList.toString());
-        ArrayList<String> list = new ArrayList<>();
-        JSONArray jArray = object.getJSONArray("表");
-        for (int i = 0; i < jArray.length(); i++) {
-            JSONObject obj = jArray.getJSONObject(i);
-            String sPid = obj.getString("PID");
-            String createDate = obj.getString("制单日期");
-            String state = obj.getString("状态");
-            String deptID = obj.getString("部门ID");
-            String saleMan = obj.getString("业务员");
-            String storageName = obj.getString("仓库");
-            String client = obj.getString("客户");
-            String backOrderID = obj.getString("回执单号");
-            String print = obj.getString("打印次数");
-            String shouHuiDan = obj.getString("收回单");
-            String partNo = obj.getString("型号");
-            String count = obj.getString("数量");
-            String pihao = obj.getString("批号");
-            String type = obj.getString("单据类型");
-            Yundan yundan = new Yundan();
-            yundan.setType(type);
-            yundan.setPid(sPid);
-            yundan.setCreateDate(createDate);
-            yundan.setState(state);
-            yundan.setDeptID(deptID);
-            yundan.setSaleMan(saleMan);
-            yundan.setStorageName(storageName);
-            yundan.setCustomer(client);
-            yundan.setRecieveBackNo(backOrderID);
-            yundan.setPrint(print);
-            yundan.setShouHuiDan(shouHuiDan);
-            yundan.setPartNo(partNo);
-            yundan.setCounts(count);
-            yundan.setPihao(pihao);
-            yundanData.add(yundan);
-        }
-        mHandler.sendEmptyMessage(0);
-    }
-
-    public String getData() {
-        return null;
     }
 }

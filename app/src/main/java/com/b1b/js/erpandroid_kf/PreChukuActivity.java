@@ -23,8 +23,8 @@ import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -135,10 +135,12 @@ public class PreChukuActivity extends ScanBaseActivity implements View.OnClickLi
         map.put("pid", pid);
         map.put("uid", uid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintViewList");
-//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
-        SoapObject reObj = WebserviceUtils.getSoapObjResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer,
-                WebserviceUtils.DEF_TIMEOUT);
-        String result = reObj.getPropertySafelyAsString("GetOutStorageNotifyPrintViewListResult");
+//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
+//        SoapObject reObj = WebserviceUtils.getSoapObjResponse(request, WebserviceUtils.ChuKuServer,
+//                WebserviceUtils.DEF_TIMEOUT);
+//        String result = reObj.getPropertySafelyAsString("GetOutStorageNotifyPrintViewListResult");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
+        String result = response.toString();
         if (result.equals("")) {
             MyApp.myLogger.writeError(PreChukuActivity.class, "getProperty  null！！！" + pid + "\t" + uid);
         }

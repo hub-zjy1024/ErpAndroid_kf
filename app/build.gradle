@@ -14,8 +14,11 @@ android {
         applicationId "com.b1b.js.erpandroid_kf"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 42
-        versionName "4.9"
+        versionCode 44
+        versionName "5.1"
+//        ndk {
+//            abiFilters "armeabi", "armeabi-v7a"
+//        }
     }
     /*buildTypes {
         release {
@@ -29,23 +32,24 @@ android {
             proguardFiles 'proguard-rules.txt'
         }
     }
+    buildToolsVersion '27.0.3'
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile files('libs/ksoap2-android-assembly-2.6.0-jar-with-dependencies.jar')
-    compile files('libs/commons-net-3.6.jar')
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.android.support:design:25.0.1'
-    compile 'com.android.support:support-v4:24.2.1'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.rengwuxian.materialedittext:library:2.1.4'
-    compile 'me.drakeet.materialdialog:library:1.3.1'
-    compile 'com.joanzapata.pdfview:android-pdfview:1.0.4@aar'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    testCompile 'junit:junit:4.12'
+    implementation files('libs/ksoap2-android-assembly-2.6.0-jar-with-dependencies.jar')
+    implementation files('libs/commons-net-3.6.jar')
+    implementation 'com.android.support:appcompat-v7:24.2.1'
+    implementation 'com.android.support:design:25.0.1'
+    implementation 'com.android.support:support-v4:24.2.1'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.rengwuxian.materialedittext:library:2.1.4'
+    implementation 'me.drakeet.materialdialog:library:1.3.1'
+    implementation 'com.joanzapata.pdfview:android-pdfview:1.0.4@aar'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    testImplementation 'junit:junit:4.12'
     implementation project(':redlinescan')
 }

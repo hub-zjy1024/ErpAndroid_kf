@@ -22,7 +22,6 @@ import android.widget.GridView;
 import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
 
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -233,7 +232,7 @@ public class ObtainPicPanku extends AppCompatActivity implements View.OnClickLis
         map.put("filepath", filePath);
         map.put("stypeID", stypeID);//标记，固定为"CKTZ"
         SoapObject request = WebserviceUtils.getRequest(map, "SetInsertPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
                 .ChuKuServer);
         str = response.toString();
         Log.e("zjy", "PankuObtain.java->setInsertPicInfo(): insertRes==" + str);

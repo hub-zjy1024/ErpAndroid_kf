@@ -2,6 +2,7 @@ package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,20 +18,16 @@ import com.b1b.js.erpandroid_kf.adapter.ViewPicAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
 
-import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -57,7 +54,7 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
     int downCounts = 0;
     private AlertDialog alertDialog;
     private String downloadResult = "";
-
+    private Context mContext=ViewPicByPidActivity.this;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -79,15 +76,15 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
                     break;
                 case 1:
                     dismissDialog();
-                    MyToast.showToast(ViewPicByPidActivity.this, "当前单据没有对应的图片");
+                    MyToast.showToast(mContext, "当前单据没有对应的图片");
                     break;
                 case 2:
                     dismissDialog();
-                    MyToast.showToast(ViewPicByPidActivity.this, "当前网络质量较差，请重试");
+                    MyToast.showToast(mContext, "当前网络质量较差，请重试");
                     break;
                 case 3:
                     dismissDialog();
-                    MyToast.showToast(ViewPicByPidActivity.this, "图片上传地址不在本地服务器，无法访问");
+                    MyToast.showToast(mContext, "图片上传地址不在本地服务器，无法访问");
                     break;
                 case 4:
                     int totalSize = msg.arg1;
@@ -96,7 +93,7 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
                     break;
                 case 5:
                     dismissDialog();
-                    MyToast.showToast(ViewPicByPidActivity.this, "图片上传地址不在本地服务器，无法访问");
+                    MyToast.showToast(mContext, "图片上传地址不在本地服务器，无法访问");
                     break;
             }
         }
@@ -124,9 +121,9 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
             }
         });
         imgsData = new ArrayList<>();
-        adapter = new ViewPicAdapter(imgsData, ViewPicByPidActivity.this, R.layout.item_viewpicbypid);
+        adapter = new ViewPicAdapter(imgsData, mContext, R.layout.item_viewpicbypid);
         gv.setAdapter(adapter);
-        pd = new ProgressDialog(ViewPicByPidActivity.this);
+        pd = new ProgressDialog(mContext);
         pd.setCancelable(false);
         btnSearch.setOnClickListener(new View.OnClickListener() {
                                          @Override
@@ -134,17 +131,17 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
                                              final String pid = edPid.getText().toString().trim();
                                              imgsData.clear();
                                              if (pid.equals("")) {
-                                                 MyToast.showToast(ViewPicByPidActivity.this, "请输入单据号");
+                                                 MyToast.showToast(mContext, "请输入单据号");
                                                  return;
                                              }
                                              adapter.notifyDataSetChanged();
                                              File imgFile = MyFileUtils.getFileParent();
                                              if (imgFile == null) {
-                                                 MyToast.showToast(ViewPicByPidActivity.this, "当前无可用的存储设备");
+                                                 MyToast.showToast(mContext, "当前无可用的存储设备");
                                                  return;
                                              }
                                              final File file = new File(imgFile, "dyj_img/");
-                                             MyFileUtils.checkImgFileSize(file, 100, ViewPicByPidActivity.this);
+                                             MyFileUtils.checkImgFileSize(file, 100, mContext);
                                              startSearch(pid);
                                          }
                                      }
@@ -154,7 +151,7 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 FTPImgInfo item = (FTPImgInfo) parent.getItemAtPosition(position);
                 if (item != null) {
-                    Intent mIntent = new Intent(ViewPicByPidActivity.this, PicDetailActivity.class);
+                    Intent mIntent = new Intent(mContext, PicDetailActivity.class);
                     mIntent.putExtra("path", item.getImgPath());
                     ArrayList<String> paths = new ArrayList<>();
                     for (int i = 0; i < imgsData.size(); i++) {
@@ -192,11 +189,11 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
             edPid.setText(pid);
             File imgFile = MyFileUtils.getFileParent();
             if (imgFile == null) {
-                MyToast.showToast(ViewPicByPidActivity.this, "当前无可用的存储设备");
+                MyToast.showToast(mContext, "当前无可用的存储设备");
                 return;
             }
             if (pid.equals("")) {
-                MyToast.showToast(ViewPicByPidActivity.this, "请输入单据号");
+                MyToast.showToast(mContext, "请输入单据号");
                 return;
             }
             startSearch(pid);
@@ -307,39 +304,6 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
         }.start();
     }
 
-    private void downLoadPic(FTPClient client, String remoteAbsolutePath, String imgFtp, FTPImgInfo fii, File file,
-                             List<FTPImgInfo> list) throws IOException {
-        if (!client.isConnected()) {
-            client.connect(imgFtp, 21);
-            if (imgFtp.equals(FtpManager.mainAddress)) {
-                client.login(FtpManager.mainName, FtpManager.mainPwd);
-            } else {
-                client.login(FtpManager.ftpName, FtpManager.ftpPassword);
-            }
-            client.setFileType(FTP.BINARY_FILE_TYPE);
-            client.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
-            client.enterLocalPassiveMode();
-        }
-        //retrieveFile可以不用changeWorkDirectory，但是remoteName为文件的完整路径，例如："/dir/name.txt"
-        InputStream inputStream = client.retrieveFileStream(remoteAbsolutePath);
-        if (inputStream != null) {
-            FileOutputStream fio = new FileOutputStream(file);
-            byte[] buf = new byte[8*1024];
-            int len;
-            while ((len = inputStream.read(buf)) != -1) {
-                fio.write(buf, 0, len);
-            }
-            inputStream.close();
-            fio.flush();
-            fio.close();
-            //retrieveFileStream之后需要调用才能进行下一次下载
-            client.completePendingCommand();
-            fii.setImgPath(file.getAbsolutePath());
-            list.add(fii);
-            downCounts++;
-        }
-    }
-
     public void showProgressDialog() {
         pd.setMessage("正在查询中");
         if (pd != null && !pd.isShowing()) {
@@ -355,7 +319,7 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
         map.put("checkWord", checkWord);
         map.put("ID", pid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetBILL_PictureRelatenfoByID");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
                 .ChuKuServer);
         return response.toString();
     }

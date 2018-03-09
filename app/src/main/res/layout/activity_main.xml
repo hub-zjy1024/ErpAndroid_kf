@@ -11,6 +11,7 @@
     tools:context="com.b1b.js.erpandroid_kf.MainActivity">
 
     <ImageView
+        android:id="@+id/main_debug"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"

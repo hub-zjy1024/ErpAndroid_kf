@@ -25,7 +25,6 @@ import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -206,7 +205,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                     LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
                     map.put("ip", result);
                     SoapObject object1 = WebserviceUtils.getRequest(map, "GetChildStorageIDByIP");
-                    SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(object1, SoapEnvelope.VER11, WebserviceUtils
+                    SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(object1, WebserviceUtils
                             .MartService);
                     Log.e("zjy", "PreChukuDetailActivity->run(): res==" + res1);
                     localKuqu = res1.toString();
@@ -365,9 +364,8 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         map.put("pid", pid);
         map.put("uid", uid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintView");
-        SoapObject response = WebserviceUtils.getSoapObjResponse(request, SoapEnvelope.VER11, WebserviceUtils
-                .ChuKuServer, 30 * 1000);
-        String result = response.getPropertySafelyAsString("GetOutStorageNotifyPrintViewResult");
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
+        String result = response.toString();
         if (result.equals("")) {
             MyApp.myLogger.writeError(PreChukuDetailActivity.class, "getProperty  null！！！" + pid + "\t" + uid);
         }
@@ -420,7 +418,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("pid", pid);
         SoapObject request = WebserviceUtils.getRequest(map, "UpdatePrintCKTZCount");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
                 .ChuKuServer);
         Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + response);
         return response.toString();
@@ -443,7 +441,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         map.put("", "");
         map.put("", "");
         SoapObject req = WebserviceUtils.getRequest(map, "GetOutStoragePrintViewPriviceInfo");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
         return null;
     }
 

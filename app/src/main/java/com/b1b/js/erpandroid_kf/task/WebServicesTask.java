@@ -3,7 +3,6 @@ package com.b1b.js.erpandroid_kf.task;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -33,7 +32,7 @@ public class WebServicesTask<T> extends AsyncTask<String, Void, T> {
         try {
             Log.e("zjy", "WebServicesTask->doInBackground(): thread==" + Thread.currentThread().getName());
             SoapObject request = WebserviceUtils.getRequest(map, method);
-            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, serviceName);
+            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, serviceName);
             return (T)response.toString();
         } catch (IOException e) {
             tempEx = e;

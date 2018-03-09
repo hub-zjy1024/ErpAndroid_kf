@@ -13,7 +13,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -32,6 +31,7 @@ public class YanhuoCheckActivity extends AppCompatActivity {
     private Handler mHandler = new Handler();
     private ProgressDialog pd;
     private TextView tvPid;
+    private String userID = MyApp.id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,22 +48,21 @@ public class YanhuoCheckActivity extends AppCompatActivity {
         btnOk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MyApp.id == null) {
+                if (userID == null) {
                     MyToast.showToast(YanhuoCheckActivity.this, "登陆人为空，请重启");
                     return;
                 }
-                String content = getYanhuoStr(MyApp.id, "同意");
+                String content = getYanhuoStr(userID, "同意");
                 Log.e("zjy", "YanhuoCheckActivity->onClick(): tv.Txt==" + tvPid.getText
                         ().toString());
                 yanhuo(tvPid.getText().toString(), "等待入库", content);
             }
         });
         SoftKeyboardUtils.closeInputMethod(edNote, this);
-//        btnOk.requestFocus();
         btnFail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MyApp.id == null) {
+                if (userID == null) {
                     MyToast.showToast(YanhuoCheckActivity.this, "登陆人为空，请重启");
                     return;
                 }
@@ -73,7 +72,7 @@ public class YanhuoCheckActivity extends AppCompatActivity {
                     MyToast.showToast(YanhuoCheckActivity.this, "请输入不通过理由");
                     return;
                 }
-                String content = getYanhuoStr(MyApp.id, note);
+                String content = getYanhuoStr(userID, note);
                 yanhuo(tvPid.getText().toString(), "未能入库", content);
             }
         });
@@ -140,8 +139,7 @@ public class YanhuoCheckActivity extends AppCompatActivity {
                 Log.e("zjy", "YanhuoCheckActivity->run(): checkNote==" + note);
                 SoapObject req = WebserviceUtils.getRequest(map, "UpdateSSCSState");
                 try {
-                    SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req,
-                            SoapEnvelope.VER11, WebserviceUtils.MartService);
+                    SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.MartService);
                     Log.e("zjy", "YanhuoCheckActivity->run(): reuslt==" + res.toString());
                     String result = res.toString();
                     if (result.equals("成功")) {

@@ -19,7 +19,6 @@ import android.util.Log;
 import com.b1b.js.erpandroid_kf.KucunFBActivity;
 import com.b1b.js.erpandroid_kf.R;
 
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -73,8 +72,7 @@ public class PushService extends Service {
                         if ((hours == 10 && minute < 10) || (hours == 15 && minute < 10)) {
                             SoapObject request2 = WebserviceUtils.getRequest(null, "GetInseorageBalanceInfoToCount");
                             try {
-                                SoapPrimitive response2 = WebserviceUtils.getSoapPrimitiveResponse(request2, SoapEnvelope
-                                                .VER11,
+                                SoapPrimitive response2 = WebserviceUtils.getSoapPrimitiveResponse(request2,
                                         WebserviceUtils.MartService);
                                 Log.e("zjy", "PushService->run(): GetInseorange==" + response2.toString());
                                 sp.edit().putString("content", response2.toString()).commit();

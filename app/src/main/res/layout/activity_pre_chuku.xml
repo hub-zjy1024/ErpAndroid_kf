@@ -108,6 +108,7 @@
         android:id="@+id/prechuku_lv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:padding="@dimen/padding_lv_def"
         android:divider="#bcbcbc"
         android:dividerHeight="2dp"
         />

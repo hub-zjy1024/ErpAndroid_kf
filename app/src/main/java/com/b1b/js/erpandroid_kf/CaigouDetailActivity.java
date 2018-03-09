@@ -15,13 +15,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.joanzapata.pdfview.PDFView;
 import com.joanzapata.pdfview.listener.OnPageChangeListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -170,22 +170,12 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         final String proID = intent.getStringExtra("providerID");
         final String pid = intent.getStringExtra("pid");
         tvPid.setText(pid);
-        String dataPath = Environment.getDataDirectory().getAbsolutePath();
-        File file = Environment.getDataDirectory();
-        File[] files = file.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                Log.e("zjy", "CaigouDetailActivity->onCreate(): f.name==" + f.getAbsolutePath());
-
-            }
-        }
-        Log.e("zjy", "CaigouDetailActivity->onCreate(): data==" + dataPath);
         btnTakepic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(CaigouDetailActivity.this);
                 builder.setTitle("上传方式选择");
-                builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface.OnClickListener() {
+                builder.setItems(getResources().getStringArray(R.array.upload_type), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
@@ -296,7 +286,9 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
 //                String name = pid + "_" + (int) (Math.random() * 1000) + ".pdf";
                 String name = pid  + ".pdf";
                 final File file = new File(dir, "dyj_ht/" + name);
-                final String[] files = file.list();
+                if (!file.exists()) {
+                    file.getParentFile().mkdirs();
+                }
                 final File[] listFiles = file.getParentFile().listFiles();
                 if (listFiles.length > 300) {
                     AlertDialog alertDilog = (AlertDialog) DialogUtils.getSpAlert(CaigouDetailActivity.this,
@@ -348,46 +340,41 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                             } catch (XmlPullParserException e) {
                                 e.printStackTrace();
                             }
-                            if (result != null) {
-                                if (!result.equals("")) {
-                                    if (result.contains("ftp")) {
-                                        FTPUtils ftpUtil = new FTPUtils( CaigoudanTakePicActivity.ftpAddress, 21,
-                                                CaigoudanTakePicActivity.username, CaigoudanTakePicActivity.password);
-                                        try {
-                                            ftpUtil.login();
-                                            for (int i = 0; true; i++) {
-                                                int index = result.indexOf("/") + 1;
-                                                result = result.substring(index);
-                                                Log.e("zjy", "CaigouDetailActivity->run(): result==" + result);
-                                                if (i == 2) {
-                                                    break;
-                                                }
-                                            }
-                                            String remotePath = "/" + result;
-
-                                            File parentFile = file.getParentFile();
-                                            if (!parentFile.exists()) {
-                                                parentFile.mkdirs();
-                                            }
-                                            FileOutputStream fio = new FileOutputStream
-                                                    (file);
-                                            ftpUtil.download(fio, remotePath);
-                                            filePath = file.getAbsolutePath();
-                                            fio.close();
-                                            mHandler.obtainMessage(5, file.getAbsolutePath()).sendToTarget();
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                            mHandler.sendEmptyMessage(10);
-                                        }
-                                    } else {
-                                        mHandler.sendEmptyMessage(8);
-                                    }
-
-                                } else {
-                                    mHandler.sendEmptyMessage(8);
-                                }
-                            } else {
+                            if (result == null) {
                                 mHandler.sendEmptyMessage(9);
+                            } else if (result.equals("")) {
+                                mHandler.sendEmptyMessage(8);
+                            } else if (result.contains("ftp")) {
+                                FTPUtils ftpUtil = new FTPUtils(CaigouActivity.ftpAddress, CaigouActivity.username,
+                                        CaigouActivity.password);
+                                try {
+                                    ftpUtil.login();
+                                    for (int i = 0; true; i++) {
+                                        int index = result.indexOf("/") + 1;
+                                        result = result.substring(index);
+                                        Log.e("zjy", "CaigouDetailActivity->run(): result==" + result);
+                                        if (i == 2) {
+                                            break;
+                                        }
+                                    }
+                                    String remotePath = "/" + result;
+
+                                    File parentFile = file.getParentFile();
+                                    if (!parentFile.exists()) {
+                                        parentFile.mkdirs();
+                                    }
+                                    FileOutputStream fio = new FileOutputStream
+                                            (file);
+                                    ftpUtil.download(fio, remotePath);
+                                    filePath = file.getAbsolutePath();
+                                    fio.close();
+                                    mHandler.obtainMessage(5, file.getAbsolutePath()).sendToTarget();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    mHandler.sendEmptyMessage(10);
+                                }
+                            } else{
+                                mHandler.sendEmptyMessage(8);
                             }
                         }
                     }.start();
@@ -396,12 +383,9 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         });
         String createDate = intent.getStringExtra("date");
         date = createDate.split(" ")[0];
-        Log.e("zjy", "CaigouDetailActivity->onCreate(): date==" + date);
-
-        new Thread() {
+        Runnable getFileRun = new Runnable() {
             @Override
             public void run() {
-                super.run();
                 String result = null;
                 try {
                     result = getHetongInfo(pid);
@@ -441,9 +425,8 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                     e.printStackTrace();
                 }
             }
-        }.start();
-
-
+        };
+        TaskManager.getInstance().execute(getFileRun);
     }
 
     private void javaHttp(String pid, String corpID) {
@@ -496,9 +479,8 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
         properties.put("pid", pid);
         SoapObject req = WebserviceUtils.getRequest(properties, "GetHeTongFileInfo");
-        SoapObject res = WebserviceUtils.getSoapObjResponse(req, SoapEnvelope.VER11, WebserviceUtils.MartService,
-                WebserviceUtils.DEF_TIMEOUT);
-        String result = res.getPropertySafelyAsString("GetHeTongFileInfoResult");
+        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.MartService);
+        String result = res.toString();
         Log.e("zjy", "CaigouDetailActivity->getHetongInfo(): result==" + result);
         if (result.equals("anyType{}")) {
             return "";
@@ -510,7 +492,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         LinkedHashMap<String, Object> map1 = new LinkedHashMap<>();
         map1.put("id", corpID);
         SoapObject req = WebserviceUtils.getRequest(map1, "GetInvoiceCorpInfo");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope.VER11, WebserviceUtils.MartService);
+        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req,  WebserviceUtils.MartService);
         JSONObject obj = new JSONObject(res.toString());
         JSONArray table = obj.getJSONArray("表");
         for (int i = 0; i < table.length(); i++) {
@@ -522,7 +504,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         Log.e("zjy", "CaigouDetailActivity->getData(): invoice==" + res.toString());
         map1.put("id", proDetialID);
         SoapObject req1 = WebserviceUtils.getRequest(map1, "GetPriviteInfo");
-        SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(req1, SoapEnvelope.VER11, WebserviceUtils.MartService);
+        SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(req1,  WebserviceUtils.MartService);
         try {
             JSONObject root = new JSONObject(res1.toString());
             JSONArray providerArray = root.getJSONArray("表");
@@ -542,7 +524,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         LinkedHashMap<String, Object> map1 = new LinkedHashMap<>();
         map1.put("pid", pid);
         SoapObject req = WebserviceUtils.getRequest(map1, "GetOLDMartStockView_mx");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope.VER11, WebserviceUtils.MartService);
+        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req,  WebserviceUtils.MartService);
         Log.e("zjy", "CaigouDetailActivity->getData(): caigouDetial==" + res.toString());
         return res.toString();
     }

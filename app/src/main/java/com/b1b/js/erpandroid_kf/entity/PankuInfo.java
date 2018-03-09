@@ -52,18 +52,26 @@ public class PankuInfo {
     @Override
     public String toString() {
         return
-                " 单据号=" + pid + "\n" +
-                " 明细id=" + detailId + "\n" +
+                " 单据号=" + pid + "\t\t"+"明细id=" + detailId + "\n" +
                 " 型号=" + partNo + "\n" +
-                " 剩余数量=" + leftCounts + "\n" +
-                " 厂家=" + factory + "\n" +
-                " 描述=" + description + "\n" +
-                " 封装=" + fengzhuang + "\n" +
+                " 剩余数量=" + leftCounts + "\t\t"+" 厂家=" + factory + "\n" +
+                " 描述=" + description + "\t\t" +" 封装=" + fengzhuang + "\n" +
                 " 批号=" + pihao + "\n" +
                 " 放置位置=" + placeId + "\n" +
-                " 入库时间=" + rukuDate + "\n" +
-                " 仓库名=" + storageName + "\n" +
                 " PankuFlag=" + hasFlag;
+    }
+
+    public String toStringDetail() {
+        return
+                " 单据号=" + pid + "\t\t"+"明细id=" + detailId + "\n" +
+                        " 型号=" + partNo + "\n" +
+                        " 剩余数量=" + leftCounts + "\t\t"+" 厂家=" + factory + "\n" +
+                        " 描述=" + description + "\t\t" +" 封装=" + fengzhuang + "\n" +
+                        " 批号=" + pihao + "\n" +
+                        " 放置位置=" + placeId + "\n" +
+                        " 入库时间=" + rukuDate + "\n" +
+                        " 仓库名=" + storageName + "\n" +
+                        " PankuFlag=" + hasFlag;
     }
 
     public PankuInfo(String pid, String detailId, String partNo, String leftCounts, String factory, String description, String fengzhuang, String pihao, String placeId, String rukuDate, String storageName, String hasFlag) {

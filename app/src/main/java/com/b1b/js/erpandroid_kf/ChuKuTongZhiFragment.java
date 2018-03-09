@@ -23,7 +23,6 @@ import com.b1b.js.erpandroid_kf.adapter.ChuKuTongZhiAdapter;
 import com.b1b.js.erpandroid_kf.entity.ChukuTongZhiInfo;
 
 import org.json.JSONException;
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -232,7 +231,7 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
         properties.put("pid", pid);
         properties.put("partNo", partNo);
         SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuTongZhiInfoList");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
         Log.e("zjy", "ChuKuActivity.java->GetChuKuTongZhiInfoList(): re==" + response.toString());
         return response.toString();
     }

@@ -68,6 +68,11 @@
         android:text="存储路径"
         android:textAllCaps="false"/>
 
+    <!--<GridView-->
+        <!--android:id="@+id/activity_caigou_detial_gvpdf"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"/>-->
+
     <com.joanzapata.pdfview.PDFView
         android:id="@+id/activity_caigou_detial_pdfview"
         android:layout_width="match_parent"

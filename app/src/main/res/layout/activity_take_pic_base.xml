@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/take_pic2_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <SurfaceView
+        android:id="@+id/takepic_base_surfaceview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <Button
+        android:id="@+id/takepic_base_btn_takepic"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/bg_btn_takepic"
+        android:text=""/>
+
+    <Button
+        android:id="@+id/takepic_base__btn_setting"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_gravity="bottom|right"
+        android:background="@drawable/bg_btn_setting"
+        android:text="设置"/>
+
+    <LinearLayout
+        android:id="@+id/takepic_base_containner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/takepic_base_btn_commit"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_btn_review"
+            android:text="提交"/>
+
+        <Button
+            android:id="@+id/takepic_base_btn_tryagain"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_btn_takeagain"
+            android:text="重新拍摄"/>
+    </LinearLayout>
+</FrameLayout>

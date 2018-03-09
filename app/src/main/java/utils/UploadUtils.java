@@ -74,6 +74,13 @@ public class UploadUtils {
         return "/" + getCurrentDate() + "/" + fileName;
     }
 
+    public static String getChukuRemotePath(String pid) {
+        return "/" + getCurrentDate() + "/" + getChukuRemoteName(pid) + ".jpg";
+    }
+
+    public static String getTestPath(String pid) {
+        return KF_DIR + getChukuRemoteName(pid) + ".jpg";
+    }
 
     /**
      @param ftpUrl
@@ -113,7 +120,8 @@ public class UploadUtils {
         StringBuilder builder = new StringBuilder();
         builder.append("SCCG_a_");
         builder.append(pid);
-        builder.append("_" + System.currentTimeMillis());
+        builder.append("_");
+        builder.append(System.currentTimeMillis());
         return builder.toString();
     }
 

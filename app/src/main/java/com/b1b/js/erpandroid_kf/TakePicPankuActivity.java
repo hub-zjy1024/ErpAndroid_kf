@@ -11,25 +11,21 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
-import android.hardware.SensorManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-import org.ksoap2.SoapEnvelope;
+import com.b1b.js.erpandroid_kf.task.TaskManager;
+import com.b1b.js.erpandroid_kf.task.UpLoadPicRunable;
+
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -37,6 +33,8 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -50,7 +48,7 @@ import utils.UploadUtils;
 import utils.WebserviceUtils;
 import utils.camera.AutoFoucusMgr;
 
-public class TakePicPankuActivity extends AppCompatActivity implements View.OnClickListener {
+public class TakePicPankuActivity extends TakePicActivity implements View.OnClickListener {
 
     private int rotation = 0;
     private SurfaceView surfaceView;
@@ -79,21 +77,41 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case PICUPLOAD_ERROR:
-                    showFinalDialog("上传图片失败，请检查网络并重新拍摄");
+                    String msgReason = "上传图片失败，请检查网络并重新拍摄";
+                    String str = msg.obj != null ? msg.obj.toString() : null;
+                    if (str != null) {
+                        msgReason = str;
+                    }
+                    showFinalDialog(msgReason+"!!!");
                     btn_takepic.setEnabled(true);
                     toolbar.setVisibility(View.GONE);
                     break;
                 case PICUPLOAD_SUCCESS:
-                    if (msg.obj.toString().equals("操作成功")) {
-                        showFinalDialog("上传成功");
-                    } else {
-                        showFinalDialog("插入图片信息失败，请重新上传");
+                    String strOk = msg.obj != null ? msg.obj.toString() : null;
+                    String msgOk = "上传成功";
+                    if (strOk != null) {
+                        msgOk = strOk;
                     }
+                    showFinalDialog(msgOk);
                     btn_takepic.setEnabled(true);
                     toolbar.setVisibility(View.GONE);
                     break;
+//                case PICUPLOAD_ERROR:
+//                    showFinalDialog("上传图片失败，请检查网络并重新拍摄");
+//                    btn_takepic.setEnabled(true);
+//                    toolbar.setVisibility(View.GONE);
+//                    break;
+//                case PICUPLOAD_SUCCESS:
+//                    if (msg.obj.toString().equals("操作成功")) {
+//                        showFinalDialog("上传成功");
+//                    } else {
+//                        showFinalDialog("插入图片信息失败，请重新上传");
+//                    }
+//                    btn_takepic.setEnabled(true);
+//                    toolbar.setVisibility(View.GONE);
+//                    break;
                 case FTP_CONNECT_FAIL:
-                    MyToast.showToast(TakePicPankuActivity.this, "连接ftp服务器失败，请检查网络");
+                    MyToast.showToast(mContext, "连接ftp服务器失败，请检查网络");
                     break;
             }
         }
@@ -103,143 +121,329 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
     private SharedPreferences sp;
     private int itemPosition;
     private AlertDialog inputDialog;
-
+    private Context mContext = TakePicPankuActivity.this;
+     Bitmap mWBitmap = null;
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_takepic_main);
-        final FrameLayout container = (FrameLayout) findViewById(R.id.take_pic2_container);
-        surfaceView = (SurfaceView) findViewById(R.id.surfaceview);
-        btn_tryagain = (Button) findViewById(R.id.main_tryagain);
-        btn_commit = (Button) findViewById(R.id.main_commit);
-        btn_takepic = (Button) findViewById(R.id.btn_takepic);
-        btn_setting = (Button) findViewById(R.id.takepic_btn_setting);
-        toolbar = (LinearLayout) findViewById(R.id.main_toolbar);
-        btn_setting.setOnClickListener(this);
-        btn_takepic.setOnClickListener(this);
-        btn_tryagain.setOnClickListener(this);
-        btn_commit.setOnClickListener(this);
-        AlertDialog.Builder builder = new AlertDialog.Builder(TakePicPankuActivity.this);
-        builder.setTitle("请输入单据号");
-        View v = LayoutInflater.from(TakePicPankuActivity.this).inflate(R.layout.dialog_inputpid, null);
-        final EditText dialogPid = (EditText) v.findViewById(R.id.dialog_inputpid_ed);
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                pid = dialogPid.getText().toString();
-                checkPid(TakePicPankuActivity.this, pid);
-            }
-        });
-        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        builder.setView(v);
-        inputDialog = builder.create();
-        pid = getIntent().getStringExtra("pid");
-        if (pid != null) {
-            dialogPid.setText(pid);
-        }
-        mOrientationListener = new OrientationEventListener(this,
-                SensorManager.SENSOR_DELAY_NORMAL) {
-            @Override
-            public void onOrientationChanged(int orientation) {
-                rotation = getProperRotation(orientation);
-            }
-        };
-        //成功或失败的提示框
-        resultDialog = new MaterialDialog(TakePicPankuActivity.this);
-        resultDialog.setTitle("提示");
-        resultDialog.setPositiveButton("返回", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resultDialog.dismiss();
-                finish();
-            }
-        });
-        resultDialog.setCanceledOnTouchOutside(true);
-        attachToSensor(mOrientationListener);
-        //获取surfaceholder
-        mHolder = surfaceView.getHolder();
-        mHolder.setKeepScreenOn(true);
-        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        //添加SurfaceHolder回调
-        if (mHolder != null) {
-            mHolder.addCallback(new SurfaceHolder.Callback() {
-                @Override
-                public void surfaceCreated(SurfaceHolder holder) {
-                    int counts = Camera.getNumberOfCameras();
-                    if (counts == 0) {
-                        MyToast.showToast(TakePicPankuActivity.this, "设备无摄像头");
-                        return;
-                    }
-                    camera = Camera.open(0); // 打开摄像头
-                    if (camera == null) {
-                        MyToast.showToast(TakePicPankuActivity.this, "检测不到摄像头");
-                        return;
-                    }
-                    //设置旋转角度
-                    camera.setDisplayOrientation(getPreviewDegree(TakePicPankuActivity.this));
-                    //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
-                    parameters = camera.getParameters();
-                    String brand = Build.BRAND;
-//                    if (brand != null) {
-//                        if (brand.toUpperCase().equals("HONOR")) {
-//                            container.setOnClickListener(new View.OnClickListener() {
-//                                @Override
-//                                public void onClick(View v) {
-//                                    camera.autoFocus(null);
-//                                }
-//                            });
-//                        } else {
-//                            setAutoFoucs(parameters);
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_takepic_main);
+//        final FrameLayout container = (FrameLayout) findViewById(R.id.take_pic2_container);
+//        surfaceView = (SurfaceView) findViewById(R.id.surfaceview);
+//        btn_tryagain = (Button) findViewById(R.id.main_tryagain);
+//        btn_commit = (Button) findViewById(R.id.main_commit);
+//        btn_takepic = (Button) findViewById(R.id.btn_takepic);
+//        btn_setting = (Button) findViewById(R.id.takepic_btn_setting);
+//        toolbar = (LinearLayout) findViewById(R.id.main_toolbar);
+//        btn_setting.setOnClickListener(this);
+//        btn_takepic.setOnClickListener(this);
+//        btn_tryagain.setOnClickListener(this);
+//        btn_commit.setOnClickListener(this);
+//        super.btn_commit.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                final int mRotate = tempRotate;
+//                final byte[] tempBytes = Arrays.copyOf(TakePicPankuActivity.super.tempBytes, TakePicPankuActivity.super
+//                        .tempBytes.length);
+//                String remotePath = "";
+//                String insertPath = "";
+//                FTPUtils ftpUtil = null;
+//                String mUrl = "";
+//                String remoteName = UploadUtils.getPankuRemoteName(pid);
+//                if ("101".equals(MyApp.id)) {
+//                mUrl = FtpManager.mainAddress;
+//                ftpUtil = new FTPUtils(FtpManager.mainAddress, 21, FtpManager.mainName, FtpManager.mainPwd);
+//                remotePath = UploadUtils.KF_DIR + "pk/" + remoteName + ".jpg";
+//                } else {
+//                mUrl = MyApp.ftpUrl;
+//                ftpUtil = new FTPUtils(mUrl, 21, FtpManager.ftpName,
+//                        FtpManager.ftpPassword);
+//                remotePath = "/" + UploadUtils.getCurrentDate() + "/pk/" + remoteName + ".jpg";
+//                }
+//                 insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
+//                Runnable mRunnable = new UpLoadPicRunable(remotePath, insertPath, ftpUtil, mHandler) {
+//                    //加水印后的图片
+////
+////                    String remoteName = UploadUtils.getPankuRemoteName(pid);
+////                    String remotePath = "/" + UploadUtils.getCurrentDate() + "/";
+////                    String mUrl = MyApp.ftpUrl;
+////
+////                    String insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
+////                        ftpUtil.login();
+////                    boolean isConn;
+////                    isConn = ftpUtil.upload(in, remotePath);
+////                        ftpUtil.exitServer();
+////                        if (isConn) {
+////                        //更新服务器信息
+////                        SharedPreferences sp = getSharedPreferences("UserInfo", 0);
+////                        final int cid = sp.getInt("cid", -1);
+////                        final int did = sp.getInt("did", -1);
+////                        Log.e("zjy", "TakePicActivity.java->run(): insertPath==" + insertPath);
+////                        String res = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
+////                                .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "PK");
+////                        Log.e("zjy", "TakePicActivity.java->run(): res==" + res);
+////                        Message msg = mHandler.obtainMessage(PICUPLOAD_SUCCESS);
+////                        MyApp.myLogger.writeInfo("takepicpanku:\t" + pid);
+////                        msg.obj = res;
+////                        mHandler.sendMessage(msg);
+////                    } else {
+////                        mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
+////                    }
+//
+//                    @Override
+//                    public boolean getInsertResult() throws Exception {
+//                        SharedPreferences sp = getSharedPreferences("UserInfo", 0);
+//                        final int cid = sp.getInt("cid", -1);
+//                        final int did = sp.getInt("did", -1);
+//                        String remoteName = getRemoteName();
+//                        String insertPath = getInsertpath();
+//                        Log.e("zjy", "TakePicActivity.java->run(): insertPath==" + insertPath);
+//                        String res = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
+//                                .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "PK");
+//                        if ("操作成功".equals(res)) {
+//                            return true;
+//                        }else{
+//                            return false;
 //                        }
 //                    }
-                    sp = getSharedPreferences("cameraInfo", 0);
-                    try {
-                        // 设置用于显示拍照影像的SurfaceHolder对象
-                        camera.setPreviewDisplay(holder);
-                        //初始化操作在开始预览之前完成
-                        if (sp.getInt("width", -1) != -1) {
-                            int width = sp.getInt("width", -1);
-                            int height = sp.getInt("height", -1);
-                            Log.e("zjy", "TakePicActivity.java->surfaceCreated(): ==readCacheSize width" + width + "\t" + height);
-                            parameters.setPictureSize(width, height);
-                            camera.setParameters(parameters);
-                        } else {
-                            showSizeChoiceDialog(parameters);
-                        }
-                        camera.startPreview();
-                        container.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                if (camera != null) {
-                                    camera.autoFocus(null);
-                                }
-                            }
-                        });
-                         auto = new AutoFoucusMgr( camera);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+//
+//                    @Override
+//                    public InputStream getInputStream() throws Exception {
+//                        if (mWBitmap == null) {
+//                            mWBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.waterpic);
+//                        }
+//                        Bitmap photo = BitmapFactory.decodeByteArray(tempBytes, 0, tempBytes.length);
+//                        Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext,
+//                                photo, mWBitmap, 0, 0);
+//                        Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(mContext, waterBitmap,
+//                                pid, (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
+//                        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+//                        //图片质量压缩到bao数组
+//                        MyImageUtls.compressBitmapAtsize(TextBitmap, bao, 0.4f);
+//                        MyImageUtls.releaseBitmap(photo);
+//                        MyImageUtls.releaseBitmap(waterBitmap);
+//                        MyImageUtls.releaseBitmap(TextBitmap);
+//                        return new ByteArrayInputStream(bao.toByteArray());
+//                    }
+//                };
+//                TaskManager.getInstance().execute(mRunnable);
+//            }
+//        });
+//        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+//        builder.setTitle("请输入单据号");
+//        View v = LayoutInflater.from(mContext).inflate(R.layout.dialog_inputpid, null);
+//        final EditText dialogPid = (EditText) v.findViewById(R.id.dialog_inputpid_ed);
+//        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                pid = dialogPid.getText().toString();
+//                checkPid(mContext, pid);
+//            }
+//        });
+//        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                dialog.dismiss();
+//            }
+//        });
+//        builder.setView(v);
+//        inputDialog = builder.create();
+//        pid = getIntent().getStringExtra("pid");
+//        if (pid != null) {
+//            dialogPid.setText(pid);
+//        }
+//        mOrientationListener = new OrientationEventListener(this,
+//                SensorManager.SENSOR_DELAY_NORMAL) {
+//            @Override
+//            public void onOrientationChanged(int orientation) {
+//                rotation = getProperRotation(orientation);
+//            }
+//        };
+//        //成功或失败的提示框
+//        resultDialog = new MaterialDialog(mContext);
+//        resultDialog.setTitle("提示");
+//        resultDialog.setPositiveButton("返回", new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                resultDialog.dismiss();
+//                finish();
+//            }
+//        });
+//        resultDialog.setCanceledOnTouchOutside(true);
+//        attachToSensor(mOrientationListener);
+//        //获取surfaceholder
+//        mHolder = surfaceView.getHolder();
+//        mHolder.setKeepScreenOn(true);
+//        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+//        //添加SurfaceHolder回调
+//        if (mHolder != null) {
+//            mHolder.addCallback(new SurfaceHolder.Callback() {
+//                @Override
+//                public void surfaceCreated(SurfaceHolder holder) {
+//                    int counts = Camera.getNumberOfCameras();
+//                    if (counts == 0) {
+//                        MyToast.showToast(mContext, "设备无摄像头");
+//                        return;
+//                    }
+//                    camera = Camera.open(0); // 打开摄像头
+//                    if (camera == null) {
+//                        MyToast.showToast(mContext, "检测不到摄像头");
+//                        return;
+//                    }
+//                    //设置旋转角度
+//                    camera.setDisplayOrientation(getPreviewDegree((Activity) mContext));
+//                    //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
+//                    parameters = camera.getParameters();
+//                    String brand = Build.BRAND;
+//                    //                    if (brand != null) {
+//                    //                        if (brand.toUpperCase().equals("HONOR")) {
+//                    //                            container.setOnClickListener(new View.OnClickListener() {
+//                    //                                @Override
+//                    //                                public void onClick(View v) {
+//                    //                                    camera.autoFocus(null);
+//                    //                                }
+//                    //                            });
+//                    //                        } else {
+//                    //                            setAutoFoucs(parameters);
+//                    //                        }
+//                    //                    }
+//                    sp = getSharedPreferences("cameraInfo", 0);
+//                    try {
+//                        // 设置用于显示拍照影像的SurfaceHolder对象
+//                        camera.setPreviewDisplay(holder);
+//                        //初始化操作在开始预览之前完成
+//                        if (sp.getInt("width", -1) != -1) {
+//                            int width = sp.getInt("width", -1);
+//                            int height = sp.getInt("height", -1);
+//                            Log.e("zjy", "TakePicActivity.java->surfaceCreated(): ==readCacheSize width" + width + "\t" + height);
+//                            parameters.setPictureSize(width, height);
+//                            camera.setParameters(parameters);
+//                        } else {
+//                            showSizeChoiceDialog(parameters);
+//                        }
+//                        camera.startPreview();
+//                        container.setOnClickListener(new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View v) {
+//                                if (camera != null) {
+//                                    auto.start();
+//                                }
+//                            }
+//                        });
+//                        auto = new AutoFoucusMgr(camera);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//
+//                @Override
+//                public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+//                    if (pid == null) {
+//                        inputDialog.show();
+//                    }
+//                }
+//
+//                @Override
+//                public void surfaceDestroyed(SurfaceHolder holder) {
+//                    auto.stop();
+//                    releaseCamera();
+//                }
+//            });
+//        }
+//    }
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        super.btn_commit.setOnClickListener(new View.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(View v) {
+                                                                final int mRotate = tempRotate;
+                                                                final byte[] tempBytes = Arrays.copyOf(TakePicPankuActivity.super.tempBytes, TakePicPankuActivity.super
+                                                                        .tempBytes.length);
+                                                                String remotePath = "";
+                                                                String insertPath = "";
+                                                                FTPUtils ftpUtil = null;
+                                                                String mUrl = "";
+                                                                String remoteName = UploadUtils.getPankuRemoteName(pid);
+                                                                if ("101".equals(MyApp.id)) {
+                                                                mUrl = FtpManager.mainAddress;
+                                                                ftpUtil = new FTPUtils(FtpManager.mainAddress,FtpManager.mainName, FtpManager.mainPwd);
+                                                                remotePath = UploadUtils.KF_DIR + "pk/" + remoteName + ".jpg";
+                                                                } else {
+                                                                mUrl = MyApp.ftpUrl;
+                                                                ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName,
+                                                                        FtpManager.ftpPassword);
+                                                                remotePath = "/" + UploadUtils.getCurrentDate() + "/pk/" + remoteName + ".jpg";
+                                                                }
+                                                                 insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
+                                                                Runnable mRunnable = new UpLoadPicRunable(remotePath, insertPath, ftpUtil, mHandler) {
+                                                //                    String remoteName = UploadUtils.getPankuRemoteName(pid);
+                                                //                    String remotePath = "/" + UploadUtils.getCurrentDate() + "/";
+                                                //                    String mUrl = MyApp.ftpUrl;
+                                                //
+                                                //                    String insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
+                                                //                        ftpUtil.login();
+                                                //                    boolean isConn;
+                                                //                    isConn = ftpUtil.upload(in, remotePath);
+                                                //                        ftpUtil.exitServer();
+                                                //                        if (isConn) {
+                                                //                        //更新服务器信息
+                                                //                        SharedPreferences sp = getSharedPreferences("UserInfo", 0);
+                                                //                        final int cid = sp.getInt("cid", -1);
+                                                //                        final int did = sp.getInt("did", -1);
+                                                //                        Log.e("zjy", "TakePicActivity.java->run(): insertPath==" + insertPath);
+                                                //                        String res = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
+                                                //                                .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "PK");
+                                                //                        Log.e("zjy", "TakePicActivity.java->run(): res==" + res);
+                                                //                        Message msg = mHandler.obtainMessage(PICUPLOAD_SUCCESS);
+                                                //                        MyApp.myLogger.writeInfo("takepicpanku:\t" + pid);
+                                                //                        msg.obj = res;
+                                                //                        mHandler.sendMessage(msg);
+                                                //                    } else {
+                                                //                        mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
+                                                //                    }
 
-                @Override
-                public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                    if (pid == null) {
-                        inputDialog.show();
-                    }
-                }
+                                                                    @Override
+                                                                    public boolean getInsertResult() throws Exception {
+                                                                        SharedPreferences sp = TakePicPankuActivity.super
+                                                                                .userInfo;
+                                                                        final int cid = sp.getInt("cid", -1);
+                                                                        final int did = sp.getInt("did", -1);
+                                                                        String remoteName = getRemoteName();
+                                                                        String insertPath = getInsertpath();
+                                                                        Log.e("zjy", "TakePicActivity.java->run(): insertPath==" + insertPath);
+                                                                        String res = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
+                                                                                .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "PK");
+                                                                        if ("操作成功".equals(res)) {
+                                                                            return true;
+                                                                        }else{
+                                                                            return false;
+                                                                        }
+                                                                    }
 
-                @Override
-                public void surfaceDestroyed(SurfaceHolder holder) {
-                    auto.stop();
-                    releaseCamera();
-                }
-            });
-        }
+                                                                    @Override
+                                                                    public InputStream getInputStream() throws Exception {
+                                                                        if (mWBitmap == null) {
+                                                                            mWBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.waterpic);
+                                                                        }
+                                                                        Bitmap bmp = BitmapFactory.decodeByteArray(tempBytes, 0, tempBytes.length);
+                                                                        Matrix matrixs = new Matrix();
+                                                                        matrixs.setRotate(90 + rotation);
+                                                                        Bitmap photo =Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrixs, true);
+                                                                        Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext,
+                                                                                photo, mWBitmap, 0, 0);
+                                                                        Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(mContext, waterBitmap,
+                                                                                pid, (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
+                                                                        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+                                                                        //图片质量压缩到bao数组
+                                                                        MyImageUtls.compressBitmapAtsize(TextBitmap, bao, 0.4f);
+                                                                        MyImageUtls.releaseBitmap(photo);
+                                                                        MyImageUtls.releaseBitmap(waterBitmap);
+                                                                        MyImageUtls.releaseBitmap(TextBitmap);
+                                                                        return new ByteArrayInputStream(bao.toByteArray());
+                                                                    }
+                                                                };
+                                                                TaskManager.getInstance().execute(mRunnable);
+                                                            }
+                                                        });
     }
 
 
@@ -310,7 +514,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
                 String item = size.width + "X" + size.height;
                 strs[i] = item;
             }
-            AlertDialog.Builder dialog = new AlertDialog.Builder(TakePicPankuActivity.this);
+            AlertDialog.Builder dialog = new AlertDialog.Builder(mContext);
             dialog.setTitle("选择照片大小(尽量选择大的值)");//窗口名
             dialog.setSingleChoiceItems(strs, 0, new DialogInterface.OnClickListener() {
                         @Override
@@ -347,7 +551,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
             dialog.setCancelable(false);
             dialog.show();
         } else {
-            MyToast.showToast(TakePicPankuActivity.this, "没有可选的尺寸");
+            MyToast.showToast(mContext, "没有可选的尺寸");
             return;
         }
     }
@@ -396,7 +600,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
             //拍照
             case R.id.btn_takepic:
                 //禁止点击拍照按钮
-                if (checkPid(TakePicPankuActivity.this, pid))
+                if (checkPid(mContext, pid))
                     return;
                 btn_takepic.setEnabled(false);
                 camera.takePicture(null, null, new Camera.PictureCallback() {
@@ -411,7 +615,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
                             toolbar.setVisibility(View.VISIBLE);
                         } catch (OutOfMemoryError error) {
                             error.printStackTrace();
-                            MyToast.showToast(TakePicPankuActivity.this, "当前尺寸太大，请选择合适的尺寸");
+                            MyToast.showToast(mContext, "当前尺寸太大，请选择合适的尺寸");
                             if (photo != null && !photo.isRecycled()) {
                                 photo.recycle();
                             }
@@ -437,7 +641,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
             case R.id.main_commit:
                 commitTimes++;
                 if (photo == null) {
-                    MyToast.showToast(TakePicPankuActivity.this, "请稍等，等图像稳定再上传");
+                    MyToast.showToast(mContext, "请稍等，等图像稳定再上传");
                     return;
                 }
                 showProgressDialog();
@@ -449,31 +653,31 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
                         public void run() {
                             try {
                                 //加水印后的图片
-                                Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicPankuActivity.this,
+                                Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext,
                                         photo, bitmap, 0, 0);
-                                Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicPankuActivity.this, waterBitmap,
+                                Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(mContext, waterBitmap,
                                         pid, (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
                                 ByteArrayOutputStream bao = new ByteArrayOutputStream();
                                 //图片质量压缩到bao数组
                                 MyImageUtls.compressBitmapAtsize(TextBitmap, bao, 0.4f);
                                 final ByteArrayInputStream in = new ByteArrayInputStream(bao.toByteArray());
-                                 String remoteName= UploadUtils.getPankuRemoteName(pid);
+                                String remoteName = UploadUtils.getPankuRemoteName(pid);
                                 String remotePath = "/" + UploadUtils.getCurrentDate() + "/";
                                 String mUrl = MyApp.ftpUrl;
-                                FTPUtils ftpUtil =null;
+                                FTPUtils ftpUtil = null;
                                 if ("101".equals(MyApp.id)) {
                                     mUrl = FtpManager.mainAddress;
-                                    ftpUtil = new FTPUtils(FtpManager.mainAddress, 21, FtpManager.mainName,FtpManager.mainPwd);
+                                    ftpUtil = new FTPUtils(FtpManager.mainAddress, 21, FtpManager.mainName, FtpManager.mainPwd);
                                     //            mUrl= "192.168.10.65";
                                     //            ftpUtil=  new ftpUtil(mUrl, 21, "zjy", "123456");
-                                    remotePath = UploadUtils.KF_DIR+ "pk/" +remoteName+".jpg" ;
+                                    remotePath = UploadUtils.KF_DIR + "pk/" + remoteName + ".jpg";
                                 } else {
                                     mUrl = MyApp.ftpUrl;
-                                    ftpUtil = new FTPUtils(mUrl, 21,FtpManager.ftpName,
+                                    ftpUtil = new FTPUtils(mUrl, 21, FtpManager.ftpName,
                                             FtpManager.ftpPassword);
-                                    remotePath = "/" + UploadUtils.getCurrentDate() + "/pk/" + remoteName+".jpg" ;
+                                    remotePath = "/" + UploadUtils.getCurrentDate() + "/pk/" + remoteName + ".jpg";
                                 }
-                               String insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
+                                String insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
                                 ftpUtil.login();
                                 boolean isConn;
                                 isConn = ftpUtil.upload(in, remotePath);
@@ -512,7 +716,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
-    private void showProgressDialog() {
+    protected void showProgressDialog() {
         pd = new ProgressDialog(this);
         pd.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
@@ -589,7 +793,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
         map.put("filepath", filePath);
         map.put("stypeID", stypeID);//标记，固定为"CKTZ"
         SoapObject request = WebserviceUtils.getRequest(map, "SetInsertPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
                 .ChuKuServer);
         str = response.toString();
         return str;
@@ -609,7 +813,7 @@ public class TakePicPankuActivity extends AppCompatActivity implements View.OnCl
         attachToSensor(mOrientationListener);
     }
 
-    private void showFinalDialog(String message) {
+    protected void showFinalDialog(String message) {
         if (pd != null && pd.isShowing()) {
             pd.cancel();
         }

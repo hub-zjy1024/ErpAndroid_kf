@@ -97,12 +97,7 @@ public class MyFileUtils {
                     }
                 }
             });
-            mBd.setNegativeButton("否", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                }
-            });
+            mBd.setNegativeButton("否", null);
             mBd.show();
         }
     }

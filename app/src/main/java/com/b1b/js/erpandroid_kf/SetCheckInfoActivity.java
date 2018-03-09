@@ -13,7 +13,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.ksoap2.SoapEnvelope;
+import com.b1b.js.erpandroid_kf.task.TaskManager;
+
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -91,12 +92,12 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
         map.put("uname", uname);
         map.put("uid", uid);
         final SoapObject request = WebserviceUtils.getRequest(map, "GetSetCheckInfo");
-        new Thread() {
+        Runnable setCheckInfoThread = new Runnable() {
             @Override
             public void run() {
-                super.run();
                 try {
-                    SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils.ChuKuServer);
+                    SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request,
+                            WebserviceUtils.ChuKuServer);
                     Log.e("zjy", "SetCheckInfoActivity.java->run(): response==" + response.toString());
                     Message msg = mHandler.obtainMessage();
                     msg.obj = response.toString();
@@ -111,7 +112,8 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                 }
 
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(setCheckInfoThread, this);
     }
 
 
@@ -147,7 +149,7 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                 break;
             case R.id.setcheckinfo_photo:
                 AlertDialog.Builder builder = new AlertDialog.Builder(SetCheckInfoActivity.this);
-                builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface.OnClickListener() {
+                builder.setItems(getResources().getStringArray(R.array.upload_type), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {

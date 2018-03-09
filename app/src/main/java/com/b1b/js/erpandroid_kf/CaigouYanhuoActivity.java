@@ -20,7 +20,6 @@ import com.b1b.js.erpandroid_kf.entity.YanhuoInfo;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -203,8 +202,7 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
         map.put("partno", partno);
         map.put("pid", pid);
         SoapObject req = WebserviceUtils.getRequest(map, "GetSSCGInfoByDDYH");
-        SoapPrimitive obj = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope
-                        .VER11,
+        SoapPrimitive obj = WebserviceUtils.getSoapPrimitiveResponse(req,
                 WebserviceUtils.MartService);
         Log.e("zjy", "CaigouYanhuoActivity->getResponse(): response==" + obj
                 .toString());

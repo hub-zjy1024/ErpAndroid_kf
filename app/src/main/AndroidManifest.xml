@@ -8,13 +8,14 @@
     <uses-permission android:name="android.permission.FLASHLIGHT"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <!--<uses-permission android:name="android.permission.GET_TASKS"/>-->
+    <!-- <uses-permission android:name="android.permission.GET_TASKS"/> -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <uses-feature android:name="android.hardware.Camera.AutoFocusCallback"/>
 
@@ -79,7 +80,7 @@
         </activity>
         <activity android:name=".KucunFBActivity">
         </activity>
-        <activity android:name=".CaigoudanTakePicActivity">
+        <activity android:name=".CaigouActivity">
         </activity>
         <activity android:name=".CaigouTakePic2Activity">
         </activity>
@@ -109,6 +110,12 @@
         <activity android:name=".YundanPrintAcitivity">
         </activity>
         <activity android:name=".RukuTagPrintAcitivity">
+        </activity>
+        <activity android:name=".TakePicBaseActivity">
+        </activity>
+        <activity android:name=".TakePicChildPanku">
+        </activity>
+        <activity android:name=".ReUploadActivity">
         </activity>
     </application>
 

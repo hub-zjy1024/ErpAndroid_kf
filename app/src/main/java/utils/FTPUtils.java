@@ -23,6 +23,7 @@ import java.io.OutputStream;
 public class FTPUtils {
     private FTPClient mClient = null;
     private String hostname;
+    private final static int DEFAULT_PROT = 21;
     private int port;
     private String username;
     private String password;
@@ -47,6 +48,16 @@ public class FTPUtils {
      */
     public FTPUtils(String hostname, int port, String username, String password) {
         this(hostname, port, username, password, false);
+    } //登录 /** * FTP登陆 * @throws IOException */
+
+    /**
+     默认不开启调试模式
+     @param hostname
+     @param username
+     @param password
+     */
+    public FTPUtils(String hostname, String username, String password) {
+        this(hostname, DEFAULT_PROT, username, password, false);
     } //登录 /** * FTP登陆 * @throws IOException */
 
     /**
@@ -95,7 +106,6 @@ public class FTPUtils {
      @throws IOException
      */
     public synchronized void login(int timeout) throws IOException {
-        Log.e("zjy", "FTPUtils->login(): start login==");
         //ftp传输超时
         mClient.setDataTimeout(timeout * 1000);
         //ftp命令响应超时

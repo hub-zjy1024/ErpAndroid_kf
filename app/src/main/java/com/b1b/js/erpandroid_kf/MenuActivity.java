@@ -25,12 +25,11 @@ import com.b1b.js.erpandroid_kf.service.LogUploadService;
 import java.util.ArrayList;
 
 import printer.activity.SFActivity;
-import printer.activity.ToolbarTestActivity;
 
-public class MenuActivity extends AppCompatActivity  implements OnItemClickListener{
+public class MenuActivity extends AppCompatActivity implements OnItemClickListener {
     private ListView menuList;
     private final String tag_Ruku = "库存标签";
-    private final String tag_Print = "打印";
+    private final String tag_Print = "运单打印";
     private final String tag_Kaoqin = "考勤";
     private final String tag_Chukudan = "出库单";
     private final String tag_ChukudanPrint = "出库单打印";
@@ -39,6 +38,7 @@ public class MenuActivity extends AppCompatActivity  implements OnItemClickListe
     private final String tag_CaigouTakePic ="采购拍照";
     private final String tag_ChukuCheck ="出库拍照";
     private final String tag_Admin ="特殊";
+    private final String tag_Setting = "设置";
     private GridView gv;
 
 
@@ -72,10 +72,12 @@ public class MenuActivity extends AppCompatActivity  implements OnItemClickListe
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             // 按下BACK，同时没有重复
-            int size = MyApp.totoalTask.size();
+            int size = (int) MyApp.cachedThreadPool.getActiveCount()-1;
             if (size > 0) {
                 getDialog(MenuActivity.this, "提示", "后台还有" + size + "张图片未上传完成，强制退出将导致图片上传失败", true, null, null, "否", null).show();
                 return true;
+            } else {
+                MyApp.cachedThreadPool.shutdown();
             }
         }
 
@@ -96,6 +98,7 @@ public class MenuActivity extends AppCompatActivity  implements OnItemClickListe
         data.add(new MyMenuItem(R.mipmap.menu_caigou_96, tag_CaigouTakePic, "采购单拍照功能"));
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Ruku, "蓝牙打印，打印入库标签"));
         data.add(new MyMenuItem(R.mipmap.menu_kaoqin, tag_Kaoqin, "查询考勤状态"));
+        data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_Setting, "设置"));
         MenuGvAdapter adapter = new MenuGvAdapter(this, data, R.layout.item_menu_gv);
         gv.setAdapter(adapter);
     }
@@ -144,7 +147,7 @@ public class MenuActivity extends AppCompatActivity  implements OnItemClickListe
                 MyApp.myLogger.writeInfo("<page> chukudanprint");
                 break;
             case tag_CaigouTakePic:
-                intent.setClass(MenuActivity.this, CaigoudanTakePicActivity.class);
+                intent.setClass(MenuActivity.this, CaigouActivity.class);
                 MyApp.myLogger.writeInfo("<page> CaigouTakePicActivity");
                 startActivity(intent);
                 break;
@@ -154,7 +157,7 @@ public class MenuActivity extends AppCompatActivity  implements OnItemClickListe
                 break;
             case tag_Admin:
                 AlertDialog.Builder specialDialog = new AlertDialog.Builder(MenuActivity.this);
-                View v = LayoutInflater.from(MenuActivity.this).inflate(R.layout.admin_manager_layout, null);
+                View v = LayoutInflater.from(MenuActivity.this).inflate(R.layout.dialog_admin_manager_layout, null);
                 final EditText edID = (EditText) v.findViewById(R.id.admin_manager_ed_id);
                 final EditText edFtp = (EditText) v.findViewById(R.id.admin_manager_ed_ftp);
                 Button btnChange = (Button) v.findViewById(R.id.admin_manager_btnCommit);
@@ -169,34 +172,15 @@ public class MenuActivity extends AppCompatActivity  implements OnItemClickListe
                 specialDialog.setView(v);
                 specialDialog.show();
                 break;
+            case tag_Setting:
+                intent.setClass(MenuActivity.this, SettingActivity.class);
+                MyApp.myLogger.writeInfo("<page> Setting");
+                startActivity(intent);
+                break;
             case tag_Print:
-                AlertDialog.Builder builder = new AlertDialog.Builder(MenuActivity.this);
-                builder.setTitle("打印");
-                builder.setItems(new String[]{"运单打印", "打印手机文件", "配置打印地址"}, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent;
-                        switch (which) {
-                            case 0:
-                                intent = new Intent(MenuActivity.this, SFActivity.class);
-                                startActivity(intent);
-                                MyApp.myLogger.writeInfo("<page> SFprint");
-                                break;
-                            case 1:
-                                intent = new Intent(MenuActivity.this, ToolbarTestActivity.class);
-                                startActivity(intent);
-                                MyApp.myLogger.writeInfo("<page> fileprint");
-                                break;
-                            case 2:
-                                intent = new Intent(MenuActivity.this, SettingActivity.class);
-                                startActivity(intent);
-                                MyApp.myLogger.writeInfo("<page> printServer peizhi");
-                                break;
-                        }
-                    }
-                });
-
-                builder.show();
+                intent = new Intent(MenuActivity.this, SFActivity.class);
+                startActivity(intent);
+                MyApp.myLogger.writeInfo("<page> Yundan");
                 break;
         }
     }

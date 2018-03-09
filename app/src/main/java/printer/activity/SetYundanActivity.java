@@ -35,6 +35,7 @@ import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -53,7 +54,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -180,7 +180,7 @@ public class SetYundanActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 pd.setMessage("正在插入单号信息");
                                 pd.show();
-                                new Thread() {
+                                Runnable reInsertRunnable = new Runnable() {
                                     @Override
                                     public void run() {
                                         try {
@@ -198,7 +198,8 @@ public class SetYundanActivity extends AppCompatActivity {
                                             e.printStackTrace();
                                         }
                                     }
-                                }.start();
+                                };
+                                TaskManager.getInstance().execute(reInsertRunnable);
                             }
                         });
                         builder2.setNegativeButton("否", null);
@@ -384,10 +385,9 @@ public class SetYundanActivity extends AppCompatActivity {
                     }
                     pd.setMessage("正在关联其他单据号");
                     pd.show();
-                    new Thread() {
+                    Runnable insertMoreRunnable=new Runnable() {
                         @Override
                         public void run() {
-                            super.run();
                             try {
                                 String ok = insertYundanInfo(targetPid, desOrderid, ddestcode);
                                 if ("成功".equals(ok)) {
@@ -426,7 +426,8 @@ public class SetYundanActivity extends AppCompatActivity {
                                 e.printStackTrace();
                             }
                         }
-                    }.start();
+                    };
+                    TaskManager.getInstance().execute(insertMoreRunnable);
                 }
             }
         });
@@ -537,7 +538,7 @@ public class SetYundanActivity extends AppCompatActivity {
                 }
                 pd.setMessage("正在重新插入单号信息");
                 pd.show();
-                new Thread() {
+                Runnable reInsertRunnable=new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -555,8 +556,8 @@ public class SetYundanActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     }
-                }.start();
-
+                };
+                TaskManager.getInstance().execute(reInsertRunnable);
             }
         });
         pd = new ProgressDialog(this);
@@ -593,10 +594,9 @@ public class SetYundanActivity extends AppCompatActivity {
         spiServerType.setAdapter(new ArrayAdapter<>(this, R.layout.item_province,
                 R.id.item_province_tv, serverTypes));
 
-        new Thread() {
+        Runnable getSFinfoRunnable=new Runnable() {
             @Override
             public void run() {
-                super.run();
                 String client = intent.getStringExtra("client");
                 try {
                     String result = getSFClientInfo(client);
@@ -696,8 +696,9 @@ public class SetYundanActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }.start();
-        new Thread() {
+        };
+        TaskManager.getInstance().execute(getSFinfoRunnable);
+        Runnable getPrintRunnable = new Runnable() {
             @Override
             public void run() {
                 String ip = "http://" + serverIP + ":8080";
@@ -748,7 +749,8 @@ public class SetYundanActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(getPrintRunnable);
         Log.e("zjy", "SetYundanActivity->onCreate(): goodInfos==" + intent
                 .getStringExtra("goodInfos"));
         btnRePrint.setOnClickListener(new View.OnClickListener() {
@@ -870,7 +872,7 @@ public class SetYundanActivity extends AppCompatActivity {
                 }
                 pd.setMessage("正在打印中");
                 pd.show();
-                new Thread() {
+                Runnable rePrintThread=new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -889,8 +891,8 @@ public class SetYundanActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     }
-                }.start();
-
+                };
+                TaskManager.getInstance().execute(rePrintThread, mContext);
             }
         });
         btn210.setOnClickListener(new View.OnClickListener() {
@@ -930,11 +932,9 @@ public class SetYundanActivity extends AppCompatActivity {
                 // boxEsign, boxTakepic);
             }
         });
-        new Thread() {
+        Runnable getOnlineInfo=new Runnable() {
             @Override
             public void run() {
-                super.run();
-                //                GetBD_YunDanInfoByID
                 String pid = tvPid.getText().toString();
                 try {
                     String result = getOnlineSavedYdInfo(pid);
@@ -978,7 +978,8 @@ public class SetYundanActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(getOnlineInfo);
         //        spiProvince.setOnItemSelectedListener(new AdapterView
         // .OnItemSelectedListener() {
         //            @Override
@@ -1067,33 +1068,33 @@ public class SetYundanActivity extends AppCompatActivity {
         //
         //            }
         //        });
-        InputStream in = getResources().openRawResource(R.raw.province);
-        provinces = new ArrayList<>();
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in,
-                    "UTF-8"));
-            StringBuilder builder = new StringBuilder();
-            String temp = "";
-            while ((temp = reader.readLine()) != null) {
-                builder.append(temp);
-            }
-            JSONArray object = new JSONArray(builder.toString());
-            for (int i = 0; i < object.length(); i++) {
-                JSONObject tempObj = object.getJSONObject(i);
-                String code = tempObj.getString("code");
-                String name = tempObj.getString("name");
-                Province p1 = new Province();
-                p1.name = name;
-                p1.code = code;
-                provinces.add(p1);
-            }
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+//        InputStream in = getResources().openRawResource(R.raw.province);
+//        provinces = new ArrayList<>();
+//        try {
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(in,
+//                    "UTF-8"));
+//            StringBuilder builder = new StringBuilder();
+//            String temp = "";
+//            while ((temp = reader.readLine()) != null) {
+//                builder.append(temp);
+//            }
+//            JSONArray object = new JSONArray(builder.toString());
+//            for (int i = 0; i < object.length(); i++) {
+//                JSONObject tempObj = object.getJSONObject(i);
+//                String code = tempObj.getString("code");
+//                String name = tempObj.getString("name");
+//                Province p1 = new Province();
+//                p1.name = name;
+//                p1.code = code;
+//                provinces.add(p1);
+//            }
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
         //        spiProvince.setAdapter(new ArrayAdapter<>(this, R.layout.item_province,
         //                R.id.item_province_tv, provinces));
 
@@ -1115,8 +1116,7 @@ public class SetYundanActivity extends AppCompatActivity {
         //        GetBD_YunDanInfoByID;
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("pid", pid);
-        SoapObject req = WebserviceUtils.getRequest(map, "GetBD_YunDanInfoByID");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope.VER11, WebserviceUtils.SF_SERVER);
+        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(map, "GetBD_YunDanInfoByID", WebserviceUtils.SF_SERVER);
         return res.toString();
     }
 
@@ -1223,10 +1223,9 @@ public class SetYundanActivity extends AppCompatActivity {
         }
         pd.setMessage("正在打印中");
         pd.show();
-        new Thread() {
+        Runnable orderRunnable=new Runnable() {
             @Override
             public void run() {
-
                 String orderID = "666655554444";
                 String goodInfos = "url1-500,url2-6000,url3-700";
                 goodInfos = intent.getStringExtra("goodInfos");
@@ -1409,7 +1408,8 @@ public class SetYundanActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(orderRunnable);
     }
 
     private String insertYundanInfo(String pid, String orderID, String destcode) throws IOException, XmlPullParserException {
@@ -1418,9 +1418,8 @@ public class SetYundanActivity extends AppCompatActivity {
         map.put("objname", pid);
         map.put("objvalue", orderID);
         map.put("express", destcode);
-        SoapObject parm = WebserviceUtils.getRequest(map, "InsertBD_YunDanInfo");
-        SoapPrimitive insertResult = WebserviceUtils.getSoapPrimitiveResponse(parm, SoapEnvelope
-                .VER11, WebserviceUtils.SF_SERVER);
+        SoapPrimitive insertResult = WebserviceUtils.getSoapPrimitiveResponse(map,
+                "InsertBD_YunDanInfo", WebserviceUtils.SF_SERVER);
         Log.e("zjy", "SetYundanActivity->run(): insert Res==" + insertResult);
         if (insertResult.toString().equals("成功")) {
             MyApp.myLogger.writeInfo("SFprint--insertYundanInfo:OK" + pid);
@@ -1569,9 +1568,7 @@ public class SetYundanActivity extends AppCompatActivity {
         object.addProperty("arg0", xml);
         object.addProperty("arg1", verifyCode);
         SoapSerializationEnvelope envelope =
-                SFWsUtils.getEnvelope(object,
-                        SoapEnvelope.VER11, null, SFWsUtils
-                                .ROOT_URL, false);
+                SFWsUtils.getEnvelope(object);
         SoapPrimitive
                 soapPrimitive = (SoapPrimitive)
                 envelope.getResponse();
@@ -1627,7 +1624,7 @@ public class SetYundanActivity extends AppCompatActivity {
     private String getDHAddresss() throws IOException, XmlPullParserException {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         SoapObject req = WebserviceUtils.getRequest(map, "GetBD_DHAddress");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope.VER11, WebserviceUtils.SF_SERVER);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.SF_SERVER);
         return response.toString();
     }
 
@@ -1644,17 +1641,18 @@ public class SetYundanActivity extends AppCompatActivity {
                 "UpdateYunDanInfoByPrintCount");
         request.addProperty("pid", pid);
         request.addProperty("yundanID", newOrder);
-        SoapSerializationEnvelope envelope1 = new
-                SoapSerializationEnvelope
-                (SoapEnvelope.VER11);
-        envelope1.bodyOut = request;
-        //.net开发的webservice必须加入
-        envelope1.dotNet = true;
-        HttpTransportSE trans = new HttpTransportSE("http://172.16.6" +
-                ".160:8006/SF_Server.svc?wsdl", 15 * 1000);
-        String action = "http://tempuri.org/ISF_Server/UpdateYunDanInfoByPrintCount";
-        trans.call(action, envelope1);
-        SoapPrimitive sp = (SoapPrimitive) envelope1.getResponse();
+//        SoapSerializationEnvelope envelope1 = new
+//                SoapSerializationEnvelope
+//                (SoapEnvelope.VER11);
+//        envelope1.bodyOut = request;
+//        //.net开发的webservice必须加入
+//        envelope1.dotNet = true;
+//        HttpTransportSE trans = new HttpTransportSE("http://172.16.6" +
+//                ".160:8006/SF_Server.svc?wsdl", 15 * 1000);
+//        String action = "http://tempuri.org/ISF_Server/UpdateYunDanInfoByPrintCount";
+//        trans.call(action, envelope1);
+//        SoapPrimitive sp = (SoapPrimitive) envelope1.getResponse();
+        SoapPrimitive sp = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.SF_SERVER);
         Log.e("zjy", "SFActivity->updatePrintCount(): updateCount==" + sp.toString());
         if ("成功".equals(sp.toString())) {
             MyApp.myLogger.writeInfo("SFprint--updatePrintCount:OK" + pid);

@@ -80,7 +80,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:divider="@drawable/divider"
-        android:padding="@dimen/default_padding_bottom"
+        android:padding="@dimen/padding_lv_def"
         android:dividerHeight="2dp"/>
 
 </LinearLayout>

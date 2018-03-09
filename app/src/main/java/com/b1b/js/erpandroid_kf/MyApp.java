@@ -6,8 +6,8 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import utils.LogRecoder;
 
@@ -17,9 +17,8 @@ import utils.LogRecoder;
 public class MyApp extends Application implements Thread.UncaughtExceptionHandler{
     public static String id;
     public static String ftpUrl;
-    public static List<Thread> totoalTask = new ArrayList<>();
     public static LogRecoder myLogger;
-
+    public static ThreadPoolExecutor cachedThreadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
     @Override
     public void onCreate() {
         super.onCreate();

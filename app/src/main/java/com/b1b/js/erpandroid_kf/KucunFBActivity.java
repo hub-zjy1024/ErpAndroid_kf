@@ -23,7 +23,6 @@ import com.b1b.js.erpandroid_kf.task.WebServicesTask;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
@@ -364,8 +363,7 @@ public class KucunFBActivity extends AppCompatActivity {
         map.put("pcount", pcount);
         map.put("isbhbm", isbhbm);
         SoapObject request = WebserviceUtils.getRequest(map, "GetInstorageBalanceInfoNew");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope
-                .VER11, WebserviceUtils.MartService);
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.MartService);
         Log.e("zjy", "KucunFBActivity->getFabuInfo(): reponse==" + response.toString());
         JSONObject root = new JSONObject(response.toString());
         JSONArray array = root.getJSONArray("表");
@@ -477,7 +475,7 @@ public class KucunFBActivity extends AppCompatActivity {
         map.put("ip", ip);
         map.put("dogSN", dogSN);
         SoapObject request = WebserviceUtils.getRequest(map, "SetStypeInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
+        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
                 .MartService);
         Log.e("zjy", "KucunFBActivity->setFBState(): state response==" + response.toString());
         return response.toString();

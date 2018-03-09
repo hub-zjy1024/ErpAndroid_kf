@@ -17,6 +17,8 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.task.TaskManager;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -126,26 +128,27 @@ public class PrintSettingActivity extends ListActivity {
                 listData.clear();
                 simpleAdapter.notifyDataSetChanged();
 //                printer.scan();
+                addBindedDevice();
                 printer2.scan();
             }
         });
-        printer = new MyBluePrinter(PrintSettingActivity.this, bHandler, new MyBluePrinter
-                .OnReceiveDataHandleEvent() {
-            @Override
-            public void OnReceive(BluetoothDevice var1) {
-                Log.e("zjy", "PrintSettingActivity->OnReceive(): discovery==" + var1.getAddress());
-                Map<String, Object> map = new HashMap<>();
-                if (var1.getName() != null) {
-                    map.put("title", var1.getName());
-                } else {
-                    map.put("title", "未知");
-                }
-                map.put("deviceAddress", var1.getAddress());
-                map.put("device", var1);
-                listData.add(map);
-                simpleAdapter.notifyDataSetChanged();
-            }
-        });
+//        printer = new MyBluePrinter(PrintSettingActivity.this, bHandler, new MyBluePrinter
+//                .OnReceiveDataHandleEvent() {
+//            @Override
+//            public void OnReceive(BluetoothDevice var1) {
+//                Log.e("zjy", "PrintSettingActivity->OnReceive(): discovery==" + var1.getAddress());
+//                Map<String, Object> map = new HashMap<>();
+//                if (var1.getName() != null) {
+//                    map.put("title", var1.getName());
+//                } else {
+//                    map.put("title", "未知");
+//                }
+//                map.put("deviceAddress", var1.getAddress());
+//                map.put("device", var1);
+//                listData.add(map);
+//                simpleAdapter.notifyDataSetChanged();
+//            }
+//        });
         printer2 = new SPrinter( bHandler,PrintSettingActivity.this, new MyBluePrinter
                 .OnReceiveDataHandleEvent() {
             @Override
@@ -163,7 +166,7 @@ public class PrintSettingActivity extends ListActivity {
                 simpleAdapter.notifyDataSetChanged();
             }
         });
-        new Thread(){
+        Runnable openBtRun=new Runnable(){
             @Override
             public void run() {
 //                        printer.open();
@@ -171,6 +174,7 @@ public class PrintSettingActivity extends ListActivity {
                 addBindedDevice();
             }
         };
+        TaskManager.getInstance().execute(openBtRun);
     }
 
     private void addBindedDevice() {
@@ -182,13 +186,21 @@ public class PrintSettingActivity extends ListActivity {
             map.put("deviceAddress", d.getAddress());
             map.put("device", d);
             listData.add(map);
+            bHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    simpleAdapter.notifyDataSetChanged();
+                }
+            });
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        printer.unregistReceiver();
+        if (printer != null) {
+            printer.unregistReceiver();
+        }
         ((SPrinter)printer2).unRegisterReceiver();
     }
 

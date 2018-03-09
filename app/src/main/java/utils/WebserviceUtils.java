@@ -24,8 +24,6 @@ import java.util.Set;
  Created by 张建宇 on 2016/12/20. */
 
 public class WebserviceUtils {
-
-
     public static final String NAMESPACE = "http://tempuri.org/";
     public static final String ROOT_URL = "http://172.16.6.160:8006/";
     //服务名，带后缀名的
@@ -75,6 +73,7 @@ public class WebserviceUtils {
             super(cause);
         }
     }
+
     /**
      获取Url
      不能随意拼接，得自己根据wsdl文档
@@ -175,11 +174,11 @@ public class WebserviceUtils {
         } else {
             if (response instanceof SoapFault) {
                 Exception soapFault = (SoapFault) response;
-                ByteArrayOutputStream bao=new ByteArrayOutputStream();
-                PrintWriter writer=new PrintWriter(bao);
+                ByteArrayOutputStream bao = new ByteArrayOutputStream();
+                PrintWriter writer = new PrintWriter(bao);
                 soapFault.printStackTrace(writer);
                 writer.flush();
-                String error="";
+                String error = "";
                 try {
                     error = new String(bao.toByteArray(), "utf-8");
                 } catch (UnsupportedEncodingException e) {
@@ -187,12 +186,36 @@ public class WebserviceUtils {
                 }
                 writer.close();
                 MyApp.myLogger.writeError("==========getSoapObjResponse Call ERROR: req:" + request.toString());
-                MyApp.myLogger.writeError("==========getSoapObjResponse Call ERROR:detail:" +error);
+                MyApp.myLogger.writeError("==========getSoapObjResponse Call ERROR:detail:" + error);
                 throw new SoapException(soapFault);
             }
         }
         SoapObject sob = (SoapObject) response;
         return sob;
+    }
+
+    /**
+     @param request
+     @param serviceName 以svc结尾的service名称
+     @return
+     @throws IOException
+     @throws XmlPullParserException
+     */
+    public static SoapObject getSoapObjResponse(SoapObject request, String serviceName, int timeout) throws
+            IOException, XmlPullParserException {
+        return getSoapObjResponse(request, VERSION_11, serviceName, timeout);
+    }
+
+    /**
+     @param request
+     @param serviceName 以svc结尾的service名称
+     @return
+     @throws IOException
+     @throws XmlPullParserException
+     */
+    public static SoapObject getSoapObjResponse(SoapObject request, String serviceName) throws
+            IOException, XmlPullParserException {
+        return getSoapObjResponse(request, VERSION_11, serviceName, DEF_TIMEOUT);
     }
 
     /**
@@ -207,16 +230,17 @@ public class WebserviceUtils {
             IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName, 30 * 1000);
         Object response = envelope.getResponse();
+        SoapPrimitive sob = null;
         if (response == null) {
             return new SoapPrimitive("", "", "");
         } else {
             if (response instanceof SoapFault) {
                 Exception soapFault = (SoapFault) response;
-                ByteArrayOutputStream bao=new ByteArrayOutputStream();
-                PrintWriter writer=new PrintWriter(bao);
+                ByteArrayOutputStream bao = new ByteArrayOutputStream();
+                PrintWriter writer = new PrintWriter(bao);
                 soapFault.printStackTrace(writer);
                 writer.flush();
-                String error="";
+                String error = "";
                 try {
                     error = new String(bao.toByteArray(), "utf-8");
                 } catch (UnsupportedEncodingException e) {
@@ -224,28 +248,50 @@ public class WebserviceUtils {
                 }
                 writer.close();
                 MyApp.myLogger.writeError("==========Call ERROR: req:" + request.toString());
-                MyApp.myLogger.writeError("==========Call ERROR:detail:" +error);
+                MyApp.myLogger.writeError("==========Call ERROR:detail:" + error);
                 throw new SoapException(soapFault);
+            } else if (response instanceof SoapObject) {
+                SoapObject obj=(SoapObject) response;
+                Log.e("zjy", "WebserviceUtils->getSoapPrimitiveResponse(): Obj==" + obj);
+                MyApp.myLogger.writeError("==========Call ERROR:detail:" + request.toString());
+                if (("anyType{}").equals(obj.toString())) {
+                    return new SoapPrimitive("", "", "");
+                }
+                int propertyCount = obj.getPropertyCount();
+                for(int i=0;i<propertyCount;i++) {
+                    Object property = obj.getProperty(i);
+                    Log.e("zjy", "WebserviceUtils->getSoapPrimitiveResponse(): toString==" + property.toString());
+                }
+                return new SoapPrimitive("", "", "");
             }
         }
-        SoapPrimitive sob = (SoapPrimitive) response;
+        sob= (SoapPrimitive) response;
         return sob;
     }
 
     /**
      @param request
-     @param envolopeVesion {@link org.ksoap2.SoapEnvelope}
-     @param serviceName    以svc结尾的service名称
+     @param serviceName 以svc结尾的service名称
      @return
      @throws IOException
      @throws XmlPullParserException
      */
-    public static SoapPrimitive getSoapPrimitiveResponseByTime(SoapObject request, int envolopeVesion, String serviceName, int
-            timeout) throws
+    public static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, String serviceName) throws
             IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName, timeout*1000);
-        SoapPrimitive sob = (SoapPrimitive) envelope.getResponse();
-        return sob;
+        return getSoapPrimitiveResponse(request, VERSION_11, serviceName);
+    }
+
+    /**
+     @param serviceName 以svc结尾的service名称
+     @return
+     @throws IOException
+     @throws XmlPullParserException
+     */
+    public static SoapPrimitive getSoapPrimitiveResponse(LinkedHashMap<String, Object> properties, String methodName, String
+            serviceName) throws
+            IOException, XmlPullParserException {
+        SoapObject request = getRequest(properties, methodName);
+        return getSoapPrimitiveResponse(request, serviceName);
     }
 
     private static SoapSerializationEnvelope getEnvelope(String namespace, String method, String soapAction, String transUrl,
@@ -266,9 +312,9 @@ public class WebserviceUtils {
         envelope.setOutputSoapObject(request);
         envelope.dotNet = true;
         HttpTransportSE se = new HttpTransportSE(transUrl, timeout);
-        if (envolopeVersion == SoapEnvelope.VER11 && soapAction != null) {
+        if (envolopeVersion == VERSION_11 && soapAction != null) {
             se.call(soapAction, envelope);
-        } else if (envolopeVersion == SoapEnvelope.VER12) {
+        } else if (envolopeVersion == VERSION_12) {
             se.call(null, envelope);
         } else {
             //协议版本和soapAction不匹配
@@ -276,64 +322,4 @@ public class WebserviceUtils {
         }
         return envelope;
     }
-
-    public static SoapObject getSoapObjectData(String namespace, String method, String soapAction, String transUrl,
-                                               LinkedHashMap<String, Object> properties, int envolopeVersion, int timeout)
-            throws IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = getEnvelope(namespace, method, soapAction, transUrl, properties, envolopeVersion,
-                timeout);
-        Object response = envelope.getResponse();
-        if (response == null) {
-            return new SoapObject("", "");
-        } else {
-            if (response instanceof SoapFault) {
-                Exception soapFault = (SoapFault) response;
-                ByteArrayOutputStream bao=new ByteArrayOutputStream();
-                PrintWriter writer=new PrintWriter(bao);
-                soapFault.printStackTrace(writer);
-                writer.flush();
-                String error="";
-                try {
-                    error = new String(bao.toByteArray(), "utf-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                writer.close();
-                throw new SoapException(soapFault);
-            }
-        }
-        SoapObject sObj = (SoapObject) response;
-        return sObj;
-    }
-
-    public static SoapPrimitive getSoapPrimitiveData(String namespace, String method, String soapAction, String transUrl,
-                                                     LinkedHashMap<String, Object> properties, int envolopeVersion, int
-                                                             timeout) throws IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = getEnvelope(namespace, method, soapAction, transUrl, properties, envolopeVersion,
-                timeout);
-        Object response = envelope.getResponse();
-        if (response == null) {
-            return new SoapPrimitive("", "", "");
-        } else {
-            if (response instanceof SoapFault) {
-                Exception soapFault = (SoapFault) response;
-                ByteArrayOutputStream bao=new ByteArrayOutputStream();
-                PrintWriter writer=new PrintWriter(bao);
-                soapFault.printStackTrace(writer);
-                writer.flush();
-                String error="";
-                try {
-                    error = new String(bao.toByteArray(), "utf-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                writer.close();
-                throw new SoapException(soapFault);
-            }
-        }
-
-        SoapPrimitive soapPrimitive = (SoapPrimitive) response;
-        return soapPrimitive;
-    }
-
 }

@@ -225,6 +225,28 @@ public class MyImageUtls {
         return res;
     }
 
+    /**
+     图片质量压缩
+     @param bitmap 图片
+     @param out    压缩后的输出流
+     @param quality  压缩质量
+     @return
+     */
+    public static boolean compressBitmapByRate(Bitmap bitmap, OutputStream out, int quality) throws IOException {
+        boolean res = false;
+        if (bitmap != null) {
+            ByteArrayOutputStream bao = new ByteArrayOutputStream();
+            if (quality >= 0 && quality <= 100) {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, bao);
+            } else {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bao);
+            }
+            out.write(bao.toByteArray());
+            res = true;
+        }
+        return res;
+    }
+
     public static byte[] compressBitmapAtsize(Bitmap bitmap, float size) {
         if (bitmap != null) {
             int i = 100;
@@ -306,6 +328,12 @@ public class MyImageUtls {
         }
     }
 
+    public static void releaseBitmap(Bitmap b) {
+        if (b != null) {
+            b.recycle();
+            b = null;
+        }
+    }
     /**
      得到透明的bitmap
      @param sourceImg 源图片
