@@ -34,6 +34,16 @@ public class FTPUtils {
     public static final String mainAddress = "172.16.6.22";
     public static final String mainName = "NEW_DYJ";
     public static final String mainPwd = "GY8Fy2Gx";
+
+    public interface UploadListner {
+        void upload();
+    }
+
+    private UploadListner mListener;
+
+    public void setListner(UploadListner mListener) {
+        this.mListener =mListener;
+    }
     /**
      调试开关，默认关闭。开启时自动打印ftp命令和回复结果
      */
@@ -158,8 +168,8 @@ public class FTPUtils {
      */
     public synchronized boolean serverIsOpen() {
         try {
-            boolean ok = mClient.changeWorkingDirectory("/");
-            return ok;
+            mClient.printWorkingDirectory();
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -241,6 +251,37 @@ public class FTPUtils {
             }
         }
         return mClient.storeFile(remoteFilePath, localIn);
+    }
+
+    /**
+     上传 *
+     @param localIn        等待上传的文件流
+     @param remoteFilePath 以“/”开头，文件名结尾（带后缀），如：/day/d1/123.txt，目录不存在会自动创建目录
+     @return
+     @throws IOException
+     */
+    public synchronized boolean uploadByStream(InputStream localIn, String remoteFilePath) throws IOException {
+
+        int last = remoteFilePath.lastIndexOf("/");
+        if (last != 0 && last != -1) {
+            String path = remoteFilePath.substring(0, last);
+            boolean dirExists = fileExists(path);
+            if (!dirExists) {
+                mkDirs(path);
+                Log.e("zjy", "FTPUtils->upload(): makeDir==" + path);
+            }
+        }
+        OutputStream outputStream = mClient.storeFileStream(remoteFilePath);
+        int b;
+        byte[] buf = new byte[1024 * 8];
+
+        while ((b = localIn.read(buf)) != -1) {
+            outputStream.write(buf, 0, b);
+        }
+        outputStream.close();
+        localIn.close();
+        mClient.completePendingCommand();
+        return true;
     }
 
     /**

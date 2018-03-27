@@ -32,7 +32,6 @@ public class TaskManager {
         private final AtomicInteger mCount = new AtomicInteger(1);
 
         public Thread newThread(Runnable r) {
-            Log.e("zjy", "TaskManager->newThread(): ==" + mCount.get());
             return new Thread(r, "TaskManager #" + mCount.getAndIncrement());
         }
     };
@@ -81,8 +80,6 @@ public class TaskManager {
         boolean addSuccess = false;
         try {
             threadPoolExecutor.execute(runnable);
-            Log.e("zjy", "TaskManager->execute(): maxSize==" + sPoolWorkQueue.size());
-            Log.e("zjy", "TaskManager->execute(): poolSize==" + threadPoolExecutor.getPoolSize());
             addSuccess = true;
         } catch (RejectedExecutionException e) {
             e.printStackTrace();
@@ -94,9 +91,6 @@ public class TaskManager {
         boolean addSuccess = false;
         try {
             threadPoolExecutor.execute(runnable);
-            Log.e("zjy", "TaskManager->execute(): taskSize==" + sPoolWorkQueue.size());
-            Log.e("zjy", "TaskManager->execute(): taskSize==" + threadPoolExecutor.getCorePoolSize());
-            Log.e("zjy", "TaskManager->execute(): poolSize==" + threadPoolExecutor.getPoolSize());
             addSuccess = true;
         } catch (RejectedExecutionException e) {
             e.printStackTrace();

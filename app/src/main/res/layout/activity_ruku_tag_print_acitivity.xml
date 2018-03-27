@@ -58,11 +58,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="打印机状态："/>
+            android:text="状态："/>
 
         <TextView
             android:id="@+id/rukutag_activity_tv_state"
-            android:layout_width="wrap_content"
+            android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:text="等待连接"/>
 

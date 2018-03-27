@@ -113,7 +113,6 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
         gv = (GridView) findViewById(R.id.view_pic_gv);
         btnSearch = (Button) findViewById(R.id.view_pic_btn_search);
         Button btnScan = (Button) findViewById(R.id.view_pic_btn_scan);
-        setcScanInterface(this);
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -166,10 +165,6 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
         alertDialog = (AlertDialog) DialogUtils.getSpAlert(this, "", "结果");
     }
 
-    @Override
-    public int getLayoutResId() {
-        return R.layout.activity_view_pic_by_pid;
-    }
 
     @Override
     public void resultBack(String result) {
@@ -256,8 +251,7 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
                             if (!file.exists()) {
                                 if (!tempUrl.equals(imgFtp)) {
                                     if (finalHost.equals(FtpManager.mainAddress)) {
-                                        mFtpClient = new FTPUtils(finalHost, port, FtpManager.mainName, FtpManager
-                                                .mainPwd);
+                                        mFtpClient = FtpManager.getTestFTP();
                                     } else {
                                         mFtpClient = new FTPUtils(finalHost, port, FtpManager.ftpName, FtpManager
                                                 .ftpPassword);

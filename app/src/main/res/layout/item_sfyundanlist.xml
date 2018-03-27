@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="match_parent"
+                android:descendantFocusability="blocksDescendants"
               android:layout_height="match_parent">
 
 
@@ -28,5 +29,25 @@
         android:textColor="@color/title_background"
         android:textSize="@dimen/def_text_size_small"
         android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:layout_below="@id/sf_tv"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/yundanlist_btn_sf"
+            android:layout_width="wrap_content"
+            style="@style/zjy_button_light"
+            android:text="顺丰"
+            android:layout_height="wrap_content"/>
+        <Button
+            android:layout_marginLeft="20dp"
+            android:id="@+id/yundanlist_btn_ky"
+            style="@style/zjy_button_light"
+            android:layout_width="wrap_content"
+            android:text="跨越"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
 
 </RelativeLayout>

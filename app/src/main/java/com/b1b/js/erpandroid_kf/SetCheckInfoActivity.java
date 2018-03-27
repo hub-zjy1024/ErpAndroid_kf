@@ -3,9 +3,9 @@ package com.b1b.js.erpandroid_kf;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -34,20 +34,7 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
     private Button btnAddPhoto;
     private String pid;
     private Button btnViewPic;
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case 0:
-                    MyToast.showToast(SetCheckInfoActivity.this, msg.obj.toString());
-                    break;
-                case 1:
-                    MyToast.showToast(SetCheckInfoActivity.this, "当前网络质量太差");
-                    break;
-            }
-        }
-    };
+    private Handler mHandler = new Handler() ;
 
 
     @Override
@@ -96,18 +83,20 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
             @Override
             public void run() {
                 try {
-                    SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request,
+                    final SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request,
                             WebserviceUtils.ChuKuServer);
                     Log.e("zjy", "SetCheckInfoActivity.java->run(): response==" + response.toString());
-                    Message msg = mHandler.obtainMessage();
-                    msg.obj = response.toString();
-                    msg.what = 0;
-                    mHandler.sendMessage(msg);
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            MyToast.showToast(SetCheckInfoActivity.this, response.toString());
+                        }
+                    });
                 } catch (IOException e) {
-                    mHandler.sendEmptyMessage(1);
+                    showError();
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
-                    mHandler.sendEmptyMessage(1);
+                    showError();
                     e.printStackTrace();
                 }
 
@@ -116,6 +105,14 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
         TaskManager.getInstance().execute(setCheckInfoThread, this);
     }
 
+    public void showError() {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                MyToast.showToast(SetCheckInfoActivity.this, getResources().getString(R.string.bad_connection));
+            }
+        });
+    }
 
     @Override
     public void onClick(View v) {
@@ -175,7 +172,24 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                         }
                     }
                 });
-                builder.create().show();
+//                builder.create().show();
+                builder.setTitle("上传方式（设置中可配置默认）");
+                Intent intent1 = new Intent();
+                intent1.putExtra("pid", pid);
+                SharedPreferences spTk = getSharedPreferences(SettingActivity.PREF_TKPIC, MODE_PRIVATE);
+                String style = spTk.getString("style", "");
+                if (style.equals(getResources().getString(R.string.upload_nomarl))) {
+                    intent1.setClass(this, TakePicActivity.class);
+                } else if (style.equals(getResources().getString(R.string.upload_fromphone))) {
+                    intent1.setClass(this, ObtainPicFromPhone.class);
+                } else if (style.equals(getResources().getString(R.string.upload_continue))) {
+                    intent1.setClass(this, TakePic2Activity.class);
+                } else {
+                    builder.create().show();
+                }
+                if (intent1.getComponent() != null) {
+                    startActivity(intent1);
+                }
                 break;
             case R.id.setcheckinfo_viewpic:
                 Intent intent = new Intent(SetCheckInfoActivity.this, ViewPicByPidActivity.class);

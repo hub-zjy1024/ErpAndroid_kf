@@ -367,7 +367,8 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
         String result = response.toString();
         if (result.equals("")) {
-            MyApp.myLogger.writeError(PreChukuDetailActivity.class, "getProperty  null！！！" + pid + "\t" + uid);
+            MyApp.myLogger.writeError(PreChukuDetailActivity.class, getResources().getString(R.string.error_soapobject) + pid +
+                    "\t" + uid);
         }
         Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + result);
         JSONObject object = new JSONObject(result);

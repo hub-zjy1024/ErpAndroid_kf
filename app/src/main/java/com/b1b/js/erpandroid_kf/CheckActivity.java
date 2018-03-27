@@ -18,6 +18,7 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
+import com.b1b.js.erpandroid_kf.service.LogUploadService;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONException;
@@ -30,13 +31,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import utils.CameraScanInterface;
 import utils.MyJsonUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 
-public class CheckActivity extends BaseScanActivity implements View.OnClickListener,CameraScanInterface{
+public class CheckActivity extends BaseScanActivity implements View.OnClickListener{
 
     private ListView lv;
     private EditText edPid;
@@ -89,7 +89,6 @@ public class CheckActivity extends BaseScanActivity implements View.OnClickListe
         rdb_checkFirst = (RadioButton) findViewById(R.id.check_rdb_first);
         cboStart = (CheckBox) findViewById(R.id.check_cbo_autostart);
         btnSearch.setOnClickListener(this);
-        setcScanInterface(this);
         btnScancode.setOnClickListener(this);
         rdb_checkFirst.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -125,11 +124,6 @@ public class CheckActivity extends BaseScanActivity implements View.OnClickListe
         pd = new ProgressDialog(this);
         pd.setTitle("提示");
         pd.setMessage("正在查询。。。");
-    }
-
-    @Override
-    public int getLayoutResId() {
-        return R.layout.activity_check;
     }
 
     @Override
@@ -230,6 +224,12 @@ public class CheckActivity extends BaseScanActivity implements View.OnClickListe
                 break;
 
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        startService(new Intent(this, LogUploadService.class));
     }
 
     @Override

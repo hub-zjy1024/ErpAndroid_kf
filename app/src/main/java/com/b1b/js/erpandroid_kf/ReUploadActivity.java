@@ -3,71 +3,86 @@ package com.b1b.js.erpandroid_kf;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
 import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
-import com.b1b.js.erpandroid_kf.task.UpLoadPicRunable;
 import com.b1b.js.erpandroid_kf.task.UploadPicRunnable2;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import utils.FTPUtils;
 import utils.FtpManager;
 import utils.MyToast;
+import utils.SafeHandler;
 import utils.UploadUtils;
-import zhy.imageloader.PickPicActivity;
 
 public class ReUploadActivity extends ObtainPicFromPhone {
-    private Handler nHandler = new Handler() {
+    static class LHanlder extends SafeHandler<ReUploadActivity> {
+        LHanlder(ReUploadActivity mContext) {
+            super(mContext);
+        }
+
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MSG_SUCCESS:
-                    showFinalDialog("上传成功");
-                    int nfId = getIntent().getIntExtra("nfId", 0);
-                    int index = msg.arg1;
-                    int okTimes = counts.incrementAndGet();
-                    UploadPicInfo upInfo = uploadPicInfos.get(index);
-                    if (nfId != 0) {
-                        NotificationManager nManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                        nManager.cancel(nfId);
-                    }
-                    upInfo.setState("1");
-                    mGvAdapter.notifyDataSetChanged();
-                    break;
-                case MSG_ERROR:
-                    showFinalDialog("上传失败");
-                    mGvAdapter.notifyDataSetChanged();
-                    break;
-                case MSG_SUCCESS_All:
-                    int okCounts = counts.incrementAndGet();
-                    if (okCounts == uploadPicInfos.size()) {
-                        showFinalDialog("上传成功");
-                    } else {
-                        int size = ((int) TaskManager.getInstance().getExecutor().getTaskCount());
-                        Log.e("zjy", "ReUploadActivity->handleMessage(): nowTask==" + size);
-                        if (size == 0) {
-                            showFinalDialog("上传失败");
-                            mGvAdapter.notifyDataSetChanged();
+            super.handleMessage(msg);
+                int arg1 = msg.arg1;
+                int arg2 = msg.arg2;
+                Object obj = msg.obj;
+            ReUploadActivity activity = getActivity();
+            if (activity == null) {
+                return;
+            }
+                int picSize = activity.uploadPicInfos.size();
+                UploadPicInfo nowInfo = activity.uploadPicInfos.get(arg1);
+                String err = "";
+                switch (msg.what) {
+                    case MSG_SUCCESS:
+                        int nfId = activity.getIntent().getIntExtra("nfId", 0);
+                        if (nfId != 0) {
+                            NotificationManager nManager = (NotificationManager) activity.getSystemService(NOTIFICATION_SERVICE);
+                            nManager.cancel(nfId);
                         }
-                    }
-                    break;
+                        err = "上传成功";
+                        activity.uploadResult += "图片" + arg1 + ":" + err + "\n";
+                        solveResult(activity,arg1, arg2, picSize, err);
+                        nowInfo.setState("1");
+                        activity.mGvAdapter.notifyDataSetChanged();
+                        break;
+                    case MSG_ERROR:
+                        if (obj != null) {
+                            err = obj.toString();
+                        }
+                        err = "上传失败:" + err;
+                        activity.uploadResult += "图片" + arg1 + ":" + err + "！！！\n";
+                        solveResult(activity,arg1, arg2, picSize, err);
+                        break;
+                }
+
+        }
+        private void solveResult(ReUploadActivity activity ,int arg1, int arg2, int picSize, String err) {
+            activity.count++;
+            if (arg2 == 1) {
+                activity.uploadResult = "图片" + arg1 + ":" + err + "\n";
+                activity.showFinalDialog(activity.uploadResult);
+            } else {
+                activity.pd.setMessage("上传了" + (activity.count) + "/" + activity.uploadPicInfos.size());
+                if (activity.count >= picSize) {
+                    activity.showFinalDialog(activity.uploadResult);
+                }
             }
         }
-    };
-    AtomicInteger counts = new AtomicInteger(1);
-    private final int MSG_SUCCESS = 0;
-    private final int MSG_ERROR = 1;
-    private final int MSG_SUCCESS_All = 2;
+    }
+
+    protected LHanlder nHandler = new LHanlder(this);
+    protected static final int MSG_SUCCESS = 0;
+    protected static final int MSG_ERROR = 1;
     private String typeFlag;
-    private boolean isTest = false;
+    protected boolean isTest = false;
     private boolean isCaigou = false;
 
     @Override
@@ -77,6 +92,10 @@ public class ReUploadActivity extends ObtainPicFromPhone {
         failPath = intent.getStringExtra("failPath");
         typeFlag = intent.getStringExtra("caigou");
         isCaigou = "caigou".equals(typeFlag);
+        String failPid = intent.getStringExtra("failPid");
+        if (failPid != null) {
+            edPid.setText(failPid);
+        }
         if (failPath != null) {
             uploadPicInfos.add(new UploadPicInfo("-1", failPath));
             btn_commit.setEnabled(true);
@@ -89,12 +108,15 @@ public class ReUploadActivity extends ObtainPicFromPhone {
             public void onClick(View v, final int position) {
                 final UploadPicInfo uploadPicInfo = uploadPicInfos.get(position);
                 pid = edPid.getText().toString().trim();
-                if (TakePicActivity.checkPid(mContext, pid, 5))
+                if (checkPid(5)) {
                     return;
+                }
                 if (!uploadPicInfo.getState().equals("-1")) {
                     MyToast.showToast(mContext, "当前图片已经上传完成");
                     return;
                 }
+                Button btn = (Button) v;
+                btn.setText("正在上传");
                 showProgressDialog();
                 upload(position, false);
             }
@@ -102,7 +124,7 @@ public class ReUploadActivity extends ObtainPicFromPhone {
         gv.setAdapter(mGvAdapter);
     }
 
-    private void upload(final int position, final boolean isMulti) {
+    protected void upload(final int position, final boolean isMulti) {
         if (MyApp.id == null) {
             showFinalDialog("当前登陆人为空，请重启程序尝试");
             return;
@@ -117,22 +139,21 @@ public class ReUploadActivity extends ObtainPicFromPhone {
         String nowPath = item.getPath();
         if (isCaigou) {
             mUrl = CaigouActivity.ftpAddress;
-            ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName,FtpManager.ftpPassword);
+            ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName, FtpManager.ftpPassword);
             String fileName = nowPath.substring(nowPath.lastIndexOf("/") + 1, nowPath.lastIndexOf("."));
             remoteName = getRemarkName(fileName, false);
             remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
         } else {
             mUrl = MyApp.ftpUrl;
-            ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName,FtpManager.ftpPassword);
+            ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName, FtpManager.ftpPassword);
             String fileName = nowPath.substring(nowPath.lastIndexOf("/") + 1, nowPath.lastIndexOf("."));
             remoteName = getRemarkName(fileName, false);
             remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
         }
         if (isTest) {
             mUrl = FtpManager.mainAddress;
-            ftpUtil = new FTPUtils(mUrl, FtpManager.mainName,
-                    FtpManager.mainPwd);
-            remotePath = UploadUtils.KF_DIR + remoteName + ".jpg";
+            ftpUtil =  FtpManager.getTestFTP();
+            remotePath = UploadUtils.getTestPath(pid);
         }
         insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
         UploadPicRunnable2 runable = new UploadPicRunnable2(remotePath, insertPath, ftpUtil) {
@@ -140,16 +161,16 @@ public class ReUploadActivity extends ObtainPicFromPhone {
             public void onResult(int code, String err) {
                 Message msg = nHandler.obtainMessage(MSG_SUCCESS);
                 msg.arg1 = position;
-                if (code == UpLoadPicRunable.SUCCESS) {
+                msg.arg2 = 1;
+                if (code == SUCCESS) {
                     if (isMulti) {
-                        msg.what = MSG_SUCCESS_All;
+                        msg.arg2 = 2;
                     }
-                    msg.sendToTarget();
                 } else {
                     msg.what = MSG_ERROR;
                     msg.obj = err;
-                    msg.sendToTarget();
                 }
+                msg.sendToTarget();
             }
 
             @Override
@@ -162,9 +183,11 @@ public class ReUploadActivity extends ObtainPicFromPhone {
                 } else {
                     String flag = "";
                     if (isCaigou) {
+                        flag = "SCCG";
                         res = setSSCGPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid, remoteName,
                                 insertPath, flag);
                     } else {
+                        flag = "CKTZ";
                         res = setInsertPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid, remoteName,
                                 insertPath, flag);
                     }
@@ -186,17 +209,27 @@ public class ReUploadActivity extends ObtainPicFromPhone {
         switch (v.getId()) {
             case R.id.review_commit:
                 pid = edPid.getText().toString().trim();
-                if (TakePicActivity.checkPid(mContext, pid, 5))
+                if (checkPid(5)) {
                     return;
+                }
                 showProgressDialog();
-                counts.set(0);
+                count = 0;
+                uploadResult = "";
                 for (int i = 0; i < uploadPicInfos.size(); i++) {
-                    upload(i, true);
+                    UploadPicInfo item = uploadPicInfos.get(i);
+                    if (item.getState().equals("-1")) {
+                        upload(i, true);
+                    } else {
+                        count++;
+                    }
+                }
+                if (count == uploadPicInfos.size()) {
+                    MyToast.showToast(mContext, "所有图片已上传完成");
+                    pd.cancel();
                 }
                 break;
             case R.id.review_getFromPhone:
-                Intent intent = new Intent(mContext, PickPicActivity.class);
-                startActivityForResult(intent, 100);
+                super.onClick(v);
                 break;
         }
     }

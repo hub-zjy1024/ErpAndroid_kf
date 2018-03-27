@@ -9,7 +9,29 @@
     <SurfaceView
         android:id="@+id/surfaceview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:id="@+id/take_pic2_result_containner"
+            android:layout_width="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_height="wrap_content">
+        </LinearLayout>
+        <TextView
+            android:id="@+id/activity_take_pic_tvpid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:textColor="@color/colorAccent"
+            android:textSize="22sp"
+            android:background="@color/color_tv_result_transparent"
+            android:text=""/>
+    </RelativeLayout>
+
 
     <Button
         android:id="@+id/btn_takepic"

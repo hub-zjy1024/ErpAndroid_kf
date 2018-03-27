@@ -2,6 +2,7 @@ package printer.adapter;
 
 import android.content.Context;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.R;
@@ -20,20 +21,29 @@ public class SFYundanAdapter extends MyBaseAdapter<Yundan> {
         super(data, mContext, itemViewId);
     }
 
+    private OnExpressListener listener;
+    public interface OnExpressListener{
+        void Ky(Yundan yundan);
+
+        void Sf(Yundan yundan);
+    }
     @Override
     protected void initItems(View convertView, MyBasedHolder baseHolder) {
         YdHolder holder = (YdHolder) baseHolder;
         TextView tv = (TextView) convertView.findViewById(R.id.sf_tv);
         TextView tvFlag = (TextView) convertView.findViewById(R.id.sf_flag);
         TextView tvmore = (TextView) convertView.findViewById(R.id.sf_more);
+        Button btnKy = (Button) convertView.findViewById(R.id.yundanlist_btn_ky);
+        Button btnSF = (Button) convertView.findViewById(R.id.yundanlist_btn_sf);
         holder.tv = tv;
         holder.tvFlag = tvFlag;
         holder.tvmore = tvmore;
-
+        holder.btnSF = btnSF;
+        holder.btnKy = btnKy;
     }
 
     @Override
-    protected void initHolder(Yundan currentData, MyBasedHolder baseHolder) {
+    protected void initHolder(final Yundan currentData, MyBasedHolder baseHolder) {
         YdHolder holder = (YdHolder) baseHolder;
         if (currentData.getType().equals("2")) {
             holder.tvFlag.setText("调货");
@@ -44,6 +54,26 @@ public class SFYundanAdapter extends MyBaseAdapter<Yundan> {
         }
         holder.tv.setText(currentData.toStringSmall());
         holder.tvmore.setVisibility(View.VISIBLE);
+        holder.btnKy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    listener.Ky(currentData);
+                }
+            }
+        });
+        holder.btnSF.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    listener.Sf(currentData);
+                }
+            }
+        });
+    }
+
+    public void setListener(OnExpressListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -55,6 +85,8 @@ public class SFYundanAdapter extends MyBaseAdapter<Yundan> {
         public TextView tv;
         public TextView tvFlag;
         public TextView tvmore;
+        public Button btnSF;
+        public Button btnKy;
 
     }
 }

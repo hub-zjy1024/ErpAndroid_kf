@@ -1,13 +1,13 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
@@ -20,7 +20,6 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.XiaopiaoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
@@ -36,39 +35,51 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import printer.entity.XiaopiaoInfo;
-import utils.CameraScanInterface;
 import utils.DialogUtils;
 import utils.MyToast;
 import utils.PrinterStyle;
+import utils.SafeHandler;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
+import utils.btprint.BtHelper;
 import utils.btprint.MyBluePrinter;
-import utils.btprint.MyPrinterParent;
 import utils.btprint.SPrinter;
 
-public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraScanInterface {
-    private Handler mHandler = new Handler() {
+public class RukuTagPrintAcitivity extends BaseScanActivity {
+    private RKHanlder mHandler = new RKHanlder(this);
+    private final static int FLAG_PRINT = 3;
+    private static class RKHanlder extends SafeHandler<RukuTagPrintAcitivity> {
+        private RKHanlder(RukuTagPrintAcitivity mContext) {
+            super(mContext);
+        }
+
         @Override
         public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            final RukuTagPrintAcitivity activity = getActivity();
+            if (activity == null) {
+                return;
+            }
+
             switch (msg.what) {
-                case MyPrinterParent.STATE_CONNECTED:
-                    MyToast.showToast(mContext, "连接成功");
-                    tvState.setTextColor(Color.GREEN);
-                    tvState.setText("已连接");
+                case BtHelper.STATE_CONNECTED:
+                    MyToast.showToast(activity, "连接成功");
+                    activity.tvState.setTextColor(Color.GREEN);
+                    activity.tvState.setText("已连接");
                     break;
-                case MyBluePrinter.STATE_DISCONNECTED:
-                    MyToast.showToast(mContext, "连接失败");
-                    tvState.setTextColor(Color.RED);
-                    tvState.setText("连接失败");
+                case BtHelper.STATE_DISCONNECTED:
+                    MyToast.showToast(activity, "连接失败");
+                    activity.tvState.setTextColor(Color.RED);
+                    activity.tvState.setText("连接失败");
                     break;
-                case 3:
-                    if (cboAuto.isChecked()) {
+                case FLAG_PRINT:
+                    if (activity.cboAuto.isChecked()) {
                         Runnable printRun = new Runnable() {
                             @Override
                             public void run() {
-                                for (int i = 0; i < infos.size(); i++) {
-                                    XiaopiaoInfo tInfo = infos.get(i);
-                                    PrinterStyle.printXiaopiao2(printer2, tInfo);
+                                for (int i = 0; i <activity. infos.size(); i++) {
+                                    XiaopiaoInfo tInfo = activity.infos.get(i);
+                                    PrinterStyle.printXiaopiao2(activity.printer2, tInfo);
                                     try {
                                         Thread.sleep(1000);
                                     } catch (InterruptedException e) {
@@ -79,14 +90,16 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
                         };
                         TaskManager.getInstance().execute(printRun);
                     }
-                    xpAdapter.notifyDataSetChanged();
+                    activity.xpAdapter.notifyDataSetChanged();
                     break;
-                case SPrinter.STATE_OPENED:
-                    if (!btAddress.equals("")) {
+                case BtHelper.STATE_OPENED:
+                    if (!activity.btAddress.equals("")) {
+                        activity.tvState.setText("正在连接");
                         Runnable connectRun = new Runnable() {
                             @Override
                             public void run() {
-                                printer2.connect(btAddress);
+                                activity.printer2.connect(activity.btAddress);
+                                Log.e("zjy", "RukuTagPrintAcitivity->run(): state open==");
                             }
                         };
                         TaskManager.getInstance().execute(connectRun);
@@ -94,7 +107,8 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
                     break;
             }
         }
-    };
+    }
+
     private MyBluePrinter printer;
     private SPrinter printer2;
     private Context mContext = this;
@@ -128,23 +142,24 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
         btnScan = (Button) findViewById(R.id.rukutag_activity_btn_scancode);
         btnPrint = (Button) findViewById(R.id.rukutag_activity_btn_print);
         btnSearch = (Button) findViewById(R.id.rukutag_activity_btn_search);
-        final CheckBox cboOffline = (CheckBox) findViewById(R.id.ruku_cbo_offline);
+        final CheckBox oboOnlyCode = (CheckBox) findViewById(R.id.ruku_cbo_offline);
         cboAuto = (CheckBox) findViewById(R.id.ruku_cbo_autoprint);
         ivTest = (ImageView) findViewById(R.id.test_iv);
 
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, CaptureActivity.class);
-                startActivityForResult(intent, CaptureActivity.REQ_CODE);
+                startScanActivity();
+                //                Intent intent = new Intent(mContext, CaptureActivity.class);
+                //                startActivityForResult(intent, CaptureActivity.REQ_CODE);
             }
         });
-        setcScanInterface(this);
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //                ivTest.setImageBitmap(BarcodeCreater.creatBarcode(RukuTagPrintAcitivity.this, "123487523", 40
-                // * 8, 50, true, 10));
+                //                                ivTest.setImageBitmap(BarcodeCreater.creatBarcode(RukuTagPrintAcitivity.this,
+                // "123487523", 40
+                //                 * 8, 50, true, 10));
                 final String pid = edPid.getText().toString();
                 SoftKeyboardUtils.closeInputMethod(edPid, mContext);
                 if (pid.equals("")) {
@@ -161,7 +176,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
         final String mode = getIntent().getStringExtra(extraMode);
         if (MODE_OFFLINE.equals(mode)) {
             btnSearch.setVisibility(View.GONE);
-            cboOffline.setVisibility(View.GONE);
+            oboOnlyCode.setVisibility(View.GONE);
             tvTitle.setText("条码打印");
             isOffline = true;
         }
@@ -175,39 +190,35 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
         btnPrint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (printer2 == null) {
+                    MyToast.showToast(mContext, "请先配置蓝牙打印机，并确认已连接");
+                    return;
+                }
 
-                new Thread() {
+                Runnable printRun = new Runnable() {
                     @Override
                     public void run() {
-                        super.run();
-                        String code = edPid.getText().toString();
-                        if (cboOffline.isChecked()) {
-                            if (!code.equals("")) {
-                                printer2.printBarCode(code, 0, 1, 80);
-                                printer2.printText("M"+code);
-                                printer2.newLine();
-                                printer2.newLine();
-                                printer2.newLine();
-                            } else {
-                                MyToast.showToast(RukuTagPrintAcitivity.this, "请输入明细ID");
-                            }
+//                        printer2.getPaperStatus();
+                        String code = edPid.getText().toString().trim();
+                        if (code.equals("")) {
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    MyToast.showToast(RukuTagPrintAcitivity.this, "请输入明细ID");
+                                }
+                            });
                             return;
                         }
-                        if (isOffline && !code.equals("")) {
-                            if (!code.equals("")) {
-                                printer2.printBarCode(code, 0, 1, 80);
-                                printer2.printText(code);
-                                printer2.newLine();
-                                printer2.newLine();
-                                printer2.newLine();
-                            } else {
-                                mHandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        MyToast.showToast(RukuTagPrintAcitivity.this, "请输入明细ID");
-                                    }
-                                });
-                            }
+                        if (oboOnlyCode.isChecked()) {
+                            printer2.printBarCode(code, 0, 1, 80);
+                            printer2.printText("M" + code);
+                            printer2.newLine(3);
+                            return;
+                        }
+                        if (isOffline) {
+                            printer2.printBarCode(code, 0, 1, 80);
+                            printer2.printText(code);
+                            printer2.newLine(3);
                             return;
                         }
                         for (int i = 0; i < infos.size(); i++) {
@@ -222,7 +233,8 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
                             }
                         }
                     }
-                }.start();
+                };
+                TaskManager.getInstance().execute(printRun);
             }
         });
         infos = new ArrayList<>();
@@ -231,26 +243,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
         SharedPreferences userInfo = getSharedPreferences("UserInfo", Context.MODE_PRIVATE);
         btAddress = userInfo.getString("btPrinterMac", "");
         Log.e("zjy", "RukuTagPrintAcitivity->run(): printerAddress==" + btAddress);
-//        printer = new MyBluePrinter(this, mHandler, new MyBluePrinter
-                //                    .OnReceiveDataHandleEvent() {
-                //                @Override
-                //                public void OnReceive(BluetoothDevice var1) {
-                //                }
-                //            });
-        printer2 = new SPrinter(mHandler, mContext, null);
-        Runnable connetRunnable = new Runnable() {
-            @Override
-            public void run() {
-                printer2.open();
-                if (printer2.isOpen()) {
-                    if (btAddress.equals("")) {
-                        return;
-                    }
-                    printer2.connect(btAddress);
-                }
-            }
-        };
-        TaskManager.getInstance().execute(connetRunnable);
+
         if (btAddress.equals("")) {
             DialogUtils.getSpAlert(mContext, "暂无连接打印机记录，是否前往配置", "提示", new DialogInterface.OnClickListener() {
                 @Override
@@ -259,13 +252,38 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
                     startActivityForResult(intent, reqCode);
                 }
             }, "是", null, "否").show();
+        } else {
+            printer2 = SPrinter.getPrinter(mContext, new SPrinter.MListener() {
+                @Override
+                public void sendMsg(int what) {
+                    mHandler.sendEmptyMessage(what);
+                }
+
+                @Override
+                public void onDeviceReceive(BluetoothDevice d) {
+
+                }
+            });
+            printer2.registeBroadCast();
+            Runnable connetRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (printer2.isOpen()) {
+                        boolean isConnect = printer2.initPrinter();
+                        if (!isConnect) {
+                            printer2.connect(btAddress);
+                        } else {
+                            mHandler.sendEmptyMessage(SPrinter.STATE_CONNECTED);
+                        }
+                    } else {
+                        printer2.open();
+                    }
+                }
+            };
+            TaskManager.getInstance().execute(connetRunnable);
         }
     }
 
-    @Override
-    public int getLayoutResId() {
-        return R.layout.activity_ruku_tag_print_acitivity;
-    }
 
     @Override
     public void resultBack(String result) {
@@ -281,7 +299,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
     }
 
     private void getData(final String pid) {
-        Runnable dataRunnable =new Runnable() {
+        Runnable dataRunnable = new Runnable() {
             @Override
             public void run() {
                 try {
@@ -317,7 +335,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
                         info.setPid(pid);
                         infos.add(info);
                     }
-                    mHandler.sendEmptyMessage(3);
+                    mHandler.sendEmptyMessage(FLAG_PRINT);
                 } catch (IOException e) {
                     mHandler.post(new Runnable() {
                         @Override
@@ -341,6 +359,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
         };
         TaskManager.getInstance().execute(dataRunnable);
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -349,7 +368,17 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
                 printer = PrintSettingActivity.getPrint();
                 tvState.setTextColor(Color.GREEN);
                 tvState.setText("已连接");
-                printer2 = (SPrinter) PrintSettingActivity.getSPrint();
+                printer2 = SPrinter.getPrinter(this, new SPrinter.MListener() {
+                    @Override
+                    public void sendMsg(int what) {
+                        mHandler.sendEmptyMessage(what);
+                    }
+
+                    @Override
+                    public void onDeviceReceive(BluetoothDevice d) {
+
+                    }
+                });
             }
         }
     }
@@ -361,19 +390,10 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
             printer.close();
         }
         if (printer2 != null) {
-            printer2.closeSocket();
             printer2.unRegisterReceiver();
         }
     }
 
-    public String getDetailInfo(String pid) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("pid", pid);
-        SoapObject request = WebserviceUtils.getRequest(map, "GetInstorectInfo");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(request,
-                WebserviceUtils.ChuKuServer);
-        return res.toString();
-    }
     public String getDetailInfoByDetailId(String pid) throws IOException, XmlPullParserException {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("mxid", pid);
@@ -398,9 +418,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity implements CameraSca
         if (isOffline) {
             printer2.printBarCode(result, 0, 1, 80);
             printer2.printText(result);
-            printer2.newLine();
-            printer2.newLine();
-            printer2.newLine();
+            printer2.newLine(3);
         } else {
             getData(result);
         }

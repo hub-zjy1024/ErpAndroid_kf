@@ -57,21 +57,6 @@
             android:layout_marginLeft="20dp"
             android:onClick="myOnclick"
             android:text="扫码"/>
-
-        <Button
-            android:id="@+id/sf_btnSFdiaohuo"
-            style="@style/zjy_button_light"
-            android:layout_marginLeft="20dp"
-            android:onClick="myOnclick"
-            android:text="调货单"
-            android:visibility="gone"/>
-        <CheckBox
-            android:id="@+id/sf_cbo_chage"
-            android:layout_marginLeft="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="显示选择快递菜单"/>
-
     </LinearLayout>
 
 

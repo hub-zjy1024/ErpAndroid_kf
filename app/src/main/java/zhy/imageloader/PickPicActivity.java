@@ -1,6 +1,5 @@
 package zhy.imageloader;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -10,6 +9,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,7 +36,7 @@ import java.util.List;
 
 import zhy.bean.ImageFloder;
 
-public class PickPicActivity extends Activity implements ListImageDirPopupWindow.OnImageDirSelected {
+public class PickPicActivity extends AppCompatActivity implements ListImageDirPopupWindow.OnImageDirSelected {
     private ProgressDialog mProgressDialog;
 
     /**
@@ -79,7 +79,7 @@ public class PickPicActivity extends Activity implements ListImageDirPopupWindow
             // 为View绑定数据
             data2View();
             // 初始化展示文件夹的popupWindw
-            initListDirPopupWindw();
+            initListDirPopupWindw((int) (mScreenHeight * 0.6));
         }
     };
 
@@ -119,11 +119,9 @@ public class PickPicActivity extends Activity implements ListImageDirPopupWindow
     /**
      初始化展示文件夹的popupWindw
      */
-    private void initListDirPopupWindw() {
+    private void initListDirPopupWindw(int height) {
         mListImageDirPopupWindow = new ListImageDirPopupWindow(
-                LayoutParams.MATCH_PARENT,
-                (int) (mScreenHeight * 0.5),
-                mImageFloders,
+                LayoutParams.MATCH_PARENT, height, mImageFloders,
                 LayoutInflater.from(getApplicationContext()).inflate(R.layout.list_dir, null));
         mListImageDirPopupWindow.setOnDismissListener(new OnDismissListener() {
             @Override
@@ -256,8 +254,7 @@ public class PickPicActivity extends Activity implements ListImageDirPopupWindow
         mBottomLy.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListImageDirPopupWindow
-                        .setAnimationStyle(R.style.anim_popup_dir);
+                mListImageDirPopupWindow.setAnimationStyle(R.style.anim_popup_dir);
                 mListImageDirPopupWindow.showAsDropDown(mBottomLy, 0, 0);
                 // 设置背景颜色变暗
                 WindowManager.LayoutParams lp = getWindow().getAttributes();

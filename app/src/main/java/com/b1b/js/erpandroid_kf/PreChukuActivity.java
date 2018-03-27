@@ -135,14 +135,10 @@ public class PreChukuActivity extends ScanBaseActivity implements View.OnClickLi
         map.put("pid", pid);
         map.put("uid", uid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintViewList");
-//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
-//        SoapObject reObj = WebserviceUtils.getSoapObjResponse(request, WebserviceUtils.ChuKuServer,
-//                WebserviceUtils.DEF_TIMEOUT);
-//        String result = reObj.getPropertySafelyAsString("GetOutStorageNotifyPrintViewListResult");
         SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
         String result = response.toString();
         if (result.equals("")) {
-            MyApp.myLogger.writeError(PreChukuActivity.class, "getProperty  null！！！" + pid + "\t" + uid);
+            MyApp.myLogger.writeError(PreChukuActivity.class, getResources().getString(R.string.error_soapobject) + pid + "\t" + uid);
         }
         Log.e("zjy", "PreChukuActivity->getList(): result==" + result);
         return result;

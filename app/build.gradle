@@ -14,8 +14,8 @@ android {
         applicationId "com.b1b.js.erpandroid_kf"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 44
-        versionName "5.1"
+        versionCode 47
+        versionName "5.4"
 //        ndk {
 //            abiFilters "armeabi", "armeabi-v7a"
 //        }

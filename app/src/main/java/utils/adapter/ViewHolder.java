@@ -9,8 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import zhy.utils.ImageLoader;
-
 public class ViewHolder {
     private final SparseArray<View> mViews;
     private int mPosition;

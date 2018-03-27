@@ -12,6 +12,7 @@
     <color name="alertcolor_bg_whight">#000fff</color>
     <color name="main_ed_floatingColor">#801515</color>
     <color name="cardview_bg">#b0b2ea</color>
+    <color name="color_tv_result_transparent">#63ffffff</color>
     <color name="kucunfb_isfabu">#a60609</color>
     <color name="title_background">#8385f7</color>
     <color name="lv_bg">#f4f4f4</color>

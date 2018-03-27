@@ -8,8 +8,6 @@ import android.widget.BaseAdapter;
 
 import java.util.List;
 
-import zhy.utils.ViewHolder;
-
 public abstract class CommonAdapter<T> extends BaseAdapter {
     protected LayoutInflater mInflater;
     protected Context mContext;

@@ -125,13 +125,13 @@ public class WebserviceUtils {
      @throws XmlPullParserException
      */
     public static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String soapAction, String
-            resultUrl) throws IOException, XmlPullParserException {
+            resultUrl,int timeout) throws IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVesion);
         envelope.dotNet = true;
         //       envelope.bodyOut = request;
         envelope.setOutputSoapObject(request);
         //创建HttpTransportSE对象
-        HttpTransportSE ht = new HttpTransportSE(resultUrl, 3 * 1000);
+        HttpTransportSE ht = new HttpTransportSE(resultUrl, timeout);
         //有些不需要传入soapAction，根据wsdl文档
         ht.call(soapAction, envelope);
         return envelope;
@@ -147,76 +147,11 @@ public class WebserviceUtils {
      */
     private static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String serviceName, int
             timeout) throws IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVesion);
-        envelope.dotNet = true;
-        //       envelope.bodyOut = request;
-        envelope.setOutputSoapObject(request);
-        //创建HttpTransportSE对象
-        HttpTransportSE ht = new HttpTransportSE(getTransportSEtUrl(serviceName), timeout);
-        //有些不需要传入soapAction，根据wsdl文档
-        ht.call(getSoapAcction(serviceName, request.getName()), envelope);
-        return envelope;
+        String url = getTransportSEtUrl(serviceName);
+        String action = getSoapAcction(serviceName, request.getName());
+        return getEnvelope(request, envolopeVesion, action, url, timeout);
     }
 
-    /**
-     @param request
-     @param envolopeVesion {@link org.ksoap2.SoapEnvelope}
-     @param serviceName    以svc结尾的service名称
-     @return
-     @throws IOException
-     @throws XmlPullParserException
-     */
-    public static SoapObject getSoapObjResponse(SoapObject request, int envolopeVesion, String serviceName, int timeout) throws
-            IOException, XmlPullParserException {
-        Object response = getEnvelope(request, envolopeVesion, serviceName, timeout).bodyIn;
-        if (response == null) {
-            return new SoapObject("", "");
-        } else {
-            if (response instanceof SoapFault) {
-                Exception soapFault = (SoapFault) response;
-                ByteArrayOutputStream bao = new ByteArrayOutputStream();
-                PrintWriter writer = new PrintWriter(bao);
-                soapFault.printStackTrace(writer);
-                writer.flush();
-                String error = "";
-                try {
-                    error = new String(bao.toByteArray(), "utf-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                writer.close();
-                MyApp.myLogger.writeError("==========getSoapObjResponse Call ERROR: req:" + request.toString());
-                MyApp.myLogger.writeError("==========getSoapObjResponse Call ERROR:detail:" + error);
-                throw new SoapException(soapFault);
-            }
-        }
-        SoapObject sob = (SoapObject) response;
-        return sob;
-    }
-
-    /**
-     @param request
-     @param serviceName 以svc结尾的service名称
-     @return
-     @throws IOException
-     @throws XmlPullParserException
-     */
-    public static SoapObject getSoapObjResponse(SoapObject request, String serviceName, int timeout) throws
-            IOException, XmlPullParserException {
-        return getSoapObjResponse(request, VERSION_11, serviceName, timeout);
-    }
-
-    /**
-     @param request
-     @param serviceName 以svc结尾的service名称
-     @return
-     @throws IOException
-     @throws XmlPullParserException
-     */
-    public static SoapObject getSoapObjResponse(SoapObject request, String serviceName) throws
-            IOException, XmlPullParserException {
-        return getSoapObjResponse(request, VERSION_11, serviceName, DEF_TIMEOUT);
-    }
 
     /**
      @param request

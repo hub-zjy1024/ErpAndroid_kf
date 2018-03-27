@@ -1430,6 +1430,7 @@ public class SetYundanActivity extends AppCompatActivity {
     @NonNull
     private boolean startPrint(String orderID, String goodInfos, String cardID, String payPart, String payType, String
             serverType, double baojia, String printName, String hasE, String destcode, String yundanType) throws IOException {
+        long time1 = System.currentTimeMillis();
         String ip = "http://" + serverIP + ":8080";
         String strURL = ip + "/PrinterServer/SFPrintServlet?";
         strURL += "orderID=" + URLEncoder.encode(orderID,
@@ -1490,6 +1491,8 @@ public class SetYundanActivity extends AppCompatActivity {
         String res = builder.toString();
         Log.e("zjy", "SetYundanActivity->run(): print_result==" + builder
                 .toString());
+        double len = (double) (System.currentTimeMillis() - time1) / 1000;
+        MyApp.myLogger.writeInfo("SF yundan" + orderID + "\ttime:" + len);
         if (res.equals("ok")) {
             return true;
         } else {

@@ -67,16 +67,8 @@ public class TakePicBaseActivity extends AppCompatActivity {
                 try {
                     // 设置用于显示拍照影像的SurfaceHolder对象
                     mCamera.setPreviewDisplay(holder);
-                    Camera.Size previewSize = parameters.getPreviewSize();
-                    int width1 = previewSize.width;
-                    int height1 = previewSize.height;
                     int sw = getWindowManager().getDefaultDisplay().getWidth();
                     int sh = getWindowManager().getDefaultDisplay().getHeight();
-                    MyApp.myLogger.writeInfo("camera screen:" + sw + "\t" + sh);
-                    MyApp.myLogger.writeInfo("camera def:" + width1 + "\t" + height1);
-                    Log.e("zjy", "TakePicActivity->surfaceCreated(): camera.preview==" + mCamera.getParameters()
-                            .getPreviewSize().width + "\t" + mCamera.getParameters().getPreviewSize().height
-                    );
                     Point finalSize = getSuitablePreviewSize(parameters, sw, sh);
                     if (finalSize != null) {
                         parameters.setPreviewSize(finalSize.x, finalSize.y);

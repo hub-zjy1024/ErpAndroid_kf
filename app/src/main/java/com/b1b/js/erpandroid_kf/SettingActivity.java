@@ -1,6 +1,5 @@
 package com.b1b.js.erpandroid_kf;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -17,6 +16,8 @@ import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.task.TaskManager;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,6 +28,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,15 +42,15 @@ import utils.WebserviceUtils;
 
 public class SettingActivity extends AppCompatActivity {
 
-    static class LHandler extends SafeHandler{
+    static class LHandler extends SafeHandler<SettingActivity>{
 
-        private LHandler(Activity mContext) {
+        private LHandler(SettingActivity mContext) {
             super(mContext);
         }
 
         @Override
         public void handleMessage(Message msg) {
-            SettingActivity activity = (SettingActivity) mContext.get();
+            SettingActivity activity = getActivity();
             switch (msg.what) {
                 case 1:
                     activity.aDialog.setMessage("解析数据出错");
@@ -73,6 +75,7 @@ public class SettingActivity extends AppCompatActivity {
     public static final String CONFIG_JSON = "configJson";
     public static final String CHUKU_PRINTER = "chukuPrinter";
     public static final String PREF_KF = "pref_kf";
+    public static final String PREF_TKPIC = "pref_takepic_style";
     public static final String PREF_EXPRESS = "prefExpress";
 
     private List<Map<String, Object>> mlist = new ArrayList<>();
@@ -80,6 +83,7 @@ public class SettingActivity extends AppCompatActivity {
     private SimpleAdapter sAdapter;
     private AlertDialog aDialog;
     private SharedPreferences sp;
+    private SharedPreferences spPicUpload;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +97,13 @@ public class SettingActivity extends AppCompatActivity {
         final Spinner spiKF = (Spinner) findViewById(R.id.activity_setting_spiKF);
         final TextView tvSavedKf = (TextView) findViewById(R.id.activity_setting_tvkf);
         final RadioButton rdoKY = (RadioButton) findViewById(R.id.activity_setting_rdo_ky);
+        final Spinner spiUpLoad = (Spinner) findViewById(R.id.activity_setting_spi_picupload_style);
+        String[] arrays = getResources().getStringArray(R.array.upload_type);
+        String[] strs = Arrays.copyOf(arrays, arrays.length + 1);
+        strs[strs.length - 1] = "默认";
+        spiUpLoad.setAdapter(new ArrayAdapter<String>(this, R.layout.item_province, R.id.item_province_tv, strs));
         sp = getSharedPreferences(PREF_KF, 0);
+        spPicUpload = getSharedPreferences(PREF_TKPIC, 0);
         aDialog = (AlertDialog) DialogUtils.getSpAlert(this, "msg", "提示");
         LinkedHashMap<String, Object> initMap = new LinkedHashMap<>();
         initMap.put(NAME, "请选择");
@@ -148,6 +158,9 @@ public class SettingActivity extends AppCompatActivity {
                     editor.putString(CHUKU_PRINTER, selectedItem.get(CHUKU_PRINTER).toString());
                     editor.putString(CONFIG_JSON, selectedItem.get(CONFIG_JSON).toString());
                 }
+                Object selectedItem1 = spiUpLoad.getSelectedItem();
+                spPicUpload.edit().putString("style", selectedItem1.toString()).commit();
+                MyApp.myLogger.writeInfo(SettingActivity.class, "set takepic style :" + selectedItem1.toString());
                 boolean commit = editor.commit();
                 if (commit) {
                     MyToast.showToast(SettingActivity.this, "保存成功");
@@ -173,13 +186,13 @@ public class SettingActivity extends AppCompatActivity {
 
             }
         });
-        new Thread() {
+        Runnable getCofigRun = new Runnable() {
             @Override
             public void run() {
-                super.run();
                 getOnlineConfig();
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(getCofigRun);
 
     }
 

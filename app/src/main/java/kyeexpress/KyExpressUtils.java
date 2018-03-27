@@ -120,49 +120,12 @@ public class KyExpressUtils {
                 e.printStackTrace();
             }
         }
-        String json = "";
-        String tempJson =new String(json) ;
-        json = jsonObject.toString();
-        if(tempJson.equals(json)){
-            Log.e("zjy", "KyExpressUtils->sendPostRequest(): equal==");
-        }
+        String json = jsonObject.toString();
         Log.e("zjy", "KyExpressUtils->sendPostRequest(): json2==" + json);
-        //
-        //        String[] fieldsNames = new String[fields.length - 2];
-        //        List<String> arrayList = new ArrayList<>();
-        //        for (int i = 0; i < fields.length; i++) {
-        //            Field temp = fields[i];
-        //            if (temp.getName().equals("serialVersionUID") || temp.getName().equals("$change")) {
-        //                continue;
-        //            }
-        //            fieldsNames[i] = temp.getName();
-        //        }
-        //        Arrays.sort(fieldsNames);
-        //        for (int i = 0; i < fieldsNames.length; i++) {
-        //            try {
-        //                Field field = cla.getField(fieldsNames[i]);
-        //                Object value = field.get(infos);
-        //                String fvalue = "";
-        //                if (value != null) {
-        //                     fvalue = value.toString();
-        //                }
-        //                if ("".equals(fvalue)) {
-        //                    continue;
-        //                }
-        //                strPV += field.getName() + fvalue;
-        //            } catch (NoSuchFieldException e) {
-        //                e.printStackTrace();
-        //            } catch (IllegalAccessException e) {
-        //                e.printStackTrace();
-        //            }
-        //        }
         Log.e("zjy", "KyExpressUtils->sendPostRequest(): fv==" + strPV);
-        //        String accessToken = new String(Md5.getMD5Bytes(accesskey + strPV, charSet), charSet);
-        //        Log.e("zjy", "KyExpressUtils->sendPostRequest(): token==" + accessToken.toUpperCase());
         String accessToken = Md5.getMD5(accesskey + strPV);
         Log.e("zjy", "KyExpressUtils->sendPostRequest(): toke1==" + accessToken);
         URL url = new URL(orderURL);
-        //        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         SSLContext sc = null;
         try {
             sc = SSLContext.getInstance("TLS");
@@ -186,12 +149,6 @@ public class KyExpressUtils {
         conn.setRequestProperty("kye", kye);
         conn.setRequestProperty("access-token", accessToken);
         conn.setRequestProperty("Content-type", "application/json");
-        //        conn.setHostnameVerifier(new HostnameVerifier() {
-        //            @Override
-        //            public boolean verify(String hostname, SSLSession session) {
-        //                return true;
-        //            }
-        //        });
         conn.setConnectTimeout(30 * 1000);
         conn.setDoOutput(true);
         OutputStream outputStream = conn.getOutputStream();

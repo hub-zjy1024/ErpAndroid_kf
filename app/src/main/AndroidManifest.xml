@@ -45,7 +45,6 @@
         <activity android:name=".ObtainPicFromPhone"/>
         <activity android:name=".CheckActivity"/>
         <activity android:name=".SetCheckInfoActivity"/>
-        <activity android:name=".TakePicPankuActivity"/>
         <activity android:name=".ViewPicByPidActivity">
         </activity>
         <activity android:name=".PicDetailActivity">
@@ -67,56 +66,31 @@
                 <action android:name="deleteNotification"/>
             </intent-filter>
         </receiver>
-
-        <activity android:name=".PankuActivity">
-        </activity>
-        <activity android:name=".ObtainPicPanku">
-        </activity>
-        <activity android:name=".PreChukuActivity">
-        </activity>
-        <activity android:name=".PreChukuDetailActivity">
-        </activity>
-        <activity android:name=".SettingActivity">
-        </activity>
-        <activity android:name=".KucunFBActivity">
-        </activity>
-        <activity android:name=".CaigouActivity">
-        </activity>
-        <activity android:name=".CaigouTakePic2Activity">
-        </activity>
-        <activity android:name=".HetongActivity">
-        </activity>
-        <activity android:name=".CaigouDetailActivity">
-        </activity>
-        <activity android:name="printer.activity.PickPicPrintingActivity">
-        </activity>
-        <activity android:name="printer.activity.SetYundanActivity">
-        </activity>
-        <activity android:name="printer.activity.SFActivity">
-        </activity>
-        <activity android:name="printer.activity.ToolbarTestActivity">
-        </activity>
+        <activity android:name=".PankuActivity"/>
+        <activity android:name=".ObtainPicPanku"/>
+        <activity android:name=".PreChukuActivity"/>
+        <activity android:name=".PreChukuDetailActivity"/>
+        <activity android:name=".SettingActivity"/>
+        <activity android:name=".KucunFBActivity"/>
+        <activity android:name=".CaigouActivity"/>
+        <activity android:name=".CaigouTakePic2Activity"/>
+        <activity android:name=".HetongActivity"/>
+        <activity android:name=".CaigouDetailActivity"/>
+        <activity android:name="printer.activity.PickPicPrintingActivity"/>
+        <activity android:name="printer.activity.SetYundanActivity"/>
+        <activity android:name="printer.activity.SFActivity"/>
+        <activity android:name="printer.activity.ToolbarTestActivity"/>
         <activity android:name=".CaigouYanhuoActivity"/>
         <activity android:name=".YanhuoCheckActivity"/>
-        <activity android:name=".AboutActivity">
-        </activity>
-
+        <activity android:name=".AboutActivity"/>
         <service android:name=".service.LogUploadService"/>
-
-        <activity android:name=".KyExpressAcitivity">
-        </activity>
-        <activity android:name=".PrintSettingActivity">
-        </activity>
-        <activity android:name=".YundanPrintAcitivity">
-        </activity>
-        <activity android:name=".RukuTagPrintAcitivity">
-        </activity>
-        <activity android:name=".TakePicBaseActivity">
-        </activity>
-        <activity android:name=".TakePicChildPanku">
-        </activity>
-        <activity android:name=".ReUploadActivity">
-        </activity>
+        <activity android:name=".KyExpressAcitivity"/>
+        <activity android:name=".PrintSettingActivity"/>
+        <activity android:name=".YundanPrintAcitivity"/>
+        <activity android:name=".RukuTagPrintAcitivity"/>
+        <activity android:name=".TakePicBaseActivity"/>
+        <activity android:name=".TakePicChildPanku"/>
+        <activity android:name=".ReUploadActivity"/>
     </application>
 
 </manifest>

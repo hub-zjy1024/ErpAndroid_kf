@@ -59,13 +59,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import utils.CameraScanInterface;
 import utils.MyFileUtils;
 import utils.MyToast;
 import utils.UploadUtils;
 import utils.WebserviceUtils;
 
-public class MainActivity extends BaseScanActivity implements CameraScanInterface {
+public class MainActivity extends BaseScanActivity  {
 
     private EditText edUserName;
     private EditText edPwd;
@@ -136,7 +135,7 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
                         JSONArray main = object1.getJSONArray("表");
                         JSONObject obj = main.getJSONObject(0);
                         String url = obj.getString("PhotoFtpIP");
-                        Log.e("zjy", "MainActivity.java->handleMessage(): ftpUrl==" + url);
+                        MyApp.myLogger.writeInfo(MainActivity.class, "FTP:" + url);
                         String uid = obj.getString("UserID");
                         MyApp.id = uid;
                         String defUid = sp.getString("name", "");
@@ -255,7 +254,6 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
                 startActivity(intent);
             }
         });
-        setcScanInterface(this);
         sp = getSharedPreferences("UserInfo", 0);
         final String phoneCode = UploadUtils.getPhoneCode(MainActivity.this);
         Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
@@ -291,7 +289,7 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
                         ("864394010742122") || phoneCode.endsWith("A0000043F41515")|| phoneCode.endsWith("86511114021521")
                         || phoneCode.endsWith("866462026203849")|| phoneCode.endsWith("869552022575930")) {
                     login("101", tempPassword);
-//                    login("2984", "000000");
+//                    disbleScanService(MainActivity.this);
                 }
             }
         });
@@ -303,19 +301,9 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
         });
     }
 
-    @Override
-    public int getLayoutResId() {
-        return R.layout.activity_main;
-    }
 
     @Override
     public void resultBack(String result) {
-        scanDialog = new ProgressDialog(MainActivity.this);
-        scanDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        scanDialog.setMessage("登录中");
-        scanDialog.setCancelable(false);
-        scanDialog.show();
-        Log.e("zjy", "MainActivity->resultBack(): codeResult==" + result);
         readCode(result);
     }
 
@@ -580,6 +568,12 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
      @param code onActivtyResult()回调的data
      */
     private void readCode(final String code) {
+        scanDialog = new ProgressDialog(MainActivity.this);
+        scanDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        scanDialog.setMessage("登录中");
+        scanDialog.setCancelable(false);
+        scanDialog.show();
+        Log.e("zjy", "MainActivity->resultBack(): codeResult==" + code);
         Runnable codeLogin = new Runnable() {
             @Override
             public void run() {
@@ -811,11 +805,6 @@ public class MainActivity extends BaseScanActivity implements CameraScanInterfac
 
     @Override
     public void getCameraScanResult(String result) {
-        scanDialog = new ProgressDialog(MainActivity.this);
-        scanDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        scanDialog.setMessage("登录中");
-        scanDialog.setCancelable(false);
-        scanDialog.show();
         readCode(result);
     }
 }

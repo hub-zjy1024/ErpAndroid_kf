@@ -202,10 +202,9 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 }
                 pd.setMessage("正在关联");
                 pd.show();
-                new Thread() {
+                Runnable addMordRunnable= new Runnable() {
                     @Override
                     public void run() {
-                        super.run();
                         try {
                             String ok = insertYundanInfo(tempPID, yundanID, ddestcode, "跨越");
                             changeInsertState(ok, tempPID);
@@ -217,8 +216,8 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                         }
                         mHandler.sendEmptyMessage(1);
                     }
-                }.start();
-
+                };
+                TaskManager.getInstance().execute(addMordRunnable);
             }
         });
         alertDg = (AlertDialog) DialogUtils.getSpAlert(this, "提示", "提示");
@@ -490,7 +489,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 dserverType = serverType;
                 pd.setMessage("正在重新打印");
                 pd.show();
-                new Thread() {
+                 Runnable rePrintRun=new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -508,7 +507,8 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                         }
                         mHandler.sendEmptyMessage(1);
                     }
-                }.start();
+                };
+                TaskManager.getInstance().execute(rePrintRun);
             }
         });
         btnReInsert.setOnClickListener(new View.OnClickListener() {
@@ -516,10 +516,9 @@ public class YundanPrintAcitivity extends AppCompatActivity {
             public void onClick(View v) {
                 pd.setMessage("正在重新关联运单号");
                 pd.show();
-                new Thread() {
+                Runnable reInsertRun = new Runnable() {
                     @Override
                     public void run() {
-                        super.run();
                         String insertResult = null;
                         try {
                             insertResult = insertYundanInfo(pid, yundanID, ddestcode, "跨越");
@@ -532,7 +531,8 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                         }
                         mHandler.sendEmptyMessage(1);
                     }
-                }.start();
+                };
+                TaskManager.getInstance().execute(reInsertRun);
             }
         });
         spKF = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
@@ -544,7 +544,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
         final ArrayAdapter<String> printerAdapter = new ArrayAdapter<>(this, R.layout.item_province, R.id.item_province_tv,
                 spiItems);
 //        spiPrinter.setAdapter(printerAdapter);
-        new Thread() {
+      Runnable pdRun=  new Runnable() {
             @Override
             public void run() {
                 String ip = "http://" + printerAddress + ":8080";
@@ -588,8 +588,9 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }.start();
-        new Thread() {
+        };
+        TaskManager.getInstance().execute(pdRun);
+        Runnable onLineRun = new Runnable() {
             @Override
             public void run() {
                 try {
@@ -604,11 +605,11 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }.start();
-        new Thread() {
+        };
+        TaskManager.getInstance().execute(onLineRun);
+        Runnable onlineSavedRunnable=new Runnable() {
             @Override
             public void run() {
-                super.run();
                 //                GetBD_YunDanInfoByID
                 try {
                     String result = SetYundanActivity.getOnlineSavedYdInfo(pid);
@@ -652,7 +653,8 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(onlineSavedRunnable);
     }
     private String getDHAddresss() throws IOException, XmlPullParserException {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
@@ -670,7 +672,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     private boolean printKyYundan(String serverIP, String orderID, String goodInfos, String cardID, String
             payType, String counts, String printName, String destcode, String yundanType)
             throws IOException {
-
+        long time1 = System.currentTimeMillis();
         String ip = "http://" + serverIP + ":8080";
         String strURL = ip + "/PrinterServer/KyPrintServlet?";
         strURL += "orderID=" + URLEncoder.encode(orderID,
@@ -723,6 +725,8 @@ public class YundanPrintAcitivity extends AppCompatActivity {
         String res = builder.toString();
         Log.e("zjy", "SetYundanActivity->run(): print_result==" + builder
                 .toString());
+        double len = (double) (System.currentTimeMillis() - time1) / 1000;
+        MyApp.myLogger.writeInfo("KY yundan" + orderID + "\ttime:" + len);
         if (res.equals("ok")) {
             return true;
         } else {
@@ -818,6 +822,9 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                                 , dserverType);
                         if (printOk) {
                             showAlert("打印成功");
+                            if (isDiaohuo) {
+                                MyApp.myLogger.writeInfo("ky diaohuo " + pid);
+                            }
                         } else {
                             showAlert("打印失败，打印出错！！");
                         }
@@ -887,7 +894,8 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 "InsertBD_YunDanInfoOfType", WebserviceUtils.SF_SERVER);
         String result = response.toString();
         if (result.equals("")) {
-            MyApp.myLogger.writeError(YundanPrintAcitivity.class, "getProperty  null！！！" + pid + "\t" + MyApp.id);
+            MyApp.myLogger.writeError(YundanPrintAcitivity.class, getResources().getString(R.string.error_soapobject) + pid +
+                    "\t" + MyApp.id);
         }
         return result;
     }

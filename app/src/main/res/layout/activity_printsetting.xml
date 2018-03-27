@@ -6,77 +6,91 @@
               android:orientation="vertical"
               tools:context=".PrintSettingActivity">
 
-
-
-    <LinearLayout
+    <TextView
+        android:id="@+id/caigouedit_title"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="right"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/bt_scan"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="搜索蓝牙设备"/>
-    </LinearLayout>
-
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/bijia_title_background"
+        android:gravity="center"
+        android:text="蓝牙配置"
+        android:textColor="@color/color_white"
+        android:textSize="20sp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/darker_gray"
-            android:gravity="left"
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="设备"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="10dp"
+                android:gravity="center"
+                android:text="状态:"
+                android:textColor="#000000"
                 android:textSize="18sp"/>
-
             <TextView
                 android:id="@+id/tv_status"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="right"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="10dp"
+                android:gravity="center"
+                android:text="等待搜索"
                 android:textColor="#ea6666"
                 android:textSize="18sp"/>
 
             <LinearLayout
                 android:id="@+id/layoutscan"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="right"
                 android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="20dp"
-                    android:textSize="18sp"/>
 
                 <ProgressBar
                     android:id="@+id/progressBar2"
-                    style="?android:attr/progressBarStyleSmall"
+                    style="@style/Widget.AppCompat.ProgressBar"
                     android:layout_width="wrap_content"
+                    android:visibility="invisible"
                     android:layout_height="wrap_content"/>
+
+                <Button
+                    android:id="@+id/bt_scan"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="搜索设备"/>
             </LinearLayout>
         </LinearLayout>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="已配对设备:"
+            android:textColor="@color/colorPrimary"
+            android:visibility="gone"
+            android:textSize="20sp"/>
+        <ListView
+            android:id="@+id/bt_setting_lv_bonded"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="搜索到的设备:"
+            android:textColor="@color/colorPrimary"
+            android:textSize="20sp"/>
         <ListView
             android:id="@+id/android:list"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:drawSelectorOnTop="false"
             />
     </LinearLayout>

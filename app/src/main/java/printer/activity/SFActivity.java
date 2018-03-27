@@ -1,8 +1,7 @@
 package printer.activity;
 
-import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -48,10 +47,9 @@ public class SFActivity extends ScanBaseActivity {
     private EditText edPartNo;
     private SFYundanAdapter adapter;
     List<WebServicesTask> tasks = new LinkedList<>();
-
-
     private String prefExpress = "";
     private CheckBox changeExpress;
+    private ProgressDialog pdDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,20 +58,11 @@ public class SFActivity extends ScanBaseActivity {
         edPid = (EditText) findViewById(R.id.yundan_ed_pid);
         edPartNo = (EditText) findViewById(R.id.yundan_ed_partno);
         ListView lv = (ListView) findViewById(R.id.yundan_lv);
-        changeExpress = (CheckBox) findViewById(R.id.sf_cbo_chage);
         adapter = new SFYundanAdapter(yundanData, this, R.layout.item_sfyundanlist);
-
-        lv.setAdapter(adapter);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position,
-                                    long id) {
-                if (position > yundanData.size()) {
-                    Log.e("zjy", "SFActivity->onItemClick(): noYundan==");
-                    return;
-                }
-                final Intent intent = new Intent(SFActivity.this, SetYundanActivity.class);
-                Yundan item = (Yundan) parent.getItemAtPosition(position);
+        final Intent expressIntent = new Intent();
+        adapter.setListener(new SFYundanAdapter.OnExpressListener() {
+            private void setIntent(Yundan yundan, Intent intent) {
+                Yundan item = yundan;
                 String goodInfos = "";
                 int n = 0;
                 for (int i = 0; i < yundanData.size(); i++) {
@@ -83,88 +72,40 @@ public class SFActivity extends ScanBaseActivity {
                         if (counts.equals("")) {
                             counts = "null";
                         }
-                        goodInfos += good.getPartNo() + "&" +counts  + "$";
+                        goodInfos += good.getPartNo() + "&" + counts + "$";
                         n++;
                         if (n == 4) {
                             break;
                         }
                     }
                 }
-                Log.e("zjy", "SFActivity->onItemClick(): goodCounts==" + n);
+                Log.e("zjy", "SFActivity->setIntent(): goodCounts==" + n);
                 goodInfos = goodInfos.substring(0, goodInfos.lastIndexOf("$"));
                 intent.putExtra("goodInfos", goodInfos);
                 intent.putExtra("client", item.getCustomer());
                 intent.putExtra("pid", item.getPid());
                 intent.putExtra("times", item.getPrint());
                 intent.putExtra("type", item.getType());
-                if (prefExpress.equals("")) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(SFActivity.this);
-                    builder.setTitle("请选择快递");
-                    builder.setItems(new String[]{"顺丰(仅北京)", "跨越"}, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            switch (which) {
-                                case 0:
-                                    intent.setClass(SFActivity.this, SetYundanActivity.class);
-                                    startActivity(intent);
-                                    MyApp.myLogger.writeInfo("<page> SFprint");
-                                    break;
-                                case 1:
-                                    intent.setClass(SFActivity.this, YundanPrintAcitivity.class);
-                                    startActivity(intent);
-                                    MyApp.myLogger.writeInfo("<page> KYPrint");
-                                    break;
-                            }
-                        }
-                    });
-                    builder.setNegativeButton("配置默认快递", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent sIntent = new Intent(SFActivity.this, SettingActivity.class);
-                            startActivity(sIntent);
-                        }
-                    });
-                    builder.show();
-                } else if (changeExpress.isChecked()) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(SFActivity.this);
-                    builder.setTitle("请选择快递");
-                    builder.setItems(new String[]{"顺丰快递", "跨越快递(深圳可用)"}, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            switch (which) {
-                                case 0:
-                                    intent.setClass(SFActivity.this, SetYundanActivity.class);
-                                    startActivity(intent);
-                                    MyApp.myLogger.writeInfo("<page> SFprint");
-                                    break;
-                                case 1:
-                                    intent.setClass(SFActivity.this, YundanPrintAcitivity.class);
-                                    startActivity(intent);
-                                    MyApp.myLogger.writeInfo("<page> KYPrint");
-                                    break;
-                            }
-                        }
-                    });
-                    builder.setNegativeButton("配置默认快递", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent sIntent = new Intent(SFActivity.this, SettingActivity.class);
-                            startActivity(sIntent);
-                        }
-                    });
-                    builder.show();
-                }else if (prefExpress.equals(getString(R.string.express_sf))) {
-                    intent.setClass(SFActivity.this, SetYundanActivity.class);
-                    startActivity(intent);
-                    MyApp.myLogger.writeInfo("<page> SFprint");
-                } else if (prefExpress.equals(getString(R.string.express_ky))) {
-                    intent.setClass(SFActivity.this, YundanPrintAcitivity.class);
-                    startActivity(intent);
-                    MyApp.myLogger.writeInfo("<page> KYPrint");
-                }
+            }
+            @Override
+            public void Ky(Yundan yundan) {
+                setIntent(yundan, expressIntent);
+                expressIntent.setClass(SFActivity.this, YundanPrintAcitivity.class);
+                startActivity(expressIntent);
+                MyApp.myLogger.writeInfo("<page> KYPrint");
+            }
 
+            @Override
+            public void Sf(Yundan yundan) {
+                setIntent(yundan, expressIntent);
+                expressIntent.setClass(SFActivity.this, SetYundanActivity.class);
+                startActivity(expressIntent);
+                MyApp.myLogger.writeInfo("<page> SFprint");
             }
         });
+        pdDialog = new ProgressDialog(this);
+        pdDialog.setMessage("正在查询。。。");
+        lv.setAdapter(adapter);
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
@@ -172,7 +113,7 @@ public class SFActivity extends ScanBaseActivity {
                 TextView tvAlert = (TextView) view.findViewById(R.id.sf_more);
                 Yundan item = (Yundan) parent.getItemAtPosition(position);
                 tv.setText(item.toString());
-                tvAlert.setVisibility(View.GONE);
+                tvAlert.setVisibility(View.INVISIBLE);
                 return true;
             }
         });
@@ -190,8 +131,6 @@ public class SFActivity extends ScanBaseActivity {
         SoftKeyboardUtils.closeInputMethod(edPid, this);
         boolean isNum = MyToast.checkNumber(result);
         if (isNum) {
-            yundanData.clear();
-            adapter.notifyDataSetChanged();
             getYundanResult();
         }else {
             MyToast.showToast(this, getString(R.string.error_numberformate));
@@ -212,25 +151,14 @@ public class SFActivity extends ScanBaseActivity {
                 startActivityForResult(intent, CaptureActivity.REQ_CODE);
                 break;
             case R.id.sf_btnSFservice:
-
-                SoftKeyboardUtils.closeInputMethod(edPid,this);
-                if (yundanData.size() > 0) {
-                    yundanData.clear();
-                    adapter.notifyDataSetChanged();
-                }
+                SoftKeyboardUtils.closeInputMethod(edPid, this);
                 getYundanResult();
-                break;
-            case R.id.sf_btnSFdiaohuo:
-                Intent dhIntent = new Intent(SFActivity.this, SetYundanActivity.class);
-                dhIntent.putExtra("prefExpress", "diaohuo");
-                dhIntent.putExtra("pid", "00000");
-                dhIntent.putExtra("times", "");
-                startActivity(dhIntent);
                 break;
         }
     }
 
     private void getYundanResult() {
+        pdDialog.show();
         String parno = edPartNo.getText().toString();
         String pid = edPid.getText().toString();
         LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
@@ -243,6 +171,7 @@ public class SFActivity extends ScanBaseActivity {
                 if (e != null) {
                     msg = e.getMessage();
                 }
+                pdDialog.cancel();
                 MyToast.showToast(SFActivity.this, "查找失败：" + msg);
             }
 
@@ -290,11 +219,13 @@ public class SFActivity extends ScanBaseActivity {
                         yundan.setPihao(pihao);
                         yundanData.add(yundan);
                     }
+                    MyToast.showToast(SFActivity.this, "查找到：" + yundanData.size() + "条数据");
                 } catch (JSONException e) {
                     e.printStackTrace();
                     MyToast.showToast(SFActivity.this, "找不到相关数据");
                 }
                 adapter.notifyDataSetChanged();
+                pdDialog.cancel();
             }
 
             @Override
@@ -341,7 +272,6 @@ public class SFActivity extends ScanBaseActivity {
         if (requestCode == CaptureActivity.REQ_CODE && resultCode == RESULT_OK) {
             String pid = data.getStringExtra("result");
             edPid.setText(pid);
-            yundanData.clear();
             getYundanResult();
         }
     }

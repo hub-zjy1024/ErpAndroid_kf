@@ -1,7 +1,6 @@
 package com.b1b.js.erpandroid_kf.task;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
@@ -30,7 +29,6 @@ public class WebServicesTask<T> extends AsyncTask<String, Void, T> {
         String method = params[0];
         String serviceName = params[1];
         try {
-            Log.e("zjy", "WebServicesTask->doInBackground(): thread==" + Thread.currentThread().getName());
             SoapObject request = WebserviceUtils.getRequest(map, method);
             SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, serviceName);
             return (T)response.toString();

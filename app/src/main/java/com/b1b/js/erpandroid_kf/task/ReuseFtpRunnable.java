@@ -1,7 +1,5 @@
 package com.b1b.js.erpandroid_kf.task;
 
-import android.util.Log;
-
 import com.b1b.js.erpandroid_kf.MyApp;
 
 import java.io.IOException;
@@ -9,21 +7,22 @@ import java.io.IOException;
 import utils.FTPUtils;
 
 /**
- Created by 张建宇 on 2018/3/9. */
-public abstract class UploadPicRunnable2 extends UpLoadPicRunable {
-    public long start = System.currentTimeMillis();
-    public UploadPicRunnable2(String upLoadPath, String insertpath, FTPUtils ftpUtils) {
-        super(upLoadPath, insertpath, ftpUtils, null);
+ Created by 张建宇 on 2018/3/19. */
+public abstract class ReuseFtpRunnable extends UploadPicRunnable2 {
+    public ReuseFtpRunnable(String upLoadPath, String insertpath, FTPUtils ftpUtils) {
+        super(upLoadPath, insertpath, ftpUtils);
     }
 
     @Override
     public void run() {
-        long start2 = System.currentTimeMillis();
+        long start1 = System.currentTimeMillis();
         String str = "";
         int what = ERROR;
         boolean uploaded = false;
         try {
-            ftpUtils.login();
+            if (!ftpUtils.serverIsOpen()) {
+                ftpUtils.login();
+            }
             fio = getInputStream();
             uploaded = ftpUtils.upload(fio, upLoadPath);
         } catch (IOException e) {
@@ -32,9 +31,8 @@ public abstract class UploadPicRunnable2 extends UpLoadPicRunable {
         } catch (Exception e) {
             str = "其他错误：" + e.getMessage();
             e.printStackTrace();
-        } finally {
-            ftpUtils.exitServer();
         }
+        long start2 = System.currentTimeMillis();
         if (uploaded) {
             boolean result = false;
             try {
@@ -50,11 +48,9 @@ public abstract class UploadPicRunnable2 extends UpLoadPicRunable {
         }
         long end = System.currentTimeMillis();
         double totalTime = ((double) (end - start)) / 1000;
-        double timeUpload = ((double) (end - start2)) / 1000;
-        Log.e("zjy", "UploadPicRunnable2->run()"+getRemoteName()+": time==" + timeUpload + "/" + totalTime);
-        MyApp.myLogger.writeInfo("upload time :" + getRemoteName() + "===" + timeUpload + "/" + totalTime);
+        double timeUpload = ((double) (start2 - start1)) / 1000;
+        MyApp.myLogger.writeInfo("TakepicChuku upload time :" + getRemoteName() + "===" + timeUpload + "/" + totalTime);
         onResult(what, str);
     }
 
-    public abstract void onResult(int code, String err);
 }

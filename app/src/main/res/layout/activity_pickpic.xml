@@ -6,8 +6,7 @@
         android:id="@+id/pickpic_head"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#a19b9b"
-
+        android:background="@color/bijia_title_background"
         >
         <Button
             android:id="@+id/pickpic_cancel"

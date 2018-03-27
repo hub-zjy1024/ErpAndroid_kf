@@ -17,20 +17,20 @@ public class UploadUtils {
     public static String CG_DIR = "/Zjy/caigou/";
 
     public static String getPankuRemoteName(String id) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        return "a_" + id + "_" + sdf.format(new Date());
+        return "a_" + id + "_" + getTimeYmdhms()+ "_" + getRandomNumber(4);
     }
 
     public static String getChukuRemoteName(String id) {
-        String flag = String.valueOf(Math.random());
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        String date = sdf.format(new Date());
-        return "and_" + id + "_" + date + "_" + flag.substring(2, 6);
+        return "and_" + id + "_" + getTimeYmdhms() + "_" + getRandomNumber(4);
     }
     public static String getTimeYmdhms() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        String date = sdf.format(new Date());
-        return date;
+        return sdf.format(new Date());
+    }
+
+    public static String getRandomNumber(int len) {
+        String flag = String.valueOf(Math.random());
+        return flag.substring(2, 2 + len);
     }
 
     public static String getCurrentAtSS() {
@@ -75,7 +75,11 @@ public class UploadUtils {
     }
 
     public static String getChukuRemotePath(String pid) {
-        return "/" + getCurrentDate() + "/" + getChukuRemoteName(pid) + ".jpg";
+        return getChukuRemotePath(getChukuRemoteName(pid), pid);
+    }
+
+    public static String getChukuRemotePath(String nowName, String pid) {
+        return "/" + getCurrentDate() + "/" + nowName + ".jpg";
     }
 
     public static String getTestPath(String pid) {
@@ -101,7 +105,6 @@ public class UploadUtils {
     }
     public static String getPhoneCode(Context context) {
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        String imei = tm.getSimSerialNumber();
         String deviceId = tm.getDeviceId();
         String phoneModel = Build.MODEL;
         String phoneName = Build.BRAND;

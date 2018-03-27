@@ -1,5 +1,6 @@
 package com.b1b.js.erpandroid_kf.dtr.zxing.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,7 +16,7 @@ import com.android.dev.BarcodeAPI;
 
 import utils.CameraScanInterface;
 
-public abstract class BaseScanActivity extends AppCompatActivity {
+public abstract class BaseScanActivity extends AppCompatActivity implements CameraScanInterface{
     protected Handler scanHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -33,19 +34,22 @@ public abstract class BaseScanActivity extends AppCompatActivity {
     boolean hasScanBtn = false;
     boolean hasInit = false;
     protected BarcodeAPI scanTool = null;
-    CameraScanInterface cScanInterface;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-        setContentView(getLayoutResId());
     }
-    public abstract int getLayoutResId();
 
-    public abstract void resultBack(String result);
+    public  void resultBack(String result){
 
+    }
+
+    @Override
+    public void getCameraScanResult(String result) {
+
+    }
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
@@ -75,22 +79,35 @@ public abstract class BaseScanActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQ_CODE && resultCode == RESULT_OK) {
             String result = data.getStringExtra("result");
-            if(cScanInterface!=null)
-            cScanInterface.getCameraScanResult(result);
+            getCameraScanResult(result);
         }
     }
 
     public void startScanActivity() {
         startActivityForResult(new Intent(this, CaptureActivity.class), REQ_CODE);
     }
-    public void setcScanInterface(CameraScanInterface cScanInterface) {
-        this.cScanInterface = cScanInterface;
-    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (scanTool != null) {
             scanTool.close();
         }
+    }
+    public final void disbleScanService(Context mContext) {
+        if (mContext == null)
+            return;
+        //禁用扫描服务中的扫描键
+        Intent intent = new Intent("com.android.scanservice.scanbtnenable");
+        intent.putExtra("scan_para", false);
+        mContext.sendBroadcast(intent);
+        //输出到焦点
+        intent = new Intent("com.android.scanservice.output2focus");
+        intent.putExtra("scan_para", false);
+        mContext.sendBroadcast(intent);
+        //取消开机启动
+        intent = new Intent("AUTO_SCAN_BT_ISCAN");
+        intent.putExtra("scan_para", false);
+        mContext.sendBroadcast(intent);
     }
 }

@@ -1,7 +1,6 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -25,6 +24,7 @@ import com.b1b.js.erpandroid_kf.service.LogUploadService;
 import java.util.ArrayList;
 
 import printer.activity.SFActivity;
+import utils.btprint.SPrinter;
 
 public class MenuActivity extends AppCompatActivity implements OnItemClickListener {
     private ListView menuList;
@@ -76,8 +76,6 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
             if (size > 0) {
                 getDialog(MenuActivity.this, "提示", "后台还有" + size + "张图片未上传完成，强制退出将导致图片上传失败", true, null, null, "否", null).show();
                 return true;
-            } else {
-                MyApp.cachedThreadPool.shutdown();
             }
         }
 
@@ -107,7 +105,8 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
     protected void onDestroy() {
         super.onDestroy();
         startService(new Intent(this, LogUploadService.class));
-        BluetoothAdapter.getDefaultAdapter().disable();
+        SPrinter printer = SPrinter.getPrinter(this, null);
+        printer.close();
     }
 
     @Override
@@ -124,35 +123,36 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
             case tag_ChukuCheck:
                 intent.setClass(MenuActivity.this, CheckActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> chukucheck");
+                MyApp.myLogger.writeInfo("<page> CheckActivity");
                 break;
             case tag_Kaoqin:
                 intent.setClass(MenuActivity.this, KaoQinActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> kaoqin");
+                MyApp.myLogger.writeInfo("<page> KaoQinActivity");
                 break;
             case tag_Panku:
                 intent.setClass(MenuActivity.this, PankuActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> panku");
+                MyApp.myLogger.writeInfo("<page> PankuActivity");
                 break;
             case tag_Viewpic:
                 intent.setClass(MenuActivity.this, ViewPicByPidActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> searchpic");
+                MyApp.myLogger.writeInfo("<page> ViewPicByPidActivity");
                 break;
             case tag_ChukudanPrint:
                 intent.setClass(MenuActivity.this, PreChukuActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> chukudanprint");
+                MyApp.myLogger.writeInfo("<page> PreChukuActivity");
                 break;
             case tag_CaigouTakePic:
                 intent.setClass(MenuActivity.this, CaigouActivity.class);
-                MyApp.myLogger.writeInfo("<page> CaigouTakePicActivity");
+                MyApp.myLogger.writeInfo("<page> CaigouActivity");
                 startActivity(intent);
                 break;
             case tag_Ruku:
                 intent.setClass(MenuActivity.this, RukuTagPrintAcitivity.class);
+                MyApp.myLogger.writeInfo("<page> RukuTagPrintAcitivity");
                 startActivity(intent);
                 break;
             case tag_Admin:
@@ -174,13 +174,13 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
                 break;
             case tag_Setting:
                 intent.setClass(MenuActivity.this, SettingActivity.class);
-                MyApp.myLogger.writeInfo("<page> Setting");
+                MyApp.myLogger.writeInfo("<page> SettingActivity");
                 startActivity(intent);
                 break;
             case tag_Print:
                 intent = new Intent(MenuActivity.this, SFActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> Yundan");
+                MyApp.myLogger.writeInfo("<page> SFActivity");
                 break;
         }
     }

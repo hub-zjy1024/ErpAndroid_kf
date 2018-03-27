@@ -23,7 +23,8 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
     public void onCreate() {
         super.onCreate();
         final String logFileName = "dyj_log.txt";
-        myLogger = new LogRecoder(logFileName, null);
+//        final String logFileName = "dyjlog/dyj_log.txt";
+        myLogger = new LogRecoder(logFileName);
         Thread.setDefaultUncaughtExceptionHandler(this);
     }
 
@@ -37,12 +38,12 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
         String error="";
         try {
             error = new String(bao.toByteArray(), "utf-8");
-            myLogger.writeError("===Error-uncaughtException-:" +error);
+            Log.e("zjy", "MyApp->uncaughtException(): detail==" + error);
+            myLogger.writeError("===[AppCrash]=====\n" + error);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         writer.close();
-        Log.e("zjy", "MyApp->uncaughtException(): detail==" + error);
         android.os.Process.killProcess(android.os.Process.myPid());
     }
 }

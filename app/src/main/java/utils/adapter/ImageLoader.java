@@ -75,19 +75,34 @@ public class ImageLoader {
      @return
      */
     public static ImageLoader getInstance() {
-
-        if (mInstance == null) {
-            synchronized (ImageLoader.class) {
-                if (mInstance == null) {
-                    mInstance = new ImageLoader(1, Type.LIFO);
-                }
-            }
-        }
-        return mInstance;
+        return getInstance(1, Type.LIFO);
     }
 
     private ImageLoader(int threadCount, Type type) {
         init(threadCount, type);
+    }
+
+    static class THandler extends Handler {
+        ExecutorService service;
+        Semaphore mPollSemphore;
+        ImageLoader loader;
+
+        public THandler(ExecutorService service, Semaphore mPollSemphore, ImageLoader loader) {
+            this.service = service;
+            this.mPollSemphore = mPollSemphore;
+            this.loader = loader;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            service.execute(loader.getTask());
+            try {
+                mPollSemphore.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void init(int threadCount, Type type) {
@@ -96,18 +111,10 @@ public class ImageLoader {
             @Override
             public void run() {
                 Looper.prepare();
-
-                mPoolThreadHander = new Handler() {
-                    @Override
-                    public void handleMessage(Message msg) {
-                        mThreadPool.execute(getTask());
-                        try {
-                            mPoolSemaphore.acquire();
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                };
+                Log.e("zjy", "ImageLoader->run(): Prepare==");
+                mPoolThreadHander = new THandler(mThreadPool, mPoolSemaphore, ImageLoader.this);
                 // 释放一个信号量
+                Log.e("zjy", "ImageLoader->run(): new Handler==");
                 mSemaphore.release();
                 Looper.loop();
             }
@@ -168,12 +175,9 @@ public class ImageLoader {
             addTask(new Runnable() {
                 @Override
                 public void run() {
-
                     ImageSize imageSize = getImageViewWidth(imageView);
-
                     int reqWidth = imageSize.width;
                     int reqHeight = imageSize.height;
-                    Log.e("zjy", "ImageLoader->run(): mW-mH==" + reqWidth + "\t" + reqHeight);
                     Bitmap bm = decodeSampledBitmapFromResource(path, reqWidth,
                             reqHeight);
                     addBitmapToLruCache(path, bm);
@@ -225,12 +229,9 @@ public class ImageLoader {
      @return
      */
     public static ImageLoader getInstance(int threadCount, Type type) {
-
         if (mInstance == null) {
             synchronized (ImageLoader.class) {
-                if (mInstance == null) {
-                    mInstance = new ImageLoader(threadCount, type);
-                }
+                mInstance = new ImageLoader(threadCount, type);
             }
         }
         return mInstance;
