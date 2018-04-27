@@ -14,6 +14,7 @@ import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -55,12 +56,12 @@ import utils.FtpManager;
 import utils.ImageWaterUtils;
 import utils.MyImageUtls;
 import utils.MyToast;
-import utils.SafeHandler;
 import utils.UploadUtils;
 import utils.WebserviceUtils;
 import utils.camera.AutoFoucusMgr;
+import utils.handler.NoLeakHandler;
 
-public class TakePicActivity extends AppCompatActivity implements View.OnClickListener {
+public class TakePicActivity extends AppCompatActivity implements View.OnClickListener, NoLeakHandler.NoLeakCallback {
 
     private int rotation = 0;
     private SurfaceView surfaceView;
@@ -77,7 +78,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     AutoFoucusMgr auto;
     protected ProgressDialog pd;
     protected String pid;
-    protected String  mUrl;;
+    protected String  mUrl;
     protected String kfFTP = MyApp.ftpUrl;
     protected String userID = MyApp.id;
     private MaterialDialog resultDialog;
@@ -86,46 +87,36 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     private Context mContext = TakePicActivity.this;
     protected int tempRotate = 0;
     protected Snackbar finalSnackbar;
-    private LHandler picHandler = new LHandler(this);
+    private boolean isDestoryed = false;
+    private Handler picHandler = new NoLeakHandler(this);
 
-    public static class LHandler extends SafeHandler<TakePicActivity> {
-         LHandler(TakePicActivity mContext) {
-            super(mContext);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            final TakePicActivity activity = getActivity();
-            super.handleMessage(msg);
-            if (activity != null) {
-                switch (msg.what) {
-                    case PICUPLOAD_ERROR:
-                        String msgReason = "上传图片失败:请检查网络并重新拍摄";
-                        String str = msg.obj != null ? msg.obj.toString() : null;
-                        if (str != null) {
-                            msgReason = "上传图片失败:" + str;
-                        }
-                        activity.showFinalDialog(msgReason + "!!!");
-                        activity.btn_takepic.setEnabled(true);
-                        activity.toolbar.setVisibility(View.GONE);
-                        break;
-                    case PICUPLOAD_SUCCESS:
-                        String msgOk = "上传成功,是否返回";
-                        //                    showFinalDialog(msgOk);
-                        activity.finalSnackbar.setText(msgOk);
-                        activity.pd.cancel();
-                        activity.finalSnackbar.show();
-                        postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                activity.finalSnackbar.dismiss();
-                            }
-                        }, 3500);
-                        activity.btn_takepic.setEnabled(true);
-                        activity.toolbar.setVisibility(View.GONE);
-                        break;
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case PICUPLOAD_ERROR:
+                String msgReason = "上传图片失败:请检查网络并重新拍摄";
+                String str = msg.obj != null ? msg.obj.toString() : null;
+                if (str != null) {
+                    msgReason = "上传图片失败:" + str;
                 }
-            }
+               showFinalDialog(msgReason + "!!!");
+               btn_takepic.setEnabled(true);
+               toolbar.setVisibility(View.GONE);
+                break;
+            case PICUPLOAD_SUCCESS:
+                String msgOk = "上传成功,是否返回";
+                //                    showFinalDialog(msgOk);
+               finalSnackbar.setText(msgOk);
+               pd.cancel();
+               finalSnackbar.show();
+               picHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        finalSnackbar.dismiss();
+                    }}, 3500);
+               btn_takepic.setEnabled(true);
+               toolbar.setVisibility(View.GONE);
+               break;
         }
     }
     protected Bitmap waterBitmap = null;
@@ -159,7 +150,10 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         btn_takepic.setOnClickListener(this);
         btn_tryagain.setOnClickListener(this);
         btn_commit.setOnClickListener(this);
-        userInfo = getSharedPreferences("UserInfo", 0);
+        userInfo = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
+        if (kfFTP == null) {
+            kfFTP = userInfo.getString("ftp", "");
+        }
         cid = userInfo.getInt("cid", -1);
         did = userInfo.getInt("did", -1);
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -229,7 +223,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                         MyToast.showToast(mContext, "检测不到摄像头");
                         return;
                     }
-                    cameraSp = getSharedPreferences("cameraInfo", 0);
+                    cameraSp = getSharedPreferences(SettingActivity.PREF_CAMERA_INFO, 0);
                     //设置旋转角度
                     mCamera.setDisplayOrientation(getPreviewDegree((TakePicActivity) mContext));
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
@@ -297,6 +291,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
 
                 @Override
                 public void surfaceDestroyed(SurfaceHolder holder) {
+                    Log.e("zjy", "TakePicActivity->surfaceDestroyed(): surface destroyed==");
                     auto.stop();
                     releaseCamera();
                 }
@@ -468,6 +463,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        isDestoryed = true;
         releaseCamera();
         TaskManager.getInstance().execute(new Runnable() {
             @Override
@@ -554,13 +550,11 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         String result;
         if ("caigou".equals(flag)) {
             result = ObtainPicFromPhone.setSSCGPicInfo(WebserviceUtils.WebServiceCheckWord, cid,
-                    did, Integer
-                            .parseInt(userID), pid, remoteName, insertPath, "SCCG");
+                    did, Integer.parseInt(userID), pid, remoteName, insertPath, "SCCG");
         } else {
             result = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
                     .parseInt(userID), pid, remoteName, insertPath, "CKTZ");
         }
-        Log.e("zjy", "TakePicActivity->getInsertResult():insertPath ==" + insertPath);
         MyApp.myLogger.writeInfo("takepic insert:" + remoteName + "=" + result);
         return "操作成功".equals(result);
     }
@@ -638,7 +632,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             public boolean getInsertResult() throws Exception {
                 String remoteName = getRemoteName();
                 String insertPath = getInsertpath();
-                Log.e("zjy", "TakePicActivity->getInsertResult(): InsertPath==" + insertPath);
                 if ("101".equals(userID)) {
                     return true;
                 }
@@ -768,6 +761,8 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     protected void showFinalDialog(String message) {
         DialogUtils.cancelDialog(pd);
         resultDialog.setMessage(message);
-        resultDialog.show();
+        if (!isDestoryed) {
+            resultDialog.show();
+        }
     }
 }

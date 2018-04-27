@@ -85,6 +85,14 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
         }
     };
 
+    public Button getBtnSearch() {
+        return btnSearch;
+    }
+
+    public EditText getEdPid() {
+        return edPid;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -98,6 +106,14 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
         tvEtime = (TextView) view.findViewById(R.id.chukudan_etime);
         radioGroup = (RadioGroup) view.findViewById(R.id.chukudan_rgroup);
         timeClear = (Button) view.findViewById(R.id.chukudan_cleartime);
+        Button btnScan = (Button) view.findViewById(R.id.chukudan_btn_scan);
+        btnScan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                com.b1b.js.erpandroid_kf.ChuKuActivity activity = (com.b1b.js.erpandroid_kf.ChuKuActivity) getActivity();
+                activity.startScanActivity();
+            }
+        });
         timeClear.setOnClickListener(this);
         btnSearch.setOnClickListener(this);
         tvEtime.setOnClickListener(this);
@@ -226,7 +242,7 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
                         sttime = tvStime.getText().toString();
                         endtime = tvStime.getText().toString();
                     }
-                    getData(MyApp.id, partNo, pid, sttime, endtime);
+                    getData(com.b1b.js.erpandroid_kf.MyApp.id, partNo, pid, sttime, endtime);
                 } else {
                     MyToast.showToast(getActivity(), "请稍后，上次查询还未完成");
                 }

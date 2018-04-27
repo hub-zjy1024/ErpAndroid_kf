@@ -6,7 +6,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.view.ViewCompat;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -16,17 +15,20 @@ import com.b1b.js.erpandroid_kf.R;
 /**
  Created by 张建宇 on 2017/2/7. */
 
-public class MyDecoration extends DividerItemDecoration {
+public class MyDecoration extends RecyclerView.ItemDecoration {
     public static final int HORIZONTAL = LinearLayout.HORIZONTAL;
     public static final int VERTICAL = LinearLayout.VERTICAL;
     private Drawable mDivider;
     private int mOrientation;
-    private final Rect mBounds = new Rect();
 
     public MyDecoration(Context context, int orientation) {
-        super(context, orientation);
+        //        super(context, orientation);
         mDivider = context.getResources().getDrawable(R.drawable.recyclerview_divider);
         setOrientation(orientation);
+    }
+
+    public MyDecoration(Context context) {
+        this(context, VERTICAL);
     }
 
     public void setOrientation(int orientation) {
@@ -38,9 +40,6 @@ public class MyDecoration extends DividerItemDecoration {
     }
 
     public void setDrawable(@NonNull Drawable drawable) {
-        if (drawable == null) {
-            throw new IllegalArgumentException("Drawable cannot be null.");
-        }
         mDivider = drawable;
     }
 
@@ -62,21 +61,14 @@ public class MyDecoration extends DividerItemDecoration {
         final int right;
         left = parent.getPaddingLeft();
         right = parent.getWidth() - parent.getPaddingRight();
-        canvas.clipRect(left, parent.getPaddingTop(), right,
-                parent.getHeight() - parent.getPaddingBottom());
-        //        if (parent.getClipToPadding()) {
-        //
-        //        } else {
-        //            left = 0;
-        //            right = parent.getWidth();
-        //        }
-
         final int childCount = parent.getChildCount();
         for (int i = 0; i < childCount; i++) {
             final View child = parent.getChildAt(i);
-            parent.getDecoratedBoundsWithMargins(child, mBounds);
-            final int bottom = mBounds.bottom + Math.round(ViewCompat.getTranslationY(child));
-            final int top = bottom - mDivider.getIntrinsicHeight();
+            final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child
+                    .getLayoutParams();
+            final int top = child.getBottom() + params.bottomMargin +
+                    Math.round(ViewCompat.getTranslationY(child));
+            final int bottom = top + mDivider.getIntrinsicHeight();
             mDivider.setBounds(left, top, right, bottom);
             mDivider.draw(canvas);
         }
@@ -89,19 +81,12 @@ public class MyDecoration extends DividerItemDecoration {
         final int bottom;
         top = parent.getPaddingTop();
         bottom = parent.getHeight() - parent.getPaddingBottom();
-        canvas.clipRect(parent.getPaddingLeft(), top, parent.getWidth() - parent.getPaddingRight(), bottom);
-        //        if (parent.getClipToPadding()) {
-        //
-        //        } else {
-        //            top = 0;
-        //            bottom = parent.getHeight();
-        //        }
         final int childCount = parent.getChildCount();
         for (int i = 0; i < childCount; i++) {
             final View child = parent.getChildAt(i);
-            parent.getLayoutManager().getDecoratedBoundsWithMargins(child, mBounds);
-            final int right = mBounds.right + Math.round(ViewCompat.getTranslationX(child));
-            final int left = right - mDivider.getIntrinsicWidth();
+            final RecyclerView.LayoutParams params =(RecyclerView.LayoutParams) child.getLayoutParams();
+            final int left = child.getRight() + params.rightMargin;
+            final int right = left + mDivider.getIntrinsicHeight();
             mDivider.setBounds(left, top, right, bottom);
             mDivider.draw(canvas);
         }

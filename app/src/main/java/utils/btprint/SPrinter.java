@@ -227,8 +227,8 @@ public class SPrinter extends MyPrinterParent {
         write(new byte[]{16, 4, 4});
         byte[] buffer = new byte[16];
         readLen = this.read(buffer);
-        for (int i = 0; i < buffer.length; i++) {
-            Log.e("zjy", "SPrinter->getPaperStatus(): ==byte" + buffer[i]);
+        for (byte aBuffer : buffer) {
+            Log.e("zjy", "SPrinter->getPaperStatus(): ==byte" + aBuffer);
         }
         return -1;
     }
@@ -467,7 +467,7 @@ public class SPrinter extends MyPrinterParent {
     }
 
     public void registeBroadCast() {
-        synchronized (helper) {
+        synchronized (this) {
             helper.register();
         }
     }
@@ -545,7 +545,7 @@ public class SPrinter extends MyPrinterParent {
     }
 
     public void unRegisterReceiver() {
-        synchronized (helper) {
+        synchronized (this){
             helper.unRegister();
         }
     }

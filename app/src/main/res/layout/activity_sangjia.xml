@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity">
+
+    <TextView
+        android:id="@+id/shangjia_activity_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/bijia_title_background"
+        android:gravity="center"
+        android:text="上架"
+        android:textColor="@color/color_white"
+        android:textSize="20sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
+
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:id="@+id/shangjia_activity_ed_pid"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:hint="输入明细号"
+            android:inputType="number"
+            app:met_baseColor="@color/colorPrimary"
+            app:met_clearButton="true"
+            app:met_primaryColor="@color/colorPrimary"/>
+
+        <Button
+            android:id="@+id/shangjia_activity_btn_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="搜索"/>
+
+        <Button
+            android:id="@+id/shangjia_activity_btn_scancode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="扫码"/>
+
+    </LinearLayout>
+
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/activity_shangjia_rv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp"/>
+</LinearLayout>

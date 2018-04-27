@@ -37,7 +37,6 @@ import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -59,6 +58,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import utils.HttpUtils;
 import utils.MyFileUtils;
 import utils.MyToast;
 import utils.UploadUtils;
@@ -83,6 +83,7 @@ public class MainActivity extends BaseScanActivity  {
     private String versionName="1";
     private String tempPassword = "62105300";
     private int time = 0;
+    final MainActivity mContext = MainActivity.this;
     TaskManager taskManger = TaskManager.getInstance(5, 9);
     private AlertDialog permissionDialog;
     private Handler zHandler = new Handler() {
@@ -98,28 +99,28 @@ public class MainActivity extends BaseScanActivity  {
                     //成功
                     HashMap<String, String> infoMap = (HashMap<String, String>) msg.obj;
                     //每次登录检查userInfo是否有变动，以免数据库更新（流量允许）
-                    MyApp.id = infoMap.get("name");
+                    com.b1b.js.erpandroid_kf.MyApp.id = infoMap.get("name");
                     //登陆用户名改变，清除缓存
-                    if (!sp.getString("name", "").equals(MyApp.id)) {
+                    if (!sp.getString("name", "").equals(com.b1b.js.erpandroid_kf.MyApp.id)) {
                         sp.edit().clear().apply();
                         //登录成功之后调用，获取相关信息
                         SharedPreferences.Editor edit = sp.edit();
                         edit.putString("name", infoMap.get("name"));
                         edit.putString("pwd", infoMap.get("pwd"));
                         edit.apply();
-                        getUserInfoDetail(MyApp.id);
+                        getUserInfoDetail(com.b1b.js.erpandroid_kf.MyApp.id);
                     } else {
 //                        MyApp.ftpUrl = sp.getString("ftp", "");
                     }
                     //是否记住密码
                     //                    ifSavePwd(true, "101", "62105300");
                     pd.cancel();
-                    Intent intent = new Intent(MainActivity.this, MenuActivity.class);
+                    Intent intent = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf.MenuActivity.class);
                     startActivity(intent);
                     finish();
                     break;
                 case NEWWORK_ERROR:
-                    MyApp.myLogger.writeError("bad network");
+                    com.b1b.js.erpandroid_kf.MyApp.myLogger.writeError("bad network");
                     MyToast.showToast(MainActivity.this, "网络状态不佳,请检查网络状态");
                     if (pd != null) {
                         pd.cancel();
@@ -135,9 +136,9 @@ public class MainActivity extends BaseScanActivity  {
                         JSONArray main = object1.getJSONArray("表");
                         JSONObject obj = main.getJSONObject(0);
                         String url = obj.getString("PhotoFtpIP");
-                        MyApp.myLogger.writeInfo(MainActivity.class, "FTP:" + url);
+                        com.b1b.js.erpandroid_kf.MyApp.myLogger.writeInfo(MainActivity.class, "FTP:" + url);
                         String uid = obj.getString("UserID");
-                        MyApp.id = uid;
+                        com.b1b.js.erpandroid_kf.MyApp.id = uid;
                         String defUid = sp.getString("name", "");
                         //换用户则清除缓冲
                         final String[] urls = url.split("\\|");
@@ -145,7 +146,7 @@ public class MainActivity extends BaseScanActivity  {
                         if (!defUid.equals(uid)) {
                             //第一次登录或者更换手机
                             sp.edit().clear().commit();
-                            getUserInfoDetail(MyApp.id);
+                            getUserInfoDetail(com.b1b.js.erpandroid_kf.MyApp.id);
                             SharedPreferences.Editor editor = sp.edit();
                             editor.putString("name", uid).apply();
                             //"|"为特殊字符，需要用"\\"转义
@@ -156,11 +157,11 @@ public class MainActivity extends BaseScanActivity  {
                             } else {
                                 for (int i = 0; i < urls.length; i++) {
                                     if (urls[i].equals(localUrl)) {
-                                        MyApp.ftpUrl = localUrl;
+                                        com.b1b.js.erpandroid_kf.MyApp.ftpUrl = localUrl;
                                         if (scanDialog != null && scanDialog.isShowing()) {
                                             scanDialog.cancel();
                                         }
-                                        Intent intentScan = new Intent(MainActivity.this, MenuActivity.class);
+                                        Intent intentScan = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf.MenuActivity.class);
                                         startActivity(intentScan);
                                         finish();
                                         break;
@@ -189,11 +190,11 @@ public class MainActivity extends BaseScanActivity  {
                     }
                     break;
                 case 6:
-                    MyToast.showToast(MainActivity.this, "获取ftp地址成功:" + MyApp.ftpUrl);
+                    MyToast.showToast(MainActivity.this, "获取ftp地址成功:" + com.b1b.js.erpandroid_kf.MyApp.ftpUrl);
                     if (pd != null && pd.isShowing()) {
                         pd.cancel();
                     }
-                    Intent intentScan = new Intent(MainActivity.this, MenuActivity.class);
+                    Intent intentScan = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf.MenuActivity.class);
                     startActivity(intentScan);
                     finish();
                     break;
@@ -233,7 +234,12 @@ public class MainActivity extends BaseScanActivity  {
             public void onClick(View v) {
                 if (time == 5) {
                     MyToast.showToast(MainActivity.this, "进入debug模式");
-                    tempPassword = "621053000";
+                    String pwd = sp.getString("debugPwd", "");
+                    if (pwd.equals(tempPassword)) {
+                        sp.edit().putString("debugPwd", "621053000").commit();
+                    } else {
+                        sp.edit().putString("debugPwd", tempPassword).commit();
+                    }
                     return;
                 }
                 time++;
@@ -249,12 +255,13 @@ public class MainActivity extends BaseScanActivity  {
         btnPrintCode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, RukuTagPrintAcitivity.class);
-                intent.putExtra(RukuTagPrintAcitivity.extraMode, RukuTagPrintAcitivity.MODE_OFFLINE);
+                Intent intent = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity.class);
+                intent.putExtra(com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity.extraMode, com.b1b.js.erpandroid_kf
+                        .RukuTagPrintAcitivity.MODE_OFFLINE);
                 startActivity(intent);
             }
         });
-        sp = getSharedPreferences("UserInfo", 0);
+        sp = getSharedPreferences(com.b1b.js.erpandroid_kf.SettingActivity.PREF_USERINFO, 0);
         final String phoneCode = UploadUtils.getPhoneCode(MainActivity.this);
         Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
         MyFileUtils.obtainFileDir(MainActivity.this);
@@ -273,10 +280,10 @@ public class MainActivity extends BaseScanActivity  {
         final SharedPreferences logSp = getSharedPreferences("uploadlog", MODE_PRIVATE);
         String saveDate = logSp.getString("date", "");
         final String current = UploadUtils.getCurrentDate();
-        if (MyApp.myLogger != null) {
+        if (com.b1b.js.erpandroid_kf.MyApp.myLogger != null) {
             if (!saveDate.equals(current)) {
-                MyApp.myLogger.writeInfo("phonecode:" + phoneCode);
-                MyApp.myLogger.writeInfo("dyj-version:" + code);
+                com.b1b.js.erpandroid_kf.MyApp.myLogger.writeInfo("phonecode:" + phoneCode);
+                com.b1b.js.erpandroid_kf.MyApp.myLogger.writeInfo("dyj-version:" + code);
             }
         }
 
@@ -285,11 +292,15 @@ public class MainActivity extends BaseScanActivity  {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String debugPwd = sp.getString("debugPwd", "");
+                Log.e("zjy", "MainActivity->onClick(): password==" +tempPassword);
                 if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590") || phoneCode.endsWith
-                        ("864394010742122") || phoneCode.endsWith("A0000043F41515")|| phoneCode.endsWith("86511114021521")
-                        || phoneCode.endsWith("866462026203849")|| phoneCode.endsWith("869552022575930")) {
-                    login("101", tempPassword);
-//                    disbleScanService(MainActivity.this);
+                        ("864394010742122") || phoneCode.endsWith("A0000043F41515") || phoneCode.endsWith("86511114021521")
+                        || phoneCode.endsWith("866462026203849") || phoneCode.endsWith("869552022575930")) {
+                    login("101", debugPwd);
+                    //                    disbleScanService(MainActivity.this);
+                } else {
+                    MyToast.showToast(MainActivity.this, "请使用扫码登录");
                 }
             }
         });
@@ -349,13 +360,13 @@ public class MainActivity extends BaseScanActivity  {
             public void run() {
                 int counts = urls.length;
                 int times = 0;
-                for (int i = 0; i < urls.length; i++) {
+                for (String url1 : urls) {
                     try {
                         Socket socket = new Socket();
-                        SocketAddress remoteAddr = new InetSocketAddress(urls[i], 21);
+                        SocketAddress remoteAddr = new InetSocketAddress(url1, 21);
                         socket.connect(remoteAddr, 10 * 1000);
-                        MyApp.ftpUrl = urls[i];
-                        sp.edit().putString("ftp", MyApp.ftpUrl).apply();
+                        com.b1b.js.erpandroid_kf.MyApp.ftpUrl = url1;
+                        sp.edit().putString("ftp", com.b1b.js.erpandroid_kf.MyApp.ftpUrl).apply();
                         zHandler.sendEmptyMessage(6);
                         break;
                     } catch (IOException e) {
@@ -374,10 +385,10 @@ public class MainActivity extends BaseScanActivity  {
 
     private void checkUpdate(final int nowCode) {
         if (nowCode == 0) {
-            MyApp.myLogger.writeError("apk versioncode==0");
+            com.b1b.js.erpandroid_kf.MyApp.myLogger.writeError("apk versioncode==0");
             return;
         }
-        downPd = new ProgressDialog(MainActivity.this);
+        downPd = new ProgressDialog(mContext);
         downPd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         downPd.setTitle("更新");
         downPd.setMax(100);
@@ -391,99 +402,129 @@ public class MainActivity extends BaseScanActivity  {
                 String downUrl = WebserviceUtils.ROOT_URL+"DownLoad/dyj_kf/dyjkfapp.apk";
                 String specialUrl= WebserviceUtils.ROOT_URL+"DownLoad/dyj_kf/debug-update.txt";
                 String checkUrl = WebserviceUtils.ROOT_URL+"DownLoad/dyj_kf/updateXml.txt";
-                try {
 //                    boolean ifUpdate = checkVersion(nowCode);
-                    HashMap<String, String> updateInfo = getUpdateXml(checkUrl);
-                    if (updateInfo != null) {
-                        String sCode=updateInfo.get("code");
-                        final String sContent = updateInfo.get("content");
-                        final String sDate = updateInfo.get("date");
-                        zHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                String info = tvVersion.getText().toString().trim();
-                                info = info + "，更新说明:\n";
-                                info += "更新时间:" + sDate+"\n";
-                                info +=   "更新内容:" +sContent;
-                                tvVersion.setText(info);
-                            }
-                        });
-                        int sIntCode = Integer.parseInt(sCode);
-                        if (sIntCode > nowCode) {
-                            ifUpdate = true;
+                HashMap<String, String> updateInfo = null;
+                String code = "code";
+                String content = "content";
+                String date = "date";
+                HttpUtils.Builder builder = HttpUtils.create(checkUrl);
+                InputStream is = null;
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                try {
+                    is = builder.getInputStream();
+                    updateInfo = new HashMap<>();
+                    DocumentBuilder docBuilder = factory.newDocumentBuilder();
+                    Document xmlDoc = docBuilder.parse(is);
+                    NodeList newVersion = xmlDoc.getElementsByTagName("latest-version");
+                    Node item = newVersion.item(0);
+                    NodeList childNodes = item.getChildNodes();
+                    for (int i = 0; i < childNodes.getLength(); i++) {
+                        Node n = childNodes.item(i);
+                        String nName = n.getNodeName();
+                        if (nName.equals(code)) {
+                            updateInfo.put(code, n.getTextContent());
+                        } else if (nName.equals(content)) {
+                            updateInfo.put(content, n.getTextContent());
+                        } else if (nName.equals(date)) {
+                            updateInfo.put(date, n.getTextContent());
                         }
                     }
+                } catch (SAXException e) {
+                    e.printStackTrace();
+                } catch (ParserConfigurationException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                    if (ifUpdate) {
-                        zHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                downPd.show();
-                            }
-                        });
-                        try {
-                            updateAPK(MainActivity.this, zHandler, downUrl, saveName);
-                        } catch (IOException e) {
-                            zHandler.sendEmptyMessage(11);
-                            e.printStackTrace();
+                if (updateInfo != null) {
+                    String sCode=updateInfo.get(code);
+                    final String sContent = updateInfo.get(content);
+                    final String sDate = updateInfo.get(date);
+                    zHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            String info = tvVersion.getText().toString().trim();
+                            info = info + "，更新说明:\n";
+                            info += "更新时间:" + sDate+"\n";
+                            info +=   "更新内容:" +sContent;
+                            tvVersion.setText(info);
                         }
-                    } else {
-                        HashMap<String, String> map = null;
-                        try {
-                            map = specialUpdate(specialUrl);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                    });
+                    int sIntCode = Integer.parseInt(sCode);
+                    if (sIntCode > nowCode) {
+                        ifUpdate = true;
+                    }
+                }
+                if (ifUpdate) {
+                    zHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            downPd.show();
                         }
-                        if (map == null) {
+                    });
+                    try {
+                        updateAPK(mContext, zHandler, downUrl, saveName);
+                    } catch (IOException e) {
+                        zHandler.sendEmptyMessage(11);
+                        e.printStackTrace();
+                    }
+                } else {
+                    HashMap<String, String> map = null;
+                    try {
+                        map = specialUpdate(specialUrl);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (map == null) {
+                        return;
+                    }
+                    SharedPreferences speUpdate = getSharedPreferences("speUpdate", Context.MODE_PRIVATE);
+                    String localCheckID = speUpdate.getString("checkid", "");
+                    String deviceCode = UploadUtils.getDeviceID(mContext);
+                    String onlineCode = map.get("deviceID");
+                    String apkUrl = map.get("url");
+                    String onlineCheckID = map.get("checkid");
+                    if (apkUrl != null) {
+                        if (localCheckID.equals("")) {
+                            speUpdate.edit().putString("checkid", onlineCheckID).commit();
                             return;
                         }
-                        SharedPreferences speUpdate = getSharedPreferences("speUpdate", Context.MODE_PRIVATE);
-                        String localCheckID = speUpdate.getString("checkid", "");
-                        String deviceCode = UploadUtils.getDeviceID(MainActivity.this);
-                        String onlineCode = map.get("deviceID");
-                        String apkUrl = map.get("url");
-                        String onlineCheckID = map.get("checkid");
-                        if (apkUrl != null) {
-                            if (localCheckID.equals("")) {
-                                speUpdate.edit().putString("checkid", onlineCheckID).commit();
-                                return;
-                            }
-                            if (!localCheckID.equals(onlineCheckID)) {
-                                if ("all".equals(onlineCheckID)) {
-                                    zHandler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            //必须设定进图条样式
-                                            downPd.show();
-                                        }
-                                    });
-                                    try {
-                                        updateAPK(MainActivity.this, zHandler, downUrl, saveName);
-                                        speUpdate.edit().putString("checkid", onlineCheckID).commit();
-                                    } catch (IOException e) {
-                                        zHandler.sendEmptyMessage(11);
-                                        e.printStackTrace();
+                        if (!localCheckID.equals(onlineCheckID)) {
+                            if ("all".equals(onlineCheckID)) {
+                                zHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        //必须设定进图条样式
+                                        downPd.show();
                                     }
-                                } else if (onlineCheckID != null && onlineCode.equals(deviceCode)) {
-                                    zHandler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            downPd.show();
-                                        }
-                                    });
-                                    try {
-                                        updateAPK(MainActivity.this, zHandler, downUrl, saveName);
-                                        speUpdate.edit().putString("checkid", onlineCheckID).commit();
-                                    } catch (IOException e) {
-                                        zHandler.sendEmptyMessage(11);
-                                        e.printStackTrace();
+                                });
+                                try {
+                                    updateAPK(mContext, zHandler, downUrl, saveName);
+                                    speUpdate.edit().putString("checkid", onlineCheckID).commit();
+                                } catch (IOException e) {
+                                    zHandler.sendEmptyMessage(11);
+                                    e.printStackTrace();
+                                }
+                            } else if (onlineCheckID != null && onlineCode.equals(deviceCode)) {
+                                zHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        downPd.show();
                                     }
+                                });
+                                try {
+                                    updateAPK(mContext, zHandler, downUrl, saveName);
+                                    speUpdate.edit().putString("checkid", onlineCheckID).commit();
+                                } catch (IOException e) {
+                                    zHandler.sendEmptyMessage(11);
+                                    e.printStackTrace();
                                 }
                             }
                         }
                     }
+                }
             }
         };
         taskManger.execute(updateRun);
@@ -528,7 +569,7 @@ public class MainActivity extends BaseScanActivity  {
         map.put("uid", uid);
         SoapObject request = WebserviceUtils.getRequest(map, "GetUserInfoByUID");
         SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.Login);
-        Log.e("zjy", "MainActivity.java->run(): info==" + MyApp.id + "\t" + response.toString());
+        Log.e("zjy", "MainActivity.java->run(): info==" + com.b1b.js.erpandroid_kf.MyApp.id + "\t" + response.toString());
         JSONObject object = new JSONObject(response.toString());
         JSONArray jarr = object.getJSONArray("表");
         JSONObject info = jarr.getJSONObject(0);
@@ -552,14 +593,6 @@ public class MainActivity extends BaseScanActivity  {
             editor.apply();
         } else {
             sp.edit().clear().commit();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 200 && resultCode == RESULT_OK) {
-
         }
     }
 
@@ -679,7 +712,7 @@ public class MainActivity extends BaseScanActivity  {
         HttpURLConnection conn = (HttpURLConnection) urll.openConnection();
         conn.setConnectTimeout(5 * 1000);
         conn.setReadTimeout(10000);
-        if (conn.getResponseCode() == 200) {
+        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
             InputStream is = conn.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
             String len = reader.readLine();
@@ -697,56 +730,6 @@ public class MainActivity extends BaseScanActivity  {
         return null;
     }
 
-    public static HashMap<String, String>  getUpdateXml(String url) throws IOException {
-        URL urll = new URL(url);
-            HttpURLConnection conn = (HttpURLConnection) urll.openConnection();
-            conn.setConnectTimeout(30 * 1000);
-            conn.setReadTimeout(30*1000);
-        if (conn.getResponseCode() == 200) {
-            InputStream is = conn.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "utf-8"));
-            String len = reader.readLine();
-            StringBuilder stringBuilder = new StringBuilder();
-            while (len != null) {
-                stringBuilder.append(len);
-                len = reader.readLine();
-            }
-            String res = stringBuilder.toString();
-            HashMap<String, String> result = new HashMap<>();
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            try {
-                DocumentBuilder docBuilder = factory.newDocumentBuilder();
-                ByteArrayInputStream bin = new ByteArrayInputStream(res.getBytes("utf-8"));
-                Document xmlDoc = docBuilder.parse(bin);
-                NodeList newVersion = xmlDoc.getElementsByTagName("latest-version");
-                Node item = newVersion.item(0);
-                NodeList childNodes = item.getChildNodes();
-                for (int i = 0; i < childNodes.getLength(); i++) {
-                    Node n = childNodes.item(i);
-                    String nName = n.getNodeName();
-                    if (nName.equals("code")) {
-                        result.put("code", n.getTextContent());
-                    } else if (nName.equals("content")) {
-                        result.put("content", n.getTextContent());
-                    } else if (nName.equals("date")) {
-                        result.put("date", n.getTextContent());
-                    }
-                }
-                return result;
-            } catch (SAXException e) {
-                e.printStackTrace();
-            } catch (ParserConfigurationException e) {
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        } else {
-            return null;
-        }
-    }
 
     public void updateAPK(Context context, Handler mHandler, String downUrl, String saveName) throws IOException {
 
@@ -790,7 +773,7 @@ public class MainActivity extends BaseScanActivity  {
             fos.flush();
             is.close();
             fos.close();
-            MyApp.myLogger.writeInfo("update download");
+            com.b1b.js.erpandroid_kf.MyApp.myLogger.writeInfo("update download");
             Intent intent = new Intent(Intent.ACTION_VIEW);
             File file = new File(targetDir, saveName);
             if (file.exists()) {

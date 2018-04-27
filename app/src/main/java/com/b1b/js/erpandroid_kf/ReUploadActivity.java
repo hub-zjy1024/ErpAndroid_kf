@@ -3,6 +3,7 @@ package com.b1b.js.erpandroid_kf;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.view.View;
 import android.widget.Button;
@@ -18,10 +19,57 @@ import java.io.InputStream;
 import utils.FTPUtils;
 import utils.FtpManager;
 import utils.MyToast;
-import utils.SafeHandler;
+import utils.handler.NoLeakHandler;
+import utils.handler.SafeHandler;
 import utils.UploadUtils;
 
-public class ReUploadActivity extends ObtainPicFromPhone {
+public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandler.NoLeakCallback {
+    @Override
+    public void handleMessage(Message msg) {
+        int arg1 = msg.arg1;
+        int arg2 = msg.arg2;
+        Object obj = msg.obj;
+        int picSize = uploadPicInfos.size();
+        UploadPicInfo nowInfo = uploadPicInfos.get(msg.arg1);
+        String err = "";
+        switch (msg.what) {
+            case MSG_SUCCESS:
+                int nfId = getIntent().getIntExtra("nfId", 0);
+                if (nfId != 0) {
+                    NotificationManager nManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                    if (nManager != null) {
+                        nManager.cancel(nfId);
+                    }
+                }
+                err = "上传成功";
+                uploadResult += "图片" + arg1 + ":" + err + "\n";
+                solveResult(this, arg1, arg2, picSize, err);
+                nowInfo.setState("1");
+                mGvAdapter.notifyDataSetChanged();
+                break;
+            case MSG_ERROR:
+                if (obj != null) {
+                    err = obj.toString();
+                }
+                err = "上传失败:" + err;
+                uploadResult += "图片" + arg1 + ":" + err + "！！！\n";
+                solveResult(this, arg1, arg2, picSize, err);
+                break;
+        }
+    }
+    private void solveResult(ReUploadActivity activity ,int arg1, int arg2, int picSize, String err) {
+        activity.count++;
+        if (arg2 == 1) {
+            activity.uploadResult = "图片" + arg1 + ":" + err + "\n";
+            activity.showFinalDialog(activity.uploadResult);
+        } else {
+            activity.pd.setMessage("上传了" + (activity.count) + "/" + activity.uploadPicInfos.size());
+            if (activity.count >= picSize) {
+                activity.showFinalDialog(activity.uploadResult);
+            }
+        }
+    }
+
     static class LHanlder extends SafeHandler<ReUploadActivity> {
         LHanlder(ReUploadActivity mContext) {
             super(mContext);
@@ -45,7 +93,9 @@ public class ReUploadActivity extends ObtainPicFromPhone {
                         int nfId = activity.getIntent().getIntExtra("nfId", 0);
                         if (nfId != 0) {
                             NotificationManager nManager = (NotificationManager) activity.getSystemService(NOTIFICATION_SERVICE);
-                            nManager.cancel(nfId);
+                            if (nManager != null) {
+                                nManager.cancel(nfId);
+                            }
                         }
                         err = "上传成功";
                         activity.uploadResult += "图片" + arg1 + ":" + err + "\n";
@@ -78,7 +128,7 @@ public class ReUploadActivity extends ObtainPicFromPhone {
         }
     }
 
-    protected LHanlder nHandler = new LHanlder(this);
+    protected Handler nHandler = new NoLeakHandler(this);
     protected static final int MSG_SUCCESS = 0;
     protected static final int MSG_ERROR = 1;
     private String typeFlag;
@@ -129,7 +179,7 @@ public class ReUploadActivity extends ObtainPicFromPhone {
             showFinalDialog("当前登陆人为空，请重启程序尝试");
             return;
         }
-        final UploadPicInfo item = (UploadPicInfo) uploadPicInfos.get(position);
+        final UploadPicInfo item = uploadPicInfos.get(position);
         String insertPath = "";
         String remoteName = "";
         String remotePath = "";

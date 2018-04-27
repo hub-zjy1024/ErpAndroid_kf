@@ -126,7 +126,8 @@ public class FTPUtils {
         //        只能在连接成功之后使用
         //ftp命令响应超时
         //        mClient.setSoTimeout(timeout * 1000);
-        //        mClient.setControlEncoding("UTF-8");
+        //文件名中有中文，下载和删除的过程中
+//                mClient.setControlEncoding("UTF-8");
         //        mClient.setControlKeepAliveTimeout(2);
         if (!mClient.login(username, password))
             throw new IOException("FTP登陆失败，请检测登陆用户名和密码是否正确!");
@@ -224,9 +225,8 @@ public class FTPUtils {
      */
     public boolean upload
     (File localFile, String remoteFilePath) throws IOException {
-        boolean state = false;
         if (!localFile.isFile() || localFile.length() == 0) {
-            return state;
+            return false;
         }
         FileInputStream localIn = new
                 FileInputStream(localFile);

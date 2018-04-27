@@ -80,11 +80,18 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
             }
         }
     };
+    private Button btnScan;
 
     public ChuKuTongZhiFragment() {
     }
 
+    public Button getBtnSearch() {
+        return btnSearch;
+    }
 
+    public EditText getEdPid() {
+        return edPid;
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -95,7 +102,14 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
         edPid = (EditText) view.findViewById(R.id.frag_chukutongzhi_pid);
         btnSearch = (Button) view.findViewById(R.id.frag_chukutongzhi_search);
         btnCleartime = (Button) view.findViewById(R.id.chukutongzhi_cleartime);
-
+        btnScan = (Button) view.findViewById(R.id.chukutongzhi_btn_scan);
+        btnScan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ChuKuActivity activity = (ChuKuActivity) getActivity();
+                activity.startScanActivity();
+            }
+        });
         radioGroup = (RadioGroup) view.findViewById(R.id.chukutongzhi_rgroup);
         //初始化listView并填充
         lv = (ListView) view.findViewById(R.id.frag_chukutongzhidan_lv);

@@ -18,7 +18,6 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
-import com.b1b.js.erpandroid_kf.service.LogUploadService;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONException;
@@ -35,9 +34,9 @@ import utils.MyJsonUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
+import utils.handler.NoLeakHandler;
 
-public class CheckActivity extends BaseScanActivity implements View.OnClickListener{
-
+public class CheckActivity extends BaseScanActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
     private ListView lv;
     private EditText edPid;
     private EditText edPartno;
@@ -51,29 +50,28 @@ public class CheckActivity extends BaseScanActivity implements View.OnClickListe
     private ProgressDialog pd;
     private boolean isFirst = true;
     private RadioButton rdb_checkFirst;
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case 0:
-                    SoftKeyboardUtils.closeInputMethod(edPartno, CheckActivity.this);
-                    mAdapter.notifyDataSetChanged();
-                    MyToast.showToast(CheckActivity.this, "查询到" + data.size() + "条数据");
-                    break;
-                case 1:
-                    mAdapter.notifyDataSetChanged();
-                    MyToast.showToast(CheckActivity.this, "请输入正确的查询条件");
-                    break;
-                case 2:
-                    mAdapter.notifyDataSetChanged();
-                    MyToast.showToast(CheckActivity.this, "查询失败，网络状态不佳");
-                    break;
-            }
-            if (pd != null) {
-                pd.cancel();
-            }
+    private Handler mHandler = new NoLeakHandler(this);
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case 0:
+                SoftKeyboardUtils.closeInputMethod(edPartno, this);
+                mAdapter.notifyDataSetChanged();
+                MyToast.showToast(this, "查询到" + data.size() + "条数据");
+                break;
+            case 1:
+                mAdapter.notifyDataSetChanged();
+                MyToast.showToast(this, "请输入正确的查询条件");
+                break;
+            case 2:
+                mAdapter.notifyDataSetChanged();
+                MyToast.showToast(this, "查询失败，网络状态不佳");
+                break;
         }
-    };
+        if (pd != null) {
+            pd.cancel();
+        }
+    }
     private CheckBox cboStart;
     private boolean isScan = false;
 
@@ -134,7 +132,7 @@ public class CheckActivity extends BaseScanActivity implements View.OnClickListe
         } catch (NumberFormatException e) {
             e.printStackTrace();
             MyToast.showToast(CheckActivity.this, getString(R.string.error_numberformate));
-            return ;
+            return;
         }
         pid = result;
         partNo = edPartno.getText().toString().trim();
@@ -146,8 +144,8 @@ public class CheckActivity extends BaseScanActivity implements View.OnClickListe
         getData(2, pid, partNo, cboStart.isChecked());
     }
 
-    public void getData(final int typeId, final String pid, final String partNo,  boolean auto) {
-        final boolean tempAuto =  Boolean.valueOf(auto);
+    public void getData(final int typeId, final String pid, final String partNo, boolean auto) {
+        final boolean tempAuto = Boolean.valueOf(auto);
 
         Runnable searchThread = new Runnable() {
             @Override
@@ -189,7 +187,8 @@ public class CheckActivity extends BaseScanActivity implements View.OnClickListe
         TaskManager.getInstance().execute(searchThread);
     }
 
-    private String getChuKuCheckInfoByTypeID(int typeId, String pid, String partNo,String uid) throws IOException, XmlPullParserException {
+    private String getChuKuCheckInfoByTypeID(int typeId, String pid, String partNo, String uid) throws IOException,
+            XmlPullParserException {
         LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
         properties.put("checkWord", "");
         properties.put("typeid", typeId);
@@ -218,18 +217,12 @@ public class CheckActivity extends BaseScanActivity implements View.OnClickListe
                 getData(2, pid, partNo, false);
                 break;
             case R.id.check_btn_scancode:
-//                Intent intent = new Intent(CheckActivity.this, CaptureActivity.class);
-//                startActivityForResult(intent, 100);
+                //                Intent intent = new Intent(CheckActivity.this, CaptureActivity.class);
+                //                startActivityForResult(intent, 100);
                 startScanActivity();
                 break;
 
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        startService(new Intent(this, LogUploadService.class));
     }
 
     @Override

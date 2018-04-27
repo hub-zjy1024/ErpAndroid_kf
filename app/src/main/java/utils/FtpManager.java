@@ -14,4 +14,9 @@ public class FtpManager {
 //        return new FTPUtils(FTPUtils.mainAddress, mainName, mainPwd);
         return new  FTPUtils("192.168.10.66", "zjy", "123456");
     }
+
+    public static FTPUtils getTestFTPMain() {
+        //        return new FTPUtils(FTPUtils.mainAddress, mainName, mainPwd);
+        return new FTPUtils(FTPUtils.mainAddress, mainName, mainPwd);
+    }
 }

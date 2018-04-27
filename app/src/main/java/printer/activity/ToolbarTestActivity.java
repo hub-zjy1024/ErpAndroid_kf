@@ -83,7 +83,7 @@ public class ToolbarTestActivity extends AppCompatActivity {
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("正在搜索打印机");
         pDialog.setTitle("提示");
-        sp = getSharedPreferences("UserInfo", 0);
+        sp = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
         ipAddress= sp.getString("serverPrinter", "");
         pinterAdapter = new ArrayAdapter<String>(this, R.layout.lv_item_printer, R
                 .id.spinner_item_tv, spiItems);
@@ -398,7 +398,7 @@ public class ToolbarTestActivity extends AppCompatActivity {
                 break;
             case R.id.btn6:
                 Intent intent = new Intent(ToolbarTestActivity.this,
-                        PickPicPrintingActivity.class);
+                        printer.activity.PickPicPrintingActivity.class);
                 startActivityForResult(intent, 300);
                 break;
             case R.id.btn7:

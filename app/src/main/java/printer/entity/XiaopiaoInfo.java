@@ -21,6 +21,7 @@ public class XiaopiaoInfo {
     private String storageID;
     private String company;
     private String pid;
+    private String shangjiaID;
 
     public XiaopiaoInfo(String partNo, String topID, String time, String deptNo, String counts, String factory, String
             produceFrom, String pihao, String fengzhuang, String description, String place, String note, String flag, String
@@ -183,7 +184,7 @@ public class XiaopiaoInfo {
         this.codeStr = codeStr;
     }
 
-    public String getBelowCode() {
+    public String getStorageCode() {
         return storageID;
     }
 
@@ -191,25 +192,61 @@ public class XiaopiaoInfo {
         this.storageID = belowCode;
     }
 
+    public static int calculateLength(CharSequence c) {
+        int len = 0;
+        for (int i = 0; i < c.length(); i++) {
+            int tmp = (int) c.charAt(i);
+            if (tmp > 0 && tmp < 127) {
+                if (tmp == 39) {
+                    len += 1;
+                } else {
+                    len += 2;
+                }
+            }else{
+                len += 4;
+            }
+        }
+        return len;
+    }
+    public String getStringAtLength(String[] str, int[] len) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < str.length; i++) {
+            String tstr = str[i];
+            int max = len[i];
+            int blank = max - calculateLength(tstr);
+            if (blank <= 0) {
+                if (max != 0) {
+                    if (max <= tstr.length()) {
+                        tstr = tstr.substring(0, max);
+                    }
+                }
+            } else {
+                for (int j = 0; j < blank; j++) {
+                    tstr += " ";
+                }
+            }
+            builder.append(tstr);
+        }
+        return builder.toString();
+    }
+
+    int len = 35;
     @Override
     public String toString() {
-        return "单据号='" + pid + '\'' + "\n" +
+        return  getStringAtLength(new String[]{"单据号='" + pid + "\'","制单日期='" + time + '\'' },new int[]{len,0}) + "\n" +
                 "型号='" + partNo + '\'' + "\n" +
-                "topID='" + topID + '\'' + "\n" +
-                "制单日期='" + time + '\'' + "\n" +
-                "部门号='" + deptNo + '\'' + "\n" +
-                "数量='" + counts + '\'' + "\n" +
+                getStringAtLength(new String[]{"部门号='" + deptNo + "\'","数量='" + counts + '\'' },new int[]{len,0}) + "\n" +
+//                "部门号='" + deptNo + '\'' + "数量='" + counts + '\'' + "\n" +
                 "厂家='" + factory + '\'' + "\n" +
-                "产地='" + produceFrom + '\'' + "\n" +
-                "批号='" + pihao + '\'' + "\n" +
-                "封装='" + fengzhuang + '\'' + "\n" +
+                getStringAtLength(new String[]{"批号='" + pihao + "\'","封装='" + fengzhuang + '\'' },new int[]{len,0}) + "\n" +
+//                "批号='" + pihao + '\'' + "   封装='" + fengzhuang + '\'' + "\n" +
                 "描述='" + description + '\'' + "\n" +
+                getStringAtLength(new String[]{"开票类型='" + flag + "\'","明细ID='" + codeStr + '\'' },new int[]{len,0}) + "\n" +
+                "库房ID='" + storageID + '\'' + "\n" +
+                "产地='" + produceFrom + '\'' + "\n" +
                 "位置='" + place + '\'' + "\n" +
                 "备注='" + note + '\'' + "\n" +
-                "表示='" + flag + '\'' + "\n" +
-                "明细ID='" + codeStr + '\'' + "\n" +
-                "库房ID='" + storageID + '\'' + "\n" +
-                "开票公司='" + company + '\'' + "\n" ;
+                "开票公司='" + company + '\'' + "\n";
     }
 
     public String getPid() {
@@ -219,4 +256,5 @@ public class XiaopiaoInfo {
     public void setPid(String pid) {
         this.pid = pid;
     }
+
 }

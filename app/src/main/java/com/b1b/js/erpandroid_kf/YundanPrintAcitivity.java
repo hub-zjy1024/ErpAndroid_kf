@@ -674,41 +674,42 @@ public class YundanPrintAcitivity extends AppCompatActivity {
             throws IOException {
         long time1 = System.currentTimeMillis();
         String ip = "http://" + serverIP + ":8080";
+        String urlCoding = "UTF-8";
         String strURL = ip + "/PrinterServer/KyPrintServlet?";
         strURL += "orderID=" + URLEncoder.encode(orderID,
-                "UTF-8");
+                urlCoding);
         strURL += "&yundanType=" + URLEncoder.encode(yundanType,
-                "UTF-8");
+                urlCoding);
         strURL += "&counts=" + URLEncoder.encode(counts,
-                "UTF-8");
+                urlCoding);
         strURL += "&goodinfos=" + URLEncoder.encode(goodInfos,
-                "UTF-8");
+                urlCoding);
         strURL += "&printer=" + URLEncoder.encode(printName,
-                "UTF-8");
+                urlCoding);
         strURL += "&cardID=" + URLEncoder.encode(cardID,
-                "UTF-8");
+                urlCoding);
         strURL += "&payType=" + URLEncoder.encode(payType,
-                "UTF-8");
+                urlCoding);
         strURL += "&j_name=" + URLEncoder.encode(jName,
-                "UTF-8");
+                urlCoding);
         strURL += "&j_phone=" + URLEncoder.encode(jTel,
-                "UTF-8");
+                urlCoding);
         strURL += "&j_address=" + URLEncoder.encode(jAddress,
-                "UTF-8");
+                urlCoding);
         strURL += "&destcode=" + URLEncoder.encode(destcode,
-                "UTF-8");
+                urlCoding);
         strURL += "&d_name=" + URLEncoder.encode(dName,
-                "UTF-8");
+                urlCoding);
         strURL += "&d_phone=" + URLEncoder.encode(dTel,
-                "UTF-8");
+                urlCoding);
         strURL += "&d_address=" + URLEncoder.encode(dAddress,
-                "UTF-8");
+                urlCoding);
         strURL += "&j_company=" + URLEncoder.encode(jComapany,
-                "UTF-8");
+                urlCoding);
         strURL += "&d_company=" + URLEncoder.encode(dCompany,
-                "UTF-8");
+                urlCoding);
         strURL += "&pid=" + URLEncoder.encode(pid,
-                "UTF-8");
+                urlCoding);
         Log.e("zjy", "SetYundanActivity->printKyYundan(): StrUrl==" + strURL);
         URL url = new URL(strURL);
         HttpURLConnection conn = (HttpURLConnection) url

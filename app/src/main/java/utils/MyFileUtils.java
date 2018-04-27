@@ -14,6 +14,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.Locale;
 
 public class MyFileUtils {
     public static File getFileParent() {
@@ -26,14 +27,13 @@ public class MyFileUtils {
      获取当前连接的wifi地址
      @return 获取当前连接的wifi地址
      */
-    private static String getLocalIpAddress(Context context) {
-
+    public static String getLocalIpAddress(Context context) {
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         // 获取32位整型IP地址
         int ipAddress = wifiInfo.getIpAddress();
         //返回整型地址转换成“*.*.*.*”地址
-        return String.format("%d.%d.%d.%d",
+        return String.format(Locale.US, "%d.%d.%d.%d",
                 (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
                 (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
     }

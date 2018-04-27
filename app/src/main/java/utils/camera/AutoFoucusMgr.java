@@ -111,11 +111,11 @@ public class AutoFoucusMgr implements Camera.AutoFocusCallback {
 
     public synchronized void stop() {
         stopped = true;
-//        try {
+        try {
             camera.cancelAutoFocus();
-//        } catch (RuntimeException re) {
-//            re.printStackTrace();
-//        }
+        } catch (RuntimeException re) {
+            re.printStackTrace();
+        }
     }
 
     static class AutoFocusTask extends AsyncTask<Object, Object, Object> {

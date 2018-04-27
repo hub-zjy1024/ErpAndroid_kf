@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -18,8 +19,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.adapter.PankuAdapter;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.PankuInfo;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -40,7 +41,7 @@ import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 
-public class PankuActivity extends ScanBaseActivity {
+public class PankuActivity extends BaseScanActivity {
 
     private EditText edID;
     private EditText edPartNo;
@@ -63,6 +64,7 @@ public class PankuActivity extends ScanBaseActivity {
     private PankuInfo currentInfo;
     private EditText eText;
     private View nowViwe;
+    SharedPreferences pfInfo;
     AlertDialog choiceMethodDialog;
     private Handler mHandler = new Handler() {
         @Override
@@ -167,6 +169,7 @@ public class PankuActivity extends ScanBaseActivity {
         Button btnScan = (Button) findViewById(R.id.panku_scan);
         lv = (ListView) findViewById(R.id.panku_lv);
         pkData = new ArrayList<>();
+        pfInfo = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
         View empty = findViewById(R.id.panku_lv_emptyview);
         mAdapter = new PankuAdapter(pkData, PankuActivity.this);
         pdDialog = new ProgressDialog(PankuActivity.this);
@@ -239,10 +242,6 @@ public class PankuActivity extends ScanBaseActivity {
             }
         }.start();
     }
-    @Override
-    public int getLayoutResId() {
-        return R.layout.activity_panku;
-    }
 
     @Override
     public void resultBack(String result) {
@@ -257,8 +256,12 @@ public class PankuActivity extends ScanBaseActivity {
     }
 
     @Override
+    public void getCameraScanResult(String result) {
+        super.getCameraScanResult(result);
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             if (requestCode == CaptureActivity.REQ_CODE) {
                 String result = data.getStringExtra("result");
@@ -312,7 +315,7 @@ public class PankuActivity extends ScanBaseActivity {
                             MinPack = Integer.valueOf(minpack);
                         }
                         int OperID = Integer.valueOf(MyApp.id);
-                        String OperName = getSharedPreferences("UserInfo", 0).getString("oprName", "");
+                        String OperName = pfInfo.getString("oprName", "");
                         String DiskID = "";
                         String Note = dialogMark.getText().toString().trim();
                         String PKPlace = dialogPlace.getText().toString().trim();
@@ -516,7 +519,7 @@ public class PankuActivity extends ScanBaseActivity {
                             MinPack = Integer.valueOf(minpack);
                         }
                         int OperID = Integer.valueOf(MyApp.id);
-                        String OperName = getSharedPreferences("UserInfo", 0).getString("oprName", "");
+                        String OperName = pfInfo.getString("oprName", "");
                         String DiskID = "";
                         String Note = dialogMark.getText().toString().trim();
                         String PKPlace = dialogPlace.getText().toString().trim();

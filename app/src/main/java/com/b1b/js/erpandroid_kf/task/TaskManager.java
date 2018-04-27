@@ -39,14 +39,6 @@ public class TaskManager {
             new LinkedBlockingQueue<Runnable>(defaultCapcity);
     private static TaskManager tm;
 
-    private TaskManager() {
-        this(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE);
-    }
-
-    private TaskManager(int core, int max) {
-        this(core, max, defaultCapcity);
-    }
-
     private TaskManager(int core, int max, int maxTasks) {
         Log.e("zjy", "TaskManager->TaskManager(): newInstance==");
         sPoolWorkQueue = new LinkedBlockingQueue<>(maxTasks);
@@ -55,18 +47,12 @@ public class TaskManager {
         threadPoolExecutor.prestartAllCoreThreads();
     }
 
-    public static synchronized TaskManager getInstance() {
-        if (tm == null) {
-            tm = new TaskManager();
-        }
-        return tm;
+    public static TaskManager getInstance() {
+        return getInstance(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE);
     }
 
-    public static synchronized TaskManager getInstance(int core, int max) {
-        if (tm == null) {
-            tm = new TaskManager(core, max);
-        }
-        return tm;
+    public static TaskManager getInstance(int core, int max) {
+        return getInstance(core, max, defaultCapcity);
     }
 
     public static synchronized TaskManager getInstance(int core, int max, int maxTasks) {

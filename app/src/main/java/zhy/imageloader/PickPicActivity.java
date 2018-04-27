@@ -113,7 +113,8 @@ public class PickPicActivity extends AppCompatActivity implements ListImageDirPo
                 R.layout.grid_item, mImgDir.getAbsolutePath());
 
         mGirdView.setAdapter(mAdapter);
-        mImageCount.setText(totalCount + "张");
+        mChooseDir.setText("文件夹:" + mImgDir.getName());
+        mImageCount.setText(tempImgs.size() + "/" + totalCount + "张");
     }
 
     /**
@@ -191,6 +192,10 @@ public class PickPicActivity extends AppCompatActivity implements ListImageDirPo
                         MediaStore.Images.Media.MIME_TYPE + "=? or "
                                 + MediaStore.Images.Media.MIME_TYPE + "=?",
                         new String[]{"image/jpeg", "image/png"}, MediaStore.Images.Media.DEFAULT_SORT_ORDER);
+                if (mCursor == null) {
+                    mHandler.sendEmptyMessage(0);
+                    return;
+                }
                 Log.e("zjy", "PickPicActivity.java->run():searched pic counts==" + mCursor.getCount());
                 while (mCursor.moveToNext()) {
                     // 获取图片的路径
@@ -218,11 +223,7 @@ public class PickPicActivity extends AppCompatActivity implements ListImageDirPo
                     int picSize = parentFile.list(new FilenameFilter() {
                         @Override
                         public boolean accept(File dir, String filename) {
-                            if (filename.endsWith(".jpg")
-                                    || filename.endsWith(".png")
-                                    || filename.endsWith(".jpeg"))
-                                return true;
-                            return false;
+                            return getPic(filename);
                         }
                     }).length;
                     totalCount += picSize;
@@ -278,15 +279,16 @@ public class PickPicActivity extends AppCompatActivity implements ListImageDirPo
         });
     }
 
+    public boolean getPic( String filename){
+        return filename.endsWith(".jpg") || filename.endsWith(".png")
+                || filename.endsWith(".jpeg");
+    }
     public void selected(ImageFloder floder) {
         mImgDir = new File(floder.getDir());
         mImgs = Arrays.asList(mImgDir.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String filename) {
-                if (filename.endsWith(".jpg") || filename.endsWith(".png")
-                        || filename.endsWith(".jpeg"))
-                    return true;
-                return false;
+                return getPic(filename);
             }
         }));
         tempImgs.clear();
@@ -300,7 +302,7 @@ public class PickPicActivity extends AppCompatActivity implements ListImageDirPo
         mAdapter = new MyAdapter(getApplicationContext(), tempImgs,
                 R.layout.grid_item, mImgDir.getAbsolutePath());
         mGirdView.setAdapter(mAdapter);
-        mImageCount.setText(floder.getCount() + "张");
+        mImageCount.setText(floder.getCount() + "/" + totalCount + "张");
         mChooseDir.setText(floder.getName());
         mListImageDirPopupWindow.dismiss();
     }

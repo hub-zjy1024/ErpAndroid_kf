@@ -101,10 +101,16 @@ public class UploadUtils {
 
     public static String getDeviceID(Context mContext) {
         TelephonyManager tm = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+        if (tm == null) {
+            return "service is unable:" + getTimeYmdhms();
+        }
         return tm.getDeviceId();
     }
     public static String getPhoneCode(Context context) {
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        if (tm == null) {
+            return "service is unable:" + getTimeYmdhms();
+        }
         String deviceId = tm.getDeviceId();
         String phoneModel = Build.MODEL;
         String phoneName = Build.BRAND;

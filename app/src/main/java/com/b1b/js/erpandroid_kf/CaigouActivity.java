@@ -1,8 +1,6 @@
 package com.b1b.js.erpandroid_kf;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,11 +28,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import utils.MyToast;
-import utils.SafeHandler;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
+import utils.handler.NoLeakHandler;
 
-public class CaigouActivity extends BaseScanActivity {
+public class CaigouActivity extends BaseScanActivity implements NoLeakHandler.NoLeakCallback {
 
     private ListView lv;
     private EditText edPid;
@@ -45,36 +43,25 @@ public class CaigouActivity extends BaseScanActivity {
     public static String password = "ryDl42QF";
     public static String ftpAddress = "172.16.6.22";
     final Context packageContext = this;
-    private Handler mHandler = new LHandler(this);
+    private Handler mHandler = new NoLeakHandler(this);
 
-    private static class LHandler extends SafeHandler<CaigouActivity> {
-         LHandler(CaigouActivity mContext) {
-            super(mContext);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            CaigouActivity activity = getActivity();
-            if (activity == null) {
-                return;
-            }
-            switch (msg.what) {
-                case 0:
-                    int counts = activity.caigoudans.size();
-                    if (counts != 0) {
-                        activity.caigouAdapter.notifyDataSetChanged();
-                        MyToast.showToast(activity.packageContext, "查询到" + counts + "条数据");
-                        SoftKeyboardUtils.closeInputMethod(activity.edPartNo, getActivity());
-                    }
-                    break;
-                case 1:
-                    MyToast.showToast(activity.packageContext, "当前网络状态不佳");
-                    break;
-                case 2:
-                    MyToast.showToast(activity.packageContext, "条件有误，请重新输入");
-                    break;
-            }
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case 0:
+                int counts = caigoudans.size();
+                if (counts != 0) {
+                    caigouAdapter.notifyDataSetChanged();
+                    MyToast.showToast(packageContext, "查询到" + counts + "条数据");
+                    SoftKeyboardUtils.closeInputMethod(edPartNo, packageContext);
+                }
+                break;
+            case 1:
+                MyToast.showToast(packageContext, "当前网络状态不佳");
+                break;
+            case 2:
+                MyToast.showToast(packageContext, "条件有误，请重新输入");
+                break;
         }
     }
 
@@ -101,46 +88,12 @@ public class CaigouActivity extends BaseScanActivity {
                 }
                 final Caigoudan item = (Caigoudan) parent.getItemAtPosition(position);
                 
-                Intent temp = new Intent(packageContext, CaigouDetailActivity.class);
+                Intent temp = new Intent(packageContext, com.b1b.js.erpandroid_kf.CaigouDetailActivity.class);
                 temp.putExtra("corpID", item.getCorpID());
                 temp.putExtra("providerID", item.getProviderID());
                 temp.putExtra("pid", item.getPid());
                 temp.putExtra("date", item.getCreatedDate());
                 startActivity(temp);
-                if (true) {
-                    return;
-                }
-                AlertDialog.Builder builder = new AlertDialog.Builder(packageContext);
-                builder.setTitle("上传方式选择");
-                builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch (which) {
-                            case 0:
-                                Intent intent1 = new Intent(packageContext, TakePicActivity.class);
-                                intent1.putExtra("flag", "caigou");
-                                intent1.putExtra("pid", item.getPid());
-                                startActivity(intent1);
-                                MyApp.myLogger.writeInfo("takepic-caigou");
-                                break;
-                            case 1:
-                                Intent intent2 = new Intent(packageContext, ObtainPicFromPhone.class);
-                                intent2.putExtra("flag", "caigou");
-                                intent2.putExtra("pid", item.getPid());
-                                startActivity(intent2);
-                                MyApp.myLogger.writeInfo("obtain-caigou");
-                                break;
-                            case 2:
-                                Intent intent3 = new Intent(packageContext, CaigouTakePic2Activity.class);
-                                intent3.putExtra("flag", "caigou");
-                                intent3.putExtra("pid", item.getPid());
-                                MyApp.myLogger.writeInfo("takepic2-caigou");
-                                startActivity(intent3);
-                                break;
-                        }
-                    }
-                });
-                builder.show();
             }
         });
         btnSearch.setOnClickListener(new View.OnClickListener() {
@@ -150,7 +103,7 @@ public class CaigouActivity extends BaseScanActivity {
                 SoftKeyboardUtils.closeInputMethod(edPid, packageContext);
                 final String partNo = edPartNo.getText().toString();
                 final String pid = edPid.getText().toString();
-                if (MyApp.id == null) {
+                if (com.b1b.js.erpandroid_kf.MyApp.id == null) {
                     MyToast.showToast(packageContext, "当前登录人为空，请重新登录");
                     return;
                 }
@@ -169,7 +122,7 @@ public class CaigouActivity extends BaseScanActivity {
         edPid.setText(pid);
         caigoudans.clear();
         final String partNo = edPartNo.getText().toString();
-        if (MyApp.id == null) {
+        if (com.b1b.js.erpandroid_kf.MyApp.id == null) {
             MyToast.showToast(packageContext, "当前登录人为空，请重新登录");
             return;
         }
@@ -182,7 +135,7 @@ public class CaigouActivity extends BaseScanActivity {
             @Override
             public void run() {
                 try {
-                    String res = getCaigoudanByPidAndPartNo("", Integer.parseInt(MyApp.id), partNo, pid);
+                    String res = getCaigoudanByPidAndPartNo("", Integer.parseInt(com.b1b.js.erpandroid_kf.MyApp.id), partNo, pid);
                     Log.e("zjy", "CaigouActivity->run(): json==" + res);
                     JSONObject object = new JSONObject(res);
                     JSONArray array = object.getJSONArray("表");
@@ -275,7 +228,7 @@ public class CaigouActivity extends BaseScanActivity {
         edPid.setText(pid);
         caigoudans.clear();
         final String partNo = edPartNo.getText().toString();
-        if (MyApp.id == null) {
+        if (com.b1b.js.erpandroid_kf.MyApp.id == null) {
             MyToast.showToast(packageContext, "当前登录人为空，请重新登录");
             return;
         }

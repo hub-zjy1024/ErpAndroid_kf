@@ -27,7 +27,11 @@ public abstract class UploadPicRunnable2 extends UpLoadPicRunable {
             fio = getInputStream();
             uploaded = ftpUtils.upload(fio, upLoadPath);
         } catch (IOException e) {
+            Throwable cause = e.getCause();
             str = "连接错误：" + e.getMessage();
+            if (cause instanceof OutOfMemoryError) {
+                str = "一次上传的图片过多，请稍后再传";
+            }
             e.printStackTrace();
         } catch (Exception e) {
             str = "其他错误：" + e.getMessage();
@@ -51,8 +55,9 @@ public abstract class UploadPicRunnable2 extends UpLoadPicRunable {
         long end = System.currentTimeMillis();
         double totalTime = ((double) (end - start)) / 1000;
         double timeUpload = ((double) (end - start2)) / 1000;
-        Log.e("zjy", "UploadPicRunnable2->run()"+getRemoteName()+": time==" + timeUpload + "/" + totalTime);
-        MyApp.myLogger.writeInfo("upload time :" + getRemoteName() + "===" + timeUpload + "/" + totalTime);
+        String remoteName = getRemoteName();
+        Log.e("zjy", "UploadPicRunnable2->run()"+remoteName+": time==" + timeUpload + "/" + totalTime);
+        MyApp.myLogger.writeInfo("upload time :" + remoteName + "===" + timeUpload + "/" + totalTime);
         onResult(what, str);
     }
 

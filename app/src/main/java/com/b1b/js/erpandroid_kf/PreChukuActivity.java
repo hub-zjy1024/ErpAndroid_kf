@@ -15,10 +15,10 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuAdapter2;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
+import com.b1b.js.erpandroid_kf.task.StorageUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,7 +37,7 @@ import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 
-public class PreChukuActivity extends ScanBaseActivity implements View.OnClickListener {
+public class PreChukuActivity extends BaseScanActivity implements View.OnClickListener {
 
     private Button btnSearch;
     private Button btnSTime;
@@ -103,10 +103,6 @@ public class PreChukuActivity extends ScanBaseActivity implements View.OnClickLi
         btnClearDate.setOnClickListener(this);
     }
 
-    @Override
-    public int getLayoutResId() {
-        return R.layout.activity_pre_chuku;
-    }
 
     @Override
     public void resultBack(String result) {
@@ -146,21 +142,35 @@ public class PreChukuActivity extends ScanBaseActivity implements View.OnClickLi
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 300 && resultCode == RESULT_OK) {
-            final String pid = data.getStringExtra("result");
-                edPid.setText(pid);
-            this.data.clear();
-            adapter.notifyDataSetChanged();
-            try {
-                getPreChukuList("", "", Integer.parseInt(pid));
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-                MyToast.showToast(PreChukuActivity.this, "扫码结果不是数字");
-            }
+    public void getCameraScanResult(String result) {
+        super.getCameraScanResult(result);
+        edPid.setText(result);
+        data.clear();
+        adapter.notifyDataSetChanged();
+        try {
+            getPreChukuList("", "", Integer.parseInt(result));
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            MyToast.showToast(PreChukuActivity.this, "扫码结果不是数字");
         }
     }
+
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == 300 && resultCode == RESULT_OK) {
+//            final String pid = data.getStringExtra("result");
+//                edPid.setText(pid);
+//            this.data.clear();
+//            adapter.notifyDataSetChanged();
+//            try {
+//                getPreChukuList("", "", Integer.parseInt(pid));
+//            } catch (NumberFormatException e) {
+//                e.printStackTrace();
+//                MyToast.showToast(PreChukuActivity.this, "扫码结果不是数字");
+//            }
+//        }
+//    }
 
     @Override
     public void onClick(View v) {
@@ -169,8 +179,9 @@ public class PreChukuActivity extends ScanBaseActivity implements View.OnClickLi
                 setTime(btnSTime, this);
                 break;
             case R.id.prechuku_scan:
-                Intent intent = new Intent(PreChukuActivity.this, CaptureActivity.class);
-                startActivityForResult(intent, 300);
+//                Intent intent = new Intent(PreChukuActivity.this, CaptureActivity.class);
+//                startActivityForResult(intent, 300);
+                startScanActivity();
                 break;
 
             case R.id.prechuku_edate:

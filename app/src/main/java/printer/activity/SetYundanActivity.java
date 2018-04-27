@@ -887,8 +887,9 @@ public class SetYundanActivity extends AppCompatActivity {
                                 mhandler.obtainMessage(5).sendToTarget();
                             }
                         } catch (IOException e) {
-                            mhandler.obtainMessage(8).sendToTarget();
                             e.printStackTrace();
+                            MyApp.myLogger.writeError(e, "SF_StartPrint Error:" + e.getMessage());
+                            mhandler.obtainMessage(8).sendToTarget();
                         }
                     }
                 };
@@ -1302,8 +1303,8 @@ public class SetYundanActivity extends AppCompatActivity {
                     }
                     String[] infos = goodInfos.split("\\$");
                     List<Cargo> cargos = new ArrayList<>();
-                    for (int i = 0; i < infos.length; i++) {
-                        String[] s = infos[i].split("&");
+                    for (String info : infos) {
+                        String[] s = info.split("&");
                         if (s.length > 0) {
                             Cargo cargo = new Cargo();
                             cargo.setCount(s[1]);
@@ -1391,6 +1392,7 @@ public class SetYundanActivity extends AppCompatActivity {
                         }
                     } catch (IOException e) {
                         String exMsg = e.getMessage();
+                        MyApp.myLogger.writeError(e, "SF_StartPrint Error:");
                         if ("print error".equals(exMsg)) {
                             MyApp.myLogger.writeError("print error" + tvPid.getText().toString());
                         } else {
@@ -1413,7 +1415,9 @@ public class SetYundanActivity extends AppCompatActivity {
     }
 
     private String insertYundanInfo(String pid, String orderID, String destcode) throws IOException, XmlPullParserException {
-
+        if("101".equals(MyApp.id)){
+            return "成功";
+        }
         LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
         map.put("objname", pid);
         map.put("objvalue", orderID);
@@ -1432,49 +1436,50 @@ public class SetYundanActivity extends AppCompatActivity {
             serverType, double baojia, String printName, String hasE, String destcode, String yundanType) throws IOException {
         long time1 = System.currentTimeMillis();
         String ip = "http://" + serverIP + ":8080";
+        String urlCoding = "UTF-8";
         String strURL = ip + "/PrinterServer/SFPrintServlet?";
         strURL += "orderID=" + URLEncoder.encode(orderID,
-                "UTF-8");
+                urlCoding);
         strURL += "&hasE=" + URLEncoder.encode(hasE,
-                "UTF-8");
+                urlCoding);
         strURL += "&yundanType=" + URLEncoder.encode(yundanType,
-                "UTF-8");
+                urlCoding);
         strURL += "&goodinfos=" + URLEncoder.encode(goodInfos,
-                "UTF-8");
+                urlCoding);
         strURL += "&printer=" + URLEncoder.encode(printName,
-                "UTF-8");
+                urlCoding);
 
         strURL += "&cardID=" + URLEncoder.encode(cardID,
-                "UTF-8");
+                urlCoding);
         strURL += "&baojiaprice=" + URLEncoder.encode(String
                         .valueOf(baojia),
-                "UTF-8");
+                urlCoding);
         strURL += "&payPerson=" + URLEncoder.encode(payPart,
-                "UTF-8");
+                urlCoding);
         strURL += "&payType=" + URLEncoder.encode(payType,
-                "UTF-8");
+                urlCoding);
         strURL += "&serverType=" + URLEncoder.encode(serverType,
-                "UTF-8");
+                urlCoding);
         strURL += "&j_name=" + URLEncoder.encode(jName,
-                "UTF-8");
+                urlCoding);
         strURL += "&j_phone=" + URLEncoder.encode(jTel,
-                "UTF-8");
+                urlCoding);
         strURL += "&j_address=" + URLEncoder.encode(jAddress,
-                "UTF-8");
+                urlCoding);
         strURL += "&destcode=" + URLEncoder.encode(destcode,
-                "UTF-8");
+                urlCoding);
         strURL += "&d_name=" + URLEncoder.encode(dName,
-                "UTF-8");
+                urlCoding);
         strURL += "&d_phone=" + URLEncoder.encode(dTel,
-                "UTF-8");
+                urlCoding);
         strURL += "&d_address=" + URLEncoder.encode(dAddress,
-                "UTF-8");
+                urlCoding);
         strURL += "&j_company=" + URLEncoder.encode(jComapany,
-                "UTF-8");
+                urlCoding);
         strURL += "&d_company=" + URLEncoder.encode(dCompany,
-                "UTF-8");
+                urlCoding);
         strURL += "&pid=" + URLEncoder.encode(pid,
-                "UTF-8");
+                urlCoding);
         Log.e("zjy", "SetYundanActivity->startPrint(): StrUrl==" + strURL);
         URL url = new URL(strURL);
         HttpURLConnection conn = (HttpURLConnection) url
@@ -1496,6 +1501,11 @@ public class SetYundanActivity extends AppCompatActivity {
         if (res.equals("ok")) {
             return true;
         } else {
+            String[] errors = res.split(":");
+            if (errors.length == 2) {
+                String errMs = errors[1];
+                throw new IOException(errMs);
+            }
             return false;
         }
     }

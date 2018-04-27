@@ -143,7 +143,7 @@ public class PrinterStyle {
 
     public synchronized static void printXiaopiao2(Context mContext, MyBluePrinter printer, XiaopiaoInfo info) {
         int len[] = new int[]{15, 0};
-        printer.printText("\t" + info.getDeptNo() + "_" + info.getTime() + "\t" + info.getBelowCode());
+        printer.printText("\t" + info.getDeptNo() + "_" + info.getTime() + "\t" + info.getStorageCode());
         printer.newLine();
         printer.printText("型号:" + info.getPartNo());
         printer.newLine();
@@ -175,7 +175,7 @@ public class PrinterStyle {
     public synchronized static void printXiaopiao2( SPrinter printer, XiaopiaoInfo info) {
         int len[] = new int[]{15, 0};
         printer.newLine();
-        printer.printText("\t" + info.getDeptNo() + "_" + info.getTime() + "\t" + info.getBelowCode());
+        printer.printText("\t" + info.getDeptNo() + "_" + info.getTime() + "\t" + info.getStorageCode());
         printer.newLine();
         printer.printText("型号:" + info.getPartNo());
         printer.newLine();
@@ -185,11 +185,11 @@ public class PrinterStyle {
         str = new String[]{"厂家:" + info.getFactory(), "批号:" + info.getPihao()};
         printer.printTextByLength(str, len);
         printer.newLine();
-        str = new String[]{"封装:" + info.getFengzhuang(), "描述:" + info.getDescription()};
+        str = new String[]{"封装:" + info.getFengzhuang(), "描述:" + getStringAt(info.getDescription(),8)};
         printer.printTextByLength(str, len);
         printer.newLine();
-        //        str = new String[]{"位置:" + info.getPlace(), "备注:" + info.getNote()};
-        str = new String[]{"位置:" + info.getPlace(), "备注:"};
+                str = new String[]{"位置:" + info.getPlace(), "备注:" + info.getNote()};
+//        str = new String[]{"位置:" + info.getPlace(), "备注:"};
         printer.printTextByLength(str, len);
         printer.newLine();
         printer.setZiTiSize(0);
@@ -197,6 +197,8 @@ public class PrinterStyle {
             printer.printText("z" + info.getCompany() + "z");
         } else if (info.getFlag().equals("2")) {
             printer.printText("p" + info.getCompany() + "p");
+        }else{
+            printer.printText("z" + info.getCompany() + "z");
         }
         printer.newLine();
         printer.setZiTiSize(1);
@@ -205,5 +207,26 @@ public class PrinterStyle {
         printer.newLine();
         printer.newLine();
         printer.newLine();
+    }
+
+    public static String getStringAt(String src, int maxLength) {
+        int tempLength = 0;
+        int index = 0;
+        for (int i = 0; i < src.length(); i++) {
+            int tmp = (int) src.charAt(i);
+            if (tmp > 0 && tmp < 127) {
+                tempLength += 1;
+            }else{
+                tempLength += 2;
+            }
+            if (tempLength >= maxLength) {
+                index = i;
+                break;
+            }
+        }
+        if (index == 0) {
+            return src;
+        }
+        return src.substring(0, index);
     }
 }

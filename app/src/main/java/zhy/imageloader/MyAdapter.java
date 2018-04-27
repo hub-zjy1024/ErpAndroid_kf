@@ -37,12 +37,11 @@ public class MyAdapter extends CommonAdapter<String> {
     @Override
     public void convert(ViewHolder helper, final String item) {
         //设置no_pic
-        helper.setImageResource(R.id.id_item_image, R.drawable.pictures_no);
-        //设置no_selected
-        helper.setImageResource(R.id.id_item_select,
-                R.drawable.picture_unselected);
+        helper.setImageResource(R.id.id_item_image, R.drawable.pictures_no).
+                setImageResource(R.id.id_item_select,
+                R.drawable.picture_unselected)
+                .setImageByUrl(R.id.id_item_image, mDirPath + "/" + item);
         //设置图片
-        helper.setImageByUrl(R.id.id_item_image, mDirPath + "/" + item);
         final ImageView mImageView = helper.getView(R.id.id_item_image);
 //        File file = new File(mDirPath + "/" + item);
 //        Picasso.with(mContext).load(file).resize(100,100);

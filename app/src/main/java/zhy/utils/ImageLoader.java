@@ -182,7 +182,7 @@ public class ImageLoader {
                             reqHeight);
                     addBitmapToLruCache(path, bm);
                     ImgBeanHolder holder = new ImgBeanHolder();
-                    holder.bitmap = getBitmapFromLruCache(path);
+                    holder.bitmap =bm;
                     holder.imageView = imageView;
                     holder.path = path;
                     Message message = Message.obtain();

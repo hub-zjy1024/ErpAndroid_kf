@@ -46,7 +46,7 @@ public class TakePicBaseActivity extends AppCompatActivity {
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.takepic_base_surfaceview);
         final LinearLayout container = (LinearLayout) findViewById(R.id.takepic_base_containner);
         SurfaceHolder holder = surfaceView.getHolder();
-        sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
+        sp = getSharedPreferences(SettingActivity.PREF_USERINFO, MODE_PRIVATE);
         pid = getIntent().getStringExtra("pid");
         holder.addCallback(new SurfaceHolder.Callback() {
             @Override

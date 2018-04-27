@@ -14,12 +14,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
 import com.b1b.js.erpandroid_kf.YundanPrintAcitivity;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.task.WebCallback;
 import com.b1b.js.erpandroid_kf.task.WebServicesTask;
@@ -40,7 +39,7 @@ import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 
-public class SFActivity extends ScanBaseActivity {
+public class SFActivity extends BaseScanActivity {
 
     private List<Yundan> yundanData;
     private EditText edPid;
@@ -120,22 +119,6 @@ public class SFActivity extends ScanBaseActivity {
 
     }
 
-    @Override
-    public int getLayoutResId() {
-        return R.layout.activity_sf;
-    }
-
-    @Override
-    public void resultBack(String result) {
-        edPid.setText(result);
-        SoftKeyboardUtils.closeInputMethod(edPid, this);
-        boolean isNum = MyToast.checkNumber(result);
-        if (isNum) {
-            getYundanResult();
-        }else {
-            MyToast.showToast(this, getString(R.string.error_numberformate));
-        }
-    }
 
     @Override
     protected void onResume() {
@@ -147,8 +130,9 @@ public class SFActivity extends ScanBaseActivity {
     public void myOnclick(View view) {
         switch (view.getId()) {
             case R.id.sf_btnSFScan:
-                Intent intent = new Intent(SFActivity.this, CaptureActivity.class);
-                startActivityForResult(intent, CaptureActivity.REQ_CODE);
+//                Intent intent = new Intent(SFActivity.this, CaptureActivity.class);
+//                startActivityForResult(intent, CaptureActivity.REQ_CODE);
+                startScanActivity();
                 break;
             case R.id.sf_btnSFservice:
                 SoftKeyboardUtils.closeInputMethod(edPid, this);
@@ -266,13 +250,26 @@ public class SFActivity extends ScanBaseActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CaptureActivity.REQ_CODE && resultCode == RESULT_OK) {
-            String pid = data.getStringExtra("result");
-            edPid.setText(pid);
+    public  void resultBack(String result){
+        edPid.setText(result);
+        SoftKeyboardUtils.closeInputMethod(edPid, this);
+        boolean isNum = MyToast.checkNumber(result);
+        if (isNum) {
             getYundanResult();
+        }else {
+            MyToast.showToast(this, getString(R.string.error_numberformate));
+        }
+    }
+
+    @Override
+    public void getCameraScanResult(String result) {
+        edPid.setText(result);
+        SoftKeyboardUtils.closeInputMethod(edPid, this);
+        boolean isNum = MyToast.checkNumber(result);
+        if (isNum) {
+            getYundanResult();
+        }else {
+            MyToast.showToast(this, getString(R.string.error_numberformate));
         }
     }
 }

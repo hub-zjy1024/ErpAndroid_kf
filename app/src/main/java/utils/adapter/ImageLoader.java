@@ -138,6 +138,18 @@ public class ImageLoader {
 
     }
 
+    private static class LoadHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            ImgBeanHolder holder = (ImgBeanHolder) msg.obj;
+            ImageView imageView = holder.imageView;
+            Bitmap bm = holder.bitmap;
+            String path = holder.path;
+            if (imageView.getTag().toString().equals(path)) {
+                imageView.setImageBitmap(bm);
+            }
+        }
+    }
     /**
      加载图片
      @param path
@@ -148,18 +160,7 @@ public class ImageLoader {
         imageView.setTag(path);
         // UI线程
         if (mHandler == null) {
-            mHandler = new Handler() {
-                @Override
-                public void handleMessage(Message msg) {
-                    ImgBeanHolder holder = (ImgBeanHolder) msg.obj;
-                    ImageView imageView = holder.imageView;
-                    Bitmap bm = holder.bitmap;
-                    String path = holder.path;
-                    if (imageView.getTag().toString().equals(path)) {
-                        imageView.setImageBitmap(bm);
-                    }
-                }
-            };
+            mHandler = new LoadHandler();
         }
 
         Bitmap bm = getBitmapFromLruCache(path);

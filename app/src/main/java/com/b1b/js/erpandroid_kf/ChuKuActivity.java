@@ -7,12 +7,15 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
+import android.widget.Button;
+import android.widget.EditText;
+
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChuKuActivity extends AppCompatActivity {
+public class ChuKuActivity extends BaseScanActivity {
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private List<Fragment> frags = new ArrayList<>();
@@ -26,8 +29,9 @@ public class ChuKuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chu_ku);
         tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.addTab(tabLayout.newTab().setText("出库单"));
-        tabLayout.addTab(tabLayout.newTab().setText("出库通知"));
+        for (String tabTitle : tabTitles) {
+            tabLayout.addTab(tabLayout.newTab().setText(tabTitle));
+        }
         viewPager = (ViewPager) findViewById(R.id.ck_viewpager);
         fm = getSupportFragmentManager();
         tabLayout.setupWithViewPager(viewPager);
@@ -39,6 +43,45 @@ public class ChuKuActivity extends AppCompatActivity {
         viewPager.setAdapter(fragAdapter);
     }
 
+    @Override
+    public void resultBack(String result) {
+        super.resultBack(result);
+        int currentItem = viewPager.getCurrentItem();
+        Fragment fragMent = frags.get(currentItem);
+        if (fragMent instanceof ChuKudanFragment) {
+            ChuKudanFragment frag = ((ChuKudanFragment) fragMent);
+            Button btnSearch = frag.getBtnSearch();
+            EditText edPid = frag.getEdPid();
+            edPid.setText(result);
+            frag.onClick(btnSearch);
+        }else if(fragMent instanceof ChuKuTongZhiFragment) {
+            ChuKuTongZhiFragment frag = ((ChuKuTongZhiFragment) fragMent);
+            Button btnSearch = frag.getBtnSearch();
+            EditText edPid = frag.getEdPid();
+            edPid.setText(result);
+            frag.onClick(btnSearch);
+        }
+    }
+
+    @Override
+    public void getCameraScanResult(String result) {
+        super.getCameraScanResult(result);
+        int currentItem = viewPager.getCurrentItem();
+        Fragment fragMent = frags.get(currentItem);
+        if (fragMent instanceof ChuKudanFragment) {
+            ChuKudanFragment frag = ((ChuKudanFragment) fragMent);
+            Button btnSearch = frag.getBtnSearch();
+            EditText edPid = frag.getEdPid();
+            edPid.setText(result);
+            frag.onClick(btnSearch);
+        }else if(fragMent instanceof ChuKuTongZhiFragment) {
+            ChuKuTongZhiFragment frag = ((ChuKuTongZhiFragment) fragMent);
+            Button btnSearch = frag.getBtnSearch();
+            EditText edPid = frag.getEdPid();
+            edPid.setText(result);
+            frag.onClick(btnSearch);
+        }
+    }
 
     class MyPagerAdapter extends FragmentPagerAdapter {
         private List<Fragment> fragments;

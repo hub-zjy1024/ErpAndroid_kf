@@ -66,6 +66,7 @@
                 <action android:name="deleteNotification"/>
             </intent-filter>
         </receiver>
+
         <activity android:name=".PankuActivity"/>
         <activity android:name=".ObtainPicPanku"/>
         <activity android:name=".PreChukuActivity"/>
@@ -83,7 +84,9 @@
         <activity android:name=".CaigouYanhuoActivity"/>
         <activity android:name=".YanhuoCheckActivity"/>
         <activity android:name=".AboutActivity"/>
+
         <service android:name=".service.LogUploadService"/>
+
         <activity android:name=".KyExpressAcitivity"/>
         <activity android:name=".PrintSettingActivity"/>
         <activity android:name=".YundanPrintAcitivity"/>
@@ -91,6 +94,8 @@
         <activity android:name=".TakePicBaseActivity"/>
         <activity android:name=".TakePicChildPanku"/>
         <activity android:name=".ReUploadActivity"/>
+        <activity android:name=".ShangjiaActivity">
+        </activity>
     </application>
 
 </manifest>

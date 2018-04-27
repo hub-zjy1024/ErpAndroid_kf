@@ -9,8 +9,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import com.b1b.js.erpandroid_kf.service.PushService;
+import com.squareup.picasso.Picasso;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class UploadActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -44,6 +49,14 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
         btnStopSrv.setOnClickListener(this);
         btnBindSrv.setOnClickListener(this);
         btnUnbindSrv.setOnClickListener(this);
+        Timer time = new Timer();
+        time.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+            }
+        }, 2000, 2000);
+        Picasso.with(this).load("").into(new ImageButton(this));
     }
 
     @Override

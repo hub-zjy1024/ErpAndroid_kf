@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.XiaopiaoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
+import com.b1b.js.erpandroid_kf.task.StorageUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
@@ -34,20 +35,24 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import me.drakeet.materialdialog.MaterialDialog;
 import printer.entity.XiaopiaoInfo;
 import utils.DialogUtils;
 import utils.MyToast;
 import utils.PrinterStyle;
-import utils.SafeHandler;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 import utils.btprint.BtHelper;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.SPrinter;
+import utils.handler.SafeHandler;
 
 public class RukuTagPrintAcitivity extends BaseScanActivity {
     private RKHanlder mHandler = new RKHanlder(this);
     private final static int FLAG_PRINT = 3;
+    private String storageID = "";
+    public static final String storageKey = "storageID";
+
     private static class RKHanlder extends SafeHandler<RukuTagPrintAcitivity> {
         private RKHanlder(RukuTagPrintAcitivity mContext) {
             super(mContext);
@@ -128,7 +133,10 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
     public static String extraMode = "mode";
     public static String MODE_OFFLINE = "offline";
     private CheckBox cboAuto;
+    private SharedPreferences prefKF;
     ProgressDialog pdDialog;
+    private MaterialDialog alertDialog;
+    private long time1 ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,7 +153,13 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         final CheckBox oboOnlyCode = (CheckBox) findViewById(R.id.ruku_cbo_offline);
         cboAuto = (CheckBox) findViewById(R.id.ruku_cbo_autoprint);
         ivTest = (ImageView) findViewById(R.id.test_iv);
-
+        alertDialog = new MaterialDialog(this);
+        alertDialog.setCanceledOnTouchOutside(true);
+        alertDialog.setTitle("错误");
+        prefKF = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
+        String storageInfo = prefKF.getString(storageKey, "");
+        storageID = getStorageIDFromJson(storageInfo);
+                time1 = System.currentTimeMillis();
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -160,16 +174,18 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                 //                                ivTest.setImageBitmap(BarcodeCreater.creatBarcode(RukuTagPrintAcitivity.this,
                 // "123487523", 40
                 //                 * 8, 50, true, 10));
+                if (System.currentTimeMillis() - time1 < 500) {
+                    MyToast.showToast(RukuTagPrintAcitivity.this, "点击频率过快");
+                    return;
+                }
+                time1 = System.currentTimeMillis();
                 final String pid = edPid.getText().toString();
                 SoftKeyboardUtils.closeInputMethod(edPid, mContext);
                 if (pid.equals("")) {
                     MyToast.showToast(mContext, "请输入明细ID号");
                     return;
                 }
-                if (infos.size() > 0) {
-                    infos.clear();
-                    xpAdapter.notifyDataSetChanged();
-                }
+                infos.clear();
                 getData(pid);
             }
         });
@@ -240,7 +256,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         infos = new ArrayList<>();
         xpAdapter = new XiaopiaoAdapter(this, infos, R.layout.item_rukutag);
         lv.setAdapter(xpAdapter);
-        SharedPreferences userInfo = getSharedPreferences("UserInfo", Context.MODE_PRIVATE);
+        SharedPreferences userInfo = getSharedPreferences(SettingActivity.PREF_USERINFO, Context.MODE_PRIVATE);
         btAddress = userInfo.getString("btPrinterMac", "");
         Log.e("zjy", "RukuTagPrintAcitivity->run(): printerAddress==" + btAddress);
 
@@ -291,56 +307,63 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         edPid.setText(result);
         if (isNum) {
             infos.clear();
-            xpAdapter.notifyDataSetChanged();
             getData(result);
         } else {
             MyToast.showToast(this, getString(R.string.error_numberformate));
         }
     }
 
-    private void getData(final String pid) {
+    public void getData(final String pid) {
         Runnable dataRunnable = new Runnable() {
             @Override
             public void run() {
                 try {
-                    String detailInfo = getDetailInfoByDetailId(pid);
-                    Log.e("zjy", "RukuTagPrintAcitivity->run(): detailInfo==" + detailInfo);
-                    JSONObject jobj = new JSONObject(detailInfo);
+                    if (storageID.equals("")) {
+                        String info = getStorageByIp();
+                        storageID = getStorageIDFromJson(info);
+                        prefKF.edit().putString(storageKey, info).commit();
+                    }
+                    MyApp.myLogger.writeInfo("Storageid " + storageID);
+                    String balaceInfo = getBalaceInfo(pid, storageID, "");
+                    JSONObject jobj = new JSONObject(balaceInfo);
                     JSONArray jarray = jobj.getJSONArray("表");
                     for (int i = 0; i < jarray.length(); i++) {
                         JSONObject tj = jarray.getJSONObject(i);
                         String parno = tj.getString("型号");
-                        String pid = tj.getString("PID");
-                        String time = tj.getString("制单日期");
+                        String pid = tj.getString("单据号");
+                        String time = tj.getString("入库日期");
                         String temp[] = time.split(" ");
                         if (temp.length > 1) {
                             time = temp[0];
                         }
-                        String deptno = tj.getString("DeptID");
-                        String counts = tj.getString("数量");
+                        time = time.replaceAll("/", "-");
+                        String deptno = tj.getString("部门号");
+                        String counts = tj.getString("剩余数量");
                         String factory = tj.getString("厂家");
                         String producefrom = "";
                         String pihao = tj.getString("批号");
                         String fengzhuang = tj.getString("封装");
                         String description = tj.getString("描述");
-                        String place = "";
-                        String storageID = tj.getString("StorageID");
-                        String flag = tj.getString("InvoiceType");
-                        String company = tj.getString("开票公司");
+                        String place = tj.getString("位置");
+                        String storageID = RukuTagPrintAcitivity.this.storageID;
+                        String flag = tj.getString("SQInvoiceType");
+                        String company = tj.getString("name");
                         String notes = tj.getString("备注");
-                        String detailPID = tj.getString("detailPID");
+                        String detailPID = tj.getString("明细ID");
                         XiaopiaoInfo info = new XiaopiaoInfo(parno, deptno, time, deptno, counts, factory,
                                 producefrom, pihao, fengzhuang, description, place, notes, flag, detailPID, storageID,
                                 company);
                         info.setPid(pid);
                         infos.add(info);
                     }
+                    //                    instorageInfo(pid);
                     mHandler.sendEmptyMessage(FLAG_PRINT);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            MyToast.showToast(RukuTagPrintAcitivity.this, "网络质量较差，请稍后重试");
+                            alertDialog.setMessage("查询错误：" + e.getMessage());
+                            alertDialog.show();
                         }
                     });
                     e.printStackTrace();
@@ -358,6 +381,55 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
             }
         };
         TaskManager.getInstance().execute(dataRunnable);
+    }
+
+    public static String getStorageIDFromJson(String info) {
+        return getStorageInfo(info, "StoreRoomID");
+    }
+    public static String getStorageInfo(String info, String tag) {
+        String storageID = "";
+        try {
+            JSONObject obj = new JSONObject(info);
+            JSONArray table = obj.getJSONArray("表");
+            storageID = table.getJSONObject(0).getString(tag);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return storageID;
+    }
+    protected void instorageInfo(String mxID) throws IOException, XmlPullParserException, JSONException {
+        String detailInfo = getDetailInfoByDetailId(mxID);
+        Log.e("zjy", "RukuTagPrintAcitivity->run(): detailInfo==" + detailInfo);
+        JSONObject jobj = new JSONObject(detailInfo);
+        JSONArray jarray = jobj.getJSONArray("表");
+        for (int i = 0; i < jarray.length(); i++) {
+            JSONObject tj = jarray.getJSONObject(i);
+            String parno = tj.getString("型号");
+            String pid = tj.getString("PID");
+            String time = tj.getString("制单日期");
+            String temp[] = time.split(" ");
+            if (temp.length > 1) {
+                time = temp[0];
+            }
+            String deptno = tj.getString("DeptID");
+            String counts = tj.getString("数量");
+            String factory = tj.getString("厂家");
+            String producefrom = "";
+            String pihao = tj.getString("批号");
+            String fengzhuang = tj.getString("封装");
+            String description = tj.getString("描述");
+            String place = "";
+            String storageID = tj.getString("StorageID");
+            String flag = tj.getString("InvoiceType");
+            String company = tj.getString("开票公司");
+            String notes = tj.getString("备注");
+            String detailPID = tj.getString("detailPID");
+            XiaopiaoInfo info = new XiaopiaoInfo(parno, deptno, time, deptno, counts, factory,
+                    producefrom, pihao, fengzhuang, description, place, notes, flag, detailPID, storageID,
+                    company);
+            info.setPid(pid);
+            infos.add(info);
+        }
     }
 
     @Override
@@ -383,6 +455,42 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         }
     }
 
+    public static String getStorageByIp() throws IOException {
+        //        GetStoreRoomIDByIP
+        String ip = StorageUtils.getCurrentIp();
+        if ("".equals(ip)) {
+            throw new IOException("获取当前IP失败");
+        }
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        map.put("ip", ip);
+        SoapObject req = WebserviceUtils.getRequest(map, "GetStoreRoomIDByIP");
+        String bodyString = "";
+        String info = "";
+        try {
+            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
+             bodyString = response.toString();
+        } catch (IOException e) {
+            info = e.getMessage();
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+        if (bodyString.equals("")) {
+            throw new IOException("获取库房ID出错：" + info);
+        }
+        return bodyString;
+    }
+
+
+    public static String getBalaceInfo(String pid, String storageID, String partno) throws IOException, XmlPullParserException {
+        LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+        properties.put("pid", pid);
+        properties.put("partno", partno);
+        properties.put("storageid", storageID);
+        SoapObject req = WebserviceUtils.getRequest(properties, "GetStorageBlanceInfoByID");
+        SoapPrimitive result = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
+        return result.toString();
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -407,7 +515,6 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
     public void getCameraScanResult(String result) {
         edPid.setText(result);
         infos.clear();
-        xpAdapter.notifyDataSetChanged();
         try {
             Integer.parseInt(result);
         } catch (NumberFormatException e) {

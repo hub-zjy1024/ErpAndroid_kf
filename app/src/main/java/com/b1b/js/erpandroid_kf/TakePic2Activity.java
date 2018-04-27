@@ -23,6 +23,7 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
+import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
@@ -47,7 +48,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -57,9 +57,11 @@ import utils.ImageWaterUtils;
 import utils.MyFileUtils;
 import utils.MyImageUtls;
 import utils.MyToast;
+import utils.handler.SafeHandler;
 import utils.UploadUtils;
 import utils.WebserviceUtils;
 import utils.camera.AutoFoucusMgr;
+import utils.camera.CustomAutoFocus;
 
 public class TakePic2Activity extends AppCompatActivity implements View.OnClickListener {
 
@@ -87,13 +89,23 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
     int cid;
     int did;
     private Context mContext = TakePic2Activity.this;
-    private Handler mHandler = new Handler() {
+    private Handler mHandler = new LHandler(this);
+
+    static class LHandler extends SafeHandler<TakePic2Activity> {
+
+        public LHandler(TakePic2Activity mRefer) {
+            super(mRefer);
+        }
         @Override
         public void handleMessage(Message msg) {
+            final TakePic2Activity activity = getActivity();
+            if (activity == null) {
+                return;
+            }
             switch (msg.what) {
                 case PICUPLOAD_ERROR:
-                    btn_takepic.setEnabled(true);
-                    toolbar.setVisibility(View.GONE);
+                    activity.btn_takepic.setEnabled(true);
+                    activity.toolbar.setVisibility(View.GONE);
                     break;
                 case PICUPLOAD_SUCCESS:
                     Object obj = msg.obj;
@@ -103,29 +115,30 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            llResult.removeView(textView);
+                            activity.llResult.removeView(textView);
                         }
                     }, 2000);
-//                    MyToast.showToast(mContext, "后台剩余图片：" + MyApp.totoalTask.size());
-                    MyToast.showToast(mContext, "上传成功，后台剩余图片：" +(MyApp.cachedThreadPool.getActiveCount()-1));
+                    //                    MyToast.showToast(mContext, "后台剩余图片：" + MyApp.totoalTask.size());
+                    MyToast.showToast(activity.mContext, "上传成功，后台剩余图片：" +(MyApp.cachedThreadPool.getActiveCount()-1));
                     break;
                 case FTP_CONNECT_FAIL:
-                    MyToast.showToast(mContext, "连接ftp服务器失败，请检查网络");
+                    MyToast.showToast(activity.mContext, "连接ftp服务器失败，请检查网络");
                     break;
                 case 4:
-                    MyToast.showToast(mContext, "sd卡不存在，不可用后台上传");
-                    btn_commit.setEnabled(false);
+                    MyToast.showToast(activity.mContext, "sd卡不存在，不可用后台上传");
+                    activity.btn_commit.setEnabled(false);
                     break;
             }
         }
-    };
+    }
 
     private OrientationEventListener mOrientationListener;
     private SharedPreferences sp;
     private int itemPosition;
     private AlertDialog inputDialog;
-    private HashMap<Integer, String> map = new HashMap<>();
+    private SparseArray< String> map = new SparseArray<>();
     private AutoFoucusMgr auto;
+    private CustomAutoFocus cAutoFocusMgr;
     private byte[] tempBytes;
     private LinearLayout llResult;
     private TextView tvPid;
@@ -177,7 +190,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
             }
         };
         //成功或失败的提示框
-        SharedPreferences userInfoSp = getSharedPreferences("UserInfo", 0);
+        SharedPreferences userInfoSp = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
         cid = userInfoSp.getInt("cid", -1);
         did = userInfoSp.getInt("did", -1);
         attachToSensor(mOrientationListener);
@@ -206,7 +219,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     parameters = camera.getParameters();
                     String brand = Build.BRAND;
 //                    setPreViewSize(parameters);//默认为屏幕大小
-                    sp = getSharedPreferences("cameraInfo", 0);
+                    sp = getSharedPreferences(SettingActivity.PREF_CAMERA_INFO, 0);
                     try {
                         // 设置用于显示拍照影像的SurfaceHolder对象
                         camera.setPreviewDisplay(holder);
@@ -238,6 +251,8 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                             }
                         });
                          auto = new AutoFoucusMgr(camera);
+//                        cAutoFocusMgr = new CustomAutoFocus(camera);
+//                        cAutoFocusMgr.start();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -253,6 +268,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                 @Override
                 public void surfaceDestroyed(SurfaceHolder holder) {
                     auto.stop();
+//                    cAutoFocusMgr.stop();
                     releaseCamera();
                 }
             });
@@ -377,6 +393,8 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                 camera.takePicture(null, null, new Camera.PictureCallback() {
                     @Override
                     public void onPictureTaken(byte[] data, Camera camera) {
+                        auto.stop();
+//                        cAutoFocusMgr.stop();
                         try {
                             camera.stopPreview();
                         } catch (Throwable throwable) {
@@ -403,6 +421,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                 }
                 camera.startPreview();
                 auto.start();
+//                cAutoFocusMgr.start();
                 isPreview = true;
                 btn_takepic.setEnabled(true);
                 toolbar.setVisibility(View.GONE);
@@ -427,12 +446,13 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                 }
                 camera.startPreview();
                 auto.start();
+//                cAutoFocusMgr.start();
                 isPreview = true;
                 toolbar.setVisibility(View.GONE);
                 btn_takepic.setEnabled(true);
                 int id = (int) (Math.random() * 1000000);
-                while (1 == 1) {
-                    if (map.containsKey(id)) {
+                while (true) {
+                    if (map.get(id) != null) {
                         id = (int) (Math.random() * 1000000);
                     } else {
                         map.put(id, String.valueOf(id));
@@ -539,7 +559,6 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                                 Message message = Message.obtain(mHandler, PICUPLOAD_SUCCESS);
                                                 message.obj = textView;
                                                 message.sendToTarget();
-//                                                mHandler.obtainMessage(PICUPLOAD_SUCCESS).sendToTarget();
                                                 break;
                                             }
                                             try {
@@ -565,8 +584,12 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                                     msg = "插入图片信息失败,多次出现请联系后台";
                                                 }
                                             } catch (IOException e) {
-                                                MyApp.myLogger.writeError("takepic2 upload Exception:" +pid+"\t"+ remoteName+"-"+e.getMessage());
                                                 msg = "连接服务器失败,正在重试";
+                                                String ioMsg = e.getMessage();
+                                                MyApp.myLogger.writeError("takepic2 upload Exception:" +pid+"\t"+ remoteName+"-"+ ioMsg);
+                                                if (ioMsg.contains("EHOSTUNREACH")) {
+                                                    msg = "网络连接有误，正在重试";
+                                                }
                                                 //                                mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
                                                 e.printStackTrace();
                                             } catch (XmlPullParserException e) {
@@ -595,6 +618,9 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                 }
                                 if (ftpUtil != null) {
                                     ftpUtil.exitServer();
+                                }
+                                if (isStop) {
+                                    break;
                                 }
                                 mHandler.post(new Runnable() {
                                     @Override
@@ -635,10 +661,12 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
         @Override
         public void onReceive(Context context, Intent intent) {
             int id = intent.getIntExtra("id", 0);
-            if (intent.getAction().equals("deleteNotification"))
+            if (("deleteNotification").equals(intent.getAction()))
                 if (id != 0) {
                     NotificationManager manager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
-                    manager.cancel(id);
+                    if (manager != null) {
+                        manager.cancel(id);
+                    }
                 }
         }
     }

@@ -287,6 +287,9 @@ public class ViewPicByPidActivity extends BaseScanActivity implements CameraScan
                             downloadResult += "第" + (i + 1) + "张,下载失败，原因：连接服务器失败\r\n";
                         }
                     }
+                    if (mFtpClient != null) {
+                        mFtpClient.exitServer();
+                    }
                     imgsData.addAll(list);
                     Message msg = mHandler.obtainMessage(0, downloadResult);
                     mHandler.sendMessage(msg);

@@ -15,7 +15,6 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.ListView;
 
 import com.b1b.js.erpandroid_kf.adapter.MenuGvAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
@@ -27,7 +26,6 @@ import printer.activity.SFActivity;
 import utils.btprint.SPrinter;
 
 public class MenuActivity extends AppCompatActivity implements OnItemClickListener {
-    private ListView menuList;
     private final String tag_Ruku = "库存标签";
     private final String tag_Print = "运单打印";
     private final String tag_Kaoqin = "考勤";
@@ -39,6 +37,8 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
     private final String tag_ChukuCheck ="出库拍照";
     private final String tag_Admin ="特殊";
     private final String tag_Setting = "设置";
+    private final String tag_shangjia = "货物上架";
+
     private GridView gv;
 
 
@@ -46,7 +46,6 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu_layout);
-        menuList = (ListView) findViewById(R.id.lv);
         gv = (GridView) findViewById(R.id.menu_gv);
         gv.setOnItemClickListener(this);
         addItemGV();
@@ -74,7 +73,9 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
             // 按下BACK，同时没有重复
             int size = (int) MyApp.cachedThreadPool.getActiveCount()-1;
             if (size > 0) {
-                getDialog(MenuActivity.this, "提示", "后台还有" + size + "张图片未上传完成，强制退出将导致图片上传失败", true, null, null, "否", null).show();
+                getDialog(MenuActivity.this, "提示", "后台还有" + size +
+                        "张图片未上传完成，强制退出将导致图片上传失败",
+                        true, null, null, "否", null).show();
                 return true;
             }
         }
@@ -93,6 +94,7 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Print, "顺丰下单并打印功能,以及打印手机接受的文件的功能"));
         data.add(new MyMenuItem(R.mipmap.menu_pic, tag_Viewpic, "查询单据关联的照片"));
         data.add(new MyMenuItem(R.mipmap.menu_panku, tag_Panku, "货物位置管理"));
+        data.add(new MyMenuItem(R.mipmap.menu_shangjia, tag_shangjia, "上架"));
         data.add(new MyMenuItem(R.mipmap.menu_caigou_96, tag_CaigouTakePic, "采购单拍照功能"));
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Ruku, "蓝牙打印，打印入库标签"));
         data.add(new MyMenuItem(R.mipmap.menu_kaoqin, tag_Kaoqin, "查询考勤状态"));
@@ -102,9 +104,14 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        startService(new Intent(this, LogUploadService.class));
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        startService(new Intent(this, LogUploadService.class));
         SPrinter printer = SPrinter.getPrinter(this, null);
         printer.close();
     }
@@ -181,6 +188,11 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
                 intent = new Intent(MenuActivity.this, SFActivity.class);
                 startActivity(intent);
                 MyApp.myLogger.writeInfo("<page> SFActivity");
+                break;
+            case tag_shangjia:
+                intent.setClass(MenuActivity.this, ShangjiaActivity.class);
+                startActivity(intent);
+                MyApp.myLogger.writeInfo("<page> shangjia");
                 break;
         }
     }

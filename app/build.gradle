@@ -2,23 +2,35 @@ apply plugin: 'com.android.application'
 
 android {
     signingConfigs {
+//        release {
+//            keyAlias 'zjy'
+//            keyPassword 'love840502'
+//            storeFile file('D:/Zjys/zjys_keystore.jks')
+//            storePassword 'love840502'
+//            setV1SigningEnabled(true)
+//            setV2SigningEnabled(true)
+//        }
         release {
-            keyAlias 'zjy'
-            keyPassword 'love840502'
-            storeFile file('D:/Zjys/zjys_keystore.jks')
-            storePassword 'love840502'
+            keyAlias RELEASE_KEY_ALIAS
+            keyPassword RELEASE_KEY_PASSWORD
+            storeFile file(RELEASE_STOREFILE)
+            storePassword RELEASE_STORE_PASSWORD
+            setV1SigningEnabled(true)
+            setV2SigningEnabled(true)
         }
     }
-    compileSdkVersion 23
+    compileSdkVersion 24
+//    compileSdkVersion 23
+    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.b1b.js.erpandroid_kf"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 47
-        versionName "5.4"
-//        ndk {
-//            abiFilters "armeabi", "armeabi-v7a"
-//        }
+        versionCode 48
+        versionName "5.6"
+        ndk {
+            abiFilters "armeabi", "armeabi-v7a"
+        }
     }
     /*buildTypes {
         release {
@@ -29,10 +41,15 @@ android {
     buildTypes {
         release {
             minifyEnabled true
+            proguardFile 'proguard-rules.txt'
+            signingConfig signingConfigs.release
+            zipAlignEnabled true
+        }
+        debug {
+            minifyEnabled false
             proguardFiles 'proguard-rules.txt'
         }
     }
-    buildToolsVersion '27.0.3'
 }
 
 dependencies {
@@ -41,9 +58,12 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     implementation files('libs/ksoap2-android-assembly-2.6.0-jar-with-dependencies.jar')
-    implementation files('libs/commons-net-3.6.jar')
+    implementation 'commons-net:commons-net:3.6'
+//    implementation 'com.android.support:appcompat-v7:24.2.1'
+//    implementation 'com.android.support:design:25.0.1'
+//    implementation 'com.android.support:support-v4:24.2.1'
     implementation 'com.android.support:appcompat-v7:24.2.1'
-    implementation 'com.android.support:design:25.0.1'
+    implementation 'com.android.support:design:24.2.1'
     implementation 'com.android.support:support-v4:24.2.1'
     implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
@@ -52,4 +72,27 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation 'junit:junit:4.12'
     implementation project(':redlinescan')
+}
+build {
+    doLast {
+        println("这是doLast Task===========================================")
+        def today = new Date().format('yyyyMMdd_hh');
+        copy{
+            from('build/outputs/apk')
+            into('D:/Zjys/dyj_app/dyj_kf/')
+            include('app-release.apk')
+            rename('app-release.apk','Test' + "_"+ today + '.apk')
+        }
+    }
+}
+task hello {
+    doLast {
+        def today = new Date().format('MMdd_hh');
+        copy{
+            from('build/outputs/apk')
+            into('/Users/dvlee/Desktop/')
+            include('app-release.apk')
+            rename('app-release.apk','Test' + "_"+ today + '.apk')
+        }
+    }
 }

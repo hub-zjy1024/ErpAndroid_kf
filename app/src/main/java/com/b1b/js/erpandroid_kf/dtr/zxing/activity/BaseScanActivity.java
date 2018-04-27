@@ -15,22 +15,21 @@ import android.view.WindowManager;
 import com.android.dev.BarcodeAPI;
 
 import utils.CameraScanInterface;
+import utils.handler.NoLeakHandler;
 
-public abstract class BaseScanActivity extends AppCompatActivity implements CameraScanInterface{
-    protected Handler scanHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case BarcodeAPI.BARCODE_READ:
-                    if (msg.obj != null) {
-                        Log.e("zjy", "BaseScanActivity->handleMessage(): code==" + msg.obj.toString());
-                        resultBack(msg.obj.toString());
-                    }
-                    break;
-            }
+public abstract class BaseScanActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback,CameraScanInterface{
+    private Handler scanHandler = new NoLeakHandler(this);
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case BarcodeAPI.BARCODE_READ:
+                if (msg.obj != null) {
+                    Log.e("zjy", "BaseScanActivity->handleMessage(): code==" + msg.obj.toString());
+                    resultBack(msg.obj.toString());
+                }
+                break;
         }
-    };
+    }
     boolean hasScanBtn = false;
     boolean hasInit = false;
     protected BarcodeAPI scanTool = null;
@@ -80,6 +79,7 @@ public abstract class BaseScanActivity extends AppCompatActivity implements Came
         if (requestCode == REQ_CODE && resultCode == RESULT_OK) {
             String result = data.getStringExtra("result");
             getCameraScanResult(result);
+            getCameraScanResult(result, requestCode);
         }
     }
 
@@ -87,6 +87,13 @@ public abstract class BaseScanActivity extends AppCompatActivity implements Came
         startActivityForResult(new Intent(this, CaptureActivity.class), REQ_CODE);
     }
 
+    public void startScanActivity(int code) {
+        startActivityForResult(new Intent(this, CaptureActivity.class), REQ_CODE);
+    }
+
+    public void getCameraScanResult(String result, int code) {
+
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
