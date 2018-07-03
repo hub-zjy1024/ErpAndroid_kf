@@ -20,7 +20,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.ShangJiaInfo;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -28,21 +27,18 @@ import com.b1b.js.erpandroid_kf.task.TaskManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import utils.MyDecoration;
 import utils.MyToast;
-import utils.WebserviceUtils;
 import utils.handler.NoLeakHandler;
+import utils.wsdelegate.ChuKuServer;
 
-public class ShangjiaActivity extends BaseScanActivity implements NoLeakHandler.NoLeakCallback {
+public class ShangjiaActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback {
     private Handler mHandler = new NoLeakHandler(this);
     private List<ShangJiaInfo> sjInfos = new ArrayList<>();
     private SharedPreferences spKf;
@@ -60,6 +56,7 @@ public class ShangjiaActivity extends BaseScanActivity implements NoLeakHandler.
     @Override
 
     public void handleMessage(Message msg) {
+        super.handleMessage(msg);
         switch (msg.what) {
             case GET_DATA:
                 pd.cancel();
@@ -154,7 +151,7 @@ public class ShangjiaActivity extends BaseScanActivity implements NoLeakHandler.
                         if (currentIp.equals("")) {
                             throw new IOException("获取IP地址失败");
                         }
-                        String sjResult = Shangjia(id, result, kuquID, description, MyApp.id, currentIp);
+                        String sjResult = Shangjia(id, result, kuquID, description, loginID, currentIp);
                         if (sjResult.equals("上架成功")) {
                             currentItem.setStatus(String.format("位置变更成功：%s->%s", currentItem.getPlace(), result));
                             MyApp.myLogger.writeInfo("上架成功：" + currentItem.getCodeStr() + "," + description);
@@ -281,17 +278,7 @@ public class ShangjiaActivity extends BaseScanActivity implements NoLeakHandler.
 
     public String Shangjia(String detailID, String place, String kuQu, String operDescript, String uid, String ip) throws
             IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-        properties.put("detailID", detailID);
-        properties.put("place", place);
-        properties.put("kuQu", kuQu);
-        properties.put("operDescript", operDescript);
-        properties.put("uid", uid);
-        properties.put("ip", ip);
-        SoapObject req = WebserviceUtils.getRequest(properties, "Shangjia");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
-        Log.e("zjy", "ShangjiaActivity->Shangjia(): ==" + response.toString());
-        return response.toString();
+        return ChuKuServer.Shangjia(detailID, place, kuQu, operDescript, uid, ip);
     }
 
     public void getData(final String mxID) {
@@ -371,5 +358,4 @@ public class ShangjiaActivity extends BaseScanActivity implements NoLeakHandler.
     public static String getKuquID(String storageInfo) {
         return RukuTagPrintAcitivity.getStorageInfo(storageInfo, "ChildStorageID");
     }
-
 }

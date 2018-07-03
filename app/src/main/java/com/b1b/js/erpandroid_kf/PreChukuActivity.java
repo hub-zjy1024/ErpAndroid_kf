@@ -16,28 +16,25 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.b1b.js.erpandroid_kf.adapter.PreChukuAdapter2;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
-import com.b1b.js.erpandroid_kf.task.StorageUtils;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.Calendar;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
+import utils.handler.NoLeakHandler;
+import utils.wsdelegate.ChuKuServer;
 
-public class PreChukuActivity extends BaseScanActivity implements View.OnClickListener {
+public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements View.OnClickListener {
 
     private Button btnSearch;
     private Button btnSTime;
@@ -51,24 +48,22 @@ public class PreChukuActivity extends BaseScanActivity implements View.OnClickLi
     private static final int REQUEST_NO_DATA = 2;
     private CheckBox cbo;
     private PreChukuAdapter2 adapter;
-
-    private Handler zHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case REQUEST_ERROR:
-                    MyToast.showToast(PreChukuActivity.this, "连接服务器失败，请检查网络");
-                    break;
-                case REQUEST_NO_DATA:
-                    MyToast.showToast(PreChukuActivity.this, "查询条件有误");
-                    break;
-                case REQUEST_SUCCESS:
-                    adapter.notifyDataSetChanged();
-                    break;
-            }
+    private Handler zHandler = new NoLeakHandler(this);
+    @Override
+    public void handleMessage(Message msg) {
+        super.handleMessage(msg);
+        switch (msg.what) {
+            case REQUEST_ERROR:
+                MyToast.showToast(PreChukuActivity.this, "连接服务器失败，请检查网络");
+                break;
+            case REQUEST_NO_DATA:
+                MyToast.showToast(PreChukuActivity.this, "查询条件有误");
+                break;
+            case REQUEST_SUCCESS:
+                adapter.notifyDataSetChanged();
+                break;
         }
-    };
+    }
     private Button btnScan;
 
     @Override
@@ -106,8 +101,7 @@ public class PreChukuActivity extends BaseScanActivity implements View.OnClickLi
 
     @Override
     public void resultBack(String result) {
-        if (MyApp.id == null) {
-            MyToast.showToast(PreChukuActivity.this, "程序出现错误，请重启");
+        if (!CheckUtils.checkUID(PreChukuActivity.this)) {
             return;
         }
         edPid.setText(result);
@@ -124,18 +118,19 @@ public class PreChukuActivity extends BaseScanActivity implements View.OnClickLi
 
     public String getList(String beginDate, String endDate, String partNo, int pid, int uid) throws IOException, XmlPullParserException {
         //        GetOutStorageNotifyPrintViewList
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("beginDate", beginDate);
-        map.put("endDate", endDate);
-        map.put("partNo", partNo);
-        map.put("pid", pid);
-        map.put("uid", uid);
-        SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintViewList");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
-        String result = response.toString();
-        if (result.equals("")) {
-            MyApp.myLogger.writeError(PreChukuActivity.class, getResources().getString(R.string.error_soapobject) + pid + "\t" + uid);
-        }
+//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+//        map.put("beginDate", beginDate);
+//        map.put("endDate", endDate);
+//        map.put("partNo", partNo);
+//        map.put("pid", pid);
+//        map.put("uid", uid);
+//        SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintViewList");
+//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
+//        String result = response.toString();
+//        if (result.equals("")) {
+//            MyApp.myLogger.writeError(PreChukuActivity.class, getResources().getString(R.string.error_soapobject) + pid + "\t" + uid);
+//        }
+        String result = ChuKuServer.GetOutStorageNotifyPrintViewList(beginDate, endDate, partNo, pid, uid);
         Log.e("zjy", "PreChukuActivity->getList(): result==" + result);
         return result;
 //        return response.toString();
@@ -222,8 +217,7 @@ public class PreChukuActivity extends BaseScanActivity implements View.OnClickLi
                 }
                 final int id = tempID;
                 Log.e("zjy", "PreChukuActivity->onClick(): integer pid==" + id);
-                if (MyApp.id == null) {
-                    MyToast.showToast(PreChukuActivity.this, "程序出现错误，请重启");
+                if (!CheckUtils.checkUID(PreChukuActivity.this)) {
                     return;
                 }
                 SoftKeyboardUtils.closeInputMethod(edPid, PreChukuActivity.this);
@@ -237,8 +231,8 @@ public class PreChukuActivity extends BaseScanActivity implements View.OnClickLi
             @Override
             public void run() {
                 try {
-                    MyApp.myLogger.writeInfo("prechuku:getList" + MyApp.id);
-                    String res = getList(temS, temE, "", id, Integer.parseInt(MyApp.id));
+                    MyApp.myLogger.writeInfo("prechuku:getList" + loginID);
+                    String res = getList(temS, temE, "", id, Integer.parseInt(loginID));
                     JSONObject root = new JSONObject(res);
                     JSONArray array = root.getJSONArray("表");
                     for (int i = 0; i < array.length(); i++) {

@@ -8,21 +8,22 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 
-public abstract class ScanBaseActivity extends AppCompatActivity {
-    protected Handler scanHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case BarcodeAPI.BARCODE_READ:
-                    if (msg.obj != null) {
-                        Log.e("zjy", "ScanBaseActivity->handleMessage(): code==" + msg.obj.toString());
-                        resultBack(msg.obj.toString());
-                    }
-                    break;
-            }
+import com.android.dev.handler.NoLeakHandler;
+
+public abstract class ScanBaseActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback {
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case BarcodeAPI.BARCODE_READ:
+                if (msg.obj != null) {
+                    Log.e("zjy", "ScanBaseActivity->handleMessage(): code==" + msg.obj.toString());
+                    resultBack(msg.obj.toString());
+                }
+                break;
         }
-    };
+    }
+
+    protected Handler scanHandler = new NoLeakHandler(this);
     boolean hasScanBtn = false;
     boolean hasInit = false;
     protected BarcodeAPI scanTool = null;

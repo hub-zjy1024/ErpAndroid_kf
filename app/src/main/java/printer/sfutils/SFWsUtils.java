@@ -1,9 +1,11 @@
 package printer.sfutils;
 
+import android.util.Base64;
 import android.util.Log;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapPrimitive;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 import org.w3c.dom.Document;
@@ -135,6 +137,26 @@ public class SFWsUtils {
             throws IOException, XmlPullParserException {
         return getEnvelope(request, SoapEnvelope.VER11, null, ROOT_URL, false);
     }
+
+    /**
+     * @return
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
+    public static String getNewOrder(String xml)
+            throws IOException, XmlPullParserException {
+        SoapObject object = new SoapObject(NAMESPACE,
+                "sfexpressService");
+        byte[] byteCode = Base64.encode((Md5.getMD5Bytes(xml + SFWsUtils
+                .verifyCode)), Base64.NO_WRAP);
+        String verifyCode = new String(byteCode, "UTF-8");
+        object.addProperty("arg0", xml);
+        object.addProperty("arg1", verifyCode);
+        SoapSerializationEnvelope envelope =getEnvelope(object);
+        SoapPrimitive soapPrimitive = (SoapPrimitive) envelope.getResponse();
+        return soapPrimitive.toString();
+    }
+
     public static SoapSerializationEnvelope getEnvelope(LinkedHashMap<String, Object> properties,
                                                         String method)
             throws IOException, XmlPullParserException {

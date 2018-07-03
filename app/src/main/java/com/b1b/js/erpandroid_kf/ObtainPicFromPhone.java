@@ -11,9 +11,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.LruCache;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,12 +21,11 @@ import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.task.UpLoadPicRunable;
 import com.b1b.js.erpandroid_kf.task.UploadPicRunnable2;
 
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.ByteArrayInputStream;
@@ -36,7 +35,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
@@ -46,12 +44,12 @@ import utils.ImageWaterUtils;
 import utils.MyImageUtls;
 import utils.MyToast;
 import utils.UploadUtils;
-import utils.WebserviceUtils;
 import utils.handler.NoLeakHandler;
+import utils.wsdelegate.MartStock;
 import zhy.imageloader.MyAdapter;
 import zhy.imageloader.PickPicActivity;
 
-public class ObtainPicFromPhone extends AppCompatActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
+public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
 
     protected Button btn_commit;
     private Button btn_commitOrigin;
@@ -76,6 +74,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements NoLeakHandl
         switch (msg.what) {
             case PICUPLOAD_SUCCESS:
                 err = "上传成功";
+                LruCache<String, Object> m = new LruCache<>(100);
                 uploadResult += "图片" + arg1 + ":" + err + "\n";
                 solveResult(arg1, arg2, picSize, err);
                 UploadPicInfo upInfo = uploadPicInfos.get(arg1);
@@ -92,6 +91,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements NoLeakHandl
                 break;
         }
     }
+
     private void solveResult(int arg1, int arg2, int picSize, String err) {
         count++;
         if (arg2 == 1) {
@@ -106,47 +106,47 @@ public class ObtainPicFromPhone extends AppCompatActivity implements NoLeakHandl
     }
 
     private Handler nHandler = new NoLeakHandler(this);
-//    private Handler nHandler = new Handler() {
-//        @Override
-//        public void handleMessage(Message msg) {
-//            int arg1 = msg.arg1;
-//            int arg2 = msg.arg2;
-//            Object obj = msg.obj;
-//            int picSize = uploadPicInfos.size();
-//            String err = "上传失败";
-//            switch (msg.what) {
-//                case PICUPLOAD_SUCCESS:
-//                    err = "上传成功";
-//                    uploadResult += "图片" + arg1 + ":" + err + "\n";
-//                    solveResult(arg1, arg2, picSize, err);
-//                    UploadPicInfo upInfo = uploadPicInfos.get(arg1);
-//                    upInfo.setState("1");
-//                    mGvAdapter.notifyDataSetChanged();
-//                    break;
-//                case PICUPLOAD_ERROR:
-//                    if (obj != null) {
-//                        err = obj.toString();
-//                    }
-//                    err = "上传失败:" + err;
-//                    uploadResult += "图片" + arg1 + ":" + err + "！！！\n";
-//                    solveResult(arg1, arg2, picSize, err);
-//                    break;
-//            }
-//        }
-//
-//        private void solveResult(int arg1, int arg2, int picSize, String err) {
-//            count++;
-//            if (arg2 == 1) {
-//                uploadResult = "图片" + arg1 + ":" + err + "\n";
-//                showFinalDialog(uploadResult);
-//            } else {
-//                pd.setMessage("上传了" + (count) + "/" + uploadPicInfos.size());
-//                if (count >= picSize) {
-//                    showFinalDialog(uploadResult);
-//                }
-//            }
-//        }
-//    };
+    //    private Handler nHandler = new Handler() {
+    //        @Override
+    //        public void handleMessage(Message msg) {
+    //            int arg1 = msg.arg1;
+    //            int arg2 = msg.arg2;
+    //            Object obj = msg.obj;
+    //            int picSize = uploadPicInfos.size();
+    //            String err = "上传失败";
+    //            switch (msg.what) {
+    //                case PICUPLOAD_SUCCESS:
+    //                    err = "上传成功";
+    //                    uploadResult += "图片" + arg1 + ":" + err + "\n";
+    //                    solveResult(arg1, arg2, picSize, err);
+    //                    UploadPicInfo upInfo = uploadPicInfos.get(arg1);
+    //                    upInfo.setState("1");
+    //                    mGvAdapter.notifyDataSetChanged();
+    //                    break;
+    //                case PICUPLOAD_ERROR:
+    //                    if (obj != null) {
+    //                        err = obj.toString();
+    //                    }
+    //                    err = "上传失败:" + err;
+    //                    uploadResult += "图片" + arg1 + ":" + err + "！！！\n";
+    //                    solveResult(arg1, arg2, picSize, err);
+    //                    break;
+    //            }
+    //        }
+    //
+    //        private void solveResult(int arg1, int arg2, int picSize, String err) {
+    //            count++;
+    //            if (arg2 == 1) {
+    //                uploadResult = "图片" + arg1 + ":" + err + "\n";
+    //                showFinalDialog(uploadResult);
+    //            } else {
+    //                pd.setMessage("上传了" + (count) + "/" + uploadPicInfos.size());
+    //                if (count >= picSize) {
+    //                    showFinalDialog(uploadResult);
+    //                }
+    //            }
+    //        }
+    //    };
     protected int cid;
     protected int did;
 
@@ -255,7 +255,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements NoLeakHandl
             }
             remotePath = UploadUtils.getChukuRemotePath(remoteName, pid);
         }
-        if ("101".equals(MyApp.id)) {
+        if (CheckUtils.isAdmin()) {
             mUrl = FtpManager.mainAddress;
             remoteName = UploadUtils.getChukuRemoteName(pid);
             remoteName = getRemarkName(remoteName, true);
@@ -290,16 +290,16 @@ public class ObtainPicFromPhone extends AppCompatActivity implements NoLeakHandl
                 String remoteName = getRemoteName();
                 String insertPath = getInsertpath();
                 Log.e("zjy", "ObtainPicFromPhone->getInsertResult(): insertpath==" + insertPath);
-                if ("101".equals(MyApp.id)) {
+                if (CheckUtils.isAdmin()) {
                     return true;
                 }
                 String res = "";
                 if ("caigou".equals(intentFlag)) {
                     res = setSSCGPicInfo("", cid,
-                            did, Integer.parseInt(MyApp.id), pid, remoteName, insertPath, "SCCG");
+                            did, Integer.parseInt(loginID), pid, remoteName, insertPath, "SCCG");
                 } else {
                     res = setInsertPicInfo("", cid,
-                            did, Integer.parseInt(MyApp.id), pid, remoteName, insertPath, "CKTZ");
+                            did, Integer.parseInt(loginID), pid, remoteName, insertPath, "CKTZ");
                 }
                 return res.equals("操作成功");
             }
@@ -327,7 +327,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements NoLeakHandl
             Bitmap textBitmap = ImageWaterUtils.drawTextToRightTop(mContext, bitmap, pid, (int) (bitmap
                     .getWidth() * 0.015), Color.RED, 20, 20);
             Bitmap compressImage = ImageWaterUtils.createWaterMaskRightBottom(mContext, textBitmap,
-                    waterBitmap, 0, 0);
+                    waterBitmap);
             ByteArrayOutputStream bao = new ByteArrayOutputStream();
             MyImageUtls.compressBitmapAtsize(compressImage, bao, 0.4f);
             ByteArrayInputStream bai = new ByteArrayInputStream(bao.toByteArray());
@@ -344,22 +344,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements NoLeakHandl
 
     public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
                                    String stypeID) throws IOException, XmlPullParserException {
-        String str = "";
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("checkWord", checkWord);
-        map.put("cid", cid);
-        map.put("did", did);
-        map.put("uid", uid);
-        map.put("pid", pid);
-        map.put("filename", fileName);
-        map.put("filepath", filePath);
-        map.put("stypeID", stypeID);//标记，固定为"CKTZ"
-        SoapObject request = WebserviceUtils.getRequest(map, "SetInsertPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
-                .ChuKuServer);
-        str = response.toString();
-        Log.e("zjy", "ObtainPicFromPhone.java->setInsertPicInfo(): insertRes==" + str);
-        return str;
+        return TakePic2Activity.setInsertPicInfo(checkWord, cid, did, uid, pid, fileName, filePath, stypeID);
     }
 
     @Override
@@ -400,23 +385,8 @@ public class ObtainPicFromPhone extends AppCompatActivity implements NoLeakHandl
 
     public static String setSSCGPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
                                         String stypeID) throws IOException, XmlPullParserException {
-        String str = "";
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("checkWord", checkWord);
-        map.put("cid", cid);
-        map.put("did", did);
-        map.put("uid", uid);
-        map.put("pid", pid);
-        map.put("filename", fileName);
-        map.put("filepath", filePath);
-        map.put("stypeID", stypeID);//标记，固定为"CKTZ"
-        SoapObject request = WebserviceUtils.getRequest(map, "InsertSSCGPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
-                .MartStock);
-        str = response.toString();
-        return str;
+        return MartStock.InsertSSCGPicInfo(checkWord, cid, did, uid, pid, fileName, filePath, stypeID);
     }
-
     @NonNull
     protected String getRemarkName(String fileName, boolean hasSuffix) {
         String name = fileName;

@@ -6,19 +6,20 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.R;
+import com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity;
+import com.b1b.js.erpandroid_kf.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.SettingActivity;
 import com.b1b.js.erpandroid_kf.YundanPrintAcitivity;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.task.WebCallback;
 import com.b1b.js.erpandroid_kf.task.WebServicesTask;
@@ -27,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -35,20 +37,23 @@ import java.util.concurrent.RejectedExecutionException;
 
 import printer.adapter.SFYundanAdapter;
 import printer.entity.Yundan;
+import utils.DialogUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
+import utils.handler.NoLeakHandler;
 
-public class SFActivity extends BaseScanActivity {
-
+public class SFActivity extends SavedLoginInfoWithScanActivity {
+    private String storageID = "";
     private List<Yundan> yundanData;
     private EditText edPid;
     private EditText edPartNo;
     private SFYundanAdapter adapter;
     List<WebServicesTask> tasks = new LinkedList<>();
-    private String prefExpress = "";
-    private CheckBox changeExpress;
     private ProgressDialog pdDialog;
+    private Handler mHandler = new NoLeakHandler(this);
+    private SharedPreferences prefKF;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,6 +109,41 @@ public class SFActivity extends BaseScanActivity {
         });
         pdDialog = new ProgressDialog(this);
         pdDialog.setMessage("正在查询。。。");
+        prefKF = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
+        String info = prefKF.getString(RukuTagPrintAcitivity.storageKey, "");
+        storageID = RukuTagPrintAcitivity.getStorageIDFromJson(info);
+        if (storageID.equals("")) {
+            pdDialog.setMessage("正在判断库房");
+            pdDialog.show();
+            Runnable run = new Runnable() {
+                @Override
+                public void run() {
+                    String finalStr = "";
+                    try {
+                        String info = null;
+                        info = RukuTagPrintAcitivity.getStorageByIp();
+                        storageID = RukuTagPrintAcitivity.getStorageIDFromJson(info);
+                        prefKF.edit().putString(RukuTagPrintAcitivity.storageKey, info).commit();
+                        finalStr = "当前库房ID是：" + storageID;
+                    } catch (IOException e) {
+                        String msg = e.getMessage();
+                        msg += "！！！";
+                        finalStr = "获取库房ID出错：" + msg;
+                        e.printStackTrace();
+                    }
+                    final String str = finalStr;
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            DialogUtils.getSpAlert(SFActivity.this, str, "提示").show();
+                            pdDialog.setMessage("正在查询。。。");
+                            pdDialog.cancel();
+                        }
+                    });
+                }
+            };
+            TaskManager.getInstance().execute(run);
+        }
         lv.setAdapter(adapter);
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
@@ -120,21 +160,18 @@ public class SFActivity extends BaseScanActivity {
     }
 
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        SharedPreferences sp = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
-        prefExpress = sp.getString(SettingActivity.PREF_EXPRESS, "");
-    }
-
     public void myOnclick(View view) {
         switch (view.getId()) {
             case R.id.sf_btnSFScan:
-//                Intent intent = new Intent(SFActivity.this, CaptureActivity.class);
-//                startActivityForResult(intent, CaptureActivity.REQ_CODE);
+                //                Intent intent = new Intent(SFActivity.this, CaptureActivity.class);
+                //                startActivityForResult(intent, CaptureActivity.REQ_CODE);
                 startScanActivity();
                 break;
             case R.id.sf_btnSFservice:
+                if (storageID.equals("")) {
+                    MyToast.showToast(SFActivity.this, "当前库房ID未知,请重新进入");
+                    return;
+                }
                 SoftKeyboardUtils.closeInputMethod(edPid, this);
                 getYundanResult();
                 break;
@@ -148,6 +185,7 @@ public class SFActivity extends BaseScanActivity {
         LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
         map.put("pid", pid);
         map.put("xh", parno);
+        map.put("SID", storageID);
         WebServicesTask<String> t = new WebServicesTask<>(new WebCallback<String>() {
             @Override
             public void errorCallback(Throwable e) {
@@ -218,7 +256,9 @@ public class SFActivity extends BaseScanActivity {
             }
         }, map);
         try {
-            t.executeOnExecutor(TaskManager.getInstance().getExecutor(), "GetYunDanList", WebserviceUtils.SF_SERVER);
+            //            t.executeOnExecutor(TaskManager.getInstance().getExecutor(), "GetYunDanList", WebserviceUtils
+            // .SF_SERVER);
+            t.executeOnExecutor(TaskManager.getInstance().getExecutor(), "GetYunDanListNew", WebserviceUtils.SF_SERVER);
         } catch (RejectedExecutionException e) {
             e.printStackTrace();
             MyToast.showToast(SFActivity.this, "查询太过频繁，请稍后再试。。");
@@ -237,7 +277,7 @@ public class SFActivity extends BaseScanActivity {
         super.onStop();
         for (int i = 0; true; i++) {
             WebServicesTask webServicesTask = ((LinkedList<WebServicesTask>) tasks).pollLast();
-            Log.e("zjy", "SFActivity->onStop(): remove==" +i);
+            Log.e("zjy", "SFActivity->onStop(): remove==" + i);
             if (webServicesTask != null) {
                 if (!webServicesTask.isCancelled() && webServicesTask.getStatus() == AsyncTask.Status
                         .RUNNING) {
@@ -250,13 +290,13 @@ public class SFActivity extends BaseScanActivity {
         }
     }
 
-    public  void resultBack(String result){
+    public void resultBack(String result) {
         edPid.setText(result);
         SoftKeyboardUtils.closeInputMethod(edPid, this);
         boolean isNum = MyToast.checkNumber(result);
         if (isNum) {
             getYundanResult();
-        }else {
+        } else {
             MyToast.showToast(this, getString(R.string.error_numberformate));
         }
     }
@@ -268,7 +308,7 @@ public class SFActivity extends BaseScanActivity {
         boolean isNum = MyToast.checkNumber(result);
         if (isNum) {
             getYundanResult();
-        }else {
+        } else {
             MyToast.showToast(this, getString(R.string.error_numberformate));
         }
     }

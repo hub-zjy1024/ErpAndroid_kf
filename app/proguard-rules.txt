@@ -100,6 +100,7 @@
 -dontnote com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity
 -keep class com.android.scan.** {*;}
 -keep class com.b1b.js.erpandroid_kf.adapter.TableAdapter{*;}
+-keep class com.shockwave.**
 #其他配置
 #混淆前后名称对照
 -dump class_files.txt

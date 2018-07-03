@@ -10,6 +10,7 @@ import android.widget.Button;
 
 import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.task.UploadPicRunnable2;
 
@@ -19,9 +20,8 @@ import java.io.InputStream;
 import utils.FTPUtils;
 import utils.FtpManager;
 import utils.MyToast;
-import utils.handler.NoLeakHandler;
-import utils.handler.SafeHandler;
 import utils.UploadUtils;
+import utils.handler.NoLeakHandler;
 
 public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandler.NoLeakCallback {
     @Override
@@ -70,64 +70,6 @@ public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandle
         }
     }
 
-    static class LHanlder extends SafeHandler<ReUploadActivity> {
-        LHanlder(ReUploadActivity mContext) {
-            super(mContext);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-                int arg1 = msg.arg1;
-                int arg2 = msg.arg2;
-                Object obj = msg.obj;
-            ReUploadActivity activity = getActivity();
-            if (activity == null) {
-                return;
-            }
-                int picSize = activity.uploadPicInfos.size();
-                UploadPicInfo nowInfo = activity.uploadPicInfos.get(arg1);
-                String err = "";
-                switch (msg.what) {
-                    case MSG_SUCCESS:
-                        int nfId = activity.getIntent().getIntExtra("nfId", 0);
-                        if (nfId != 0) {
-                            NotificationManager nManager = (NotificationManager) activity.getSystemService(NOTIFICATION_SERVICE);
-                            if (nManager != null) {
-                                nManager.cancel(nfId);
-                            }
-                        }
-                        err = "上传成功";
-                        activity.uploadResult += "图片" + arg1 + ":" + err + "\n";
-                        solveResult(activity,arg1, arg2, picSize, err);
-                        nowInfo.setState("1");
-                        activity.mGvAdapter.notifyDataSetChanged();
-                        break;
-                    case MSG_ERROR:
-                        if (obj != null) {
-                            err = obj.toString();
-                        }
-                        err = "上传失败:" + err;
-                        activity.uploadResult += "图片" + arg1 + ":" + err + "！！！\n";
-                        solveResult(activity,arg1, arg2, picSize, err);
-                        break;
-                }
-
-        }
-        private void solveResult(ReUploadActivity activity ,int arg1, int arg2, int picSize, String err) {
-            activity.count++;
-            if (arg2 == 1) {
-                activity.uploadResult = "图片" + arg1 + ":" + err + "\n";
-                activity.showFinalDialog(activity.uploadResult);
-            } else {
-                activity.pd.setMessage("上传了" + (activity.count) + "/" + activity.uploadPicInfos.size());
-                if (activity.count >= picSize) {
-                    activity.showFinalDialog(activity.uploadResult);
-                }
-            }
-        }
-    }
-
     protected Handler nHandler = new NoLeakHandler(this);
     protected static final int MSG_SUCCESS = 0;
     protected static final int MSG_ERROR = 1;
@@ -150,7 +92,7 @@ public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandle
             uploadPicInfos.add(new UploadPicInfo("-1", failPath));
             btn_commit.setEnabled(true);
         }
-        if ("101".equals(MyApp.id)) {
+        if (CheckUtils.isAdmin()) {
             isTest = true;
         }
         mGvAdapter = new UploadPicAdapter(mContext, uploadPicInfos, new UploadPicAdapter.OnItemBtnClickListener() {
@@ -175,8 +117,7 @@ public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandle
     }
 
     protected void upload(final int position, final boolean isMulti) {
-        if (MyApp.id == null) {
-            showFinalDialog("当前登陆人为空，请重启程序尝试");
+        if (!CheckUtils.checkUID(mContext, "当前登陆人为空，请重启程序尝试")) {
             return;
         }
         final UploadPicInfo item = uploadPicInfos.get(position);
@@ -234,11 +175,11 @@ public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandle
                     String flag = "";
                     if (isCaigou) {
                         flag = "SCCG";
-                        res = setSSCGPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid, remoteName,
+                        res = setSSCGPicInfo("", cid, did, Integer.parseInt(loginID), pid, remoteName,
                                 insertPath, flag);
                     } else {
                         flag = "CKTZ";
-                        res = setInsertPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid, remoteName,
+                        res = setInsertPicInfo("", cid, did, Integer.parseInt(loginID), pid, remoteName,
                                 insertPath, flag);
                     }
                 }

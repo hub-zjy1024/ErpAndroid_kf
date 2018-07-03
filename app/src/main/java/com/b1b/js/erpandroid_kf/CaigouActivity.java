@@ -13,26 +13,23 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.Caigoudan;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
 import utils.handler.NoLeakHandler;
+import utils.wsdelegate.MartService;
 
-public class CaigouActivity extends BaseScanActivity implements NoLeakHandler.NoLeakCallback {
+public class CaigouActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback {
 
     private ListView lv;
     private EditText edPid;
@@ -47,6 +44,7 @@ public class CaigouActivity extends BaseScanActivity implements NoLeakHandler.No
 
     @Override
     public void handleMessage(Message msg) {
+        super.handleMessage(msg);
         switch (msg.what) {
             case 0:
                 int counts = caigoudans.size();
@@ -103,8 +101,7 @@ public class CaigouActivity extends BaseScanActivity implements NoLeakHandler.No
                 SoftKeyboardUtils.closeInputMethod(edPid, packageContext);
                 final String partNo = edPartNo.getText().toString();
                 final String pid = edPid.getText().toString();
-                if (com.b1b.js.erpandroid_kf.MyApp.id == null) {
-                    MyToast.showToast(packageContext, "当前登录人为空，请重新登录");
+                if (!CheckUtils.checkUID(packageContext, "当前登录人为空，请重新登录")) {
                     return;
                 }
                 getData(partNo, pid);
@@ -122,8 +119,7 @@ public class CaigouActivity extends BaseScanActivity implements NoLeakHandler.No
         edPid.setText(pid);
         caigoudans.clear();
         final String partNo = edPartNo.getText().toString();
-        if (com.b1b.js.erpandroid_kf.MyApp.id == null) {
-            MyToast.showToast(packageContext, "当前登录人为空，请重新登录");
+        if (!CheckUtils.checkUID(packageContext, "当前登录人为空，请重新登录")) {
             return;
         }
         getData("", pid);
@@ -135,7 +131,7 @@ public class CaigouActivity extends BaseScanActivity implements NoLeakHandler.No
             @Override
             public void run() {
                 try {
-                    String res = getCaigoudanByPidAndPartNo("", Integer.parseInt(com.b1b.js.erpandroid_kf.MyApp.id), partNo, pid);
+                    String res = getCaigoudanByPidAndPartNo("", Integer.parseInt(loginID), partNo, pid);
                     Log.e("zjy", "CaigouActivity->run(): json==" + res);
                     JSONObject object = new JSONObject(res);
                     JSONArray array = object.getJSONArray("表");
@@ -187,39 +183,13 @@ public class CaigouActivity extends BaseScanActivity implements NoLeakHandler.No
         }.start();
     }
 
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == 100 && resultCode == RESULT_OK) {
-//            final String pid = data.getStringExtra("result");
-//            edPid.setText(pid);
-//            caigoudans.clear();
-//            final String partNo = edPartNo.getText().toString();
-//            if (MyApp.id == null) {
-//                MyToast.showToast(packageContext, "当前登录人为空，请重新登录");
-//                return;
-//            }
-//            getData("", pid);
-//        }
-//    }
-
     //采购单图片地址
     //    172.16.6.22
     //    用户名：mingming
     //    密码：ryDl42QF
     public String getCaigoudanByPidAndPartNo(String checkWord, int buyerId, String partNo, String pid) throws IOException,
             XmlPullParserException {
-
-        //        GetBillByPartNo
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("checkWord", checkWord);
-        map.put("buyerID", buyerId);
-        map.put("pid", pid);
-        map.put("partNo", partNo);
-        SoapObject request = WebserviceUtils.getRequest(map, "GetBillByPartNoAndPid");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
-                .MartService);
-        return response.toString();
+        return MartService.GetBillByPartNoAndPid(checkWord, buyerId, pid, partNo);
     }
 
     @Override
@@ -228,8 +198,7 @@ public class CaigouActivity extends BaseScanActivity implements NoLeakHandler.No
         edPid.setText(pid);
         caigoudans.clear();
         final String partNo = edPartNo.getText().toString();
-        if (com.b1b.js.erpandroid_kf.MyApp.id == null) {
-            MyToast.showToast(packageContext, "当前登录人为空，请重新登录");
+        if (!CheckUtils.checkUID(packageContext, "当前登录人为空，请重新登录")) {
             return;
         }
         getData("", pid);

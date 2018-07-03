@@ -14,7 +14,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -35,16 +34,12 @@ import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
-import org.ksoap2.serialization.SoapSerializationEnvelope;
-import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
@@ -67,16 +62,16 @@ import java.util.Map;
 import printer.entity.Cargo;
 import printer.entity.Province;
 import printer.entity.SFSender;
-import printer.sfutils.Md5;
 import printer.sfutils.SFWsUtils;
 import printer.sfutils.XmlDomUtils;
 import utils.DialogUtils;
 import utils.MyToast;
 import utils.Myuuid;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
+import utils.handler.NoLeakHandler;
+import utils.wsdelegate.SF_Server;
 
-public class SetYundanActivity extends AppCompatActivity {
+public class SetYundanActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback{
     private List<Province> provinces;
     String jAddress;
     String payByWho;
@@ -123,130 +118,127 @@ public class SetYundanActivity extends AppCompatActivity {
     private ProgressDialog pd;
     private String pid;
     private List<Map<String, String>> addrList = new ArrayList<>();
-
-    private Context mContext = this;
-    Handler mhandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case 0:
-                    flag = 1;
-                    tvPayBy.setText(payByWho);
-                    if (payByWho.equals("寄货方")) {
-                        spiPayType.setSelection(0);
-                    } else if (payByWho.equals("收货方")) {
-                        spiPayType.setSelection(1);
-                    }
-                    if (!isDiaohuo) {
-                        edAccount.setText(account);
-                        edJPerson.setText(jName);
-                        edJAddress.setText(jAddress);
-                        edJTel.setText(jTel);
-                        eddTel.setText(dTel);
-                        eddAddress.setText(dAddress);
-                        eddPerson.setText(dName);
-                        tvNote.setText(note);
-                    } else {
-                        final SharedPreferences sp = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
-                        String saveAccount = sp.getString("diaohuoAccount", "");
-                        edAccount.setText(saveAccount);
-                    }
-                    break;
-                case 1:
-                    DialogUtils.dismissDialog(pd);
-                    AlertDialog.Builder builder = new AlertDialog.Builder
-                            (mContext);
-                    builder.setTitle("提示");
-                    builder.setMessage("下单失败:" + msg.obj.toString());
-                    DialogUtils.safeShowDialog(mContext, builder.create());
-                    break;
-                case 3:
-                    DialogUtils.dismissDialog(pd);
-                    AlertDialog.Builder builder2 = new AlertDialog.Builder
-                            (mContext);
-                    builder2.setTitle("提示");
-                    int arg1 = msg.arg1;
-                    if (arg1 == 0) {
-                        builder2.setMessage("网络连接错误，下单失败！！！");
-                        builder2.show();
-                    } else if (arg1 == 1) {
-                        builder2.setMessage("打印出现错误，请重新打印！！！");
-                        builder2.show();
-                    } else if (arg1 == 2) {
-                        builder2.setMessage("插入单号信息失败，是否重试");
-                        builder2.setPositiveButton("是", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                pd.setMessage("正在插入单号信息");
-                                pd.show();
-                                Runnable reInsertRunnable = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            String result = updatePrintCount(tvPid.getText().toString(), desOrderid);
-                                            result = insertYundanInfo(tvPid.getText().toString(), desOrderid, ddestcode);
-                                            if (result.equals("成功")) {
-                                                mhandler.sendEmptyMessage(9);
-                                            } else {
-                                                mhandler.sendEmptyMessage(6);
-                                            }
-                                        } catch (IOException e) {
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case 0:
+                flag = 1;
+                tvPayBy.setText(payByWho);
+                if (payByWho.equals("寄货方")) {
+                    spiPayType.setSelection(0);
+                } else if (payByWho.equals("收货方")) {
+                    spiPayType.setSelection(1);
+                }
+                if (!isDiaohuo) {
+                    edAccount.setText(account);
+                    edJPerson.setText(jName);
+                    edJAddress.setText(jAddress);
+                    edJTel.setText(jTel);
+                    eddTel.setText(dTel);
+                    eddAddress.setText(dAddress);
+                    eddPerson.setText(dName);
+                    tvNote.setText(note);
+                } else {
+                    final SharedPreferences sp = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
+                    String saveAccount = sp.getString("diaohuoAccount", "");
+                    edAccount.setText(saveAccount);
+                }
+                break;
+            case 1:
+                DialogUtils.dismissDialog(pd);
+                AlertDialog.Builder builder = new AlertDialog.Builder
+                        (mContext);
+                builder.setTitle("提示");
+                builder.setMessage("下单失败:" + msg.obj.toString());
+                DialogUtils.safeShowDialog(mContext, builder.create());
+                break;
+            case 3:
+                DialogUtils.dismissDialog(pd);
+                AlertDialog.Builder builder2 = new AlertDialog.Builder
+                        (mContext);
+                builder2.setTitle("提示");
+                int arg1 = msg.arg1;
+                if (arg1 == 0) {
+                    builder2.setMessage("网络连接错误，下单失败！！！");
+                    builder2.show();
+                } else if (arg1 == 1) {
+                    builder2.setMessage("打印出现错误，请重新打印！！！");
+                    builder2.show();
+                } else if (arg1 == 2) {
+                    builder2.setMessage("插入单号信息失败，是否重试");
+                    builder2.setPositiveButton("是", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            pd.setMessage("正在插入单号信息");
+                            pd.show();
+                            Runnable reInsertRunnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        String result = updatePrintCount(tvPid.getText().toString(), desOrderid);
+                                        result = insertYundanInfo(tvPid.getText().toString(), desOrderid, ddestcode);
+                                        if (result.equals("成功")) {
+                                            mhandler.sendEmptyMessage(9);
+                                        } else {
                                             mhandler.sendEmptyMessage(6);
-                                            e.printStackTrace();
-                                        } catch (XmlPullParserException e) {
-                                            e.printStackTrace();
                                         }
+                                    } catch (IOException e) {
+                                        mhandler.sendEmptyMessage(6);
+                                        e.printStackTrace();
+                                    } catch (XmlPullParserException e) {
+                                        e.printStackTrace();
                                     }
-                                };
-                                TaskManager.getInstance().execute(reInsertRunnable);
-                            }
-                        });
-                        builder2.setNegativeButton("否", null);
-                        DialogUtils.safeShowDialog(mContext, builder2.create());
-                    }
-                    break;
-                case 4:
-                    DialogUtils.dismissDialog(pd);
-                    AlertDialog.Builder builder3 = new AlertDialog.Builder
-                            (mContext);
-                    builder3.setTitle("提示");
-                    builder3.setMessage("月结账号获取失败，当前不可用寄付月结！！！");
-                    DialogUtils.safeShowDialog(mContext, builder3.create());
-                    break;
-                case 5:
-                    DialogUtils.dismissDialog(pd);
-                    Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
-                            "操作成功", "提示");
-                    DialogUtils.safeShowDialog(mContext, spAlert1);
-                    break;
-                case 6:
-                    DialogUtils.dismissDialog(pd);
-                    Dialog spAlert = DialogUtils.getSpAlert(mContext,
-                            "插入单号信息失败,请重新插入！！！", "提示");
-                    tvState.setText("关联运单号失败！！！");
-                    tvState.setTextColor(Color.RED);
-                    DialogUtils.safeShowDialog(mContext, spAlert);
-                    break;
-                case 7:
-                    DialogUtils.dismissDialog(pd);
-                    DialogUtils.safeShowDialog(mContext, DialogUtils.getSpAlert(mContext,
-                            "网络质量较差，请重新尝试！！！", "提示"));
-                    break;
-                case 8:
-                    DialogUtils.dismissDialog(pd);
-                    DialogUtils.safeShowDialog(mContext, DialogUtils.getSpAlert(mContext,
-                            "连接打印服务器失败，请重新尝试！！！", "提示"));
-                    break;
-                case 9:
-                    DialogUtils.dismissDialog(pd);
-                    btnReInsert.setBackgroundColor(Color.GRAY);
-                    tvState.setText("关联运单号成功：" + desOrderid);
-                    tvState.setTextColor(Color.GREEN);
-                    break;
-            }
+                                }
+                            };
+                            TaskManager.getInstance().execute(reInsertRunnable);
+                        }
+                    });
+                    builder2.setNegativeButton("否", null);
+                    DialogUtils.safeShowDialog(mContext, builder2.create());
+                }
+                break;
+            case 4:
+                DialogUtils.dismissDialog(pd);
+                AlertDialog.Builder builder3 = new AlertDialog.Builder
+                        (mContext);
+                builder3.setTitle("提示");
+                builder3.setMessage("月结账号获取失败，当前不可用寄付月结！！！");
+                DialogUtils.safeShowDialog(mContext, builder3.create());
+                break;
+            case 5:
+                DialogUtils.dismissDialog(pd);
+                Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
+                        "操作成功", "提示");
+                DialogUtils.safeShowDialog(mContext, spAlert1);
+                break;
+            case 6:
+                DialogUtils.dismissDialog(pd);
+                Dialog spAlert = DialogUtils.getSpAlert(mContext,
+                        "插入单号信息失败,请重新插入！！！", "提示");
+                tvState.setText("关联运单号失败！！！");
+                tvState.setTextColor(Color.RED);
+                DialogUtils.safeShowDialog(mContext, spAlert);
+                break;
+            case 7:
+                DialogUtils.dismissDialog(pd);
+                DialogUtils.safeShowDialog(mContext, DialogUtils.getSpAlert(mContext,
+                        "网络质量较差，请重新尝试！！！", "提示"));
+                break;
+            case 8:
+                DialogUtils.dismissDialog(pd);
+                DialogUtils.safeShowDialog(mContext, DialogUtils.getSpAlert(mContext,
+                        "连接打印服务器失败，请重新尝试！！！", "提示"));
+                break;
+            case 9:
+                DialogUtils.dismissDialog(pd);
+                btnReInsert.setBackgroundColor(Color.GRAY);
+                tvState.setText("关联运单号成功：" + desOrderid);
+                tvState.setTextColor(Color.GREEN);
+                break;
         }
-    };
+    }
+    private Context mContext = this;
+    Handler mhandler = new NoLeakHandler(this);
     private TextView tvPid;
     private String corpID;
     private String TYPE_210 = "210";
@@ -455,7 +447,7 @@ public class SetYundanActivity extends AppCompatActivity {
         if ("2".equals(sendFlag)) {
             isDiaohuo = true;
         }
-        if ("101".equals(MyApp.id)) {
+        if (CheckUtils.isAdmin()) {
             cboTest.setVisibility(View.VISIBLE);
         } else {
             cboTest.setVisibility(View.GONE);
@@ -686,6 +678,9 @@ public class SetYundanActivity extends AppCompatActivity {
                     }
                     Log.e("zjy", "SetYundanActivity->run(): corpID==" + corpID);
                     account = getAccoutByCorpID(corpID);
+                    if (account.equals("")) {
+                        MyApp.myLogger.writeBug("SF account unknow" + table.toString());
+                    }
                     //                    account = "9999999999";
                     mhandler.sendEmptyMessage(0);
                 } catch (XmlPullParserException e) {
@@ -1117,8 +1112,8 @@ public class SetYundanActivity extends AppCompatActivity {
         //        GetBD_YunDanInfoByID;
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("pid", pid);
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(map, "GetBD_YunDanInfoByID", WebserviceUtils.SF_SERVER);
-        return res.toString();
+//        return  WebserviceUtils.getWcfResult(map, "GetBD_YunDanInfoByID", WebserviceUtils.SF_SERVER);
+        return SF_Server.GetBD_YunDanInfoByID(pid);
     }
 
     private void checkPrintCouts(String times, final CheckBox boxBaojia, final EditText edBaojia, final Intent intent, final
@@ -1415,20 +1410,20 @@ public class SetYundanActivity extends AppCompatActivity {
     }
 
     private String insertYundanInfo(String pid, String orderID, String destcode) throws IOException, XmlPullParserException {
-        if("101".equals(MyApp.id)){
+        if (CheckUtils.isAdmin()) {
             return "成功";
         }
-        LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
-        map.put("objname", pid);
-        map.put("objvalue", orderID);
-        map.put("express", destcode);
-        SoapPrimitive insertResult = WebserviceUtils.getSoapPrimitiveResponse(map,
-                "InsertBD_YunDanInfo", WebserviceUtils.SF_SERVER);
-        Log.e("zjy", "SetYundanActivity->run(): insert Res==" + insertResult);
-        if (insertResult.toString().equals("成功")) {
+//        LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+//        map.put("objname", pid);
+//        map.put("objvalue", orderID);
+//        map.put("express", destcode);
+//        String result = WebserviceUtils.getWcfResult(map, "InsertBD_YunDanInfo", WebserviceUtils.SF_SERVER);
+        String result = SF_Server.InsertBD_YunDanInfo(pid, orderID, destcode);
+        Log.e("zjy", "SetYundanActivity->run(): insert Res==" + result);
+        if (result.equals("成功")) {
             MyApp.myLogger.writeInfo("SFprint--insertYundanInfo:OK" + pid);
         }
-        return insertResult.toString();
+        return result;
     }
 
     @NonNull
@@ -1573,75 +1568,38 @@ public class SetYundanActivity extends AppCompatActivity {
 
     private Map<String, String> getOrderResponse(String xml) throws IOException,
             XmlPullParserException {
-        SoapObject object = new SoapObject(SFWsUtils.NAMESPACE,
-                "sfexpressService");
-        byte[] byteCode = Base64.encode((Md5.getMD5Bytes(xml + SFWsUtils
-                .verifyCode)), Base64.NO_WRAP);
-        String verifyCode = new String(byteCode, "UTF-8");
-        object.addProperty("arg0", xml);
-        object.addProperty("arg1", verifyCode);
-        SoapSerializationEnvelope envelope =
-                SFWsUtils.getEnvelope(object);
-        SoapPrimitive
-                soapPrimitive = (SoapPrimitive)
-                envelope.getResponse();
+        String result = SFWsUtils.getNewOrder(xml);
         Log.e("zjy",
                 "SFActivity->getOrderResponse(): result==" +
-                        soapPrimitive.toString());
+                        result);
         XmlDomUtils xmlUtils = new XmlDomUtils();
-        return xmlUtils.readXML(soapPrimitive.toString());
+        return xmlUtils.readXML(result);
     }
 
     public String getSFClientInfo(String clientID) throws IOException,
             XmlPullParserException {
-        //        GetClientPCCInfo
-        SoapObject request = new SoapObject("http://tempuri.org/",
-                "GetClientPCCInfo");
-        request.addProperty("id", clientID);
-        //设置版本号，ver11，和ver12比较常见
-        SoapSerializationEnvelope envelope1 = new
-                SoapSerializationEnvelope
-                (SoapEnvelope.VER11);
-        envelope1.bodyOut = request;
-        //.net开发的webservice必须加入
-        envelope1.dotNet = true;
-        HttpTransportSE trans = new HttpTransportSE("http://172.16.6" +
-                ".160:8006/SF_Server.svc?wsdl", 15 * 1000);
-        String action = "http://tempuri.org/ISF_Server/GetClientPCCInfo";
-        trans.call(action, envelope1);
-        SoapPrimitive sp = (SoapPrimitive) envelope1.getResponse();
-        Log.e("zjy", "SFActivity->getSFClientInfo(): clientDetail==" + sp.toString());
-        return sp.toString();
+//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+//        map.put("id", clientID);
+//        String detail=WebserviceUtils.getWcfResult(map, "GetClientPCCInfo", WebserviceUtils.SF_SERVER);
+        String detail = SF_Server.GetClientPCCInfo(clientID);
+        Log.e("zjy", "SFActivity->getSFClientInfo(): clientDetail==" + detail);
+        return detail;
     }
 
     public static String searchByPid(String pid) throws IOException, XmlPullParserException {
-        SoapObject request = new SoapObject("http://tempuri.org/",
-                "GetYunDanInfos");
-        request.addProperty("pid", pid);
-        //设置版本号，ver11，和ver12比较常见
-        SoapSerializationEnvelope envelope1 = new
-                SoapSerializationEnvelope
-                (SoapEnvelope.VER11);
-        envelope1.bodyOut = request;
-        //.net开发的webservice必须加入
-        envelope1.dotNet = true;
-        HttpTransportSE trans = new HttpTransportSE("http://172.16.6" +
-                ".160:8006/SF_Server.svc?wsdl", 15 * 1000);
-        String action = "http://tempuri.org/ISF_Server/GetYunDanInfos";
-        trans.call(action, envelope1);
-        SoapPrimitive sp = (SoapPrimitive) envelope1.getResponse();
-        Log.e("zjy", "SFActivity->searchByPid(): yundanInfo==" + sp.toString());
-        return sp.toString();
+//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+//        map.put("pid", pid);
+//        String detail = WebserviceUtils.getWcfResult(map, "GetYunDanInfos", WebserviceUtils.SF_SERVER);
+        String detail = SF_Server.GetYunDanInfos(pid);
+        Log.e("zjy", "SFActivity->searchByPid(): yundanInfo==" +detail);
+        return detail;
     }
 
-    private String getDHAddresss() throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        SoapObject req = WebserviceUtils.getRequest(map, "GetBD_DHAddress");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.SF_SERVER);
-        return response.toString();
+    public static String getDHAddresss() throws IOException, XmlPullParserException {
+//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+//        return WebserviceUtils.getWcfResult(map, "GetBD_DHAddress", WebserviceUtils.SF_SERVER);
+        return SF_Server.GetBD_DHAddress();
     }
-
-
     public String updatePrintCount(String pid, String orderID) throws IOException,
             XmlPullParserException {
         if (isDiaohuo) {
@@ -1649,55 +1607,34 @@ public class SetYundanActivity extends AppCompatActivity {
             return "成功";
         }
         String newOrder = orderID.replace(",", "/");
-        //       UpdateYunDanInfoByPrintCountResult
-        SoapObject request = new SoapObject("http://tempuri.org/",
-                "UpdateYunDanInfoByPrintCount");
-        request.addProperty("pid", pid);
-        request.addProperty("yundanID", newOrder);
-//        SoapSerializationEnvelope envelope1 = new
-//                SoapSerializationEnvelope
-//                (SoapEnvelope.VER11);
-//        envelope1.bodyOut = request;
-//        //.net开发的webservice必须加入
-//        envelope1.dotNet = true;
-//        HttpTransportSE trans = new HttpTransportSE("http://172.16.6" +
-//                ".160:8006/SF_Server.svc?wsdl", 15 * 1000);
-//        String action = "http://tempuri.org/ISF_Server/UpdateYunDanInfoByPrintCount";
-//        trans.call(action, envelope1);
-//        SoapPrimitive sp = (SoapPrimitive) envelope1.getResponse();
-        SoapPrimitive sp = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.SF_SERVER);
-        Log.e("zjy", "SFActivity->updatePrintCount(): updateCount==" + sp.toString());
-        if ("成功".equals(sp.toString())) {
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        map.put("pid", pid);
+        map.put("yundanID", newOrder);
+//        String result = WebserviceUtils.getWcfResult(map, "UpdateYunDanInfoByPrintCount", WebserviceUtils.SF_SERVER);
+        String result = SF_Server.UpdateYunDanInfoByPrintCount(pid, newOrder);
+        Log.e("zjy", "SFActivity->updatePrintCount(): updateCount==" +result);
+        if ("成功".equals(result)) {
             MyApp.myLogger.writeInfo("SFprint--updatePrintCount:OK" + pid);
         }
-        return sp.toString();
+        return result;
     }
 
     public String getAccoutByCorpID(String corpID) throws IOException,
             XmlPullParserException {
         //        expressName定为：顺风
         //                corpID是开票公司ID
-        SoapObject request = new SoapObject("http://tempuri.org/",
-                "GetCorpExpressAccountNo");
-        request.addProperty("expressName", "顺丰");
-        request.addProperty("corpID", corpID);
-        SoapSerializationEnvelope envelope1 = new
-                SoapSerializationEnvelope
-                (SoapEnvelope.VER11);
-        envelope1.bodyOut = request;
-        //.net开发的webservice必须加入
-        envelope1.dotNet = true;
-        HttpTransportSE trans = new HttpTransportSE("http://172.16.6" +
-                ".160:8006/SF_Server.svc?wsdl", 15 * 1000);
-        String action = "http://tempuri.org/ISF_Server/GetCorpExpressAccountNo";
-        trans.call(action, envelope1);
-        SoapObject sobj = (SoapObject) envelope1.bodyIn;
-        String item = sobj.getPropertyAsString("GetCorpExpressAccountNoResult");
-        Log.e("zjy", "SetYundanActivity->getAccoutByCorpID(): account==" + item);
-        if (item.equals("anyType{}")) {
-            return null;
-        } else {
-            return item;
+//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+//        map.put("expressName", "顺丰");
+//        map.put("corpID", corpID);
+//        String result =WebserviceUtils.getWcfResult(map, "GetCorpExpressAccountNo", WebserviceUtils.SF_SERVER);
+        int id = 0;
+        try {
+            id = Integer.parseInt(corpID);
+        } catch (Exception e) {
+            return "";
         }
+        String result = SF_Server.GetCorpExpressAccountNo("顺丰", id);
+        Log.e("zjy", "SetYundanActivity->getAccoutByCorpID(): account==" + result);
+        return result;
     }
 }

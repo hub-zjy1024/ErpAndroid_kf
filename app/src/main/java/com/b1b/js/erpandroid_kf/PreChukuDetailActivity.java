@@ -10,7 +10,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -21,12 +20,11 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuDetialAdapter;
 import com.b1b.js.erpandroid_kf.entity.PreChukuDetailInfo;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
@@ -48,10 +46,12 @@ import utils.MyPrinter;
 import utils.MyToast;
 import utils.PrinterStyle;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
 import utils.btprint.MyBluePrinter;
+import utils.handler.NoLeakHandler;
+import utils.wsdelegate.ChuKuServer;
+import utils.wsdelegate.MartService;
 
-public class PreChukuDetailActivity extends AppCompatActivity {
+public class PreChukuDetailActivity extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback {
 
     private ListView lv;
     private Button btnPrint;
@@ -68,55 +68,52 @@ public class PreChukuDetailActivity extends AppCompatActivity {
     private String pAddress;
     private String localKuqu = "";
     private MyBluePrinter btPrinter;
+    private Handler zHandler = new NoLeakHandler(this);
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case 0:
+                tvState.setText("正在连接");
+                break;
+            case 1:
+                tvState.setText("连接失败");
+                btnPrint.setEnabled(false);
+                MyToast.showToast(PreChukuDetailActivity.this, "连接打印机失败");
+                if (pDialog != null && pDialog.isShowing()) {
+                    pDialog.cancel();
+                }
+                tvState.setTextColor(Color.RED);
+                break;
+            case 2:
+                btnPrint.setEnabled(true);
+                tvState.setText("连接成功");
+                if (pDialog != null && pDialog.isShowing()) {
+                    pDialog.cancel();
+                }
+                tvState.setTextColor(Color.BLACK);
+                break;
+            case 3:
+                if (list.size() != 0) {
+                    detailAdapter.notifyDataSetChanged();
+                }
+                break;
+            case 5:
+                MyToast.showToast(PreChukuDetailActivity.this, "打印次数插入成功");
+                break;
+            case 6:
+                MyToast.showToast(PreChukuDetailActivity.this, "打印次数插入失败");
+                MyApp.myLogger.writeError("插入打印次数失败：" + info.getPid());
+                break;
+            case 7:
+                DialogUtils.getSpAlert(PreChukuDetailActivity.this, "打印出现错误，请检查打印机是否正常工作", "提示").show();
+                break;
+            case 8:
+                DialogUtils.safeShowDialog(PreChukuDetailActivity.this, DialogUtils.getSpAlert(PreChukuDetailActivity.this,
+                        "查询不到相关信息", "提示"));
+                break;
 
-    private Handler zHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case 0:
-                    tvState.setText("正在连接");
-                    break;
-                case 1:
-                    tvState.setText("连接失败");
-                    btnPrint.setEnabled(false);
-                    MyToast.showToast(PreChukuDetailActivity.this, "连接打印机失败");
-                    if (pDialog != null && pDialog.isShowing()) {
-                        pDialog.cancel();
-                    }
-                    tvState.setTextColor(Color.RED);
-                    break;
-                case 2:
-                    btnPrint.setEnabled(true);
-                    tvState.setText("连接成功");
-                    if (pDialog != null && pDialog.isShowing()) {
-                        pDialog.cancel();
-                    }
-                    tvState.setTextColor(Color.BLACK);
-                    break;
-                case 3:
-                    if (list.size() != 0) {
-                        detailAdapter.notifyDataSetChanged();
-                    }
-                    break;
-                case 5:
-                    MyToast.showToast(PreChukuDetailActivity.this, "打印次数插入成功");
-                    break;
-                case 6:
-                    MyToast.showToast(PreChukuDetailActivity.this, "打印次数插入失败");
-                    MyApp.myLogger.writeError("插入打印次数失败：" + info.getPid());
-                    break;
-                case 7:
-                    DialogUtils.getSpAlert(PreChukuDetailActivity.this, "打印出现错误，请检查打印机是否正常工作", "提示").show();
-                    break;
-                case 8:
-                    DialogUtils.safeShowDialog(PreChukuDetailActivity.this, DialogUtils.getSpAlert(PreChukuDetailActivity.this,
-                            "查询不到相关信息", "提示"));
-                    break;
-
-            }
         }
-    };
+    }
     private Button btnPrintTag;
     private int reqBtCode = 500;
     private String storageID;
@@ -202,13 +199,16 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                     }
                     Log.e("zjy", "SettingActivity->run():getip==" + result);
                     //                        GetChildStorageIDByIP
-                    LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
-                    map.put("ip", result);
-                    SoapObject object1 = WebserviceUtils.getRequest(map, "GetChildStorageIDByIP");
-                    SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(object1, WebserviceUtils
-                            .MartService);
-                    Log.e("zjy", "PreChukuDetailActivity->run(): res==" + res1);
-                    localKuqu = res1.toString();
+//                    LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+//                    map.put("ip", result);
+//                    SoapObject object1 = WebserviceUtils.getRequest(map, "GetChildStorageIDByIP");
+//                    SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(object1, WebserviceUtils
+//                            .MartService);
+//                    String soapRes = WebserviceUtils.getWcfResult(map, "GetChildStorageIDByIP",
+//                            WebserviceUtils.MartService);
+                    String soapRes = MartService.GetChildStorageIDByIP(result);
+                    Log.e("zjy", "PreChukuDetailActivity->run(): res==" + soapRes);
+                    localKuqu = soapRes;
                     reader.close();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -259,15 +259,15 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                 }.start();
             }
         });
-         storageID = getIntent().getStringExtra("storageID");
-        new Thread(){
+        storageID = getIntent().getStringExtra("storageID");
+        new Thread() {
             @Override
             public void run() {
                 super.run();
                 try {
                     Intent intent = getIntent();
                     String pid = intent.getStringExtra("pid");
-                     getPreChukuDetail(Integer.parseInt(pid), Integer.parseInt(MyApp.id));
+                    getPreChukuDetail(Integer.parseInt(pid), Integer.parseInt(loginID));
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
@@ -279,7 +279,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
             }
         }.start();
         if (pAddress.equals("")) {
-            if ("101".equals(MyApp.id)) {
+            if (CheckUtils.isAdmin()) {
                 new Thread() {
                     @Override
                     public void run() {
@@ -295,7 +295,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
                         }
                     }
                 }.start();
-            } else{
+            } else {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("提示").setMessage("是否前往配置页配置打印机地址").setPositiveButton("前往", new DialogInterface
                         .OnClickListener() {
@@ -327,14 +327,14 @@ public class PreChukuDetailActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == reqBtCode && resultCode == RESULT_OK) {
-             btPrinter = PrintSettingActivity.getPrint();
+            btPrinter = PrintSettingActivity.getPrint();
             List<PreChukuDetailInfo> detailInfos = info.getDetailInfos();
             SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy/MM/dd HH:mm");
             SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy/MM/dd");
 
-            for(int i = 0; i< detailInfos.size(); i++) {
+            for (int i = 0; i < detailInfos.size(); i++) {
                 PreChukuDetailInfo pdinfo = detailInfos.get(i);
-                String finalDate =info.getCreateDate();
+                String finalDate = info.getCreateDate();
                 try {
                     Date tempDate = sdf1.parse(info.getCreateDate());
                     finalDate = sdf2.format(tempDate);
@@ -363,15 +363,13 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("pid", pid);
         map.put("uid", uid);
-        SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintView");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
-        String result = response.toString();
-        if (result.equals("")) {
-            MyApp.myLogger.writeError(PreChukuDetailActivity.class, getResources().getString(R.string.error_soapobject) + pid +
-                    "\t" + uid);
+        String soapRes = ChuKuServer.GetOutStorageNotifyPrintView(pid, uid);
+        if (soapRes.contains("null")) {
+            String errorMsg = String.format(getString(R.string.error_soapobject) + "\tpid=%d uid=%d", pid, uid);
+            MyApp.myLogger.writeBug(errorMsg);
         }
-        Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + result);
-        JSONObject object = new JSONObject(result);
+        Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + soapRes);
+        JSONObject object = new JSONObject(soapRes);
         JSONArray array = object.getJSONArray("表");
         info = new PreChukuInfo();
         for (int i = 0; i < array.length(); i++) {
@@ -401,7 +399,7 @@ public class PreChukuDetailActivity extends AppCompatActivity {
             String notes = obj.getString("备注");
             String counts = obj.getString("数量");
             String detailID = obj.getString("PDID");
-//            String detailID = obj.getString("PDID");
+            //            String detailID = obj.getString("PDID");
             String leftCounts = String.valueOf(Integer.parseInt(obj.getString("BalanceQ")) - Integer.parseInt(counts));
             PreChukuDetailInfo dinfo = new PreChukuDetailInfo(partNo, fengzhuang, pihao, factory, description, notes, p, counts,
                     leftCounts);
@@ -412,38 +410,24 @@ public class PreChukuDetailActivity extends AppCompatActivity {
         }
         info.setDetailInfos(list);
         zHandler.sendEmptyMessage(3);
-        return response.toString();
+        return soapRes;
     }
 
     public String updatePrintCount(int pid) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("pid", pid);
-        SoapObject request = WebserviceUtils.getRequest(map, "UpdatePrintCKTZCount");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
-                .ChuKuServer);
-        Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + response);
-        return response.toString();
+        String result = ChuKuServer.UpdatePrintCKTZCount(pid);
+        Log.e("zjy", "PreChukuActivity->getPreChukuCallback(): response==" + result);
+        return result;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(mPrinter != null){
+        if (mPrinter != null) {
             mPrinter.close();
         }
         if (btPrinter != null) {
             btPrinter.close();
         }
-    }
-
-    //    GetOutStoragePrintViewPriviceInfo
-    public String getPrintInfo(String pid, String uid) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("", "");
-        map.put("", "");
-        SoapObject req = WebserviceUtils.getRequest(map, "GetOutStoragePrintViewPriviceInfo");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
-        return null;
     }
 
 }

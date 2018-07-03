@@ -36,6 +36,7 @@ public class WebserviceUtils {
     public static final String IC360Server = "IC360Server.svc";
     public static final String ChuKuServer = "ChuKuServer.svc";
     public static final String SF_SERVER = "SF_Server.svc";
+    public static final String SF_Server = SF_SERVER;
     private static final int VERSION_10 = SoapEnvelope.VER10;
     private static final int VERSION_11 = SoapEnvelope.VER11;
     private static final int VERSION_12 = SoapEnvelope.VER12;
@@ -92,8 +93,6 @@ public class WebserviceUtils {
      @return
      */
     private static String getSoapAcction(String serviceName, String methodName) {
-        Log.e("zjy", "WebserviceUtils.java->getSoapAcction(): ==" + NAMESPACE + "I" + serviceName.substring(0, serviceName
-                .indexOf(".")) + "/" + methodName);
         return NAMESPACE + "I" + serviceName.substring(0, serviceName.indexOf(".")) + "/" + methodName;
     }
 
@@ -124,7 +123,7 @@ public class WebserviceUtils {
      @throws IOException
      @throws XmlPullParserException
      */
-    public static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String soapAction, String
+    private static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String soapAction, String
             resultUrl,int timeout) throws IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVesion);
         envelope.dotNet = true;
@@ -161,12 +160,13 @@ public class WebserviceUtils {
      @throws IOException
      @throws XmlPullParserException
      */
-    public static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, int envolopeVesion, String serviceName) throws
+    private static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, int envolopeVesion, String serviceName) throws
             IOException, XmlPullParserException {
         SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName, 30 * 1000);
         Object response = envelope.getResponse();
         SoapPrimitive sob = null;
         if (response == null) {
+            MyApp.myLogger.writeError("==========response==null:" + request.toString());
             return new SoapPrimitive("", "", "");
         } else {
             if (response instanceof SoapFault) {
@@ -215,7 +215,12 @@ public class WebserviceUtils {
             IOException, XmlPullParserException {
         return getSoapPrimitiveResponse(request, VERSION_11, serviceName);
     }
-
+    public static String getWcfResult(LinkedHashMap<String, Object> properties, String method,
+                                      String serviceName) throws IOException,
+            XmlPullParserException {
+//        return getSoapPrimitiveResponse(properties, method, serviceName).toString();
+        return getWcfResult2(properties, method, serviceName);
+    }
     /**
      @param serviceName 以svc结尾的service名称
      @return
@@ -229,7 +234,7 @@ public class WebserviceUtils {
         return getSoapPrimitiveResponse(request, serviceName);
     }
 
-    private static SoapSerializationEnvelope getEnvelope(String namespace, String method, String soapAction, String transUrl,
+    private static String  getCommWsResult (String namespace, String method, String soapAction, String transUrl,
                                                          LinkedHashMap<String, Object> properties, int envolopeVersion, int
                                                                  timeout) throws IOException, XmlPullParserException {
         SoapObject request = new SoapObject(namespace, method);
@@ -252,9 +257,63 @@ public class WebserviceUtils {
         } else if (envolopeVersion == VERSION_12) {
             se.call(null, envelope);
         } else {
-            //协议版本和soapAction不匹配
-            return null;
+            throw new IOException("请选择正确的envolopeVersion,11或者12");
         }
-        return envelope;
+        Object obj = envelope.getResponse();
+        if (obj instanceof SoapFault) {
+            throw new IOException("response error", (SoapFault) obj);
+        } else if (obj instanceof SoapObject) {
+
+        }
+        return obj.toString();
+    }
+
+    /**
+     * @param request
+     * @param envolopeVesion {@link org.ksoap2.SoapEnvelope}
+     * @param serviceName    以svc结尾的service名称
+     * @return 返回请求结果
+     */
+    private static String getWcfResult(SoapObject request, int envolopeVesion, String
+            serviceName) throws
+            IOException, XmlPullParserException {
+        int timeout = 30 * 1000;
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVesion);
+        //.net开发的ws服务必须设置为true
+        envelope.dotNet = true;
+        //       envelope.bodyOut = request;
+        envelope.setOutputSoapObject(request);
+        //创建HttpTransportSE对象
+        HttpTransportSE ht = new HttpTransportSE(getTransportSEtUrl(serviceName), timeout);
+        //有些不需要传入soapAction，根据wsdl文档
+        if (envolopeVesion == VERSION_12) {
+            ht.call(null, envelope);
+        }else{
+            ht.call(getSoapAcction(serviceName, request.getName()), envelope);
+        }
+        Object sob = envelope.getResponse();
+        if (sob == null) {
+            Log.e("zjy", "WebserviceUtils->getWcfResult(): soapObj==null");
+            MyApp.myLogger.writeBug("Soap response Object null" + request.toString());
+            return "response obj null";
+        }
+        if (sob instanceof SoapFault) {
+            MyApp.myLogger.writeBug("Soap response Object null" + request.toString());
+            throw new IOException("error requeset", (SoapFault) sob);
+        }else if (sob instanceof SoapObject) {
+            Log.e("zjy", "WebserviceUtils->getWcfResult(): soapObj==");
+            MyApp.myLogger.writeBug("Soap response is SoapObject");
+        } else if (sob instanceof SoapPrimitive) {
+        } else {
+            MyApp.myLogger.writeBug("Soap response is Unknow");
+        }
+        return sob.toString();
+    }
+
+    public static String getWcfResult2(LinkedHashMap<String, Object> properties, String method,
+                                      String serviceName) throws IOException,
+            XmlPullParserException {
+        SoapObject request = getRequest(properties, method);
+        return getWcfResult(request, VERSION_11, serviceName);
     }
 }

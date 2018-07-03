@@ -76,10 +76,12 @@ public abstract class BaseScanActivity extends AppCompatActivity implements NoLe
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQ_CODE && resultCode == RESULT_OK) {
+        if ( resultCode == RESULT_OK) {
             String result = data.getStringExtra("result");
-            getCameraScanResult(result);
             getCameraScanResult(result, requestCode);
+            if (requestCode == REQ_CODE) {
+                getCameraScanResult(result);
+            }
         }
     }
 
@@ -88,7 +90,7 @@ public abstract class BaseScanActivity extends AppCompatActivity implements NoLe
     }
 
     public void startScanActivity(int code) {
-        startActivityForResult(new Intent(this, CaptureActivity.class), REQ_CODE);
+        startActivityForResult(new Intent(this, CaptureActivity.class), code);
     }
 
     public void getCameraScanResult(String result, int code) {

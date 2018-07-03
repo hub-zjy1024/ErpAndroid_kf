@@ -10,15 +10,13 @@ import android.support.v4.view.ViewPager;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChuKuActivity extends BaseScanActivity {
+public class ChuKuActivity extends SavedLoginInfoWithScanActivity {
     private TabLayout tabLayout;
     private ViewPager viewPager;
-    private List<Fragment> frags = new ArrayList<>();
+    private List<ChukuBaseFragment> frags = new ArrayList<>();
     private MyPagerAdapter fragAdapter;
     private FragmentManager fm;
     private FragmentTransaction fts;
@@ -35,8 +33,14 @@ public class ChuKuActivity extends BaseScanActivity {
         viewPager = (ViewPager) findViewById(R.id.ck_viewpager);
         fm = getSupportFragmentManager();
         tabLayout.setupWithViewPager(viewPager);
-        Fragment fragChuku = new ChuKudanFragment();
-        Fragment fragChukuTongzhi = new ChuKuTongZhiFragment();
+        ChukuBaseFragment fragChuku = new ChuKudanFragment();
+        Bundle b = new Bundle();
+        b.putString("loginID", loginID);
+        fragChuku.setArguments(b);
+        ChukuBaseFragment fragChukuTongzhi = new ChuKuTongZhiFragment();
+        b = new Bundle();
+        b.putString("loginID", loginID);
+        fragChukuTongzhi.setArguments(b);
         frags.add(fragChuku);
         frags.add(fragChukuTongzhi);
         fragAdapter = new MyPagerAdapter(fm, frags, tabTitles);
@@ -47,55 +51,32 @@ public class ChuKuActivity extends BaseScanActivity {
     public void resultBack(String result) {
         super.resultBack(result);
         int currentItem = viewPager.getCurrentItem();
-        Fragment fragMent = frags.get(currentItem);
-        if (fragMent instanceof ChuKudanFragment) {
-            ChuKudanFragment frag = ((ChuKudanFragment) fragMent);
-            Button btnSearch = frag.getBtnSearch();
-            EditText edPid = frag.getEdPid();
-            edPid.setText(result);
-            frag.onClick(btnSearch);
-        }else if(fragMent instanceof ChuKuTongZhiFragment) {
-            ChuKuTongZhiFragment frag = ((ChuKuTongZhiFragment) fragMent);
-            Button btnSearch = frag.getBtnSearch();
-            EditText edPid = frag.getEdPid();
-            edPid.setText(result);
-            frag.onClick(btnSearch);
-        }
+        ChukuBaseFragment fragMent = frags.get(currentItem);
+        Button btnSearch = fragMent.getBtnSearch();
+        EditText edPid = fragMent.getEdPid();
+        edPid.setText(result);
+        fragMent.onClick(btnSearch);
     }
 
     @Override
     public void getCameraScanResult(String result) {
         super.getCameraScanResult(result);
         int currentItem = viewPager.getCurrentItem();
-        Fragment fragMent = frags.get(currentItem);
-        if (fragMent instanceof ChuKudanFragment) {
-            ChuKudanFragment frag = ((ChuKudanFragment) fragMent);
-            Button btnSearch = frag.getBtnSearch();
-            EditText edPid = frag.getEdPid();
-            edPid.setText(result);
-            frag.onClick(btnSearch);
-        }else if(fragMent instanceof ChuKuTongZhiFragment) {
-            ChuKuTongZhiFragment frag = ((ChuKuTongZhiFragment) fragMent);
-            Button btnSearch = frag.getBtnSearch();
-            EditText edPid = frag.getEdPid();
-            edPid.setText(result);
-            frag.onClick(btnSearch);
-        }
+        ChukuBaseFragment fragMent = frags.get(currentItem);
+        Button btnSearch = fragMent.getBtnSearch();
+        EditText edPid = fragMent.getEdPid();
+        edPid.setText(result);
+        fragMent.onClick(btnSearch);
     }
 
     class MyPagerAdapter extends FragmentPagerAdapter {
-        private List<Fragment> fragments;
+        private List<ChukuBaseFragment> fragments;
         private String[] strings;
 
-        public MyPagerAdapter(FragmentManager fm, List<Fragment> fragments, String[] strings) {
+        public MyPagerAdapter(FragmentManager fm, List<ChukuBaseFragment> fragments, String[] strings) {
             super(fm);
             this.fragments = fragments;
             this.strings = strings;
-        }
-
-        public MyPagerAdapter(FragmentManager fm, List<Fragment> fragments) {
-            super(fm);
-            this.fragments = fragments;
         }
 
         @Override

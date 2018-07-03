@@ -17,13 +17,12 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.joanzapata.pdfview.PDFView;
+import com.joanzapata.pdfview.listener.OnLoadCompleteListener;
 import com.joanzapata.pdfview.listener.OnPageChangeListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
@@ -37,14 +36,14 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.LinkedHashMap;
 
 import utils.DialogUtils;
 import utils.FTPUtils;
 import utils.MyToast;
-import utils.WebserviceUtils;
+import utils.handler.NoLeakHandler;
+import utils.wsdelegate.MartService;
 
-public class CaigouDetailActivity extends AppCompatActivity implements OnPageChangeListener {
+public class CaigouDetailActivity extends AppCompatActivity implements OnPageChangeListener,NoLeakHandler.NoLeakCallback {
 
     private String goodInfos;
     private String provider = "";
@@ -58,92 +57,97 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
     private boolean flag = false;
     private String path;
     private ProgressDialog reviewDialog;
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            AlertDialog.Builder builder = new AlertDialog.Builder(CaigouDetailActivity.this);
-            switch (msg.what) {
-                case 0:
-                    btnCommit.setEnabled(true);
-                    break;
-                case 1:
-//                    btnCommit.setEnabled(true);
-                    MyToast.showToast(CaigouDetailActivity.this, "本单据已存在合同文件");
-                    break;
-                case 2:
-                    DialogUtils.dismissDialog(dialog);
-                    break;
+    @Override
+    public void handleMessage(Message msg) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(CaigouDetailActivity.this);
+        switch (msg.what) {
+            case 0:
+                btnCommit.setEnabled(true);
+                break;
+            case 1:
+                //                    btnCommit.setEnabled(true);
+                MyToast.showToast(CaigouDetailActivity.this, "本单据已存在合同文件");
+                break;
+            case 2:
+                DialogUtils.dismissDialog(dialog);
+                break;
 
-                case 3:
-                    builder.setTitle("提示");
-                    builder.setMessage("生成合同成功");
-                    builder.show();
-                    DialogUtils.dismissDialog(dialog);
-                    break;
-                case 4:
-                    builder.setTitle("提示");
-                    builder.setMessage("生成合同失败：" + msg.obj.toString());
-                    builder.show();
-                    DialogUtils.dismissDialog(dialog);
-                    break;
-                case 5:
-                    pdfView.fromFile(new File(msg.obj.toString())) //设置pdf文件地址
-                            .defaultPage(1)  //设置默认显示第1页
-                            .onPageChange(CaigouDetailActivity.this) //设置翻页监听
-                            //                            .onDraw(this)  //绘图监听
-                            .showMinimap(false) //pdf放大的时候，是否在屏幕的右上角生成小地图
-                            .swipeVertical(false) //pdf文档翻页是否是垂直翻页，默认是左右滑动翻页
-                            .enableSwipe(true)//是否允许翻页，默认是允许翻页
-                            //    .pages() //把 5 过滤掉
-                            .load();
-                    DialogUtils.dismissDialog(dialog);
-                    String path = filePath.substring(filePath.indexOf("dyj") - 1);
-                    Log.e("zjy", "CaigouDetailActivity->handleMessage(): path==" + path);
-                    tvPath.setText("文件存储路径为：" + path);
-                    break;
-                case 6:
-                    builder.setTitle("提示");
-                    builder.setMessage("生成合同成功");
-                    builder.show();
-                    DialogUtils.dismissDialog(dialog);
-                    break;
-                case 7:
-                    builder.setTitle("提示");
-                    String message = "网络质量较差";
-                    if (msg.obj != null) {
-                        message = msg.obj.toString();
-                    }
-                    builder.setMessage("生成合同失败：" + message);
-                    builder.show();
-                    DialogUtils.dismissDialog(dialog);
-                    break;
-                case 8:
-                    builder.setTitle("提示");
-                    builder.setMessage("当前单据未生成合同");
-                    builder.show();
-                    DialogUtils.dismissDialog(dialog);
-                    break;
-                case 9:
-                    builder.setTitle("提示");
-                    builder.setMessage("连接服务器失败，请重试");
-                    builder.show();
-                    DialogUtils.dismissDialog(dialog);
-                    break;
-                case 10:
-                    builder.setTitle("提示");
-                    builder.setMessage("下载合同文件失败");
-                    builder.show();
-                    DialogUtils.dismissDialog(dialog);
-                    break;
-                case 11:
-                    Dialog alertDialog = DialogUtils.getSpAlert(CaigouDetailActivity.this, "FTP地址有误，请重启程序", "提示");
-                    DialogUtils.dismissDialog(dialog);
-                    break;
+            case 3:
+                builder.setTitle("提示");
+                builder.setMessage("生成合同成功");
+                builder.show();
+                DialogUtils.dismissDialog(dialog);
+                break;
+            case 4:
+                builder.setTitle("提示");
+                builder.setMessage("生成合同失败：" + msg.obj.toString());
+                builder.show();
+                DialogUtils.dismissDialog(dialog);
+                break;
+            case 5:
+                File file = new File(msg.obj.toString());
+                pdfView.fromFile(file) //设置pdf文件地址
+                        //设置翻页监听
+                        .showMinimap(true) //pdf放大的时候，是否在屏幕的右上角生成小地图
+                        // pdf文档翻页是否是垂直翻页，默认是左右滑动翻页
+                        .enableSwipe(true)//是否允许翻页，默认是允许翻页
+                        .onLoad(new OnLoadCompleteListener() {
+                            @Override
+                            public void loadComplete(int nbPages) {
+                                int pageCount = pdfView.getPageCount();
+                                String msg = String.format("正在加载%s/%s", nbPages, pageCount);
+                                MyToast.showToast(CaigouDetailActivity.this, msg);
+                            }
+                        })//是否允许翻页，默认是允许翻页
+                        .load();
+                DialogUtils.dismissDialog(dialog);
+                String path = filePath.substring(filePath.indexOf("dyj") - 1);
+                Log.e("zjy", "CaigouDetailActivity->handleMessage(): path==" + path);
+                tvPath.setText("文件存储路径为：" + path);
+                break;
+            case 6:
+                builder.setTitle("提示");
+                builder.setMessage("生成合同成功");
+                builder.show();
+                DialogUtils.dismissDialog(dialog);
+                break;
+            case 7:
+                builder.setTitle("提示");
+                String message = "网络质量较差";
+                if (msg.obj != null) {
+                    message = msg.obj.toString();
+                }
+                builder.setMessage("生成合同失败：" + message);
+                builder.show();
+                DialogUtils.dismissDialog(dialog);
+                break;
+            case 8:
+                builder.setTitle("提示");
+                builder.setMessage("当前单据未生成合同");
+                builder.show();
+                DialogUtils.dismissDialog(dialog);
+                break;
+            case 9:
+                builder.setTitle("提示");
+                builder.setMessage("连接服务器失败，请重试");
+                builder.show();
+                DialogUtils.dismissDialog(dialog);
+                break;
+            case 10:
+                builder.setTitle("提示");
+                builder.setMessage("下载合同文件失败");
+                builder.show();
+                DialogUtils.dismissDialog(dialog);
+                break;
+            case 11:
+                Dialog alertDialog = DialogUtils.getSpAlert(CaigouDetailActivity.this, "FTP地址有误，请重启程序", "提示");
+                DialogUtils.dismissDialog(dialog);
+                break;
 
-            }
         }
-    };
+    }
+
+    private Handler mHandler = new NoLeakHandler(this);
     private ProgressDialog dialog;
     private Button btnReview;
     private PDFView pdfView;
@@ -318,12 +322,16 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                     String path = filePath.substring(filePath.indexOf("dyj") - 1);
                     tvPath.setText("文件存储路径为：" +path);
                     pdfView.fromFile(file) //设置pdf文件地址
-                            .defaultPage(1)  //设置默认显示第1页
-                            .onPageChange(CaigouDetailActivity.this) //设置翻页监听
-                            .showMinimap(false) //pdf放大的时候，是否在屏幕的右上角生成小地图
-                            .swipeVertical(false) //pdf文档翻页是否是垂直翻页，默认是左右滑动翻页
-                            .enableSwipe(true)//是否允许翻页，默认是允许翻页
-                            //    .pages() //把 5 过滤掉
+                            .showMinimap(true) //pdf放大的时候，是否在屏幕的右上角生成小地图
+                            .enableSwipe(true)
+                            .onLoad(new OnLoadCompleteListener() {
+                                @Override
+                                public void loadComplete(int nbPages) {
+                                    int pageCount = pdfView.getPageCount();
+                                    String msg = String.format("正在加载%s/%s", nbPages, pageCount);
+                                    MyToast.showToast(CaigouDetailActivity.this, msg);
+                                }
+                            })//是否允许翻页，默认是允许翻页
                             .load();
                     cTime = System.currentTimeMillis();
                 } else {
@@ -476,11 +484,11 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
     }
 
     public String getHetongInfo(String pid) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-        properties.put("pid", pid);
-        SoapObject req = WebserviceUtils.getRequest(properties, "GetHeTongFileInfo");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.MartService);
-        String result = res.toString();
+//        LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+//        properties.put("pid", pid);
+//        SoapObject req = WebserviceUtils.getRequest(properties, "GetHeTongFileInfo");
+//        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.MartService);
+        String result = MartService.GetHeTongFileInfo(Integer.parseInt(pid));
         Log.e("zjy", "CaigouDetailActivity->getHetongInfo(): result==" + result);
         if (result.equals("anyType{}")) {
             return "";
@@ -489,11 +497,12 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
     }
 
     public void getData(String corpID, String proDetialID) throws IOException, XmlPullParserException, JSONException {
-        LinkedHashMap<String, Object> map1 = new LinkedHashMap<>();
-        map1.put("id", corpID);
-        SoapObject req = WebserviceUtils.getRequest(map1, "GetInvoiceCorpInfo");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req,  WebserviceUtils.MartService);
-        JSONObject obj = new JSONObject(res.toString());
+//        LinkedHashMap<String, Object> map1 = new LinkedHashMap<>();
+//        map1.put("id", corpID);
+//        SoapObject req = WebserviceUtils.getRequest(map1, "GetInvoiceCorpInfo");
+//        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req,  WebserviceUtils.MartService);
+        String soapRes= MartService.GetInvoiceCorpInfo(Integer.parseInt(corpID));
+        JSONObject obj = new JSONObject(soapRes);
         JSONArray table = obj.getJSONArray("表");
         for (int i = 0; i < table.length(); i++) {
             JSONObject temp = table.getJSONObject(i);
@@ -501,18 +510,19 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
             provider = temp.getString("Name");
             //            address = temp.getString("Address");
         }
-        Log.e("zjy", "CaigouDetailActivity->getData(): invoice==" + res.toString());
-        map1.put("id", proDetialID);
-        SoapObject req1 = WebserviceUtils.getRequest(map1, "GetPriviteInfo");
-        SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(req1,  WebserviceUtils.MartService);
+        Log.e("zjy", "CaigouDetailActivity->getData(): invoice==" +soapRes);
+//        map1.put("id", proDetialID);
+//        SoapObject req1 = WebserviceUtils.getRequest(map1, "GetPriviteInfo");
+//        SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(req1,  WebserviceUtils.MartService);
+        String soapRes2 = MartService.GetPriviteInfo(Integer.parseInt(proDetialID));
         try {
-            JSONObject root = new JSONObject(res1.toString());
+            JSONObject root = new JSONObject(soapRes2);
             JSONArray providerArray = root.getJSONArray("表");
             for (int i = 0; i < table.length(); i++) {
                 JSONObject temp = providerArray.getJSONObject(i);
                 receiveMan = temp.getString("ReceiveMan");
             }
-            Log.e("zjy", "CaigouDetailActivity->getData(): provider==" + res1.toString());
+            Log.e("zjy", "CaigouDetailActivity->getData(): provider==" + soapRes2);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -521,16 +531,11 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
     }
 
     public String getData2(String pid) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> map1 = new LinkedHashMap<>();
-        map1.put("pid", pid);
-        SoapObject req = WebserviceUtils.getRequest(map1, "GetOLDMartStockView_mx");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req,  WebserviceUtils.MartService);
-        Log.e("zjy", "CaigouDetailActivity->getData(): caigouDetial==" + res.toString());
-        return res.toString();
+        return MartService.GetOLDMartStockView_mx(pid);
     }
-
     @Override
     public void onPageChanged(int page, int pageCount) {
 
     }
+
 }

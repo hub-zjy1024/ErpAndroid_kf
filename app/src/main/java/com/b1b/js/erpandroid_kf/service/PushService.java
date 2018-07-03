@@ -19,15 +19,13 @@ import android.util.Log;
 import com.b1b.js.erpandroid_kf.KucunFBActivity;
 import com.b1b.js.erpandroid_kf.R;
 
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.Date;
 
 import utils.UploadUtils;
-import utils.WebserviceUtils;
+import utils.wsdelegate.MartService;
 
 public class PushService extends Service {
     private Handler mHandler = new Handler(Looper.getMainLooper()) {
@@ -70,14 +68,12 @@ public class PushService extends Service {
                         int hours = date.getHours();
                         int minute = date.getMinutes();
                         if ((hours == 10 && minute < 10) || (hours == 15 && minute < 10)) {
-                            SoapObject request2 = WebserviceUtils.getRequest(null, "GetInseorageBalanceInfoToCount");
                             try {
-                                SoapPrimitive response2 = WebserviceUtils.getSoapPrimitiveResponse(request2,
-                                        WebserviceUtils.MartService);
-                                Log.e("zjy", "PushService->run(): GetInseorange==" + response2.toString());
-                                sp.edit().putString("content", response2.toString()).commit();
+                                String soapRes = MartService.GetInseorageBalanceInfoToCount();
+                                Log.e("zjy", "PushService->run(): GetInseorange==" + soapRes);
+                                sp.edit().putString("content", soapRes).commit();
                                 NotificationCompat.Builder notice = new NotificationCompat.Builder(PushService.this);
-                                notice.setContentText("当前有" + response2.toString() + "条库存发布消息需要进行处理");
+                                notice.setContentText("当前有" + soapRes + "条库存发布消息需要进行处理");
                                 notice.setContentTitle("消息通知");
                                 Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.notify_icon_large);
                                 notice.setSmallIcon(R.mipmap.notify_icon);

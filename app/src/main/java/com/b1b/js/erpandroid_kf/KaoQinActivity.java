@@ -1,7 +1,6 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -9,6 +8,7 @@ import android.widget.ListView;
 
 import com.b1b.js.erpandroid_kf.adapter.KqAdapter;
 import com.b1b.js.erpandroid_kf.entity.KaoqinInfo;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.WebCallback;
 import com.b1b.js.erpandroid_kf.task.WebServicesTask;
 
@@ -25,13 +25,12 @@ import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
 
-public class KaoQinActivity extends AppCompatActivity {
+public class KaoQinActivity extends SavedLoginInfoActivity {
 
     private List<KaoqinInfo> data = new ArrayList<>();
     private KqAdapter adapter;
     private EditText inputDate;
     private EditText inputId;
-
 
     public String getCurrentDate() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
@@ -48,9 +47,10 @@ public class KaoQinActivity extends AppCompatActivity {
         inputDate = (EditText) findViewById(R.id.kq_edTime);
         inputId.requestFocus();
         Button btnSaixuan = (Button) findViewById(R.id.kq_saixuan);
-        inputDate.setText(getCurrentDate());
-        inputId.setText(MyApp.id);
-        if ("101".equals(MyApp.id)) {
+        String cDate = getCurrentDate();
+        inputDate.setText(cDate);
+        inputId.setText(loginID);
+        if (CheckUtils.isAdmin()) {
             inputId.setVisibility(View.VISIBLE);
         } else {
             inputId.setVisibility(View.GONE);
@@ -84,8 +84,7 @@ public class KaoQinActivity extends AppCompatActivity {
                 }
             }
         });
-        initData(new String[]{getCurrentDate(), MyApp.id});
-
+        initData(new String[]{cDate, loginID});
     }
 
     private void initData(String[] arr) {

@@ -5,6 +5,7 @@ import android.os.Message;
 import android.view.View;
 
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.task.UploadPicRunnable2;
 
@@ -26,8 +27,7 @@ public class ObtainPicPanku extends ReUploadActivity implements View.OnClickList
     }
 
     public void upload(final int position, final boolean isMulti) {
-        if (MyApp.id == null) {
-            showFinalDialog("当前登陆人为空，请重启程序尝试");
+        if (!CheckUtils.checkUID(mContext, "当前登陆人为空，请重启程序尝试")) {
             return;
         }
         final UploadPicInfo item =  uploadPicInfos.get(position);
@@ -76,7 +76,7 @@ public class ObtainPicPanku extends ReUploadActivity implements View.OnClickList
                     return true;
                 } else {
                     String flag = "PK";
-                    res = setInsertPicInfo("", cid, did, Integer.parseInt(MyApp.id), pid, remoteName,
+                    res = setInsertPicInfo("", cid, did, Integer.parseInt(loginID), pid, remoteName,
                             insertPath, flag);
                 }
                 return res.equals("操作成功");

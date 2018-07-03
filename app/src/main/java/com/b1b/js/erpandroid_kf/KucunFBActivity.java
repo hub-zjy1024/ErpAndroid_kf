@@ -23,8 +23,6 @@ import com.b1b.js.erpandroid_kf.task.WebServicesTask;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
@@ -40,11 +38,12 @@ import java.util.List;
 import utils.MyToast;
 import utils.UploadUtils;
 import utils.WebserviceUtils;
+import utils.handler.NoLeakHandler;
+import utils.wsdelegate.MartService;
 
-public class KucunFBActivity extends AppCompatActivity {
+public class KucunFBActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback{
 
     private List<KucunFBInfo> data;
-    private ListView lv;
     private static final int ERROR_NET = 1;
     private static final int SUCCESS_SEARCH = 0;
     private static final int ERROR_OPTION = 2;
@@ -61,63 +60,62 @@ public class KucunFBActivity extends AppCompatActivity {
     TableAdapter tableAdapter;
     private String currentIp = "";
     AlertDialog temDialog;
-    private Handler zHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case SUCCESS_SEARCH:
-                    if (data.size() > 0) {
-                        tableAdapter.notifyDataSetChanged();
-                    }
-                    break;
-                case ERROR_NET:
-                    MyToast.showToast(KucunFBActivity.this, "连接服务器失败，请检查网络");
-                    break;
-                case ERROR_OPTION:
-                    MyToast.showToast(KucunFBActivity.this, "查询条件有误，请更改");
-                    break;
-                case SUCCESS_PRICE:
-                    AlertDialog.Builder builder = new AlertDialog.Builder(KucunFBActivity.this);
-                    builder.setTitle("成功");
-                    builder.setMessage("发布库存价格成功");
-                    builder.show();
+
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case SUCCESS_SEARCH:
+                if (data.size() > 0) {
+                    tableAdapter.notifyDataSetChanged();
+                }
+                break;
+            case ERROR_NET:
+                MyToast.showToast(KucunFBActivity.this, "连接服务器失败，请检查网络");
+                break;
+            case ERROR_OPTION:
+                MyToast.showToast(KucunFBActivity.this, "查询条件有误，请更改");
+                break;
+            case SUCCESS_PRICE:
+                AlertDialog.Builder builder = new AlertDialog.Builder(KucunFBActivity.this);
+                builder.setTitle("成功");
+                builder.setMessage("发布库存价格成功");
+                builder.show();
+                dismissDialog();
+                tableAdapter.notifyDataSetChanged();
+                break;
+            case ERROR_PRICE:
+                AlertDialog.Builder builder2 = new AlertDialog.Builder(KucunFBActivity.this);
+                builder2.setTitle("失败");
+                builder2.setMessage("发布库存价格失败");
+                builder2.show();
+                break;
+            case ERROR_CHANGE:
+                AlertDialog.Builder builder3 = new AlertDialog.Builder(KucunFBActivity.this);
+                builder3.setTitle("失败");
+                builder3.setMessage("更改失败");
+                builder3.show();
+                break;
+            case SUCCESS_CHANGE:
+                tableAdapter.notifyDataSetChanged();
+                AlertDialog.Builder builder4 = new AlertDialog.Builder(KucunFBActivity.this);
+                builder4.setTitle("成功");
+                builder4.setMessage("更改发布状态成功");
+                builder4.show();
+                boolean flag = (boolean) msg.obj;
+                if (flag) {
+                    dialogUnlock.setVisibility(View.INVISIBLE);
+                    dialogCommit.setVisibility(View.VISIBLE);
+                    dialogLock.setVisibility(View.VISIBLE);
+                } else {
+                    dialogUnlock.setVisibility(View.VISIBLE);
+                    dialogCommit.setVisibility(View.INVISIBLE);
+                    dialogLock.setVisibility(View.INVISIBLE);
                     dismissDialog();
-                    tableAdapter.notifyDataSetChanged();
-                    break;
-                case ERROR_PRICE:
-                    AlertDialog.Builder builder2 = new AlertDialog.Builder(KucunFBActivity.this);
-                    builder2.setTitle("失败");
-                    builder2.setMessage("发布库存价格失败");
-                    builder2.show();
-                    break;
-                case ERROR_CHANGE:
-                    AlertDialog.Builder builder3 = new AlertDialog.Builder(KucunFBActivity.this);
-                    builder3.setTitle("失败");
-                    builder3.setMessage("更改失败");
-                    builder3.show();
-                    break;
-                case SUCCESS_CHANGE:
-                    tableAdapter.notifyDataSetChanged();
-                    AlertDialog.Builder builder4 = new AlertDialog.Builder(KucunFBActivity.this);
-                    builder4.setTitle("成功");
-                    builder4.setMessage("更改发布状态成功");
-                    builder4.show();
-                    boolean flag = (boolean) msg.obj;
-                    if (flag) {
-                        dialogUnlock.setVisibility(View.INVISIBLE);
-                        dialogCommit.setVisibility(View.VISIBLE);
-                        dialogLock.setVisibility(View.VISIBLE);
-                    } else {
-                        dialogUnlock.setVisibility(View.VISIBLE);
-                        dialogCommit.setVisibility(View.INVISIBLE);
-                        dialogLock.setVisibility(View.INVISIBLE);
-                        dismissDialog();
-                    }
-                    break;
-            }
+                }
+                break;
         }
-    };
+    }
+    private Handler zHandler = new NoLeakHandler(this);
 
 
     private void dismissDialog() {
@@ -131,7 +129,7 @@ public class KucunFBActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kucun_fb);
-        lv = (ListView) findViewById(R.id.kucunfb_lv);
+        ListView lv = (ListView) findViewById(R.id.kucunfb_lv);
         data = new ArrayList<>();
         cboBeihuo = (CheckBox) findViewById(R.id.kucunfb_isbeihuo);
         cboFabu = (CheckBox) findViewById(R.id.kucunfb_cbo_only_fabu);
@@ -358,14 +356,16 @@ public class KucunFBActivity extends AppCompatActivity {
 
     public void getFabuInfo(String part, int pcount, boolean isbhbm) throws IOException,
             XmlPullParserException, JSONException {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("part", part);
-        map.put("pcount", pcount);
-        map.put("isbhbm", isbhbm);
-        SoapObject request = WebserviceUtils.getRequest(map, "GetInstorageBalanceInfoNew");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.MartService);
-        Log.e("zjy", "KucunFBActivity->getFabuInfo(): reponse==" + response.toString());
-        JSONObject root = new JSONObject(response.toString());
+//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+//        map.put("part", part);
+//        map.put("pcount", pcount);
+//        map.put("isbhbm", isbhbm);
+//        SoapObject request = WebserviceUtils.getRequest(map, "GetInstorageBalanceInfoNew");
+//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
+//                .MartService);
+        String soapRes = MartService.GetInstorageBalanceInfoNew(part, pcount, isbhbm);
+        Log.e("zjy", "KucunFBActivity->getFabuInfo(): reponse==" + soapRes);
+        JSONObject root = new JSONObject(soapRes);
         JSONArray array = root.getJSONArray("表");
         for (int i = 0; i < array.length(); i++) {
             JSONObject tem = array.getJSONObject(i);
@@ -468,16 +468,6 @@ public class KucunFBActivity extends AppCompatActivity {
 
     public String setFBState(String detailID, boolean isfb, String uid, String ip, String dogSN) throws IOException,
             XmlPullParserException {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("detailID", detailID);
-        map.put("isfb", isfb);
-        map.put("uid", uid);
-        map.put("ip", ip);
-        map.put("dogSN", dogSN);
-        SoapObject request = WebserviceUtils.getRequest(map, "SetStypeInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
-                .MartService);
-        Log.e("zjy", "KucunFBActivity->setFBState(): state response==" + response.toString());
-        return response.toString();
+        return MartService.SetStypeInfo(Integer.parseInt(detailID),isfb,Integer.parseInt(uid),ip,dogSN);
     }
 }

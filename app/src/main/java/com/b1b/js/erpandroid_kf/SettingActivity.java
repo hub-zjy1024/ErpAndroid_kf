@@ -75,6 +75,7 @@ public class SettingActivity extends AppCompatActivity {
     public static final String PRINTERSERVER = "printerServer";
     public static final String FTPSERVER = "ftpAddress";
     public static final String SFACCOUNT = "sfAccount";
+    public static final String KY_SMSNUM = "smsNum";
     public static final String CONFIG_JSON = "configJson";
     public static final String CHUKU_PRINTER = "chukuPrinter";
     public static final String PREF_KF = "pref_kf";
@@ -105,7 +106,7 @@ public class SettingActivity extends AppCompatActivity {
         final Spinner spiUpLoad = (Spinner) findViewById(R.id.activity_setting_spi_picupload_style);
         String[] arrays = getResources().getStringArray(R.array.upload_type);
         String[] strs = Arrays.copyOf(arrays, arrays.length + 1);
-        strs[strs.length - 1] = "默认";
+        strs[strs.length - 1] = "手动";
         spiUpLoad.setAdapter(new ArrayAdapter<String>(this, R.layout.item_province, R.id.item_province_tv, strs));
         sp = getSharedPreferences(PREF_KF, 0);
         spPicUpload = getSharedPreferences(PREF_TKPIC, 0);
@@ -162,6 +163,7 @@ public class SettingActivity extends AppCompatActivity {
                     editor.putString(SFACCOUNT, selectedItem.get(SFACCOUNT).toString());
                     editor.putString(CHUKU_PRINTER, selectedItem.get(CHUKU_PRINTER).toString());
                     editor.putString(CONFIG_JSON, selectedItem.get(CONFIG_JSON).toString());
+                    MyApp.myLogger.writeInfo("have set config:" + selectedItem.get(CONFIG_JSON));
                 }
                 Object selectedItem1 = spiUpLoad.getSelectedItem();
                 spPicUpload.edit().putString("style", selectedItem1.toString()).commit();
@@ -178,7 +180,6 @@ public class SettingActivity extends AppCompatActivity {
         spiKF.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.e("zjy", "SettingActivity->onItemSelected(): isselect==");
                 @SuppressWarnings("unchecked")  Map<String, Object> itemAtPosition = (Map<String, Object>) parent.getItemAtPosition(position);
                 if (!"请选择".equals(itemAtPosition.get(NAME))) {
                     edPrinterServer.setText(itemAtPosition.get(PRINTERSERVER).toString());

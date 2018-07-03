@@ -68,7 +68,17 @@ public class ImageWaterUtils {
                 src.getWidth() - watermark.getWidth() - dp2px(context, paddingRight),
                 src.getHeight() - watermark.getHeight() - dp2px(context, paddingBottom));
     }
-
+    /**
+     * 设置水印图片在右下角
+     *
+     * @param context
+     * @param src
+     * @param watermark
+     * @return
+     */
+    public static Bitmap createWaterMaskRightBottom(Context context, Bitmap src, Bitmap watermark) {
+        return createWaterMaskRightBottom(context, src, watermark, 0, 0);
+    }
     /**
      * 设置水印图片到右上角
      *

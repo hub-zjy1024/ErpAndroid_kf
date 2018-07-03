@@ -6,13 +6,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -26,13 +27,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
@@ -45,7 +45,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,9 +54,10 @@ import printer.activity.SetYundanActivity;
 import utils.DialogUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
+import utils.handler.NoLeakHandler;
+import utils.wsdelegate.SF_Server;
 
-public class YundanPrintAcitivity extends AppCompatActivity {
+public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback {
 
     private Context mContext = this;
     private Spinner spiType;
@@ -90,30 +90,28 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     private String ddestcode;
     private ProgressDialog pd;
     private String pidNotes = "";
-
-    private List<Map<String,String>> addrList;
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case 0:
-                    edJPerson.setText(jName);
-                    edJAddress.setText(jAddress);
-                    edJTel.setText(jTel);
-                    eddAddress.setText(dAddress);
-                    eddTel.setText(dTel);
-                    eddPerson.setText(dName);
-                    tvPayBy.setText(payByWho);
-                    tvNote.setText(pidNotes);
-                    flag = 1;
-                    break;
-                case 1:
-                    DialogUtils.dismissDialog(pd);
-                    break;
-            }
+    public String smsNum = "";
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case 0:
+                edJPerson.setText(jName);
+                edJAddress.setText(jAddress);
+                edJTel.setText(jTel);
+                eddAddress.setText(dAddress);
+                eddTel.setText(dTel);
+                eddPerson.setText(dName);
+                tvPayBy.setText(payByWho);
+                tvNote.setText(pidNotes);
+                flag = 1;
+                break;
+            case 1:
+                DialogUtils.dismissDialog(pd);
+                break;
         }
-    };
+    }
+    private List<Map<String,String>> addrList;
+    private Handler mHandler = new NoLeakHandler(this);
     private EditText eddPerson;
     private TextView tvYundanID;
     private TextView tvInsertState;
@@ -136,6 +134,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     private String kdName = "";
     private SharedPreferences spKF;
     private String kfName = "";
+    private String expressName = "跨越";
     private Intent reIntent;
     private boolean isDiaohuo = false;
     private Spinner spiDiaohuo;
@@ -206,7 +205,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         try {
-                            String ok = insertYundanInfo(tempPID, yundanID, ddestcode, "跨越");
+                            String ok = insertYundanInfo(tempPID, yundanID, ddestcode, expressName);
                             changeInsertState(ok, tempPID);
                         } catch (IOException e) {
                             showAlert("关联失败：" +getString(R.string.bad_connection));
@@ -259,12 +258,24 @@ public class YundanPrintAcitivity extends AppCompatActivity {
              kfName = obj.getString(SettingActivity.NAME);
             KyExpressUtils.uuid = obj.getString(SettingActivity.KYUUID);
             KyExpressUtils.key = obj.getString(SettingActivity.KYKEY);
+            smsNum= obj.getString(SettingActivity.KY_SMSNUM);
             edAccount.setText(obj.getString(SettingActivity.KYACCOUNT));
         } catch (JSONException e) {
             KyExpressUtils.uuid = "";
             KyExpressUtils.key = KyExpressUtils.uuid = "";
             edAccount.setText("");
-            showAlert("请先配置库房信息");
+            if (smsNum.equals("")) {
+                try {
+                    PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
+                    if (packageInfo.versionCode == 51) {
+                        showAlert("由于添加了短信服务号，请重新配置库房信息");
+                    }
+                } catch (PackageManager.NameNotFoundException e1) {
+                    e1.printStackTrace();
+                }
+            } else {
+                showAlert("请先配置库房信息");
+            }
             MyApp.myLogger.writeError("KYprint:no config" + e.toString());
             e.printStackTrace();
         }
@@ -521,7 +532,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                     public void run() {
                         String insertResult = null;
                         try {
-                            insertResult = insertYundanInfo(pid, yundanID, ddestcode, "跨越");
+                            insertResult = insertYundanInfo(pid, yundanID, ddestcode, expressName);
                             changeInsertState(insertResult, pid);
                         } catch (IOException e) {
                             showAlert("关联运单号失败，网络连接失败");
@@ -657,10 +668,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
         TaskManager.getInstance().execute(onlineSavedRunnable);
     }
     private String getDHAddresss() throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        SoapObject req = WebserviceUtils.getRequest(map, "GetBD_DHAddress");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.SF_SERVER);
-        return response.toString();
+        return SetYundanActivity.getDHAddresss();
     }
     @Override
     protected void onResume() {
@@ -756,7 +764,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 info.col_018 = serverType;
                 info.col_001 = jComapany;
                 info.col_004 = jName;
-                info.col_005 = jTel;
+                info.col_005 = smsNum;
                 info.jjTelQH = "";
                 info.col_003 = jTel;
                 info.col_002 = jAddress;
@@ -814,7 +822,7 @@ public class YundanPrintAcitivity extends AppCompatActivity {
                 }
                 if (!receiveID.equals("")) {
                     try {
-                        String insertResult = insertYundanInfo(pid, receiveID, destcode, "跨越");
+                        String insertResult = insertYundanInfo(pid, receiveID, destcode, expressName);
                         Log.e("zjy", "YundanPrintAcitivity->insertYundanInfo(): result==" + insertResult);
                         changeInsertState(insertResult, pid);
                         boolean printOk = printKyYundan(printerAddress, yundanID, dgoodInfos, dcardID, dpayType, counts,
@@ -883,20 +891,20 @@ public class YundanPrintAcitivity extends AppCompatActivity {
     // 顺丰
     public String insertYundanInfo(String pid, String orderID, String destcode, String objtype) throws IOException,
             XmlPullParserException {
-        if ("101".equals(MyApp.id)) {
+        if (CheckUtils.isAdmin()) {
             return "成功";
         }
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("objname", pid);
-        map.put("objvalue", orderID);
-        map.put("express", destcode);
-        map.put("objtype", objtype);
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(map,
-                "InsertBD_YunDanInfoOfType", WebserviceUtils.SF_SERVER);
-        String result = response.toString();
+//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+//        map.put("objname", pid);
+//        map.put("objvalue", orderID);
+//        map.put("express", destcode);
+//        map.put("objtype", objtype);
+//        String result =  WebserviceUtils.getWcfResult(map,
+//                "InsertBD_YunDanInfoOfType", WebserviceUtils.SF_SERVER);
+        String result = SF_Server.InsertBD_YunDanInfoOfType(pid, orderID, destcode, objtype);
         if (result.equals("")) {
             MyApp.myLogger.writeError(YundanPrintAcitivity.class, getResources().getString(R.string.error_soapobject) + pid +
-                    "\t" + MyApp.id);
+                    "\t" + loginID);
         }
         return result;
     }

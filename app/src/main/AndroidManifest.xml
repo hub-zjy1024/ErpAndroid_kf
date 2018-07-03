@@ -96,6 +96,9 @@
         <activity android:name=".ReUploadActivity"/>
         <activity android:name=".ShangjiaActivity">
         </activity>
+        <activity android:name=".SavedLoginInfoActivity">
+        </activity>
+        <activity android:name=".SavedLoginInfoWithScanActivity"/>
     </application>
 
 </manifest>

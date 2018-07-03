@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
@@ -26,13 +27,10 @@ import com.b1b.js.erpandroid_kf.task.TaskManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
@@ -41,78 +39,68 @@ import utils.DialogUtils;
 import utils.MyToast;
 import utils.PrinterStyle;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
 import utils.btprint.BtHelper;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.SPrinter;
-import utils.handler.SafeHandler;
+import utils.handler.NoLeakHandler;
+import utils.wsdelegate.ChuKuServer;
 
 public class RukuTagPrintAcitivity extends BaseScanActivity {
-    private RKHanlder mHandler = new RKHanlder(this);
+    private Handler mHandler = new NoLeakHandler(this);
     private final static int FLAG_PRINT = 3;
     private String storageID = "";
     public static final String storageKey = "storageID";
 
-    private static class RKHanlder extends SafeHandler<RukuTagPrintAcitivity> {
-        private RKHanlder(RukuTagPrintAcitivity mContext) {
-            super(mContext);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            final RukuTagPrintAcitivity activity = getActivity();
-            if (activity == null) {
-                return;
-            }
-
-            switch (msg.what) {
-                case BtHelper.STATE_CONNECTED:
-                    MyToast.showToast(activity, "连接成功");
-                    activity.tvState.setTextColor(Color.GREEN);
-                    activity.tvState.setText("已连接");
-                    break;
-                case BtHelper.STATE_DISCONNECTED:
-                    MyToast.showToast(activity, "连接失败");
-                    activity.tvState.setTextColor(Color.RED);
-                    activity.tvState.setText("连接失败");
-                    break;
-                case FLAG_PRINT:
-                    if (activity.cboAuto.isChecked()) {
-                        Runnable printRun = new Runnable() {
-                            @Override
-                            public void run() {
-                                for (int i = 0; i <activity. infos.size(); i++) {
-                                    XiaopiaoInfo tInfo = activity.infos.get(i);
-                                    PrinterStyle.printXiaopiao2(activity.printer2, tInfo);
-                                    try {
-                                        Thread.sleep(1000);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
+    @Override
+    public void handleMessage(Message msg) {
+        super.handleMessage(msg);
+        switch (msg.what) {
+            case BtHelper.STATE_CONNECTED:
+                MyToast.showToast(this, "连接成功");
+                this.tvState.setTextColor(Color.GREEN);
+                this.tvState.setText("已连接");
+                break;
+            case BtHelper.STATE_DISCONNECTED:
+                MyToast.showToast(this, "连接失败");
+                this.tvState.setTextColor(Color.RED);
+                this.tvState.setText("连接失败");
+                break;
+            case FLAG_PRINT:
+                if (this.cboAuto.isChecked()) {
+                    Runnable printRun = new Runnable() {
+                        @Override
+                        public void run() {
+                            for (int i = 0; i <infos.size(); i++) {
+                                XiaopiaoInfo tInfo = infos.get(i);
+                                PrinterStyle.printXiaopiao2(printer2, tInfo);
+                                try {
+                                    Thread.sleep(1000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
                                 }
                             }
-                        };
-                        TaskManager.getInstance().execute(printRun);
-                    }
-                    activity.xpAdapter.notifyDataSetChanged();
-                    break;
-                case BtHelper.STATE_OPENED:
-                    if (!activity.btAddress.equals("")) {
-                        activity.tvState.setText("正在连接");
-                        Runnable connectRun = new Runnable() {
-                            @Override
-                            public void run() {
-                                activity.printer2.connect(activity.btAddress);
-                                Log.e("zjy", "RukuTagPrintAcitivity->run(): state open==");
-                            }
-                        };
-                        TaskManager.getInstance().execute(connectRun);
-                    }
-                    break;
-            }
+                        }
+                    };
+                    TaskManager.getInstance().execute(printRun);
+                }
+                this.xpAdapter.notifyDataSetChanged();
+                break;
+            case BtHelper.STATE_OPENED:
+                if (!this.btAddress.equals("")) {
+                    this.tvState.setText("正在连接");
+                    Runnable connectRun = new Runnable() {
+                        @Override
+                        public void run() {
+                            printer2.connect(btAddress);
+                            Log.e("zjy", "RukuTagPrintAcitivity->run(): state open==");
+                        }
+                    };
+                    TaskManager.getInstance().execute(connectRun);
+                }
+                break;
         }
     }
+
 
     private MyBluePrinter printer;
     private SPrinter printer2;
@@ -461,14 +449,12 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         if ("".equals(ip)) {
             throw new IOException("获取当前IP失败");
         }
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("ip", ip);
-        SoapObject req = WebserviceUtils.getRequest(map, "GetStoreRoomIDByIP");
         String bodyString = "";
         String info = "";
         try {
-            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
-             bodyString = response.toString();
+//            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
+//            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
+            bodyString = ChuKuServer.GetStoreRoomIDByIP(ip);
         } catch (IOException e) {
             info = e.getMessage();
             e.printStackTrace();
@@ -483,13 +469,13 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
 
 
     public static String getBalaceInfo(String pid, String storageID, String partno) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-        properties.put("pid", pid);
-        properties.put("partno", partno);
-        properties.put("storageid", storageID);
-        SoapObject req = WebserviceUtils.getRequest(properties, "GetStorageBlanceInfoByID");
-        SoapPrimitive result = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
-        return result.toString();
+//        LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+//        properties.put("pid", pid);
+//        properties.put("partno", partno);
+//        properties.put("storageid", storageID);
+//        SoapObject req = WebserviceUtils.getRequest(properties, "GetStorageBlanceInfoByID");
+//        SoapPrimitive result = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
+        return ChuKuServer.GetStorageBlanceInfoByID(Integer.parseInt(pid), partno, storageID);
     }
     @Override
     protected void onDestroy() {
@@ -503,14 +489,13 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
     }
 
     public String getDetailInfoByDetailId(String pid) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("mxid", pid);
-        SoapObject request = WebserviceUtils.getRequest(map, "GetInstorectInfoByMXID");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(request,
-                WebserviceUtils.ChuKuServer);
-        return res.toString();
+//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+//        map.put("mxid", pid);
+//        SoapObject request = WebserviceUtils.getRequest(map, "GetInstorectInfoByMXID");
+//        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(request,
+//                WebserviceUtils.ChuKuServer);
+        return ChuKuServer.GetInstorectInfoByMXID(Integer.parseInt(pid));
     }
-
     @Override
     public void getCameraScanResult(String result) {
         edPid.setText(result);

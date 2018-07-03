@@ -4,10 +4,8 @@ package com.b1b.js.erpandroid_kf;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,8 +21,6 @@ import com.b1b.js.erpandroid_kf.adapter.ChuKuTongZhiAdapter;
 import com.b1b.js.erpandroid_kf.entity.ChukuTongZhiInfo;
 
 import org.json.JSONException;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -32,18 +28,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import utils.MyJsonUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
+import utils.handler.NoLeakHandler;
+import utils.wsdelegate.ChuKuServer;
 
 
 /**
  A simple {@link Fragment} subclass. */
-public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListener {
+public class ChuKuTongZhiFragment extends ChukuBaseFragment implements View.OnClickListener,NoLeakHandler.NoLeakCallback {
 
     private Button btnSearch;
     private Button btnCleartime;
@@ -58,29 +54,28 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
     private ListView lv;
     private ChuKuTongZhiAdapter adapter;
     private List<ChukuTongZhiInfo> data = new ArrayList<>();
-
-    private Handler mHandler = new Handler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case 0:
-                    adapter.notifyDataSetChanged();
-                    isFinish = true;
-                    SoftKeyboardUtils.closeInputMethod(edPartNo, getActivity());
-                    MyToast.showToast(getActivity(), "查询到" + data.size() + "条数据");
-                    break;
-                case 1:
-                    isFinish = true;
-                    MyToast.showToast(getActivity(), "查询条件有误");
-                    break;
-                case 2:
-                    isFinish = true;
-                    MyToast.showToast(getActivity(), "当前网络质量较差，请稍后尝试");
-                    break;
-            }
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case 0:
+                adapter.notifyDataSetChanged();
+                isFinish = true;
+                SoftKeyboardUtils.closeInputMethod(edPartNo, getActivity());
+                MyToast.showToast(getActivity(), "查询到" + data.size() + "条数据");
+                break;
+            case 1:
+                isFinish = true;
+                MyToast.showToast(getActivity(), "查询条件有误");
+                break;
+            case 2:
+                isFinish = true;
+                MyToast.showToast(getActivity(), "当前网络质量较差，请稍后尝试");
+                break;
         }
-    };
+    }
+    private Handler mHandler = new NoLeakHandler(this);
     private Button btnScan;
+    private String loginID;
 
     public ChuKuTongZhiFragment() {
     }
@@ -95,6 +90,7 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        loginID = getArguments().getString("loginID");
         View view = inflater.inflate(R.layout.fragment_chukutongzhi, container, false);
         tvStime = (TextView) view.findViewById(R.id.chukutongzhi_stime);
         tvEtime = (TextView) view.findViewById(R.id.chukutongzhi_etime);
@@ -131,7 +127,6 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
                 return true;
             }
         });
-        //        getData("2309", "", "", getStringDateBefore(180), getFormatDate(new Date()));
         return view;
     }
 
@@ -203,7 +198,7 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
                     sttime = tvStime.getText().toString();
                     endtime = tvStime.getText().toString();
                 }
-                getData(MyApp.id, partNo, pid, sttime, endtime);
+                getData(loginID, partNo, pid, sttime, endtime);
                 //                } else {
                 //                    MyToast.showToast(getActivity(), "请稍后，上次查询还未完成");
                 //                }
@@ -237,17 +232,8 @@ public class ChuKuTongZhiFragment extends Fragment implements View.OnClickListen
     }
 
     private String getChuKuTongZhiInfoList(String checkWord, String uid, String stime, String etime, String pid, String partNo) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
-        properties.put("checkWord", checkWord);
-        properties.put("uid", uid);
-        properties.put("stime", stime);
-        properties.put("etime", etime);
-        properties.put("pid", pid);
-        properties.put("partNo", partNo);
-        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuTongZhiInfoList");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
-        Log.e("zjy", "ChuKuActivity.java->GetChuKuTongZhiInfoList(): re==" + response.toString());
-        return response.toString();
+        String soapRes = ChuKuServer.GetChuKuTongZhiInfoList(checkWord, uid, stime, etime, pid, partNo);
+        return soapRes;
     }
 
     @Override

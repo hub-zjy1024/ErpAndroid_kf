@@ -17,7 +17,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -33,11 +32,10 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.ReuseFtpRunnable;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.ByteArrayInputStream;
@@ -46,11 +44,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
-import utils.DialogUtils;
 import utils.FTPUtils;
 import utils.FtpManager;
 import utils.ImageWaterUtils;
@@ -61,7 +57,7 @@ import utils.WebserviceUtils;
 import utils.camera.AutoFoucusMgr;
 import utils.handler.NoLeakHandler;
 
-public class TakePicActivity extends AppCompatActivity implements View.OnClickListener, NoLeakHandler.NoLeakCallback {
+public class TakePicActivity extends SavedLoginInfoActivity implements View.OnClickListener, NoLeakHandler.NoLeakCallback {
 
     private int rotation = 0;
     private SurfaceView surfaceView;
@@ -80,7 +76,6 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     protected String pid;
     protected String  mUrl;
     protected String kfFTP = MyApp.ftpUrl;
-    protected String userID = MyApp.id;
     private MaterialDialog resultDialog;
     protected final static int PICUPLOAD_SUCCESS = 0;
     protected final static int PICUPLOAD_ERROR = 1;
@@ -208,6 +203,18 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         //获取surfaceholder
         mHolder = surfaceView.getHolder();
         mHolder.setKeepScreenOn(true);
+        pd = new ProgressDialog(this);
+        pd.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                if (mCamera != null) {
+                    mCamera.startPreview();
+                    auto.start();
+                    isPreview = true;
+                }
+            }
+        });
+        pd.setCancelable(false);
         //添加SurfaceHolder回调
         if (mHolder != null) {
             mHolder.addCallback(new SurfaceHolder.Callback() {
@@ -550,10 +557,10 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         String result;
         if ("caigou".equals(flag)) {
             result = ObtainPicFromPhone.setSSCGPicInfo(WebserviceUtils.WebServiceCheckWord, cid,
-                    did, Integer.parseInt(userID), pid, remoteName, insertPath, "SCCG");
+                    did, Integer.parseInt(loginID), pid, remoteName, insertPath, "SCCG");
         } else {
             result = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
-                    .parseInt(userID), pid, remoteName, insertPath, "CKTZ");
+                    .parseInt(loginID), pid, remoteName, insertPath, "CKTZ");
         }
         MyApp.myLogger.writeInfo("takepic insert:" + remoteName + "=" + result);
         return "操作成功".equals(result);
@@ -569,7 +576,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             remoteName = UploadUtils.getChukuRemoteName(pid);
             remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
         }
-        if ("101".equals(userID)) {
+        if (CheckUtils.isAdmin()) {
             remotePath = UploadUtils.getTestPath(pid);
         }
         return remotePath;
@@ -588,7 +595,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             mUrl = kfFTP;
             ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName, FtpManager.ftpPassword);
         }
-        if ("101".equals(userID)) {
+        if (CheckUtils.isAdmin()) {
             ftpUtil = FtpManager.getTestFTP();
             mUrl = FtpManager.mainAddress;
         }
@@ -600,7 +607,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         }
         final Bitmap bitmap = waterBitmap;
         if (kfFTP == null || "".equals(kfFTP)) {
-            if (!"101".equals(userID)) {
+            if (!CheckUtils.isAdmin()) {
                 MyToast.showToast(mContext, "读取上传地址失败，请重启程序");
                 return;
             }
@@ -632,7 +639,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             public boolean getInsertResult() throws Exception {
                 String remoteName = getRemoteName();
                 String insertPath = getInsertpath();
-                if ("101".equals(userID)) {
+                if (CheckUtils.isAdmin()) {
                     return true;
                 }
                 return getInsertResultMain(remoteName, insertPath);
@@ -647,7 +654,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         matrixs.setRotate(90 + cRotate);
         Bitmap photo = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrixs, true);
         Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext, photo,
-                wtBmp, 0, 0);
+                wtBmp);
         Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(mContext, waterBitmap, pid,
                 (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
@@ -661,19 +668,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     protected void showProgressDialog() {
-        pd = new ProgressDialog(this);
-        pd.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                if (mCamera != null) {
-                    mCamera.startPreview();
-                    auto.start();
-                    isPreview = true;
-                }
-            }
-        });
         pd.setMessage("正在上传");
-        pd.setCancelable(false);
         pd.show();
     }
 
@@ -727,21 +722,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
 
     public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
                                    String stypeID) throws IOException, XmlPullParserException {
-        String str = "";
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("checkWord", checkWord);
-        map.put("cid", cid);
-        map.put("did", did);
-        map.put("uid", uid);
-        map.put("pid", pid);
-        map.put("filename", fileName);
-        map.put("filepath", filePath);
-        map.put("stypeID", stypeID);//标记，固定为"CKTZ"
-        SoapObject request = WebserviceUtils.getRequest(map, "SetInsertPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
-                .ChuKuServer);
-        str = response.toString();
-        return str;
+        return TakePic2Activity.setInsertPicInfo(checkWord, cid, did, uid, pid, fileName, filePath, stypeID);
     }
 
     @Override
@@ -759,10 +740,14 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     protected void showFinalDialog(String message) {
-        DialogUtils.cancelDialog(pd);
-        resultDialog.setMessage(message);
-        if (!isDestoryed) {
-            resultDialog.show();
+        if (!isFinishing()) {
+            if (pd != null) {
+                pd.cancel();
+            }
+            resultDialog.setMessage(message);
+            if (!isDestoryed) {
+                resultDialog.show();
+            }
         }
     }
 }

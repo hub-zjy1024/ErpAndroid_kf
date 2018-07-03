@@ -16,27 +16,23 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONException;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import utils.MyJsonUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
 import utils.handler.NoLeakHandler;
+import utils.wsdelegate.ChuKuServer;
 
-public class CheckActivity extends BaseScanActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
+public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
     private ListView lv;
     private EditText edPid;
     private EditText edPartno;
@@ -53,6 +49,7 @@ public class CheckActivity extends BaseScanActivity implements NoLeakHandler.NoL
     private Handler mHandler = new NoLeakHandler(this);
     @Override
     public void handleMessage(Message msg) {
+        super.handleMessage(msg);
         switch (msg.what) {
             case 0:
                 SoftKeyboardUtils.closeInputMethod(edPartno, this);
@@ -151,7 +148,7 @@ public class CheckActivity extends BaseScanActivity implements NoLeakHandler.NoL
             @Override
             public void run() {
                 try {
-                    String json = getChuKuCheckInfoByTypeID(typeId, pid, partNo, MyApp.id);
+                    String json = getChuKuCheckInfoByTypeID(typeId, pid, partNo, loginID);
                     List<CheckInfo> list = MyJsonUtils.getCheckInfo(json);
                     if (list != null && list.size() > 0) {
                         data.addAll(list);
@@ -189,15 +186,16 @@ public class CheckActivity extends BaseScanActivity implements NoLeakHandler.NoL
 
     private String getChuKuCheckInfoByTypeID(int typeId, String pid, String partNo, String uid) throws IOException,
             XmlPullParserException {
-        LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
-        properties.put("checkWord", "");
-        properties.put("typeid", typeId);
-        properties.put("pid", pid);
-        properties.put("partNo", partNo);
-        properties.put("uid", uid);
-        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuCheckInfoByTypeID");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
-        return response.toString();
+//        LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
+//        properties.put("checkWord", "");
+//        properties.put("typeid", typeId);
+//        properties.put("pid", pid);
+//        properties.put("partNo", partNo);
+//        properties.put("uid", uid);
+//        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuCheckInfoByTypeID");
+//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
+//        return response.toString()
+        return ChuKuServer.GetChuKuCheckInfoByTypeID("",typeId, pid, partNo, uid);
     }
 
     @Override

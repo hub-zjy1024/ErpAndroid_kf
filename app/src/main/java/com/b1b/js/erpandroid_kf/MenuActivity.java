@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -19,13 +18,14 @@ import android.widget.GridView;
 import com.b1b.js.erpandroid_kf.adapter.MenuGvAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
 import com.b1b.js.erpandroid_kf.service.LogUploadService;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
 import java.util.ArrayList;
 
 import printer.activity.SFActivity;
 import utils.btprint.SPrinter;
 
-public class MenuActivity extends AppCompatActivity implements OnItemClickListener {
+public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickListener {
     private final String tag_Ruku = "库存标签";
     private final String tag_Print = "运单打印";
     private final String tag_Kaoqin = "考勤";
@@ -40,7 +40,6 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
     private final String tag_shangjia = "货物上架";
 
     private GridView gv;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +85,7 @@ public class MenuActivity extends AppCompatActivity implements OnItemClickListen
     private void addItemGV() {
         ArrayList<MyMenuItem> data = new ArrayList<>();
         data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Chukudan, "查看出库单和出库通知单"));
-        if ("101".equals(MyApp.id)) {
+        if (CheckUtils.isAdmin()) {
             data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Admin, "101"));
         }
         data.add(new MyMenuItem(R.mipmap.menu_preprint, tag_ChukudanPrint, "出库单单据信息打印"));

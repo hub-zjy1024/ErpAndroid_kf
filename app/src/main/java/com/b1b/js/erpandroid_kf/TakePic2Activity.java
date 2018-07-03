@@ -1,6 +1,5 @@
 package com.b1b.js.erpandroid_kf;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -20,14 +19,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -37,8 +34,8 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
+
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
@@ -48,7 +45,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import utils.FTPUtils;
@@ -57,13 +53,13 @@ import utils.ImageWaterUtils;
 import utils.MyFileUtils;
 import utils.MyImageUtls;
 import utils.MyToast;
-import utils.handler.SafeHandler;
 import utils.UploadUtils;
-import utils.WebserviceUtils;
 import utils.camera.AutoFoucusMgr;
 import utils.camera.CustomAutoFocus;
+import utils.handler.NoLeakHandler;
+import utils.wsdelegate.ChuKuServer;
 
-public class TakePic2Activity extends AppCompatActivity implements View.OnClickListener {
+public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnClickListener,NoLeakHandler.NoLeakCallback {
 
     private int rotation = 0;
     private SurfaceView surfaceView;
@@ -84,51 +80,40 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
     private final static int PICUPLOAD_SUCCESS = 0;
     private final static int PICUPLOAD_ERROR = 1;
     private String kfFTP = MyApp.ftpUrl;
-    private String userId = MyApp.id;
     private int tempRotate = 0;
     int cid;
     int did;
     private Context mContext = TakePic2Activity.this;
-    private Handler mHandler = new LHandler(this);
+    private Handler mHandler = new NoLeakHandler(this);
 
-    static class LHandler extends SafeHandler<TakePic2Activity> {
-
-        public LHandler(TakePic2Activity mRefer) {
-            super(mRefer);
-        }
-        @Override
-        public void handleMessage(Message msg) {
-            final TakePic2Activity activity = getActivity();
-            if (activity == null) {
-                return;
-            }
-            switch (msg.what) {
-                case PICUPLOAD_ERROR:
-                    activity.btn_takepic.setEnabled(true);
-                    activity.toolbar.setVisibility(View.GONE);
-                    break;
-                case PICUPLOAD_SUCCESS:
-                    Object obj = msg.obj;
-                    final TextView textView = (TextView) obj;
-                    String nowTag = textView.getTag().toString();
-                    textView.setText("图片:" + nowTag + "上传完成 OK···");
-                    postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            activity.llResult.removeView(textView);
-                        }
-                    }, 2000);
-                    //                    MyToast.showToast(mContext, "后台剩余图片：" + MyApp.totoalTask.size());
-                    MyToast.showToast(activity.mContext, "上传成功，后台剩余图片：" +(MyApp.cachedThreadPool.getActiveCount()-1));
-                    break;
-                case FTP_CONNECT_FAIL:
-                    MyToast.showToast(activity.mContext, "连接ftp服务器失败，请检查网络");
-                    break;
-                case 4:
-                    MyToast.showToast(activity.mContext, "sd卡不存在，不可用后台上传");
-                    activity.btn_commit.setEnabled(false);
-                    break;
-            }
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case PICUPLOAD_ERROR:
+                btn_takepic.setEnabled(true);
+                toolbar.setVisibility(View.GONE);
+                break;
+            case PICUPLOAD_SUCCESS:
+                Object obj = msg.obj;
+                final TextView textView = (TextView) obj;
+                String nowTag = textView.getTag().toString();
+                textView.setText("图片:" + nowTag + "上传完成 OK···");
+                mHandler. postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        llResult.removeView(textView);
+                    }
+                }, 2000);
+                //                    MyToast.showToast(mContext, "后台剩余图片：" + MyApp.totoalTask.size());
+                MyToast.showToast(mContext, "上传成功，后台剩余图片：" + (MyApp.cachedThreadPool.getActiveCount() - 1));
+                break;
+            case FTP_CONNECT_FAIL:
+                MyToast.showToast(mContext, "连接ftp服务器失败，请检查网络");
+                break;
+            case 4:
+                MyToast.showToast(mContext, "sd卡不存在，不可用后台上传");
+                btn_commit.setEnabled(false);
+                break;
         }
     }
 
@@ -136,7 +121,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
     private SharedPreferences sp;
     private int itemPosition;
     private AlertDialog inputDialog;
-    private SparseArray< String> map = new SparseArray<>();
+    private SparseArray<String> map = new SparseArray<>();
     private AutoFoucusMgr auto;
     private CustomAutoFocus cAutoFocusMgr;
     private byte[] tempBytes;
@@ -214,11 +199,10 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                         return;
                     }
                     //设置旋转角度
-                    camera.setDisplayOrientation(getPreviewDegree((TakePic2Activity)mContext));
+                    camera.setDisplayOrientation(TakePicActivity.getPreviewDegree((TakePic2Activity)mContext));
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = camera.getParameters();
                     String brand = Build.BRAND;
-//                    setPreViewSize(parameters);//默认为屏幕大小
                     sp = getSharedPreferences(SettingActivity.PREF_CAMERA_INFO, 0);
                     try {
                         // 设置用于显示拍照影像的SurfaceHolder对象
@@ -244,15 +228,15 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                         container.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-//                                auto.stop();
+                                //                                auto.stop();
                                 if (camera != null && isPreview) {
                                     camera.autoFocus(null);
                                 }
                             }
                         });
-                         auto = new AutoFoucusMgr(camera);
-//                        cAutoFocusMgr = new CustomAutoFocus(camera);
-//                        cAutoFocusMgr.start();
+                        auto = new AutoFoucusMgr(camera);
+                        //                        cAutoFocusMgr = new CustomAutoFocus(camera);
+                        //                        cAutoFocusMgr.start();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -268,7 +252,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                 @Override
                 public void surfaceDestroyed(SurfaceHolder holder) {
                     auto.stop();
-//                    cAutoFocusMgr.stop();
+                    //                    cAutoFocusMgr.stop();
                     releaseCamera();
                 }
             });
@@ -285,7 +269,8 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
         //剔除出尺寸太小的，和尺寸太大的，宽度（1280-2048)
         for (int i = picSizes.size() - 1; i >= 0; i--) {
             int width = picSizes.get(i).width;
-            Log.e("zjy", "TakePic2Activity.java->showProgressDialog(): size==" + picSizes.get(i).width + "\t" + picSizes.get(i).height);
+            Log.e("zjy", "TakePic2Activity.java->showProgressDialog(): size==" + picSizes.get(i).width + "\t" + picSizes.get(i)
+                    .height);
             if (width < 1920 || width > 2592) {
                 picSizes.remove(i);
             }
@@ -394,7 +379,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     @Override
                     public void onPictureTaken(byte[] data, Camera camera) {
                         auto.stop();
-//                        cAutoFocusMgr.stop();
+                        //                        cAutoFocusMgr.stop();
                         try {
                             camera.stopPreview();
                         } catch (Throwable throwable) {
@@ -421,7 +406,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                 }
                 camera.startPreview();
                 auto.start();
-//                cAutoFocusMgr.start();
+                //                cAutoFocusMgr.start();
                 isPreview = true;
                 btn_takepic.setEnabled(true);
                 toolbar.setVisibility(View.GONE);
@@ -439,14 +424,15 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                     return;
                 }
                 if (kfFTP == null || "".equals(kfFTP)) {
-                    if(!"101".equals(userId)){
+
+                    if (!CheckUtils.isAdmin()) {
                         MyToast.showToast(mContext, "读取上传地址失败，请重启程序");
                         return;
                     }
                 }
                 camera.startPreview();
                 auto.start();
-//                cAutoFocusMgr.start();
+                //                cAutoFocusMgr.start();
                 isPreview = true;
                 toolbar.setVisibility(View.GONE);
                 btn_takepic.setEnabled(true);
@@ -471,10 +457,10 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                 Date date = new Date();
                 int minute = date.getMinutes();
                 int ss = date.getSeconds();
-                String upTime =minute+ ":"+ss;
+                String upTime = minute + ":" + ss;
                 final TextView textView = new TextView(mContext);
                 textView.setBackgroundColor(getResources().getColor(R.color.color_tv_result_transparent));
-                textView.setText("图片:" +upTime + "正在上传");
+                textView.setText("图片:" + upTime + "正在上传");
                 textView.setTextColor(getResources().getColor(R.color.colorAccent));
                 float fontSize = 18;
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
@@ -491,15 +477,16 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                         Bitmap textBitmap;
                         Bitmap waterBitmap;
                         try {
-                            waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext, photo, bitmap, 0, 0);
-                            textBitmap = ImageWaterUtils.drawTextToRightTop(mContext, waterBitmap, pid, (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
+                            waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext, photo, bitmap);
+                            textBitmap = ImageWaterUtils.drawTextToRightTop(mContext, waterBitmap, pid, (int) (photo.getWidth()
+                                    * 0.015), Color.RED, 20, 20);
                         } catch (OutOfMemoryError error) {
                             error.printStackTrace();
                             MyToast.showToast(mContext, "请选择合适的尺寸，重新拍摄");
                             showSizeChoiceDialog(parameters);
                             return;
                         }
-                         String remoteName = UploadUtils.getChukuRemoteName(pid);
+                        String remoteName = UploadUtils.getChukuRemoteName(pid);
                         String notifyName = remoteName.substring(remoteName.lastIndexOf("_") + 1);
                         final File upFile = new File(sFile, "dyj_img/" + remoteName + ".jpg");
                         File dyjImgDir = upFile.getParentFile();
@@ -515,33 +502,34 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                             MyImageUtls.releaseBitmap(waterBitmap);
                             MyImageUtls.releaseBitmap(photo);
                             fio.close();
-                            String insertPath ;
+                            String insertPath;
                             Intent mIntent = new Intent(mContext, ReUploadActivity.class);
                             mIntent.putExtra("failPid", pid);
                             mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             mIntent.putExtra("failPath", upFile.getAbsolutePath());
                             mIntent.putExtra("nfId", finalId);
-                            PendingIntent pIntent = PendingIntent.getActivity(mContext, 100, mIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                            PendingIntent pIntent = PendingIntent.getActivity(mContext, 100, mIntent, PendingIntent
+                                    .FLAG_UPDATE_CURRENT);
                             boolean isStop = false;
                             int counts = 0;
                             final String tag = textView.getTag().toString();
-                            FTPUtils ftpUtil =null;
+                            FTPUtils ftpUtil = null;
                             while (!isStop) {
                                 remoteName = UploadUtils.getChukuRemoteName(pid);
                                 notifyName = remoteName.substring(remoteName.lastIndexOf("_") + 1);
-                                String remotePath ;
+                                String remotePath;
                                 String msg = "";
                                 try {
                                     FileInputStream fis = new FileInputStream(upFile);
                                     boolean upSuccess = false;
-                                    String mUrl ;
-                                    if ("101".equals(userId)) {
+                                    String mUrl;
+                                    if (CheckUtils.isAdmin()) {
                                         mUrl = FtpManager.mainAddress;
                                         ftpUtil = FtpManager.getTestFTP();
                                         remotePath = UploadUtils.getTestPath(pid);
                                     } else {
                                         mUrl = kfFTP;
-                                        ftpUtil = new FTPUtils(mUrl,FtpManager.ftpName,
+                                        ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName,
                                                 FtpManager.ftpPassword);
                                         remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
                                     }
@@ -552,7 +540,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                     if (upSuccess) {
                                         while (true) {
                                             //更新服务器信息
-                                            if ("101".equals(userId)) {
+                                            if (CheckUtils.isAdmin()) {
                                                 isStop = true;
                                                 notificationManager.cancel(finalId);
                                                 map.remove(finalId);
@@ -562,20 +550,35 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                                 break;
                                             }
                                             try {
-                                                String res = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did,
-                                                        Integer.parseInt(userId), pid, remoteName + ".jpg"
+                                                String res = setInsertPicInfo("", cid, did,
+                                                        Integer.parseInt(loginID), pid, remoteName + ".jpg"
                                                         , insertPath, "CKTZ");
                                                 Log.e("zjy", "TakePic2Activity.java-> setInsertPicInfo==" + res);
                                                 if (res.equals("操作成功")) {
-                                                    double totalTime = (double)(System.currentTimeMillis() - first) / 1000;
+                                                    double totalTime = (double) (System.currentTimeMillis() - first) / 1000;
                                                     double runTime = (double) (System.currentTimeMillis() - time2) / 1000;
                                                     isStop = true;
                                                     notificationManager.cancel(finalId);
                                                     map.remove(finalId);
-                                                    MyApp.myLogger.writeInfo("chuku takepic2 upload success：" +
-                                                            remoteName + "\ttime=" + runTime + "/" + totalTime + " counts=" + counts);
-                                                    Log.e("zjy", "TakePic2Activity->run(): upload succes time=="
-                                                            + runTime + "/" + totalTime + " counts=" + counts );
+                                                    if (totalTime - runTime > 1) {
+                                                        MyApp.myLogger.writeBug("Task Wait SoLong");
+                                                    }
+                                                    String strCounts = "counts=";
+                                                    if (counts> 0) {
+                                                        strCounts+= counts;
+                                                    }
+                                                    double checkRate = 1.6;
+                                                    if (runTime > checkRate) {
+                                                        MyApp.myLogger.writeInfo("chuku takepic2 finish：" +
+                                                                remoteName + "\ttime=" + runTime + "/" +
+                                                                totalTime + strCounts);
+                                                    }else{
+                                                        MyApp.myLogger.writeInfo("chuku takepic2 finish" +
+                                                                remoteName + " time<" + checkRate);
+                                                    }
+                                                    Log.e("zjy", "TakePic2Activity->run(): upload " +
+                                                            "succes time=="
+                                                            + runTime + "/" + totalTime + strCounts);
                                                     Message message = Message.obtain(mHandler, PICUPLOAD_SUCCESS);
                                                     message.obj = textView;
                                                     message.sendToTarget();
@@ -586,7 +589,8 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                             } catch (IOException e) {
                                                 msg = "连接服务器失败,正在重试";
                                                 String ioMsg = e.getMessage();
-                                                MyApp.myLogger.writeError("takepic2 upload Exception:" +pid+"\t"+ remoteName+"-"+ ioMsg);
+                                                MyApp.myLogger.writeError("takepic2 upload Exception:" + pid + "\t" +
+                                                        remoteName + "-" + ioMsg);
                                                 if (ioMsg.contains("EHOSTUNREACH")) {
                                                     msg = "网络连接有误，正在重试";
                                                 }
@@ -601,7 +605,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                                     textView.setText("图片:" + tag + "重新关联中....");
                                                 }
                                             });
-                                            changeNotificationMsg(builder, finalId, notifyName +msg, 0, pIntent);
+                                            changeNotificationMsg(builder, finalId, notifyName + msg, 0, pIntent);
                                             try {
                                                 Thread.sleep(2000);
                                             } catch (InterruptedException e) {
@@ -609,7 +613,7 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
                                             }
                                         }
                                     } else {
-                                        MyApp.myLogger.writeError("takepic2 upload false:"+ remoteName);
+                                        MyApp.myLogger.writeError("takepic2 upload false:" + remoteName);
                                     }
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -671,40 +675,13 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    private void changeNotificationMsg(NotificationCompat.Builder builder, int finalId, String msg, int progress, PendingIntent pIntent) {
+    private void changeNotificationMsg(NotificationCompat.Builder builder, int finalId, String msg, int progress, PendingIntent
+            pIntent) {
         if (pIntent != null) {
             builder.setContentIntent(pIntent);
         }
         builder.setProgress(100, progress, false).setSubText(msg);
         notificationManager.notify(finalId, builder.build());
-    }
-
-    /**
-     获取相机预览的画面旋转角度
-     @param activity 当前Activity
-     @return
-     */
-    public static int getPreviewDegree(Activity activity) {
-        // 获得手机的方向
-        int rotation = activity.getWindowManager().getDefaultDisplay()
-                .getRotation();
-        int degree = 0;
-        // 根据手机的方向计算相机预览画面应该旋转的角度
-        switch (rotation) {
-            case Surface.ROTATION_0:
-                degree = 90;
-                break;
-            case Surface.ROTATION_90:
-                degree = 0;
-                break;
-            case Surface.ROTATION_180:
-                degree = 270;
-                break;
-            case Surface.ROTATION_270:
-                degree = 180;
-                break;
-        }
-        return degree;
     }
 
     /**
@@ -723,22 +700,9 @@ public class TakePic2Activity extends AppCompatActivity implements View.OnClickL
         return degree;
     }
 
-    public static String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String
+    public static synchronized String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String
             filePath, String stypeID) throws IOException, XmlPullParserException {
-        String str = "";
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("checkWord", checkWord);
-        map.put("cid", cid);
-        map.put("did", did);
-        map.put("uid", uid);
-        map.put("pid", pid);
-        map.put("filename", fileName);
-        map.put("filepath", filePath);
-        map.put("stypeID", stypeID);//标记，固定为"CKTZ"
-        SoapObject request = WebserviceUtils.getRequest(map, "SetInsertPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
-                .ChuKuServer);
-        str = response.toString();
+        String str = ChuKuServer.SetInsertPicInfo(checkWord, cid, did, uid, pid, fileName, filePath, stypeID);
         return str;
     }
 

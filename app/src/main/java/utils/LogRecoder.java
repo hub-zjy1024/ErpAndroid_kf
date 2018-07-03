@@ -3,19 +3,20 @@ package utils;
 import android.os.Environment;
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- Created by 张建宇 on 2017/4/27. */
+ * Created by 张建宇 on 2017/4/27.
+ */
 
 public class LogRecoder {
     private String filepath;
@@ -70,32 +71,25 @@ public class LogRecoder {
     }
 
     public synchronized boolean writeError(Throwable e) {
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-        PrintWriter writer = new PrintWriter(bao);
-        e.printStackTrace(writer);
-        writer.flush();
-        String error = "";
-        try {
-            error = new String(bao.toByteArray(), "utf-8");
-        } catch (UnsupportedEncodingException eus) {
-            eus.printStackTrace();
-        }
-        String logs = error;
+        String logs = getStacktrace(e);
         return writeError("Error Exception:" + logs);
     }
 
-    public synchronized boolean writeError(Throwable e, String msg) {
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-        PrintWriter writer = new PrintWriter(bao);
-        e.printStackTrace(writer);
-        writer.flush();
-        String error = "";
-        try {
-            error = new String(bao.toByteArray(), "utf-8");
-        } catch (UnsupportedEncodingException eus) {
-            eus.printStackTrace();
+    private static String getStacktrace(Throwable e) {
+        String result = "null Exception";
+        if (e != null) {
+            StringWriter sw = new StringWriter();
+            PrintWriter writer = new PrintWriter(sw);
+            e.printStackTrace(writer);
+            writer.flush();
+            result = sw.toString();
+            return result;
         }
-        String logs = error;
+        return result;
+    }
+
+    public synchronized boolean writeError(Throwable e, String msg) {
+        String logs = getStacktrace(e);
         return writeError("Error Exception:description=" + msg + " \ndetail:" + logs);
     }
 

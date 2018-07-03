@@ -6,8 +6,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,17 +13,14 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
 
 import utils.MyToast;
-import utils.WebserviceUtils;
+import utils.wsdelegate.ChuKuServer;
 
-public class SetCheckInfoActivity extends AppCompatActivity implements View.OnClickListener {
+public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View.OnClickListener {
 
     private TextView tv;
     private Button btnCommit;
@@ -68,28 +63,17 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
      @throws IOException
      @throws XmlPullParserException
      */
-    public void getSetCheckInfo(int t, String info, String pid, int tp, String uname, String uid) throws IOException, XmlPullParserException {
+    public void getSetCheckInfo(final int t, final String info, final String pid, final int tp, final String uname, final String uid) throws IOException, XmlPullParserException {
 
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("checkWord", "");
-        map.put("t", t);
-        map.put("info", info);
-        map.put("pid", pid);
-        map.put("tp", tp);
-        map.put("uname", uname);
-        map.put("uid", uid);
-        final SoapObject request = WebserviceUtils.getRequest(map, "GetSetCheckInfo");
         Runnable setCheckInfoThread = new Runnable() {
             @Override
             public void run() {
                 try {
-                    final SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request,
-                            WebserviceUtils.ChuKuServer);
-                    Log.e("zjy", "SetCheckInfoActivity.java->run(): response==" + response.toString());
+                    final String soapRes = ChuKuServer.GetSetCheckInfo("", t, info, pid, tp, uname, uid);
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            MyToast.showToast(SetCheckInfoActivity.this, response.toString());
+                            MyToast.showToast(SetCheckInfoActivity.this, soapRes);
                         }
                     });
                 } catch (IOException e) {
@@ -125,7 +109,7 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                         MyToast.showToast(SetCheckInfoActivity.this, "请输入不通过原因");
                         return;
                     }
-                    getSetCheckInfo(1, info, pid, 1, "", MyApp.id);
+                    getSetCheckInfo(1, info, pid, 1, "", loginID);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
@@ -137,7 +121,7 @@ public class SetCheckInfoActivity extends AppCompatActivity implements View.OnCl
                     if ("".equals(info)) {
                         info = "通过";
                     }
-                    getSetCheckInfo(2, info, pid, 0, "", MyApp.id);
+                    getSetCheckInfo(2, info, pid, 0, "", loginID);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {

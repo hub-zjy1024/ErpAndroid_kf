@@ -6,32 +6,27 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
 
 import utils.DialogUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.UploadUtils;
-import utils.WebserviceUtils;
+import utils.wsdelegate.MartService;
 
-public class YanhuoCheckActivity extends AppCompatActivity {
+public class YanhuoCheckActivity extends SavedLoginInfoActivity {
 
     private Handler mHandler = new Handler();
     private ProgressDialog pd;
     private TextView tvPid;
-    private String userID = MyApp.id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,11 +43,11 @@ public class YanhuoCheckActivity extends AppCompatActivity {
         btnOk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (userID == null) {
+                if (loginID == null) {
                     MyToast.showToast(YanhuoCheckActivity.this, "登陆人为空，请重启");
                     return;
                 }
-                String content = getYanhuoStr(userID, "同意");
+                String content = getYanhuoStr(loginID, "同意");
                 Log.e("zjy", "YanhuoCheckActivity->onClick(): tv.Txt==" + tvPid.getText
                         ().toString());
                 yanhuo(tvPid.getText().toString(), "等待入库", content);
@@ -62,7 +57,7 @@ public class YanhuoCheckActivity extends AppCompatActivity {
         btnFail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (userID == null) {
+                if (loginID == null) {
                     MyToast.showToast(YanhuoCheckActivity.this, "登陆人为空，请重启");
                     return;
                 }
@@ -72,7 +67,7 @@ public class YanhuoCheckActivity extends AppCompatActivity {
                     MyToast.showToast(YanhuoCheckActivity.this, "请输入不通过理由");
                     return;
                 }
-                String content = getYanhuoStr(userID, note);
+                String content = getYanhuoStr(loginID, note);
                 yanhuo(tvPid.getText().toString(), "未能入库", content);
             }
         });
@@ -130,18 +125,9 @@ public class YanhuoCheckActivity extends AppCompatActivity {
         new Thread() {
             @Override
             public void run() {
-                //                UpdateSSCSState
-                final LinkedHashMap<String, Object> map = new LinkedHashMap<String,
-                        Object>();
-                map.put("pid", pid);
-                map.put("state", state);
-                map.put("chkNote", note);
-                Log.e("zjy", "YanhuoCheckActivity->run(): checkNote==" + note);
-                SoapObject req = WebserviceUtils.getRequest(map, "UpdateSSCSState");
                 try {
-                    SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.MartService);
-                    Log.e("zjy", "YanhuoCheckActivity->run(): reuslt==" + res.toString());
-                    String result = res.toString();
+                    String result = MartService.UpdateSSCSState(pid, state, note);
+                    Log.e("zjy", "YanhuoCheckActivity->run(): reuslt==" +result);
                     if (result.equals("成功")) {
                         MyApp.myLogger.writeInfo("yanhuo-ok:" + pid + "\t" + state);
                         mHandler.post(new Runnable() {

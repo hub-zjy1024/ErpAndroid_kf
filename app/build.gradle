@@ -1,15 +1,14 @@
 apply plugin: 'com.android.application'
+ext.appReleaseDir = "D:/dyj/";
+
+def getDate() {
+    def date = new Date()
+    def formattedDate = date.format('MMddHHmmss')
+    return formattedDate
+}
 
 android {
     signingConfigs {
-//        release {
-//            keyAlias 'zjy'
-//            keyPassword 'love840502'
-//            storeFile file('D:/Zjys/zjys_keystore.jks')
-//            storePassword 'love840502'
-//            setV1SigningEnabled(true)
-//            setV2SigningEnabled(true)
-//        }
         release {
             keyAlias RELEASE_KEY_ALIAS
             keyPassword RELEASE_KEY_PASSWORD
@@ -20,14 +19,13 @@ android {
         }
     }
     compileSdkVersion 24
-//    compileSdkVersion 23
     buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.b1b.js.erpandroid_kf"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 48
-        versionName "5.6"
+        versionCode 53
+        versionName "6.0"
         ndk {
             abiFilters "armeabi", "armeabi-v7a"
         }
@@ -44,6 +42,22 @@ android {
             proguardFile 'proguard-rules.txt'
             signingConfig signingConfigs.release
             zipAlignEnabled true
+            android.applicationVariants.all { variant ->
+                File f = new File("D:\\Zjys\\dyj_app\\dyj_kf\\apk")
+                if (!f.exists()) {
+                    f.mkdirs()
+                }
+                if (variant.buildType.name != "debug") {//防止AS无法安装debug包(apk)
+                    variant.getPackageApplication().outputDirectory = f
+                }
+                variant.getPackageApplication().outputScope.apkDatas.forEach { apkData ->
+                    //这个修改输出APK的文件名
+                    apkData.outputFileName = "dyjkf_" +
+                            variant.versionName + "_" +
+                            variant.versionCode + "_" +
+                            ".apk"
+                }
+            }
         }
         debug {
             minifyEnabled false
@@ -51,7 +65,6 @@ android {
         }
     }
 }
-
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -72,27 +85,4 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation 'junit:junit:4.12'
     implementation project(':redlinescan')
-}
-build {
-    doLast {
-        println("这是doLast Task===========================================")
-        def today = new Date().format('yyyyMMdd_hh');
-        copy{
-            from('build/outputs/apk')
-            into('D:/Zjys/dyj_app/dyj_kf/')
-            include('app-release.apk')
-            rename('app-release.apk','Test' + "_"+ today + '.apk')
-        }
-    }
-}
-task hello {
-    doLast {
-        def today = new Date().format('MMdd_hh');
-        copy{
-            from('build/outputs/apk')
-            into('/Users/dvlee/Desktop/')
-            include('app-release.apk')
-            rename('app-release.apk','Test' + "_"+ today + '.apk')
-        }
-    }
 }

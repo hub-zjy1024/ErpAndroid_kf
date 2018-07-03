@@ -19,6 +19,8 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
+
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
@@ -38,40 +40,41 @@ import utils.MyImageUtls;
 import utils.MyToast;
 import utils.UploadUtils;
 import utils.WebserviceUtils;
+import utils.handler.NoLeakHandler;
 
 public class CaigouTakePic2Activity extends TakePicActivity implements View.OnClickListener {
 
     NotificationManager notificationManager;
     private final static int ERROR_NO_SD = 2;
     private Context mContext = CaigouTakePic2Activity.this;
-    protected Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case PICUPLOAD_ERROR:
-                    btn_takepic.setEnabled(true);
-                    toolbar.setVisibility(View.GONE);
-                    break;
-                case PICUPLOAD_SUCCESS:
-                    Object obj = msg.obj;
-                    final TextView textView = (TextView) obj;
-                    String nowTag = textView.getTag().toString();
-                    textView.setText("图片:" + nowTag + "上传完成 OK···");
-                    postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            llResult.removeView(textView);
-                        }
-                    }, 2000);
-                    MyToast.showToast(mContext, "后台剩余图片：" + (MyApp.cachedThreadPool.getActiveCount() - 1));
-                    break;
-                case ERROR_NO_SD:
-                    MyToast.showToast(mContext, "sd卡不存在，不可用后台上传");
-                    btn_commit.setEnabled(false);
-                    break;
-            }
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case PICUPLOAD_ERROR:
+                btn_takepic.setEnabled(true);
+                toolbar.setVisibility(View.GONE);
+                break;
+            case PICUPLOAD_SUCCESS:
+                Object obj = msg.obj;
+                final TextView textView = (TextView) obj;
+                String nowTag = textView.getTag().toString();
+                textView.setText("图片:" + nowTag + "上传完成 OK···");
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        llResult.removeView(textView);
+                    }
+                }, 2000);
+                MyToast.showToast(mContext, "后台剩余图片：" + (MyApp.cachedThreadPool.getActiveCount() - 1));
+                break;
+            case ERROR_NO_SD:
+                MyToast.showToast(mContext, "sd卡不存在，不可用后台上传");
+                btn_commit.setEnabled(false);
+                break;
         }
-    };
+    }
+
+    protected Handler mHandler = new NoLeakHandler(this);
     private HashMap<Integer, String> map = new HashMap<>();
     private LinearLayout llResult;
 
@@ -126,8 +129,7 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                         Matrix matrixs = new Matrix();
                         matrixs.setRotate(90 + cRotate);
                         Bitmap photo = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrixs, true);
-                        Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext, photo, bitmap,
-                                0, 0);
+                        Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext, photo, bitmap);
                         textBitmap = ImageWaterUtils.drawTextToRightTop(mContext, waterBitmap, pid, (int) (photo
                                 .getWidth() * 0.015), Color.RED, 20, 20);
                         MyImageUtls.releaseBitmap(bitmap);
@@ -181,7 +183,7 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                                 remoteName = UploadUtils.createSCCGRemoteName(pid);
                                 String mUrl = null;
                                 FTPUtils ftpUtil = null;
-                                if ("101".equals(MyApp.id)) {
+                                if (CheckUtils.isAdmin()) {
                                     mUrl = FtpManager.mainAddress;
                                     ftpUtil = FtpManager.getTestFTP();
                                     remotePath = UploadUtils.getTestPath(pid);
@@ -214,12 +216,12 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                                     //更新服务器信息
                                     try {
                                         String res = "连接失败";
-                                        if ("101".equals(MyApp.id)) {
+                                        if (CheckUtils.isAdmin()) {
                                             res = "操作成功";
                                         } else {
                                             res = ObtainPicFromPhone.setSSCGPicInfo
                                                     (WebserviceUtils.WebServiceCheckWord, cid, did,
-                                                            Integer.parseInt(MyApp.id), pid,
+                                                            Integer.parseInt(loginID), pid,
                                                             remoteName + ".jpg", insertPath, "SCCG");
                                         }
                                         Log.e("zjy", "TakePic2Activit.java->setInsertPicInfo == " + res);

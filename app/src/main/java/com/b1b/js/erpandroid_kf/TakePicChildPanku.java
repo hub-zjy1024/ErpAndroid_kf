@@ -3,6 +3,8 @@ package com.b1b.js.erpandroid_kf;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
+
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -24,7 +26,7 @@ public class TakePicChildPanku extends TakePicActivity {
     public String getUploadRemotePath() {
         String remotePath;
         String remoteName = UploadUtils.getPankuRemoteName(pid);;
-        if ("101".equals(userID)) {
+        if (CheckUtils.isAdmin()) {
             remotePath = UploadUtils.getTestPath(pid);
         } else {
             remotePath = "/" + UploadUtils.getCurrentDate() + "/pk/" + remoteName + ".jpg";
@@ -35,7 +37,7 @@ public class TakePicChildPanku extends TakePicActivity {
     @Override
     public boolean getInsertResultMain(String remoteName, String insertPath) throws IOException, XmlPullParserException {
         String res = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
-                .parseInt(MyApp.id), pid, remoteName, insertPath, "PK");
+                .parseInt(loginID), pid, remoteName, insertPath, "PK");
         Log.e("zjy", "TakePicActivity.java->run(): insertPath result==" + insertPath + "\t" + res);
         MyApp.myLogger.writeInfo("TakePic PK " + insertPath + "\t" + res);
         return "操作成功".equals(res);
@@ -43,7 +45,7 @@ public class TakePicChildPanku extends TakePicActivity {
 
     @Override
     public void getUrlAndFtp() {
-        if ("101".equals(userID)) {
+        if (CheckUtils.isAdmin()) {
             mUrl = FtpManager.mainAddress;
             ftpUtil = FtpManager.getTestFTP();
         } else {

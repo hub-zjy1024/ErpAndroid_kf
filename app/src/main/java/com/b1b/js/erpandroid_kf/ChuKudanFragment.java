@@ -4,7 +4,6 @@ package com.b1b.js.erpandroid_kf;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -23,8 +22,6 @@ import com.b1b.js.erpandroid_kf.adapter.ChuKuDanAdapter;
 import com.b1b.js.erpandroid_kf.entity.ChuKuDanInfo;
 
 import org.json.JSONException;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -32,19 +29,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import utils.MyJsonUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
+import utils.handler.NoLeakHandler;
+import utils.wsdelegate.ChuKuServer;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ChuKudanFragment extends Fragment implements View.OnClickListener {
+public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler.NoLeakCallback{
     private ListView lv;
     private List<ChuKuDanInfo> data = new ArrayList<>();
     private ChuKuDanAdapter adapter;
@@ -59,31 +56,30 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
     private TextView tvEtime;
     private RadioGroup radioGroup;
     private Calendar calendar;// 用来装日期的
-    private DatePickerDialog datePickerDialog;
+    private String loginID;
 
     public ChuKudanFragment() {
 
     }
 
-    private Handler handler = new Handler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(Message msg) {
-            if (msg.what == 0) {
-                List<ChuKuDanInfo> list = (List<ChuKuDanInfo>) msg.obj;
-                data.addAll(list);
-                adapter.notifyDataSetChanged();
-                isFinish = true;
-                SoftKeyboardUtils.closeInputMethod(edPartNo, getActivity());
-                MyToast.showToast(getActivity(), "查询到" + data.size() + "条数据");
-            } else if (msg.what == 1) {
-                isFinish = true;
-                MyToast.showToast(getActivity(), "查询条件有误");
-            } else if (msg.what == 2) {
-                isFinish = true;
-                MyToast.showToast(getActivity(), "当前网络质量较差，查询失败");
-            }
+    @Override
+    public void handleMessage(Message msg) {
+        if (msg.what == 0) {
+            List<ChuKuDanInfo> list = (List<ChuKuDanInfo>) msg.obj;
+            data.addAll(list);
+            adapter.notifyDataSetChanged();
+            isFinish = true;
+            SoftKeyboardUtils.closeInputMethod(edPartNo, getActivity());
+            MyToast.showToast(getActivity(), "查询到" + data.size() + "条数据");
+        } else if (msg.what == 1) {
+            isFinish = true;
+            MyToast.showToast(getActivity(), "查询条件有误");
+        } else if (msg.what == 2) {
+            isFinish = true;
+            MyToast.showToast(getActivity(), "当前网络质量较差，查询失败");
         }
-    };
+    }
+    private Handler handler = new NoLeakHandler(this);
 
     public Button getBtnSearch() {
         return btnSearch;
@@ -96,6 +92,7 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        loginID = getArguments().getString("loginID");
         View view = inflater.inflate(R.layout.fragment_chu_kudan, container, false);
         lv = (ListView) view.findViewById(R.id.frag_chukudan_lv);
         edPartNo = (EditText) view.findViewById(R.id.frag_chukudan_GoodNo);
@@ -110,7 +107,8 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                com.b1b.js.erpandroid_kf.ChuKuActivity activity = (com.b1b.js.erpandroid_kf.ChuKuActivity) getActivity();
+                com.b1b.js.erpandroid_kf.ChuKuActivity activity = (com.b1b.js.erpandroid_kf.ChuKuActivity)
+                        getActivity();
                 activity.startScanActivity();
             }
         });
@@ -133,7 +131,7 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
 
         });
         //默认半年内，查询结果最多100条
-//        getData("2309", "", "", getStringDateBefore(180), getFormatDate(new Date()));
+        //        getData("2309", "", "", getStringDateBefore(180), getFormatDate(new Date()));
         return view;
     }
 
@@ -151,7 +149,8 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
 
 
     private void setTvTime(final TextView textView) {
-        DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), new DatePickerDialog
+                .OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 textView.setText(year + "-" + (month + 1) + "-" + dayOfMonth);
@@ -160,7 +159,8 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
         datePickerDialog.show();
     }
 
-    private void getData(final String uid, final String partNo, final String pid, final String stime, final String etime) {
+    private void getData(final String uid, final String partNo, final String pid, final String stime, final
+    String etime) {
         new Thread() {
             @Override
             public void run() {
@@ -185,17 +185,10 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
         }.start();
     }
 
-    public static String getGetChuKuInfoList(String checkWord, String uid, String stime, String etime, String pid, String partNo) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
-        properties.put("checkWord", checkWord);
-        properties.put("uid", uid);
-        properties.put("stime", stime);
-        properties.put("etime", etime);
-        properties.put("pid", pid);
-        properties.put("partNo", partNo);
-        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuInfoList");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
-        return response.toString();
+    public static String getGetChuKuInfoList(String checkWord, String uid, String stime, String etime,
+                                             String pid, String partNo) throws IOException,
+            XmlPullParserException {
+        return ChuKuServer.GetChuKuInfoList(checkWord, uid, stime, etime, pid, partNo);
     }
 
     @Override
@@ -242,7 +235,7 @@ public class ChuKudanFragment extends Fragment implements View.OnClickListener {
                         sttime = tvStime.getText().toString();
                         endtime = tvStime.getText().toString();
                     }
-                    getData(com.b1b.js.erpandroid_kf.MyApp.id, partNo, pid, sttime, endtime);
+                    getData(loginID, partNo, pid, sttime, endtime);
                 } else {
                     MyToast.showToast(getActivity(), "请稍后，上次查询还未完成");
                 }

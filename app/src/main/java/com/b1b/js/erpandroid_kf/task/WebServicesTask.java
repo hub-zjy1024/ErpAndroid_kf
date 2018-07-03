@@ -2,8 +2,6 @@ package com.b1b.js.erpandroid_kf.task;
 
 import android.os.AsyncTask;
 
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -29,9 +27,10 @@ public class WebServicesTask<T> extends AsyncTask<String, Void, T> {
         String method = params[0];
         String serviceName = params[1];
         try {
-            SoapObject request = WebserviceUtils.getRequest(map, method);
-            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, serviceName);
-            return (T)response.toString();
+//            SoapObject request = WebserviceUtils.getRequest(map, method);
+//            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, serviceName);
+//            return (T)response.toString();
+            return (T) WebserviceUtils.getWcfResult(map, method, serviceName);
         } catch (IOException e) {
             tempEx = e;
             e.printStackTrace();

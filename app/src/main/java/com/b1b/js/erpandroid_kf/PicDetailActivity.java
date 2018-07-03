@@ -17,8 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import utils.MyImageUtls;
+import utils.handler.NoLeakHandler;
 
-public class PicDetailActivity extends AppCompatActivity {
+public class PicDetailActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback{
 
     private ZoomImageView zoomIv;
     private ViewPager mViewPager;
@@ -26,34 +27,32 @@ public class PicDetailActivity extends AppCompatActivity {
     private List<String> paths;
     PicDetailViewPagerAdapter adapter;
     int pos;
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case 0:
-                    if (paths != null) {
-                        for (int i = 0; i < paths.size(); i++) {
-                            ZoomImageView tempView = new ZoomImageView(PicDetailActivity.this);
-                            //                imgLayoutParams.width =300;
-                            //                imgLayoutParams.height =300;
-                            //                zoomImageView.setLayoutParams(imgLayoutParams);
-                            if (i != pos) {
-                                try {
-                                    Bitmap bitmap = MyImageUtls.getMySmallBitmap(paths.get(i), 500, 500);
-                                    tempView.setImageBitmap(bitmap);
-                                    mImgs.add(tempView);
-                                } catch (OutOfMemoryError error) {
-                                    error.printStackTrace();
-                                }
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case 0:
+                if (paths != null) {
+                    for (int i = 0; i < paths.size(); i++) {
+                        ZoomImageView tempView = new ZoomImageView(PicDetailActivity.this);
+                        //                imgLayoutParams.width =300;
+                        //                imgLayoutParams.height =300;
+                        //                zoomImageView.setLayoutParams(imgLayoutParams);
+                        if (i != pos) {
+                            try {
+                                Bitmap bitmap = MyImageUtls.getMySmallBitmap(paths.get(i), 500, 500);
+                                tempView.setImageBitmap(bitmap);
+                                mImgs.add(tempView);
+                            } catch (OutOfMemoryError error) {
+                                error.printStackTrace();
                             }
                         }
-                        adapter.notifyDataSetChanged();
                     }
-                    break;
-            }
+                    adapter.notifyDataSetChanged();
+                }
+                break;
         }
-    };
+    }
+    private Handler mHandler = new NoLeakHandler(this);
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,6 +91,7 @@ public class PicDetailActivity extends AppCompatActivity {
         mViewPager.setAdapter(adapter);
         mHandler.sendEmptyMessageDelayed(0,300);
     }
+
 
     class PicDetailViewPagerAdapter extends PagerAdapter {
         public PicDetailViewPagerAdapter(Context mContext, List<ZoomImageView> data) {

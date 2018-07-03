@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -20,18 +19,15 @@ import com.b1b.js.erpandroid_kf.entity.YanhuoInfo;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
+import utils.wsdelegate.MartService;
 
 public class CaigouYanhuoActivity extends AppCompatActivity {
 
@@ -197,15 +193,6 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
 
     public String getResponse(String partno, String pid) throws IOException,
             XmlPullParserException {
-        //        GetSSCGInfoByDDYH
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("partno", partno);
-        map.put("pid", pid);
-        SoapObject req = WebserviceUtils.getRequest(map, "GetSSCGInfoByDDYH");
-        SoapPrimitive obj = WebserviceUtils.getSoapPrimitiveResponse(req,
-                WebserviceUtils.MartService);
-        Log.e("zjy", "CaigouYanhuoActivity->getResponse(): response==" + obj
-                .toString());
-        return obj.toString();
+        return MartService.GetSSCGInfoByDDYH(partno, pid);
     }
 }

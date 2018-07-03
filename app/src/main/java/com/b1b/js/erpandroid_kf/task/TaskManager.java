@@ -55,9 +55,20 @@ public class TaskManager {
         return getInstance(core, max, defaultCapcity);
     }
 
-    public static synchronized TaskManager getInstance(int core, int max, int maxTasks) {
-        if (tm == null) {
-            tm = new TaskManager(core, max, maxTasks);
+    /**
+     单例：双重非空校验，并且线程安全
+     @param core
+     @param max
+     @param maxTasks
+     @return
+     */
+    public static TaskManager getInstance(int core, int max, int maxTasks) {
+        if(tm==null){
+            synchronized (TaskManager.class){
+                if(tm==null){
+                    tm=new TaskManager(core, max, maxTasks);
+                }
+            }
         }
         return tm;
     }
