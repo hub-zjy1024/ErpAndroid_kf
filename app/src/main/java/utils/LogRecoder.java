@@ -36,7 +36,7 @@ public class LogRecoder {
     }
 
 
-    public synchronized boolean writeString(int type, String logs) {
+    private synchronized boolean writeString(int type, String logs) {
         if (writer == null) {
             Log.e("zjy", "LogRecoder->writeString(): can not write to log==");
             return false;
@@ -66,14 +66,15 @@ public class LogRecoder {
         return false;
     }
 
-    public synchronized boolean writeError(String logs) {
+    public  boolean writeError(String logs) {
         return writeString(Type.TYPE_ERROR, logs);
     }
 
-    public synchronized boolean writeError(Throwable e) {
-        String logs = getStacktrace(e);
+    public  boolean writeError(Throwable e) {
+        String logs = getExStackTrace(e);
         return writeError("Error Exception:" + logs);
     }
+
 
     private static String getStacktrace(Throwable e) {
         String result = "null Exception";
@@ -88,24 +89,69 @@ public class LogRecoder {
         return result;
     }
 
-    public synchronized boolean writeError(Throwable e, String msg) {
-        String logs = getStacktrace(e);
+    public String getExStackTrace(Throwable ex) {
+        Throwable tempT = ex;
+        StringBuilder simpleMsg = new StringBuilder();
+        String mainMsg = tempT.getMessage();
+        if (mainMsg != null) {
+            simpleMsg.append("mainEx:");
+            simpleMsg.append(mainMsg);
+            simpleMsg.append("\n");
+        }
+        int deep = 1;
+        StackTraceElement[] mainStackTrace = tempT.getStackTrace();
+        for (int j = 0; j < mainStackTrace.length; j++) {
+            if (j <= deep) {
+                simpleMsg.append("\tat ");
+                simpleMsg.append(mainStackTrace[j].toString());
+                simpleMsg.append("\n");
+            } else {
+                break;
+            }
+        }
+        while ( tempT != null) {
+            Throwable cause = tempT.getCause();
+            if (cause != null) {
+                String tempMsg = cause.getMessage();
+                if (tempMsg != null) {
+                    simpleMsg.append("caused by:");
+                    simpleMsg.append(tempMsg);
+                    simpleMsg.append("\n");
+                }
+                StackTraceElement[] stackTrace = cause.getStackTrace();
+                for (int j = 0; j < stackTrace.length; j++) {
+                    if (j <= deep) {
+                        simpleMsg.append("\tat ");
+                        simpleMsg.append(stackTrace[j].toString());
+                        simpleMsg.append("\n");
+                    } else {
+                        break;
+                    }
+                }
+            }
+            tempT = cause;
+        }
+        return simpleMsg.toString();
+    }
+
+    public boolean writeError(Throwable e, String msg) {
+        String logs = getExStackTrace(e);
         return writeError("Error Exception:description=" + msg + " \ndetail:" + logs);
     }
 
-    public synchronized boolean writeError(Class cla, String logs) {
+    public  boolean writeError(Class cla, String logs) {
         return writeString(Type.TYPE_INFO, cla.getSimpleName() + ":" + logs);
     }
 
-    public synchronized boolean writeBug(String logs) {
+    public  boolean writeBug(String logs) {
         return writeString(Type.TYPE_BUG, logs);
     }
 
-    public synchronized boolean writeInfo(String logs) {
+    public  boolean writeInfo(String logs) {
         return writeString(Type.TYPE_INFO, logs);
     }
 
-    public synchronized boolean writeInfo(Class cla, String logs) {
+    public  boolean writeInfo(Class cla, String logs) {
         return writeString(Type.TYPE_INFO, cla.getSimpleName() + ":" + logs);
     }
 

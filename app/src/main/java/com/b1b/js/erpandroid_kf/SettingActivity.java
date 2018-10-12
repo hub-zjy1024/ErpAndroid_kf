@@ -3,6 +3,7 @@ package com.b1b.js.erpandroid_kf;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -37,10 +38,11 @@ import java.util.regex.Pattern;
 
 import utils.DialogUtils;
 import utils.MyToast;
+import utils.handler.NoLeakHandler;
 import utils.handler.SafeHandler;
 import utils.WebserviceUtils;
 
-public class SettingActivity extends AppCompatActivity {
+public class SettingActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback{
 
     static class LHandler extends SafeHandler<SettingActivity>{
 
@@ -66,8 +68,21 @@ public class SettingActivity extends AppCompatActivity {
             }
         }
     }
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case 1:
+              aDialog.setMessage("解析数据出错");
+              aDialog.show();
+                break;
+            case 2:
+                aDialog.setMessage("获取库房信息失败：" + getString(R.string.bad_connection));
+              aDialog.show();
+                break;
+        }
+    }
+    private Handler zHandler = new LHandler(this);
 
-    private LHandler zHandler = new LHandler(this);
     public static final String NAME = "kfName";
     public static final String KYACCOUNT = "kyAccount";
     public static final String KYUUID = "kyUuid";

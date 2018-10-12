@@ -1,4 +1,5 @@
-<resources  xmlns:app="http://schemas.android.com/apk/res-auto">
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -42,14 +43,14 @@
         <item name="android:gravity">center</item>
         <item name="android:textSize">25sp</item>
         <item name="android:textColor">@color/color_white</item>
-      <!--  android:id="@+id/caigouedit_title"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:background="@color/bijia_title_background"
-        android:gravity="center"
-        android:text="运单打印"
-        android:textColor="@color/color_white"
-        android:textSize="20sp"-->
+        <!--  android:id="@+id/caigouedit_title"
+          android:layout_width="match_parent"
+          android:layout_height="40dp"
+          android:background="@color/bijia_title_background"
+          android:gravity="center"
+          android:text="运单打印"
+          android:textColor="@color/color_white"
+          android:textSize="20sp"-->
     </style>
     <style name="AppSplash" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@mipmap/appsplash</item>
@@ -75,8 +76,8 @@
     </style>
     <style name="zjy_metiarial_ed">
     </style>
-  <!--app:met_clearButton="true"<
-        app:met_primaryColor="@color/colorPrimary"&ndash;&gt;-->
+    <!--app:met_clearButton="true"<
+          app:met_primaryColor="@color/colorPrimary"&ndash;&gt;-->
     <style name="anim_popup_dir">
         <item name="android:windowEnterAnimation">@anim/slide_in</item>
         <item name="android:windowExitAnimation">@anim/slide_out</item>
@@ -105,8 +106,6 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:padding">@dimen/btn_padding</item>
     </style>
-    <style name="zjy_button_nomarl_ky" parent="zjy_button_nomarl_alpha100">
-    </style>
     <style name="zjy_button_nomarl_alpha100_large" parent="Base.Widget.AppCompat.Button">
         <item name="android:background">@drawable/btn_selector</item>
         <item name="android:minHeight">40dp</item>
@@ -134,4 +133,7 @@
         <attr name="vertical_Space" format="dimension"/>
         <attr name="isFull" format="boolean"/>
     </declare-styleable>
+    <style name="zjy_button_nomarl_ky" parent="zjy_button_nomarl_alpha100">
+        <item name="android:elevation">10dp</item>
+    </style>
 </resources>

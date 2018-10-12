@@ -14,7 +14,6 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.hardware.Camera;
-import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,6 +33,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.receiver.NetBroadcastReceiver;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -55,6 +55,7 @@ import utils.MyImageUtls;
 import utils.MyToast;
 import utils.UploadUtils;
 import utils.camera.AutoFoucusMgr;
+import utils.camera.CamRotationManager;
 import utils.camera.CustomAutoFocus;
 import utils.handler.NoLeakHandler;
 import utils.wsdelegate.ChuKuServer;
@@ -85,6 +86,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
     int did;
     private Context mContext = TakePic2Activity.this;
     private Handler mHandler = new NoLeakHandler(this);
+    private NetBroadcastReceiver netWorkChecker;
 
     @Override
     public void handleMessage(Message msg) {
@@ -118,6 +120,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
     }
 
     private OrientationEventListener mOrientationListener;
+    private CamRotationManager rotationManager;
     private SharedPreferences sp;
     private int itemPosition;
     private AlertDialog inputDialog;
@@ -158,6 +161,18 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                 checkPid(mContext, pid);
             }
         });
+//         netWorkChecker = new NetBroadcastReceiver(new NetBroadcastReceiver.StateCallback() {
+//            @Override
+//            public void onNetChange(int state) {
+//                if (state == NetBroadcastReceiver.NETWORK_NONE) {
+//                    MyToast.showToast(mContext, "网络连接断开！！！！");
+//                } else if (state == NetBroadcastReceiver.NETWORK_WIFI) {
+//                    MyToast.showToast(mContext, "连接到WIFI");
+//                } else if (state == NetBroadcastReceiver.NETWORK_MOBILE) {
+//                    MyToast.showToast(mContext, "连接到移动网络");
+//                }
+//            }
+//        });
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         builder.setNegativeButton("取消", null);
         builder.setView(v);
@@ -167,18 +182,12 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
             tvPid.setText(pid);
             dialogPid.setText(pid);
         }
-        mOrientationListener = new OrientationEventListener(this,
-                SensorManager.SENSOR_DELAY_NORMAL) {
-            @Override
-            public void onOrientationChanged(int orientation) {
-                rotation = getProperRotation(orientation);
-            }
-        };
+        rotationManager = new CamRotationManager(this);
+        rotationManager.attachToSensor();
         //成功或失败的提示框
         SharedPreferences userInfoSp = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
         cid = userInfoSp.getInt("cid", -1);
         did = userInfoSp.getInt("did", -1);
-        attachToSensor(mOrientationListener);
         //获取surfaceholder
         mHolder = surfaceView.getHolder();
         //添加SurfaceHolder回调
@@ -386,7 +395,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                             throwable.printStackTrace();
                             MyApp.myLogger.writeError(throwable);
                         }
-                        tempRotate = rotation;
+                        tempRotate = rotationManager.getRotation();
                         isPreview = false;
                         if (data == null || data.length == 0) {
                             MyToast.showToast(mContext, "拍照出现错误，请重启程序");
@@ -529,8 +538,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                         remotePath = UploadUtils.getTestPath(pid);
                                     } else {
                                         mUrl = kfFTP;
-                                        ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName,
-                                                FtpManager.ftpPassword);
+                                        ftpUtil = FTPUtils.getLocalFTP(mUrl);
                                         remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
                                     }
                                     ftpUtil.login(30);
@@ -563,9 +571,11 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                                     if (totalTime - runTime > 1) {
                                                         MyApp.myLogger.writeBug("Task Wait SoLong");
                                                     }
-                                                    String strCounts = "counts=";
-                                                    if (counts> 0) {
-                                                        strCounts+= counts;
+                                                    String strCounts = ",counts=";
+                                                    if (counts > 0) {
+                                                        strCounts += counts;
+                                                    } else {
+                                                        strCounts = "";
                                                     }
                                                     double checkRate = 1.6;
                                                     if (runTime > checkRate) {
@@ -573,7 +583,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                                                 remoteName + "\ttime=" + runTime + "/" +
                                                                 totalTime + strCounts);
                                                     }else{
-                                                        MyApp.myLogger.writeInfo("chuku takepic2 finish" +
+                                                        MyApp.myLogger.writeInfo("chuku takepic2 finish：" +
                                                                 remoteName + " time<" + checkRate);
                                                     }
                                                     Log.e("zjy", "TakePic2Activity->run(): upload " +
@@ -712,12 +722,18 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
         if (mOrientationListener != null) {
             mOrientationListener.disable();
         }
+        if (rotationManager != null) {
+            rotationManager.disable();
+        }
+//        unregisterReceiver(netWorkChecker);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        attachToSensor(mOrientationListener);
+        rotationManager.attachToSensor();
+//        netWorkChecker.getLastState(mContext);
+//        registerReceiver(netWorkChecker, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
 }

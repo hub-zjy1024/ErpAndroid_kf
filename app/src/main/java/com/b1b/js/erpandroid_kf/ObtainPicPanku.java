@@ -40,8 +40,7 @@ public class ObtainPicPanku extends ReUploadActivity implements View.OnClickList
         fileName = getRemarkName(fileName, true);
         remoteName = fileName + ".jpg";
         mUrl = MyApp.ftpUrl;
-        ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName,
-                FtpManager.ftpPassword);
+        ftpUtil = FTPUtils.getLocalFTP(mUrl);
         remotePath = "/" + UploadUtils.getCurrentDate() + "/pk/" + remoteName;
         if (isTest) {
             mUrl = FtpManager.mainAddress;

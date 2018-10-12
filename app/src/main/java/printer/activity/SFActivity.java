@@ -163,8 +163,6 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
     public void myOnclick(View view) {
         switch (view.getId()) {
             case R.id.sf_btnSFScan:
-                //                Intent intent = new Intent(SFActivity.this, CaptureActivity.class);
-                //                startActivityForResult(intent, CaptureActivity.REQ_CODE);
                 startScanActivity();
                 break;
             case R.id.sf_btnSFservice:

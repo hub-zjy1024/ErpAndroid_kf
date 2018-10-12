@@ -6,7 +6,7 @@ package utils;
 public class FtpManager {
     public static final String ftpName = "dyjftp";
     public static final String ftpPassword = "dyjftp";
-    public static final String mainAddress = "172.16.6.22";
+    public static final String mainAddress = FTPUtils.mainAddress;
     public static final String mainName = "NEW_DYJ";
     public static final String mainPwd = "GY8Fy2Gx";
 
@@ -17,6 +17,6 @@ public class FtpManager {
 
     public static FTPUtils getTestFTPMain() {
         //        return new FTPUtils(FTPUtils.mainAddress, mainName, mainPwd);
-        return new FTPUtils(FTPUtils.mainAddress, mainName, mainPwd);
+        return FTPUtils.getAdminFTP();
     }
 }

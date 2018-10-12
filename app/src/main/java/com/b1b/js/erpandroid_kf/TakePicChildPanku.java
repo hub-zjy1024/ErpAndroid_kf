@@ -50,8 +50,7 @@ public class TakePicChildPanku extends TakePicActivity {
             ftpUtil = FtpManager.getTestFTP();
         } else {
             mUrl = kfFTP;
-            ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName,
-                    FtpManager.ftpPassword);
+            ftpUtil = FTPUtils.getLocalFTP(mUrl);
         }
     }
 

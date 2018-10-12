@@ -54,6 +54,7 @@ public class BtHelper {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            Log.e("zjy", "BtHelper->onReceive(): Receiver==" + action);
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 helper.onDeviceReceive(device);
@@ -109,7 +110,7 @@ public class BtHelper {
             return;
         }
         mContext.unregisterReceiver(listener);
-        Log.e("zjy", "BtHelper->unRegister(): unRegist==");
+        Log.e("zjy", "BtHelper->unRegister(): unRegist==" + toString());
         isRegisted = false;
     }
 
@@ -121,6 +122,7 @@ public class BtHelper {
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         mContext.registerReceiver(listener, filter);
+        Log.e("zjy", "BtHelper->register(): register==" + toString());
         isRegisted = true;
     }
 }

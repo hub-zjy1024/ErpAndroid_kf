@@ -227,8 +227,6 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                         }
                         for (int i = 0; i < infos.size(); i++) {
                             XiaopiaoInfo tInfo = infos.get(i);
-                            //                            PrinterStyle.printXiaopiao(mContext, printer);
-                            //                            PrinterStyle.printXiaopiao2(mContext, printer, tInfo);
                             PrinterStyle.printXiaopiao2(printer2, tInfo);
                             try {
                                 Thread.sleep(1000);
@@ -236,6 +234,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                                 e.printStackTrace();
                             }
                         }
+                        MyApp.myLogger.writeInfo("start print rkTag,pid=" + edPid.getText().toString());
                     }
                 };
                 TaskManager.getInstance().execute(printRun);
@@ -268,7 +267,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
 
                 }
             });
-            printer2.registeBroadCast();
+//            printer2.registeBroadCast();
             Runnable connetRunnable = new Runnable() {
                 @Override
                 public void run() {
@@ -288,6 +287,21 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (printer2 != null) {
+            printer2.unRegisterReceiver();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (printer2 != null) {
+            printer2.registeBroadCast();
+        }
+    }
 
     @Override
     public void resultBack(String result) {
@@ -428,17 +442,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                 printer = PrintSettingActivity.getPrint();
                 tvState.setTextColor(Color.GREEN);
                 tvState.setText("已连接");
-                printer2 = SPrinter.getPrinter(this, new SPrinter.MListener() {
-                    @Override
-                    public void sendMsg(int what) {
-                        mHandler.sendEmptyMessage(what);
-                    }
-
-                    @Override
-                    public void onDeviceReceive(BluetoothDevice d) {
-
-                    }
-                });
+                printer2 = SPrinter.getPrinter();
             }
         }
     }
@@ -452,8 +456,6 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         String bodyString = "";
         String info = "";
         try {
-//            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
-//            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
             bodyString = ChuKuServer.GetStoreRoomIDByIP(ip);
         } catch (IOException e) {
             info = e.getMessage();
@@ -483,9 +485,6 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         if (printer != null) {
             printer.close();
         }
-        if (printer2 != null) {
-            printer2.unRegisterReceiver();
-        }
     }
 
     public String getDetailInfoByDetailId(String pid) throws IOException, XmlPullParserException {
@@ -508,6 +507,10 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
             return;
         }
         if (isOffline) {
+            if (printer2 == null) {
+                MyToast.showToast(mContext, "请先连接蓝牙打印机");
+                return;
+            }
             printer2.printBarCode(result, 0, 1, 80);
             printer2.printText(result);
             printer2.newLine(3);

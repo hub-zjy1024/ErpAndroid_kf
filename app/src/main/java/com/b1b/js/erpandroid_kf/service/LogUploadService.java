@@ -30,6 +30,8 @@ public class LogUploadService extends Service {
     final String targeUrl = WebserviceUtils.ROOT_URL + "DownLoad/dyj_kf/logcheck.txt";
     final String logFileName = "dyj_log.txt";
     final String savedDir = "/Zjy/log_kf/" + UploadUtils.getyyMM() + "/";
+    private  final String tagStr = "date";
+
     private int startTime = 9;
     private SharedPreferences sp;
 
@@ -79,7 +81,7 @@ public class LogUploadService extends Service {
                 }
                 final File root = Environment.getExternalStorageDirectory();
                 final File log = new File(root, logFileName);
-                final String date = sp.getString("date", "");
+                final String date = sp.getString(tagStr, "");
                 String remoteName = getRemoteName(date);
                 fileSize = sp.getLong("logsize", 0);
                 final String current = UploadUtils.getDD(new Date());
@@ -87,7 +89,7 @@ public class LogUploadService extends Service {
                     fileSize = 0;
                 }
                 if (!log.exists()) {
-                    sp.edit().putString("date", current).apply();
+                    sp.edit().putString(tagStr, current).apply();
                 } else {
                     final String remotePath = savedDir + remoteName;
                     if (fileSize < log.length()) {
@@ -105,7 +107,7 @@ public class LogUploadService extends Service {
     }
 
     private boolean upload(File log, String remotePath) {
-        FTPUtils utils = new FTPUtils(FTPUtils.mainAddress, FTPUtils.mainName, FTPUtils.mainPwd);
+        FTPUtils utils = FTPUtils.getGlobalFTP();
         boolean upOK = false;
         FileInputStream fis = null;
         try {
@@ -153,8 +155,6 @@ public class LogUploadService extends Service {
                     len = reader.readLine();
                 }
                 is.close();
-                Log.e("zjy", "LogUploadService.java->uploadLogFile(): " +
-                        "readme==" + stringBuilder.toString());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -169,7 +169,8 @@ public class LogUploadService extends Service {
         if (!date.equals(current)) {
             upOK = upload(log, remotePath);
             if (upOK) {
-                sp.edit().putString("date", current).apply();
+                Log.e("zjy", "LogUploadService->uploadLogFile(): UploadLog Finish==");
+                sp.edit().putString(tagStr, current).apply();
                 MyApp.myLogger.close();
                 MyApp.myLogger.init(false);
                 MyApp.myLogger.writeInfo("new Logger");
@@ -204,7 +205,7 @@ public class LogUploadService extends Service {
                 public void run() {
                     final File root = Environment.getExternalStorageDirectory();
                     final File log = new File(root, service.logFileName);
-                    final String date = service.sp.getString("date", "");
+                    final String date = service.sp.getString(service.tagStr, "");
                     final String current = UploadUtils.getCurrentDate();
                     String remoteName = service.getRemoteName(date);
                     final String remotePath = service.savedDir + remoteName;
@@ -212,7 +213,7 @@ public class LogUploadService extends Service {
                         return;
                     }
                     if (!log.exists()) {
-                        service.sp.edit().putString("date", current).apply();
+                        service.sp.edit().putString(service.tagStr, current).apply();
                     } else {
                         if (service.fileSize < log.length()) {
                             service.uploadLogFile(service.targeUrl, current, date, remotePath, log);

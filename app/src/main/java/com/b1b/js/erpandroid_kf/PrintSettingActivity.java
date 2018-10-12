@@ -1,12 +1,12 @@
 package com.b1b.js.erpandroid_kf;
 
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -32,7 +32,7 @@ import utils.btprint.MyPrinterParent;
 import utils.btprint.SPrinter;
 import utils.handler.NoLeakHandler;
 
-public class PrintSettingActivity extends ListActivity implements NoLeakHandler.NoLeakCallback {
+public class PrintSettingActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback {
     private String TAG = "BtSetting";
     private Button bt_scan;
     private TextView tv_status;
@@ -57,8 +57,9 @@ public class PrintSettingActivity extends ListActivity implements NoLeakHandler.
             case BtHelper.STATE_CONNECTED:
                 pdDialog.cancel();
                 MyToast.showToast(PrintSettingActivity.this, "连接成功");
-                getSharedPreferences(SettingActivity.PREF_USERINFO, MODE_PRIVATE).edit().putString("btPrinterMac", macAddr)
-                        .commit();
+                getSharedPreferences(SettingActivity.PREF_USERINFO, MODE_PRIVATE).edit().putString
+                        ("btPrinterMac", macAddr)
+                        .apply();
                 setResult(RESULT_OK);
                 finish();
                 break;
@@ -101,66 +102,6 @@ public class PrintSettingActivity extends ListActivity implements NoLeakHandler.
                 break;
         }
     }
-//    private Handler bHandler = new NoLeakHandler(this) {
-//
-//        @Override
-//        public void handleMessage(Message msg) {
-//            super.handleMessage(msg);
-//            switch (msg.what) {
-//                case BtHelper.STATE_SCAN_FINISHED:
-//                    pdScanDialog.cancel();
-//                    MyToast.showToast(PrintSettingActivity.this, "扫描完成");
-//                    tv_status.setText("搜索完成");
-//                    progress.setVisibility(View.INVISIBLE);
-//                    break;
-//                case BtHelper.STATE_CONNECTED:
-//                    pdDialog.cancel();
-//                    MyToast.showToast(PrintSettingActivity.this, "连接成功");
-//                    getSharedPreferences(SettingActivity.PREF_USERINFO, MODE_PRIVATE).edit().putString("btPrinterMac", macAddr)
-//                            .commit();
-//                    setResult(RESULT_OK);
-//                    finish();
-//                    break;
-//                case BtHelper.STATE_DISCONNECTED:
-//                    pdDialog.cancel();
-//                    MyToast.showToast(PrintSettingActivity.this, "连接失败");
-//                    break;
-//                case BtHelper.STATE_OPENED:
-//                    Set<BluetoothDevice> bindedDevice = ((SPrinter) printer2).getBindedDevice();
-//                    List<Map<String, String>> listData = new ArrayList<Map<String, String>>();
-//                    for (BluetoothDevice d : bindedDevice) {
-//                        Map<String, String> map = new HashMap<>();
-//                        if (d.getName() != null) {
-//                            map.put("title", d.getName());
-//                        } else {
-//                            map.put("title", "未知");
-//                        }
-//                        map.put("deviceAddress", d.getAddress());
-//                        listData.add(map);
-//                    }
-//                    SimpleAdapter bonedAdapter = new SimpleAdapter(PrintSettingActivity.this, listData, android.R.layout
-//                            .simple_list_item_2, new
-//                            String[]{"title", "deviceAddress"}, new int[]{android.R.id.text1, android.R.id.text2});
-//                    lvBounded.setAdapter(bonedAdapter);
-//                    lvBounded.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//                        @Override
-//                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                            Map map = (Map) parent.getItemAtPosition(position);
-//                            macAddr = map.get("deviceAddress").toString();
-//                            pdDialog.show();
-//                            Runnable run = new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    printer2.connect(macAddr);
-//                                }
-//                            };
-//                            TaskManager.getInstance().execute(run);
-//                        }
-//                    });
-//                    break;
-//            }
-//        }
-//    };
     private static MyBluePrinter mPrinter;
     private ProgressDialog pdDialog;
     private ProgressDialog pdScanDialog;
@@ -199,13 +140,31 @@ public class PrintSettingActivity extends ListActivity implements NoLeakHandler.
             }
 
         });
-        setListAdapter(simpleAdapter);
+        ListView lv = (ListView) findViewById(R.id.activity_print_setting_lv);
+        lv.setAdapter(simpleAdapter);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Map map = (Map) parent.getItemAtPosition(position);
+                macAddr = map.get("deviceAddress").toString();
+                pdDialog.show();
+                Runnable run = new Runnable() {
+                    @Override
+                    public void run() {
+                        ((SPrinter) printer2).stopScan();
+                        printer2.connect(macAddr);
+                    }
+                };
+                TaskManager.getInstance().execute(run);
+            }
+        });
         bt_scan.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 listData.clear();
                 simpleAdapter.notifyDataSetChanged();
                 tv_status.setText("开始搜索");
+                MyApp.myLogger.writeInfo("startToScan BtDevices");
                 progress.setVisibility(View.VISIBLE);
                 printer2.scan();
             }
@@ -226,6 +185,7 @@ public class PrintSettingActivity extends ListActivity implements NoLeakHandler.
                 }
                 map.put("deviceAddress", d.getAddress());
                 map.put("device", d);
+                Log.e("zjy", "PrintSettingActivity->onDeviceReceive(): device==" + d.toString());
                 listData.add(map);
                 simpleAdapter.notifyDataSetChanged();
             }
@@ -260,22 +220,5 @@ public class PrintSettingActivity extends ListActivity implements NoLeakHandler.
     protected void onPause() {
         super.onPause();
         ((SPrinter)printer2).unRegisterReceiver();
-    }
-
-    /**
-     当List的项被选中时触发
-     */
-    protected void onListItemClick(ListView listView, View v, int position, long id) {
-        Map map = (Map) listView.getItemAtPosition(position);
-        macAddr = map.get("deviceAddress").toString();
-        pdDialog.show();
-        Runnable run = new Runnable() {
-            @Override
-            public void run() {
-                ((SPrinter) printer2).stopScan();
-                printer2.connect(macAddr);
-            }
-        };
-        TaskManager.getInstance().execute(run);
     }
 }

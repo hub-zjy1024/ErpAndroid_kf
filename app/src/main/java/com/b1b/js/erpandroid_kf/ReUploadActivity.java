@@ -130,13 +130,13 @@ public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandle
         String nowPath = item.getPath();
         if (isCaigou) {
             mUrl = CaigouActivity.ftpAddress;
-            ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName, FtpManager.ftpPassword);
+            ftpUtil = FTPUtils.getGlobalFTP();
             String fileName = nowPath.substring(nowPath.lastIndexOf("/") + 1, nowPath.lastIndexOf("."));
             remoteName = getRemarkName(fileName, false);
             remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
         } else {
             mUrl = MyApp.ftpUrl;
-            ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName, FtpManager.ftpPassword);
+            ftpUtil = FTPUtils.getLocalFTP(mUrl);
             String fileName = nowPath.substring(nowPath.lastIndexOf("/") + 1, nowPath.lastIndexOf("."));
             remoteName = getRemarkName(fileName, false);
             remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";

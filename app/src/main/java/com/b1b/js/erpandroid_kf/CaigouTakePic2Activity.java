@@ -189,8 +189,7 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                                     remotePath = UploadUtils.getTestPath(pid);
                                 } else {
                                     mUrl = CaigouActivity.ftpAddress;
-                                    ftpUtil = new FTPUtils(mUrl, CaigouActivity.username,
-                                            CaigouActivity.password);
+                                    ftpUtil = FTPUtils.getGlobalFTP();
                                     remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
                                 }
                                 insertPath = UploadUtils.createInsertPath(mUrl, remotePath);

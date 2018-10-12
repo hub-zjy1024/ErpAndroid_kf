@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.entity.YundanShixiao;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
@@ -55,6 +56,7 @@ import utils.DialogUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
+import utils.wsdelegate.MartService;
 import utils.wsdelegate.SF_Server;
 
 public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback {
@@ -91,10 +93,16 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
     private ProgressDialog pd;
     private String pidNotes = "";
     public String smsNum = "";
+    private List<YundanShixiao> shixiaoList;
+    private final int MSG_SHIXIAO = 2;
+    private final int MSG_GETINFO = 0;
+    private final int ShengWaiIndex = 6;
+    private final int TongchengIndex = 2;
+    private final int ShengNei = 0;
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
-            case 0:
+            case MSG_GETINFO:
                 edJPerson.setText(jName);
                 edJAddress.setText(jAddress);
                 edJTel.setText(jTel);
@@ -104,6 +112,44 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
                 tvPayBy.setText(payByWho);
                 tvNote.setText(pidNotes);
                 flag = 1;
+                if (kfName.equals("深圳")) {
+                    if (dAddress.contains("深圳")) {
+                        spiType.setSelection(TongchengIndex);
+                    } else {
+                        String json = readRaw(R.raw.json_gd);
+                        boolean shengNei = isShengNei(json, dAddress);
+                        if (shengNei) {
+                            spiType.setSelection(ShengNei);
+                        } else {
+                            spiType.setSelection(ShengWaiIndex);
+                        }
+                    }
+                } else if (kfName.equals("北京中转库")) {
+                    String json = readRaw(R.raw.json_bj);
+                    if (dAddress.contains("北京")) {
+                        spiType.setSelection(TongchengIndex);
+                    } else {
+                        boolean shengNei = false;
+                        if (dAddress.contains("天津")) {
+                            shengNei = true;
+                        } else {
+                            shengNei = isShengNei(json, dAddress);
+                        }
+                        if (shengNei) {
+                            spiType.setSelection(ShengNei);
+                        } else {
+                            spiType.setSelection(ShengWaiIndex);
+                        }
+                    }
+                }
+                break;
+            case MSG_SHIXIAO:
+                Object obj = msg.obj;
+                if (obj != null) {
+                    shixiaoList = (List<YundanShixiao>) obj;
+                    spiType.setAdapter(new ArrayAdapter<YundanShixiao>(mContext, R.layout.item_province, R
+                            .id.item_province_tv, shixiaoList));
+                }
                 break;
             case 1:
                 DialogUtils.dismissDialog(pd);
@@ -148,9 +194,12 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
         spiPayType = (Spinner) findViewById(R.id.yundanprint_spi_paytype);
         spiDiaohuo = (Spinner) findViewById(R.id.yundanprint_spi_printer);
         LinearLayout llDiaohuo = (LinearLayout) findViewById(R.id.yundanprint_ll_diaohuo);
-        final String[] serverTypes = new String[]{"陆运件-普", "同城即日-省内", "同城次日-省内", "隔日达-快（空）", "次日达-很快（空）", "当天达-极快（空）"};
-        spiType.setAdapter(new ArrayAdapter<String>(mContext, R.layout.item_province, R.id.item_province_tv, serverTypes));
-        final String[] payTypes = new String[]{"寄付月结", "到付"};
+        final String[] serverTypes = new String[]{"省内次日-省内","省内即日-省内" ,
+                "同城次日-同城", "同城即日-同城","陆运件-货多(慢)", "隔日达-快（空）", "次日达-很快（空）",
+                "当天达-极快（空）"};
+        spiType.setAdapter(new ArrayAdapter<String>(mContext, R.layout.item_province, R.id
+                .item_province_tv, serverTypes));
+        final String[] payTypes = new String[]{"寄付月结", "到付", "转第三方付款"};
         spiPayType.setAdapter(new ArrayAdapter<String>(mContext, R.layout.item_province, R.id.item_province_tv, payTypes));
         final List<String> printerItems = new ArrayList<>();
         printerItems.add("请选择打印机");
@@ -260,6 +309,14 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
             KyExpressUtils.key = obj.getString(SettingActivity.KYKEY);
             smsNum= obj.getString(SettingActivity.KY_SMSNUM);
             edAccount.setText(obj.getString(SettingActivity.KYACCOUNT));
+            if (kfName.equals("深圳")) {
+                String uuid = "01083729273";
+                edAccount.setText(uuid);
+//                KyExpressUtils.uuid = uuid;
+                if (spiPayType.getCount() > 2) {
+                    spiPayType.setSelection(2);
+                }
+            }
         } catch (JSONException e) {
             KyExpressUtils.uuid = "";
             KyExpressUtils.key = KyExpressUtils.uuid = "";
@@ -317,7 +374,7 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
                             map.put("phone2", obj.getString("ToPhone"));
                             map.put("address2", obj.getString("ToAddress"));
                             addrList.add(map);
-                        } else if (kfName.equals(from)) {
+                        } else if (kfName.equals(from) || (kfName.contains("深圳"))) {
                             titles.add(from + "-->" + to);
                             HashMap<String, String> map = new HashMap<String, String>();
                             map.put("key1", from);
@@ -666,7 +723,51 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
             }
         };
         TaskManager.getInstance().execute(onlineSavedRunnable);
+//        getYundanShixiao();
     }
+
+    private String readRaw(int rawId) {
+            String content = "";
+            InputStream is = getResources().openRawResource(rawId);
+            try {
+                StringBuilder stringBuilder = new StringBuilder();
+                String temp = null;
+                BufferedReader breader = new BufferedReader(new InputStreamReader(is, "utf-8"));
+                while ((temp = breader.readLine()) != null) {
+                    stringBuilder.append(temp);
+                }
+                content = stringBuilder.toString();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return content;
+    }
+
+    public boolean isShengNei(String json, String address) {
+        try {
+            JSONArray jsonArray = new JSONArray(json);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject object = jsonArray.getJSONObject(i);
+                String name = object.getString("name");
+                JSONArray aray = object.getJSONArray("area");
+                if (address.contains(name)) {
+                    return true;
+                }
+                for (int j = 0; j < aray.length(); j++) {
+                    String name2 = aray.getString(j);
+                    if (name2.contains("市")) {
+                        if (address.contains(name2)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private String getDHAddresss() throws IOException, XmlPullParserException {
         return SetYundanActivity.getDHAddresss();
     }
@@ -869,7 +970,7 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
                 //                corpID = obj.getString("InvoiceCorp");
                 //                storageID = obj.getString("StorageID");
             }
-            mHandler.sendEmptyMessage(0);
+        mHandler.sendEmptyMessage(MSG_GETINFO);
     }
     public void showAlert(final String msg) {
         DialogUtils.dismissDialog(alertDg);
@@ -894,13 +995,6 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
         if (CheckUtils.isAdmin()) {
             return "成功";
         }
-//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-//        map.put("objname", pid);
-//        map.put("objvalue", orderID);
-//        map.put("express", destcode);
-//        map.put("objtype", objtype);
-//        String result =  WebserviceUtils.getWcfResult(map,
-//                "InsertBD_YunDanInfoOfType", WebserviceUtils.SF_SERVER);
         String result = SF_Server.InsertBD_YunDanInfoOfType(pid, orderID, destcode, objtype);
         if (result.equals("")) {
             MyApp.myLogger.writeError(YundanPrintAcitivity.class, getResources().getString(R.string.error_soapobject) + pid +
@@ -927,5 +1021,36 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
                 }
             });
         }
+    }
+    public void getYundanShixiao(){
+        //获取数据库中跨越的时效类型
+        Runnable mRun = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String info = MartService.GetHYTypeInfo("4");
+                    JSONObject rootObj = new JSONObject(info);
+                    JSONArray array = rootObj.getJSONArray("表");
+                    List<YundanShixiao> tempList = new ArrayList<>();
+                    for (int i = 0; i < array.length(); i++) {
+                        JSONObject tempJson = array.getJSONObject(i);
+                        String objName = tempJson.getString("objname");
+                        String description = tempJson.getString("objexpress");
+                        YundanShixiao shixiao = new YundanShixiao(objName, description);
+                        tempList.add(shixiao);
+                    }
+                    mHandler.obtainMessage(MSG_SHIXIAO, tempList).sendToTarget();
+//                    objname
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        };
+        TaskManager.getInstance().execute(mRun);
     }
 }

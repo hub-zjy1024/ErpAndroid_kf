@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-    <LinearLayout
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_title"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:orientation="vertical">
-        <TextView
-            android:id="@+id/tv_title"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_gravity="center_horizontal"
-            android:background="@color/bijia_title_background"
-            android:gravity="center"
-            android:text="顺丰快递"
-            android:textColor="@color/color_white"
-            android:textSize="20sp"/>
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/bijia_title_background"
+        android:gravity="center"
+        android:text="顺丰快递"
+        android:textColor="@color/color_white"
+        android:textSize="20sp"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -40,6 +42,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:layout_marginLeft="8dp">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -66,146 +69,136 @@
                 android:textColor="@color/color_alert_red"
                 />
         </LinearLayout>
-
-
     </LinearLayout>
 
     <ScrollView
-
         android:id="@+id/activity_set_yundan"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        >
+        android:paddingRight="10dp"
+        android:paddingLeft="10dp"
+        android:orientation="vertical">
+
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingRight="10dp"
-            android:paddingLeft="10dp">
+            android:layout_height="wrap_content">
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+               >
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    >
-
+                    android:orientation="vertical">
                     <TextView
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="寄件人"/>
-
-                    <EditText
-                        android:id="@+id/activity_set_yundan_ed_j_person"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:focusableInTouchMode="true"
-                        android:hint="寄件人"
-                        android:maxLines="1"
-                        android:textColor="#000000"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="寄件人电话"/>
-
-                    <EditText
-                        android:id="@+id/activity_set_yundan_ed_j_tel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:hint="寄件电话"
-                        android:inputType="number"
-                        android:maxLines="1"
-                        android:textColor="#000000"/>
-                </LinearLayout>
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="详细地址："/>
-
-                    <EditText
-                        android:id="@+id/activity_set_yundan_ed_j_addresss"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:hint="详细地址"
-                        android:maxLines="3"
-                        android:textColor="#000000"/>
-                </LinearLayout>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
+                        android:text="寄件人信息"
+                       style="@style/sf_tv_tips"
+                        android:layout_height="wrap_content"/>
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         >
-
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
+                            android:id="@+id/activity_set_yundan_ed_j_person"
+                            style="@style/material_ed_yundan"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:text="收件人"/>
+                            android:focusableInTouchMode="true"
+                            android:hint="寄件人"
+                            android:maxLines="1"/>
 
-                        <EditText
-                            android:id="@+id/activity_set_yundan_ed_d_person"
-                            android:layout_width="wrap_content"
+                        <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
+                            android:id="@+id/activity_set_yundan_ed_j_tel"
+                            style="@style/material_ed_yundan"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:hint="收件人"
-                            android:maxLines="1"
-                            android:textColor="#000000"/>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        >
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="收件人电话"/>
-
-                        <EditText
-                            android:id="@+id/activity_set_yundan_ed_d_tel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:hint="收件人电话"
-                            android:maxLines="1"
+                            android:hint="寄件电话"
+                            android:layout_weight="2"
+                            android:layout_marginLeft="@dimen/yundan_form_horizontal"
                             android:inputType="number"
-                            android:textColor="#000000"/>
+                            android:maxLines="1"
+                            />
                     </LinearLayout>
 
-                </LinearLayout>
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    >
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
+
+                        <com.rengwuxian.materialedittext.MaterialAutoCompleteTextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            />
+                        <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
+                            android:id="@+id/activity_set_yundan_ed_j_addresss"
+                            style="@style/material_ed_yundan"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/str_yundan_jaddresss_tag"
+                            android:maxLines="3"
+                            />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
                     <TextView
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="详细地址"/>
+                        android:text="收件人信息"
+                        style="@style/sf_tv_tips"
+                        android:layout_height="wrap_content"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
 
-                    <EditText
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            >
+
+                            <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
+                                android:id="@+id/activity_set_yundan_ed_d_person"
+                                style="@style/material_ed_yundan"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:hint="收件人"
+                                android:maxLines="1"
+                                />
+
+                            <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
+                                android:id="@+id/activity_set_yundan_ed_d_tel"
+                                style="@style/material_ed_yundan"
+                                android:layout_height="wrap_content"
+                                android:hint="收件人电话"
+                                android:maxLines="1"
+                                android:layout_width="0dp"
+                                android:layout_weight="2"
+                                android:layout_marginLeft="@dimen/yundan_form_horizontal"
+                                android:inputType="number"
+                                />
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+
+                    <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
                         android:id="@+id/activity_set_yundan_ed_d_address"
-                        android:layout_width="wrap_content"
+                        style="@style/material_ed_yundan"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="详细地址"
                         android:maxLines="3"
-                        android:textColor="#000000"/>
+                        android:hint="@string/str_yundan_daddresss_tag"
+                        />
+
                 </LinearLayout>
             </LinearLayout>
 
@@ -230,41 +223,86 @@
 
                 </Spinner>
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="月结账号："/>
-
-                <EditText
-                    android:id="@+id/activity_set_yundan_ed_account"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:hint="月结账号"
-                    android:inputType="number"
-                    />
+                android:orientation="horizontal">
                 <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_marginLeft="10dp"
-                    android:gravity="center">
-                    <TextView
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    >
+                    <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="付款方:"/>
+                        android:layout_height="match_parent"
+                        android:gravity="center">
 
-                    <TextView
-                        android:id="@+id/activity_set_yundan_tv_payby"
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="付款方:"/>
+
+                        <TextView
+                            android:id="@+id/activity_set_yundan_tv_payby"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/alertcolor_bg_whight"/>
+                    </LinearLayout>
+                    <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
+                        android:id="@+id/activity_set_yundan_ed_account"
+                        style="@style/material_ed_yundan"
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="0dp"
+                        android:hint="月结账号"
+                        android:inputType="number"
+                        />
+
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                    android:orientation="vertical">
+
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/alertcolor_bg_whight"/>
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="支付方式:"/>
+
+                        <Spinner
+                            android:id="@+id/activity_set_yundan_spi_paytype"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="快递类型:"/>
+
+                        <Spinner
+                            android:id="@+id/activity_set_yundan_spi_servetype"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                    </LinearLayout>
+
                 </LinearLayout>
-            </LinearLayout>
+
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -317,49 +355,13 @@
 
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="支付方式:"/>
-
-                    <Spinner
-                        android:id="@+id/activity_set_yundan_spi_paytype"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:gravity="center_vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="快递类型:"/>
-
-                    <Spinner
-                        android:id="@+id/activity_set_yundan_spi_servetype"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-                </LinearLayout>
 
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:gravity="center_vertical">
 
                 <TextView
@@ -372,6 +374,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -482,43 +485,48 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="打印出库单"/>
+
                 <CheckBox
-                    android:layout_marginLeft="25dp"
                     android:id="@+id/activity_set_yundan_cbo_addmore"
+                    android:layout_marginLeft="25dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="当前运单号关联到其他单据"/>
             </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/activity_set_yundan_container_addmore"
                 android:layout_width="match_parent"
                 android:visibility="gone"
                 android:layout_height="wrap_content">
-                <com.rengwuxian.materialedittext.MaterialEditText
+
+                <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
                     android:id="@+id/activity_set_yundan_ed_morepid"
                     android:layout_width="150dp"
                     android:layout_height="wrap_content"
-                    app:met_clearButton="true"
-                    app:met_primaryColor="@color/colorPrimary"
                     android:inputType="number"
-                    android:hint="其他单据号"/>
+                    android:hint="其他单据号"
+                    app:met_clearButton="true"
+                    app:met_primaryColor="@color/colorPrimary"/>
 
                 <Button
                     android:id="@+id/activity_set_yundan_btn_addmore"
-                    android:layout_marginLeft="@dimen/default_padding_bottom"
                     style="@style/zjy_button_nomarl_alpha100"
+                    android:layout_marginLeft="@dimen/default_padding_bottom"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="关联"/>
+
                 <Button
                     android:id="@+id/activity_set_yundan_btn_scan"
-                    android:layout_marginLeft="@dimen/default_padding_bottom"
                     style="@style/zjy_button_nomarl_alpha100"
+                    android:layout_marginLeft="@dimen/default_padding_bottom"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="扫码"/>
 
             </LinearLayout>
+
             <TextView
                 android:id="@+id/activity_set_yundan_tv_orderid"
                 android:layout_width="wrap_content"
@@ -536,8 +544,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
-</ScrollView>
-    </LinearLayout>
+
+    </ScrollView>
+</LinearLayout>
+
 
 
 

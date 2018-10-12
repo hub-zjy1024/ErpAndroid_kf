@@ -12,10 +12,7 @@ import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Set;
@@ -24,7 +21,7 @@ import java.util.Set;
  Created by 张建宇 on 2016/12/20. */
 
 public class WebserviceUtils {
-    public static final String NAMESPACE = "http://tempuri.org/";
+    private static final String NAMESPACE = "http://tempuri.org/";
     public static final String ROOT_URL = "http://172.16.6.160:8006/";
     //服务名，带后缀名的
     public static final String MartService = "MartService.svc";
@@ -97,12 +94,12 @@ public class WebserviceUtils {
     }
 
     /**
-     获取SoapObject请求对象
-     @param properties 方法的参数，有序，建议集合使用LinkedHashMap，如果没有，可以传入null
-     @param method     方法的名称
-     @return
+     * 获取SoapObject请求对象
+     * @param properties 方法的参数，有序，建议集合使用LinkedHashMap，如果没有，可以传入null
+     * @param method     方法的名称
+     * @return
      */
-    public static SoapObject getRequest(LinkedHashMap<String, Object> properties, String method) {
+    private static SoapObject getRequest(LinkedHashMap<String, Object> properties, String method) {
         SoapObject request = new SoapObject(WebserviceUtils.NAMESPACE, method);
         if (properties != null) {
             // 设定参数
@@ -114,124 +111,13 @@ public class WebserviceUtils {
         return request;
     }
 
-    /**
-     @param request
-     @param envolopeVesion {@link org.ksoap2.SoapEnvelope}
-     @param soapAction
-     @param resultUrl      HttpTransportSE中的url
-     @return
-     @throws IOException
-     @throws XmlPullParserException
-     */
-    private static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String soapAction, String
-            resultUrl,int timeout) throws IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVesion);
-        envelope.dotNet = true;
-        //       envelope.bodyOut = request;
-        envelope.setOutputSoapObject(request);
-        //创建HttpTransportSE对象
-        HttpTransportSE ht = new HttpTransportSE(resultUrl, timeout);
-        //有些不需要传入soapAction，根据wsdl文档
-        ht.call(soapAction, envelope);
-        return envelope;
-    }
-
-    /**
-     @param request        返回Envelope对象
-     @param envolopeVesion {@link org.ksoap2.SoapEnvelope}
-     @param serviceName
-     @return
-     @throws IOException
-     @throws XmlPullParserException
-     */
-    private static SoapSerializationEnvelope getEnvelope(SoapObject request, int envolopeVesion, String serviceName, int
-            timeout) throws IOException, XmlPullParserException {
-        String url = getTransportSEtUrl(serviceName);
-        String action = getSoapAcction(serviceName, request.getName());
-        return getEnvelope(request, envolopeVesion, action, url, timeout);
-    }
 
 
-    /**
-     @param request
-     @param envolopeVesion {@link org.ksoap2.SoapEnvelope}
-     @param serviceName    以svc结尾的service名称
-     @return
-     @throws IOException
-     @throws XmlPullParserException
-     */
-    private static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, int envolopeVesion, String serviceName) throws
-            IOException, XmlPullParserException {
-        SoapSerializationEnvelope envelope = getEnvelope(request, envolopeVesion, serviceName, 30 * 1000);
-        Object response = envelope.getResponse();
-        SoapPrimitive sob = null;
-        if (response == null) {
-            MyApp.myLogger.writeError("==========response==null:" + request.toString());
-            return new SoapPrimitive("", "", "");
-        } else {
-            if (response instanceof SoapFault) {
-                Exception soapFault = (SoapFault) response;
-                ByteArrayOutputStream bao = new ByteArrayOutputStream();
-                PrintWriter writer = new PrintWriter(bao);
-                soapFault.printStackTrace(writer);
-                writer.flush();
-                String error = "";
-                try {
-                    error = new String(bao.toByteArray(), "utf-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                writer.close();
-                MyApp.myLogger.writeError("==========Call ERROR: req:" + request.toString());
-                MyApp.myLogger.writeError("==========Call ERROR:detail:" + error);
-                throw new SoapException(soapFault);
-            } else if (response instanceof SoapObject) {
-                SoapObject obj=(SoapObject) response;
-                Log.e("zjy", "WebserviceUtils->getSoapPrimitiveResponse(): Obj==" + obj);
-                MyApp.myLogger.writeError("==========Call ERROR:detail:" + request.toString());
-                if (("anyType{}").equals(obj.toString())) {
-                    return new SoapPrimitive("", "", "");
-                }
-                int propertyCount = obj.getPropertyCount();
-                for(int i=0;i<propertyCount;i++) {
-                    Object property = obj.getProperty(i);
-                    Log.e("zjy", "WebserviceUtils->getSoapPrimitiveResponse(): toString==" + property.toString());
-                }
-                return new SoapPrimitive("", "", "");
-            }
-        }
-        sob= (SoapPrimitive) response;
-        return sob;
-    }
-
-    /**
-     @param request
-     @param serviceName 以svc结尾的service名称
-     @return
-     @throws IOException
-     @throws XmlPullParserException
-     */
-    public static SoapPrimitive getSoapPrimitiveResponse(SoapObject request, String serviceName) throws
-            IOException, XmlPullParserException {
-        return getSoapPrimitiveResponse(request, VERSION_11, serviceName);
-    }
     public static String getWcfResult(LinkedHashMap<String, Object> properties, String method,
                                       String serviceName) throws IOException,
             XmlPullParserException {
-//        return getSoapPrimitiveResponse(properties, method, serviceName).toString();
-        return getWcfResult2(properties, method, serviceName);
-    }
-    /**
-     @param serviceName 以svc结尾的service名称
-     @return
-     @throws IOException
-     @throws XmlPullParserException
-     */
-    public static SoapPrimitive getSoapPrimitiveResponse(LinkedHashMap<String, Object> properties, String methodName, String
-            serviceName) throws
-            IOException, XmlPullParserException {
-        SoapObject request = getRequest(properties, methodName);
-        return getSoapPrimitiveResponse(request, serviceName);
+        SoapObject request = getRequest(properties, method);
+        return getWcfResult(request, VERSION_11, serviceName);
     }
 
     private static String  getCommWsResult (String namespace, String method, String soapAction, String transUrl,
@@ -277,7 +163,7 @@ public class WebserviceUtils {
     private static String getWcfResult(SoapObject request, int envolopeVesion, String
             serviceName) throws
             IOException, XmlPullParserException {
-        int timeout = 30 * 1000;
+        int timeout = DEF_TIMEOUT;
         SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVesion);
         //.net开发的ws服务必须设置为true
         envelope.dotNet = true;
@@ -308,12 +194,5 @@ public class WebserviceUtils {
             MyApp.myLogger.writeBug("Soap response is Unknow");
         }
         return sob.toString();
-    }
-
-    public static String getWcfResult2(LinkedHashMap<String, Object> properties, String method,
-                                      String serviceName) throws IOException,
-            XmlPullParserException {
-        SoapObject request = getRequest(properties, method);
-        return getWcfResult(request, VERSION_11, serviceName);
     }
 }

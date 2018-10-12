@@ -1,10 +1,9 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -23,6 +22,7 @@ import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import java.util.ArrayList;
 
 import printer.activity.SFActivity;
+import utils.DialogUtils;
 import utils.btprint.SPrinter;
 
 public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickListener {
@@ -45,25 +45,13 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu_layout);
+        Toolbar tb = (Toolbar) findViewById(R.id.dyjkf_normalTb);
+        tb.setTitle("菜单");
+        tb.setSubtitle("登陆人:" + MyApp.id);
+        setSupportActionBar(tb);
         gv = (GridView) findViewById(R.id.menu_gv);
         gv.setOnItemClickListener(this);
         addItemGV();
-    }
-
-
-    public static AlertDialog getDialog(Context mContext, String title, String msg, boolean cancelAble, String leftBtn,
-                                        DialogInterface.OnClickListener l, String rightBtn, DialogInterface.OnClickListener r) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        builder.setTitle(title);
-        builder.setMessage(msg);
-        if (leftBtn != null) {
-            builder.setNegativeButton(leftBtn, l);
-        }
-        if (rightBtn != null) {
-            builder.setPositiveButton(rightBtn, r);
-        }
-        builder.setCancelable(cancelAble);
-        return builder.create();
     }
 
     @Override
@@ -72,9 +60,8 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
             // 按下BACK，同时没有重复
             int size = (int) MyApp.cachedThreadPool.getActiveCount()-1;
             if (size > 0) {
-                getDialog(MenuActivity.this, "提示", "后台还有" + size +
-                        "张图片未上传完成，强制退出将导致图片上传失败",
-                        true, null, null, "否", null).show();
+                DialogUtils.getSpAlert(this, "后台还有" + size +
+                        "张图片未上传完成，强制退出将导致图片上传失败", "提示").show();
                 return true;
             }
         }
@@ -111,8 +98,10 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        SPrinter printer = SPrinter.getPrinter(this, null);
-        printer.close();
+        SPrinter printer = SPrinter.getPrinter();
+        if (printer != null) {
+            printer.close();
+        }
     }
 
     @Override

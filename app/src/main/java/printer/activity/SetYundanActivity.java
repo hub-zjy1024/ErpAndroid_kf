@@ -118,10 +118,58 @@ public class SetYundanActivity extends AppCompatActivity implements NoLeakHandle
     private ProgressDialog pd;
     private String pid;
     private List<Map<String, String>> addrList = new ArrayList<>();
+    private final int MSG_GETINFO = 0;
+    private Spinner spiServerType;
+    private final int ShengWaiIndex = 1;
+    private final int TongchengIndex = 0;
+    private final int ShengNei = 0;
+    private SharedPreferences sp;
+
+    private String readRaw(int rawId) {
+        String content = "";
+        InputStream is = getResources().openRawResource(rawId);
+        try {
+            StringBuilder stringBuilder = new StringBuilder();
+            String temp = null;
+            BufferedReader breader = new BufferedReader(new InputStreamReader(is, "utf-8"));
+            while ((temp = breader.readLine()) != null) {
+                stringBuilder.append(temp);
+            }
+            content = stringBuilder.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return content;
+    }
+
+    public boolean isShengNei(String json, String address) {
+        try {
+            JSONArray jsonArray = new JSONArray(json);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject object = jsonArray.getJSONObject(i);
+                String name = object.getString("name");
+                JSONArray aray = object.getJSONArray("area");
+                if (address.contains(name)) {
+                    return true;
+                }
+                for (int j = 0; j < aray.length(); j++) {
+                    String name2 = aray.getString(j);
+                    if (name2.contains("市")) {
+                        if (address.contains(name2)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
-            case 0:
+            case MSG_GETINFO:
                 flag = 1;
                 tvPayBy.setText(payByWho);
                 if (payByWho.equals("寄货方")) {
@@ -139,10 +187,46 @@ public class SetYundanActivity extends AppCompatActivity implements NoLeakHandle
                     eddPerson.setText(dName);
                     tvNote.setText(note);
                 } else {
-                    final SharedPreferences sp = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
                     String saveAccount = sp.getString("diaohuoAccount", "");
                     edAccount.setText(saveAccount);
                 }
+//                String configJson = sp.getString(SettingActivity.CONFIG_JSON, "");
+//                try {
+//                    JSONObject obj = new JSONObject(configJson);
+//                    String kfName = obj.getString(SettingActivity.NAME);
+//                    if (kfName.equals("深圳")) {
+//                        if (dAddress.contains("深圳")) {
+//                            spiServerType.setSelection(TongchengIndex);
+//                        } else {
+//                            String json = readRaw(R.raw.json_gd);
+//                            boolean shengNei = isShengNei(json, dAddress);
+//                            if (shengNei) {
+//                                spiServerType.setSelection(ShengNei);
+//                            } else {
+//                                spiServerType.setSelection(ShengWaiIndex);
+//                            }
+//                        }
+//                    } else if (kfName.equals("北京中转库")) {
+//                        String json = readRaw(R.raw.json_bj);
+//                        if (dAddress.contains("北京")) {
+//                            spiServerType.setSelection(TongchengIndex);
+//                        } else {
+//                            boolean shengNei = false;
+//                            if (dAddress.contains("天津")) {
+//                                shengNei = true;
+//                            } else {
+//                                shengNei = isShengNei(json, dAddress);
+//                            }
+//                            if (shengNei) {
+//                                spiServerType.setSelection(ShengNei);
+//                            } else {
+//                                spiServerType.setSelection(ShengWaiIndex);
+//                            }
+//                        }
+//                    }
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
                 break;
             case 1:
                 DialogUtils.dismissDialog(pd);
@@ -288,7 +372,7 @@ public class SetYundanActivity extends AppCompatActivity implements NoLeakHandle
                 .activity_set_yundan_iv);
         spiPayType = (Spinner) findViewById(R.id
                 .activity_set_yundan_spi_paytype);
-        final Spinner spiServerType = (Spinner) findViewById(R.id
+        spiServerType = (Spinner) findViewById(R.id
                 .activity_set_yundan_spi_servetype);
         spiPrinter = (Spinner) findViewById(R.id
                 .activity_set_yundan_spi_printer);
@@ -558,7 +642,7 @@ public class SetYundanActivity extends AppCompatActivity implements NoLeakHandle
         spiBags.setAdapter(new ArrayAdapter<String>(this, R.layout.lv_item_printer, R
                 .id.spinner_item_tv, new String[]{"1", "2", "3", "4",}));
         spiBags.setVisibility(View.GONE);
-        final SharedPreferences sp = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
+        sp = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
         serverIP = sp.getString(SettingActivity.PRINTERSERVER, "");
         boxBaojia.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener
                 () {
@@ -682,7 +766,7 @@ public class SetYundanActivity extends AppCompatActivity implements NoLeakHandle
                         MyApp.myLogger.writeBug("SF account unknow" + table.toString());
                     }
                     //                    account = "9999999999";
-                    mhandler.sendEmptyMessage(0);
+                    mhandler.sendEmptyMessage(MSG_GETINFO);
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {

@@ -8,5 +8,6 @@
     <dimen name="def_text_size">18sp</dimen>
     <dimen name="def_text_size_small">16sp</dimen>
     <dimen name="padding_lv_def">5dp</dimen>
+    <dimen name="yundan_form_horizontal">16dp</dimen>
     <dimen name="btn_padding">8dp</dimen>
 </resources>

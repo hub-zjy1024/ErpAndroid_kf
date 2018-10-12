@@ -71,58 +71,48 @@
 
             <LinearLayout
                 android:id="@+id/yundanprint_ji"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     >
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="寄件人"/>
-
-                    <EditText
+                    <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
                         android:id="@+id/yundanprint_ed_j_person"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
                         android:focusableInTouchMode="true"
+                        style="@style/material_ed_ky"
                         android:hint="寄件人"
                         android:maxLines="1"
                         android:textColor="#000000"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="寄件人电话"/>
-
-                    <EditText
+                    <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
                         android:id="@+id/yundanprint_ed_j_tel"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_weight="2"
                         android:layout_height="wrap_content"
                         android:hint="寄件电话"
                         android:inputType="number"
+                        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                        style="@style/material_ed_ky"
                         android:maxLines="1"
                         android:textColor="#000000"/>
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="详细地址："/>
 
-                    <EditText
+                    <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
                         android:id="@+id/yundanprint_ed_j_addresss"
-                        android:layout_width="wrap_content"
+                        style="@style/material_ed_ky"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="详细地址"
+                        android:hint="@string/str_yundan_jaddresss_tag"
                         android:maxLines="3"
                         android:textColor="#000000"/>
                 </LinearLayout>
@@ -136,54 +126,46 @@
                 android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     >
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="收件人"/>
 
-                    <EditText
+                    <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
                         android:id="@+id/yundanprint_ed_d_person"
-                        android:layout_width="wrap_content"
+                        style="@style/material_ed_ky"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
                         android:hint="收件人"
                         android:maxLines="1"
                         android:textColor="#000000"/>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="收件人电话"/>
-
-                    <EditText
+                    <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
                         android:id="@+id/yundanprint_ed_d_tel"
-                        android:layout_width="wrap_content"
+                        style="@style/material_ed_ky"
+                        android:layout_width="0dp"
+                        android:layout_weight="2"
                         android:layout_height="wrap_content"
                         android:hint="收件人电话"
+                        android:layout_marginLeft="@dimen/activity_horizontal_margin"
                         android:inputType="number"
                         android:maxLines="1"
                         android:textColor="#000000"/>
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     >
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="详细地址"/>
-
-                    <EditText
+                    <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
                         android:id="@+id/yundanprint_ed_d_address"
-                        android:layout_width="wrap_content"
+                        style="@style/material_ed_ky"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:maxLines="3"
-                        android:hint="详细地址"
+                        android:hint="@string/str_yundan_daddresss_tag"
                         android:textColor="#000000"/>
                 </LinearLayout>
             </LinearLayout>
@@ -196,21 +178,18 @@
                 android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="50dp"
-                        android:layout_height="wrap_content"
-                        android:text="件数:"/>
-
-                    <EditText
+                    <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
                         android:id="@+id/yundanprint_ed_counts"
                         android:layout_width="50dp"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:inputType="number"
+                        style="@style/material_ed_ky"
+                        android:hint="件数"
                         android:text="1"/>
 
                     <TextView
@@ -242,6 +221,33 @@
                         android:layout_height="wrap_content"/>
                 </LinearLayout>
                 <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
+                        android:id="@+id/yundanprint_ed_account"
+                        style="@style/material_ed_ky"
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:hint="月结账号"/>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                            android:text="付款方式:"/>
+
+                        <Spinner
+                            android:id="@+id/yundanprint_spi_paytype"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </LinearLayout>
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
 
@@ -263,47 +269,20 @@
 
                 <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="月结账号："/>
-
-                    <EditText
-                        android:id="@+id/yundanprint_ed_account"
-                        android:layout_width="100dp"
-                        android:layout_height="wrap_content"
-                        android:hint="月结账号"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:text="付款方式:"/>
-
-                    <Spinner
-                        android:id="@+id/yundanprint_spi_paytype"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical">
 
 
                     <Button
                         android:id="@+id/yundanprint_btn_print"
-                        style="@style/zjy_button_nomarl_alpha100"
+                        style="@style/zjy_button_nomarl_ky"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="下单并打印"/>
 
                     <Button
                         android:id="@+id/yundanprint_btnReprint"
-                        style="@style/zjy_button_nomarl_alpha100"
+                        style="@style/zjy_button_nomarl_ky"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="10dp"
@@ -312,7 +291,7 @@
 
                     <Button
                         android:id="@+id/yundanprint_btnReInsert"
-                        style="@style/zjy_button_nomarl_alpha100"
+                        style="@style/zjy_button_nomarl_ky"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="10dp"
@@ -328,7 +307,7 @@
 
                     <Button
                         android:id="@+id/yundanprint_btn_printchukudan"
-                        style="@style/zjy_button_nomarl_alpha100"
+                        style="@style/zjy_button_nomarl_ky"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="打印出库单"/>
@@ -347,7 +326,7 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone">
 
-                    <com.rengwuxian.materialedittext.MaterialEditText
+                    <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
                         android:id="@+id/yundanprint_ed_morepid"
                         android:layout_width="150dp"
                         android:layout_height="wrap_content"
@@ -358,7 +337,7 @@
 
                     <Button
                         android:id="@+id/yundanprint_btn_addmore"
-                        style="@style/zjy_button_nomarl_alpha100"
+                        style="@style/zjy_button_nomarl_ky"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="@dimen/default_padding_bottom"
@@ -366,7 +345,7 @@
 
                     <Button
                         android:id="@+id/yundanprint_btn_scan"
-                        style="@style/zjy_button_nomarl_alpha100"
+                        style="@style/zjy_button_nomarl_ky"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="@dimen/default_padding_bottom"

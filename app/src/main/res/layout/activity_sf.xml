@@ -19,20 +19,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.rengwuxian.materialedittext.MaterialEditText
+        <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
             android:id="@+id/yundan_ed_pid"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            style="material_ed_nomarl"
             android:layout_weight="1"
             android:hint="单据号"
             android:inputType="number"
             app:met_clearButton="true"
             app:met_primaryColor="@color/colorPrimary"/>
 
-        <com.rengwuxian.materialedittext.MaterialEditText
+        <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
             android:id="@+id/yundan_ed_partno"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
             android:layout_weight="1"
             android:hint="型号"
             app:met_clearButton="true"

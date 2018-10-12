@@ -35,6 +35,10 @@ public class SPrinter extends MyPrinterParent {
         helper = new BtHelper(mContext) ;
     }
 
+    public SPrinter(BtHelper helper) {
+        this.helper = helper;
+    }
+
     public interface MListener {
         void sendMsg(int what);
 
@@ -43,47 +47,39 @@ public class SPrinter extends MyPrinterParent {
 
     public synchronized static SPrinter getPrinter(Context mContext, final MListener event) {
         if (printer == null) {
-            printer = new SPrinter(mContext);
-            if (event != null) {
-                printer.helper = new BtHelper(mContext) {
-                    @Override
-                    public void sendMsg(int what) {
-                        super.sendMsg(what);
-                        event.sendMsg(what);
-                    }
+            printer = new SPrinter(new BtHelper(mContext) {
+                @Override
+                public void sendMsg(int what) {
+                    super.sendMsg(what);
+                    event.sendMsg(what);
+                }
 
-                    @Override
-                    public void onDeviceReceive(BluetoothDevice d) {
-                        super.onDeviceReceive(d);
-                        event.onDeviceReceive(d);
-                    }
-                };
-            }
+                @Override
+                public void onDeviceReceive(BluetoothDevice d) {
+                    super.onDeviceReceive(d);
+                    event.onDeviceReceive(d);
+                }
+            });
+            return printer;
         }
-        if (printer.helper.mContext != mContext) {
-            printer.helper.unRegister();
-            Log.e("zjy", "SPrinter->getPrinter(): new Helper==");
-            if (event == null) {
-                printer.helper = new BtHelper(mContext);
-            } else {
-                printer.helper = new BtHelper(mContext) {
-                    @Override
-                    public void sendMsg(int what) {
-                        super.sendMsg(what);
-                        event.sendMsg(what);
-                    }
+        printer.helper = new BtHelper(mContext) {
+            @Override
+            public void sendMsg(int what) {
+                super.sendMsg(what);
+                event.sendMsg(what);
+            }
 
-                    @Override
-                    public void onDeviceReceive(BluetoothDevice d) {
-                        super.onDeviceReceive(d);
-                        event.onDeviceReceive(d);
-                    }
-                };
+            @Override
+            public void onDeviceReceive(BluetoothDevice d) {
+                super.onDeviceReceive(d);
+                event.onDeviceReceive(d);
             }
-        }
+        };
         return printer;
     }
-
+    public synchronized static SPrinter getPrinter() {
+        return printer;
+    }
 
     public static class PBarcodeType {
         public static final int EAN13 = 1;
@@ -546,6 +542,12 @@ public class SPrinter extends MyPrinterParent {
 
     public void unRegisterReceiver() {
         synchronized (this){
+            helper.unRegister();
+        }
+    }
+
+    public void unRegisterReceiver(Context mContext) {
+        synchronized (this) {
             helper.unRegister();
         }
     }

@@ -1,11 +1,7 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.Application;
-import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -31,19 +27,7 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
 
     @Override
     public void uncaughtException(Thread thread, Throwable ex) {
-        ByteArrayOutputStream bao=new ByteArrayOutputStream();
-        PrintWriter writer=new PrintWriter(bao);
-        ex.printStackTrace(writer);
-        writer.flush();
-        String error="";
-        try {
-            error = new String(bao.toByteArray(), "utf-8");
-            Log.e("zjy", "MyApp->uncaughtException(): detail==" + error);
-            myLogger.writeError("===[AppCrash]=====\n" + error);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        writer.close();
+        myLogger.writeError(ex, "===[AppCrash]=====\n");
         android.os.Process.killProcess(android.os.Process.myPid());
     }
 }

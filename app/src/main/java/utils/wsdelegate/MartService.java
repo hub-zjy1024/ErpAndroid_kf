@@ -533,4 +533,16 @@ public class MartService{
 		return res;
 	}
 
+	/**
+	 * 获取快递时效
+	 * @param pid 4:跨越，1：顺丰
+	 * @return
+	 * @throws IOException
+	 * @throws XmlPullParserException
+	 */
+	public static String GetHYTypeInfo(String pid)throws IOException, XmlPullParserException {
+		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+		properties.put("pid", pid);
+		return WebserviceUtils.getWcfResult(properties, "GetHYTypeInfo", serverName);
+	}
 }

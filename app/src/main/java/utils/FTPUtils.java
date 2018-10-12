@@ -23,7 +23,6 @@ import java.io.OutputStream;
 public class FTPUtils {
     private FTPClient mClient = null;
     private String hostname;
-    private final static int DEFAULT_PROT = 21;
     private int port;
     private String username;
     private String password;
@@ -31,10 +30,37 @@ public class FTPUtils {
     public static final String DEF_FTP = "172.16.6.22";
     public static final String ftpName = "dyjftp";
     public static final String ftpPassword = "dyjftp";
+
+    public static final String DB_HOST = "172.16.6.22";
     public static final String mainAddress = "172.16.6.22";
+    public static final int DEFAULT_PORT = 21;
+//    public static final String mainAddress = "210.51.190.36";
+//    public static final int DEFAULT_PORT = 7521;
     public static final String mainName = "NEW_DYJ";
     public static final String mainPwd = "GY8Fy2Gx";
+    public static final String LOCAL_NAME = "dyjftp";
+    public static final String LOCAL_PWD = "dyjftp";
 
+    public static final String ADMIN_HOST = mainAddress;
+    public static final int ADMIN_PORT = DEFAULT_PORT;
+    public static final String ADMIN_NAME = mainName;
+    public static final String ADMIN_PWD = mainPwd;
+
+    public static FTPUtils getGlobalFTP() {
+        return new FTPUtils(mainAddress, mainName, mainPwd);
+    }
+
+    public static FTPUtils getAdminFTP() {
+        return new FTPUtils(ADMIN_HOST, ADMIN_PORT, ADMIN_NAME, ADMIN_PWD);
+    }
+
+    public static FTPUtils getLocalFTP(String localHost) {
+        return getLocalFTP(localHost, 21);
+    }
+
+    public static FTPUtils getLocalFTP(String localHost, int port) {
+        return new FTPUtils(localHost, port, LOCAL_NAME, LOCAL_PWD);
+    }
     public interface UploadListner {
         void upload();
     }
@@ -67,7 +93,7 @@ public class FTPUtils {
      @param password
      */
     public FTPUtils(String hostname, String username, String password) {
-        this(hostname, DEFAULT_PROT, username, password, false);
+        this(hostname, DEFAULT_PORT, username, password, false);
     } //登录 /** * FTP登陆 * @throws IOException */
 
     /**

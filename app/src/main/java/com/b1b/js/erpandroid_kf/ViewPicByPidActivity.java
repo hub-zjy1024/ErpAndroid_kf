@@ -31,7 +31,6 @@ import java.util.List;
 
 import utils.DialogUtils;
 import utils.FTPUtils;
-import utils.FtpManager;
 import utils.MyFileUtils;
 import utils.MyToast;
 import utils.handler.NoLeakHandler;
@@ -246,17 +245,15 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                             //图片未下载的需要下载
                             if (!file.exists()) {
                                 if (!tempUrl.equals(imgFtp)) {
-                                    mFtpClient = new FTPUtils(finalHost, port, FtpManager.ftpName, FtpManager
-                                            .ftpPassword);
-                                    if (finalHost.equals(FtpManager.mainAddress)) {
-                                        mFtpClient = FtpManager.getTestFTPMain();
+                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
+                                    if (finalHost.equals(FTPUtils.DB_HOST)) {
+                                        mFtpClient = FTPUtils.getGlobalFTP();
                                     }
                                 }
                                 if (mFtpClient == null) {
                                     MyApp.myLogger.writeBug(String.format("ViewPic bug at '%s',host='%s'," +
                                             "last='%s'", pid, imgFtp, tempUrl));
-                                    mFtpClient = new FTPUtils(finalHost, port, FtpManager.ftpName, FtpManager
-                                            .ftpPassword);
+                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
                                 }
                                 if (!mFtpClient.serverIsOpen()) {
                                     mFtpClient.login();
@@ -283,7 +280,7 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                             e.printStackTrace();
                         } catch (IOException e) {
                             e.printStackTrace();
-                            downloadResult += "第" + (i + 1) + "张,下载失败，原因：连接服务器失败\r\n";
+                            downloadResult += "第" + (i + 1) + "张,下载失败，原因：连接服务器失败\r\n" + e.getMessage();
                         }
                     }
                     if (mFtpClient != null) {

@@ -88,9 +88,10 @@
             android:textColor="@color/colorPrimary"
             android:textSize="20sp"/>
         <ListView
-            android:id="@+id/android:list"
+            android:id="@+id/activity_print_setting_lv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:divider="@drawable/listview_divider"
             android:drawSelectorOnTop="false"
             />
     </LinearLayout>

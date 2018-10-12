@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">大赢家kf</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="str_yundan_jaddresss_tag">详细地址（寄）</string>
+    <string name="str_yundan_daddresss_tag">详细地址（收）</string>
     <array name="storage_name">
         <item>测试</item>
         <item>云岗库房</item>

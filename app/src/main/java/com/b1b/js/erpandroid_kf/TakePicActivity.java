@@ -12,7 +12,6 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.hardware.Camera;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -21,7 +20,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -55,6 +53,7 @@ import utils.MyToast;
 import utils.UploadUtils;
 import utils.WebserviceUtils;
 import utils.camera.AutoFoucusMgr;
+import utils.camera.CamRotationManager;
 import utils.handler.NoLeakHandler;
 
 public class TakePicActivity extends SavedLoginInfoActivity implements View.OnClickListener, NoLeakHandler.NoLeakCallback {
@@ -84,6 +83,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
     protected Snackbar finalSnackbar;
     private boolean isDestoryed = false;
     private Handler picHandler = new NoLeakHandler(this);
+    private CamRotationManager rotationManager;
 
     @Override
     public void handleMessage(Message msg) {
@@ -115,7 +115,6 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
         }
     }
     protected Bitmap waterBitmap = null;
-    private OrientationEventListener mOrientationListener;
     protected SharedPreferences cameraSp;
     private int itemPosition;
     private AlertDialog inputDialog;
@@ -180,13 +179,8 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
             tvPid.setText(pid);
             dialogPid.setText(pid);
         }
-        mOrientationListener = new OrientationEventListener(this,
-                SensorManager.SENSOR_DELAY_NORMAL) {
-            @Override
-            public void onOrientationChanged(int orientation) {
-                rotation = getProperRotation(orientation);
-            }
-        };
+        rotationManager = new CamRotationManager(this);
+        rotationManager.attachToSensor();
         //成功或失败的提示框
         resultDialog = new MaterialDialog(mContext);
         resultDialog.setTitle("提示");
@@ -199,7 +193,6 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
         });
         getUrlAndFtp();
         resultDialog.setCanceledOnTouchOutside(true);
-        attachToSensor(mOrientationListener);
         //获取surfaceholder
         mHolder = surfaceView.getHolder();
         mHolder.setKeepScreenOn(true);
@@ -443,21 +436,6 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
         }
     }
 
-    /**
-     添加屏幕旋转监听
-     @param mOrientationListener
-     */
-    private void attachToSensor(OrientationEventListener mOrientationListener) {
-        if (mOrientationListener != null) {
-            if (mOrientationListener.canDetectOrientation()) {
-                mOrientationListener.enable();
-            } else {
-                MyApp.myLogger.writeError(TakePicActivity.class, "获取相机方向失败,Detect fail");
-                mOrientationListener.disable();
-                rotation = 0;
-            }
-        }
-    }
 
     private void releaseCamera() {
         if (mCamera != null) {
@@ -519,7 +497,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                             throwable.printStackTrace();
                             MyApp.myLogger.writeError(throwable);
                         }
-                        tempRotate = rotation;
+                        tempRotate  = rotationManager.getRotation();;
                         isPreview = false;
                         if (data == null || data.length == 0) {
                             MyToast.showToast(mContext, "拍照出现错误，请重启程序");
@@ -588,12 +566,11 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
 
     public void getUrlAndFtp() {
         if (flag != null && flag.equals("caigou")) {
-            mUrl = CaigouActivity.ftpAddress;
-            ftpUtil = new FTPUtils(mUrl, CaigouActivity
-                    .username,CaigouActivity.password);
+            mUrl = FTPUtils.DB_HOST;
+            ftpUtil = FTPUtils.getGlobalFTP();
         } else {
             mUrl = kfFTP;
-            ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName, FtpManager.ftpPassword);
+            ftpUtil = FTPUtils.getLocalFTP(mUrl);
         }
         if (CheckUtils.isAdmin()) {
             ftpUtil = FtpManager.getTestFTP();
@@ -728,15 +705,15 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
     @Override
     protected void onPause() {
         super.onPause();
-        if (mOrientationListener != null) {
-            mOrientationListener.disable();
+        if (rotationManager != null) {
+            rotationManager.disable();
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        attachToSensor(mOrientationListener);
+        rotationManager.attachToSensor();
     }
 
     protected void showFinalDialog(String message) {

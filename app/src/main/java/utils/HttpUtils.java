@@ -109,7 +109,7 @@ public class HttpUtils {
         public String sendRequest() throws IOException {
             HttpURLConnection conn = getConnection();
             InputStream in = conn.getInputStream();
-            String contentType = conn.getContentType();
+            String contentType = conn.getHeaderField("Content-Type");
             String cs = defCharset;
             if (contentType != null) {
                 int index = contentType.indexOf("charset=");

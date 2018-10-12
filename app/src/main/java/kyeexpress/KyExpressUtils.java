@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
@@ -34,12 +35,15 @@ import utils.MySSLProtocolSocketFactory;
  Created by 张建宇 on 2017/11/6. */
 
 public class KyExpressUtils {
-    public static String kye = "10127";
+    private static String kye = "10127";
     //    public static String orderURL = "http://testapi.ky-express.com/kyeopenapi/CustomerWaybillPrint";
-    public static String orderURL = "https://openapi.ky-express.com/kyeopenapi/CustomerWaybillPrint";
-    public static String searchURL = "https://openapi.ky-express.com/kyeopenapi/Find_WEB_LogisticsYD_Tracking_V2";
-    public static String accesskey = "5BB18CC3DFB4D254A862DA066DE2DE43";
-    public static String charSet = "utf-8";
+    private static String rootUrl = "http://testapi.ky-express.com/kyeopenapi";
+    private static String orderURL = rootUrl + "/CustomerWaybillPrint";
+    private static String searchURL =rootUrl+ "/Find_WEB_LogisticsYD_Tracking_V2";
+    private static String accesskey = "5BB18CC3DFB4D254A862DA066DE2DE43";
+    private static String charSet = "utf-8";
+    private static boolean DEBUG = false;
+
 //    /**
 //     客户编码(必)
 //     */
@@ -56,31 +60,6 @@ public class KyExpressUtils {
      客户密码(必)
      */
     public static String key = "2CD23B03D80B97CDE43E7904DACB6C6E";
-
-    public static String buildJson(YundanJson infos) {
-        JSONObject obj1 = new JSONObject();
-        Field[] fields = infos.getClass().getFields();
-        for (int i = 0; i < fields.length; i++) {
-            Field temp = fields[i];
-            try {
-                Log.e("zjy", "KyExpressUtils->buildJson(): name==" + temp.get(infos));
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-            if (temp.getName().equals("serialVersionUID") || temp.getName().equals("$change")) {
-                continue;
-            }
-            Log.e("zjy", "KyExpressUtils->buildJson(): name==" + temp.getName());
-            try {
-                obj1.put(temp.getName(), temp.get(infos));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        return obj1.toString();
-    }
 
     public static String sendPostRequest(YundanJson infos) throws IOException {
 //        String json = buildJson(infos);
@@ -121,30 +100,25 @@ public class KyExpressUtils {
             }
         }
         String json = jsonObject.toString();
-        Log.e("zjy", "KyExpressUtils->sendPostRequest(): json2==" + json);
-        Log.e("zjy", "KyExpressUtils->sendPostRequest(): fv==" + strPV);
         String accessToken = Md5.getMD5(accesskey + strPV);
-        Log.e("zjy", "KyExpressUtils->sendPostRequest(): toke1==" + accessToken);
         URL url = new URL(orderURL);
         SSLContext sc = null;
         try {
             sc = SSLContext.getInstance("TLS");
+            sc.init(null, new TrustManager[]{new MySSLProtocolSocketFactory.TrustAnyTrustManager()}, new SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            });
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-        }
-        try {
-            sc.init(null, new TrustManager[]{new MySSLProtocolSocketFactory.TrustAnyTrustManager()}, new SecureRandom());
         } catch (KeyManagementException e) {
             e.printStackTrace();
         }
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-            @Override
-            public boolean verify(String hostname, SSLSession session) {
-                return true;
-            }
-        });
-        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("kye", kye);
         conn.setRequestProperty("access-token", accessToken);
@@ -160,7 +134,12 @@ public class KyExpressUtils {
         for (; (s = read.readLine()) != null; ) {
             builder.append(s);
         }
-        Log.e("zjy", "KyExpressUtils->sendPostRequest(): response==" + builder.toString());
+        if (DEBUG) {
+            Log.e("zjy", "KyExpressUtils->sendPostRequest(): json2==" + json);
+            Log.e("zjy", "KyExpressUtils->sendPostRequest(): fv==" + strPV);
+            Log.e("zjy", "KyExpressUtils->sendPostRequest(): toke1==" + accessToken);
+            Log.e("zjy", "KyExpressUtils->sendPostRequest(): response==" + builder.toString());
+        }
         return builder.toString();
     }
 
@@ -175,24 +154,21 @@ public class KyExpressUtils {
             String strKV = "key" + key + "uuid" + uuid + "ydNumber" + yundanID;
             Log.e("zjy", "KyExpressUtils->searchWuliuInfo(): strKV==" + strKV);
             URL url = new URL(searchURL);
-            SSLContext sc = null;
             try {
-                sc = SSLContext.getInstance("TLS");
+                SSLContext sc  = SSLContext.getInstance("TLS");
+                sc.init(null, new TrustManager[]{new MySSLProtocolSocketFactory.TrustAnyTrustManager()}, new SecureRandom());
+                HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+                HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+                    @Override
+                    public boolean verify(String hostname, SSLSession session) {
+                        return true;
+                    }
+                });
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
-            }
-            try {
-                sc.init(null, new TrustManager[]{new MySSLProtocolSocketFactory.TrustAnyTrustManager()}, new SecureRandom());
-            } catch (KeyManagementException e) {
+            }catch (KeyManagementException e) {
                 e.printStackTrace();
             }
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            });
             HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("kye", kye);

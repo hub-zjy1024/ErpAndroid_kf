@@ -234,7 +234,7 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
         String encoding = "iso-8859-1";
         if (intentFlag != null && intentFlag.equals("caigou")) {
             mUrl = CaigouActivity.ftpAddress;
-            ftpUtil = new FTPUtils(mUrl, CaigouActivity.username, CaigouActivity.password);
+            ftpUtil =FTPUtils.getGlobalFTP();
             remoteName = UploadUtils.createSCCGRemoteName(pid);
             remoteName = getRemarkName(remoteName, true);
             try {
@@ -245,7 +245,7 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
             remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
         } else {
             mUrl = MyApp.ftpUrl;
-            ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName, FtpManager.ftpPassword);
+            ftpUtil = FTPUtils.getLocalFTP(mUrl);
             remoteName = UploadUtils.getChukuRemoteName(pid);
             remoteName = getRemarkName(remoteName, true);
             try {

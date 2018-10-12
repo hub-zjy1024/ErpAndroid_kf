@@ -353,8 +353,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                             } else if (result.equals("")) {
                                 mHandler.sendEmptyMessage(8);
                             } else if (result.contains("ftp")) {
-                                FTPUtils ftpUtil = new FTPUtils(CaigouActivity.ftpAddress, CaigouActivity.username,
-                                        CaigouActivity.password);
+                                FTPUtils ftpUtil = FTPUtils.getGlobalFTP();
                                 try {
                                     ftpUtil.login();
                                     for (int i = 0; true; i++) {
