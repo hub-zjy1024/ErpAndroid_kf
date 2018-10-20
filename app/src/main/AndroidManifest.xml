@@ -36,6 +36,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".MenuActivity"/>
+        <activity android:name=".MainActivityMvp"/>
         <activity android:name=".KaoQinActivity"/>
         <activity android:name=".TakePicActivity"/>
         <activity android:name=".TakePic2Activity"/>
