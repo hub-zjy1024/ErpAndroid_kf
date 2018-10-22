@@ -83,9 +83,14 @@ public class UpdateClient {
         boolean needDownload = false;
         int lastCode = spUpdate.getInt("lastcode", -1);
         try {
-            HashMap<String, String> updateInfo = getUpdateXml(checkUpdateURL);
+            final HashMap<String, String> updateInfo = getUpdateXml(checkUpdateURL);
             if (updateInfo != null) {
-                getUpdateInfo(updateInfo);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        getUpdateInfo(updateInfo);
+                    }
+                });
                 String sCode = updateInfo.get("code");
                 int nowCode = getLocalVersion();
                 int sIntCode = Integer.parseInt(sCode);

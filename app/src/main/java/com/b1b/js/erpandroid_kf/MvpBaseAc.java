@@ -11,7 +11,7 @@ import com.b1b.js.erpandroid_kf.presenter.BasePresenter;
 public abstract class MvpBaseAc<T extends BasePresenter> extends BaseScanActivity {
 
 
-    protected T mV;
+    protected T mPresenter;
 
     public abstract void initView();
 

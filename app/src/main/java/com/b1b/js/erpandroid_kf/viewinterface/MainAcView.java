@@ -7,12 +7,16 @@ import com.b1b.js.erpandroid_kf.presenter.MainPresenter;
  */
 public interface MainAcView extends BaseView<MainPresenter> {
 
-    void login();
 
     void loginBefore();
 
     void loginFinish(String code, String msg);
 
-    boolean getSavedPwd();
+    boolean isSavedPwd();
 
+    void scanResult(String code, String msg);
+
+    void logSuccess();
+
+    void setUpdateInfo(String updateInfo);
 }

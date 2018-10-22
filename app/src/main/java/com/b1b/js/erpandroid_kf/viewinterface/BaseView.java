@@ -13,4 +13,6 @@ public interface BaseView<T> {
     void showToast(String msg);
 
     void setPresenter(T presenter);
+
+    void loginFail(String msg);
 }

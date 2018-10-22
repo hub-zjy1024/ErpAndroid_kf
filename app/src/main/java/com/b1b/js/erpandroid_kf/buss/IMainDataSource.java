@@ -9,4 +9,12 @@ public interface IMainDataSource {
 
     void getScanResult(String code, MainSourceImpl.DataCallback mCall);
 
+    String getDebugPwd();
+
+    boolean setDebugPwd();
+
+     void savePwd(boolean isSaved, String name, String pwd, boolean autoLogin);
+
+    void startUpdateCheck(final MainSourceImpl.UpdateInfoCallback updateCallback);
+
 }

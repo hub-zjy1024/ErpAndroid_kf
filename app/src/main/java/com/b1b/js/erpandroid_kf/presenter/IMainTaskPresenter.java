@@ -7,4 +7,10 @@ public interface IMainTaskPresenter extends BasePresenter {
     void readCode(String code);
 
     void login(String uname, String password, String version);
+
+    String getDebugPwd();
+
+    void changePwd();
+
+    void startUpdate();
 }
