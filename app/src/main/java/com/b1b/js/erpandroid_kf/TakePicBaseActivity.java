@@ -1,8 +1,8 @@
 package com.b1b.js.erpandroid_kf;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -17,11 +17,13 @@ import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -222,7 +224,8 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
                         showMsgToast( "设备无摄像头");
                         return;
                     }
-                    mCamera = Camera.open(0); // 打开摄像头
+                    int camID = 0;
+                    mCamera = Camera.open(camID); // 打开摄像头
                     if (mCamera == null) {
                         showMsgToast( "检测不到摄像头");
                         return;
@@ -230,7 +233,7 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
                     cameraSp = getSharedPreferences(SpSettings.PREF_CAMERA_INFO, 0);
 
                     //设置旋转角度
-                    mCamera.setDisplayOrientation(getPreviewDegree((Activity) mContext));
+                    mCamera.setDisplayOrientation(getCamOritation(camID));
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = mCamera.getParameters();
                     try {
@@ -661,31 +664,41 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
     }
 
     /**
-     获取相机预览的画面旋转角度
-     @param activity 当前Activity
-     @return
+     * 获取相机预览的画面旋转角度,数据旋转角度也可以用这个方法
+     * @param mCameraId
+     * @return
      */
-    public static int getPreviewDegree(Activity activity) {
-        // 获得手机的方向
-        int rotation = activity.getWindowManager().getDefaultDisplay()
-                .getRotation();
-        int degree = 0;
-        // 根据手机的方向计算相机预览画面应该旋转的角度
+    private int getCamOritation(int mCameraId) {
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        Camera.getCameraInfo(mCameraId, info);
+        int cOri = info.orientation;
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        int rotation = display.getRotation();
+        int degrees = 0;
         switch (rotation) {
             case Surface.ROTATION_0:
-                degree = 90;
+                degrees = 0;
                 break;
             case Surface.ROTATION_90:
-                degree = 0;
+                degrees = 90;
                 break;
             case Surface.ROTATION_180:
-                degree = 270;
+                degrees = 180;
                 break;
             case Surface.ROTATION_270:
-                degree = 180;
+                degrees = 270;
                 break;
         }
-        return degree;
+        int rotatedDeg = 0;
+
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            rotatedDeg = (info.orientation + degrees) % 360;
+            rotatedDeg = (360 - rotatedDeg) % 360;  // compensate the mirror
+        } else {  // back-facing
+            rotatedDeg = (info.orientation - degrees + 360) % 360;
+        }
+        return rotatedDeg;
     }
 
 

@@ -2,7 +2,6 @@ package com.b1b.js.erpandroid_kf.scancode.zbar.view;
 
 import android.content.Context;
 import android.content.res.Configuration;
-import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Handler;
@@ -33,6 +32,7 @@ import me.dm7.barcodescanner.zbar.ZBarScannerView;
 public class MZbarScannerView extends BarcodeScannerView {
     private static final String TAG = "ZBarScannerView";
 
+    boolean debugFlag=false;
     public interface ResultHandler {
         public void handleResult(Result rawResult);
     }
@@ -50,8 +50,7 @@ public class MZbarScannerView extends BarcodeScannerView {
     private ZBarScannerView.ResultHandler mResultHandler;
 
     public MZbarScannerView(Context context) {
-        super(context);
-        setupScanner();
+        this(context, null);
     }
 
     public MZbarScannerView(Context context, AttributeSet attributeSet) {
@@ -86,11 +85,6 @@ public class MZbarScannerView extends BarcodeScannerView {
         }
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        Log.e("zjy", "MZbarScannerView->onDraw(): getWidth-getHeight==" + getWidth() + "-" + getHeight());
-    }
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
@@ -114,11 +108,6 @@ public class MZbarScannerView extends BarcodeScannerView {
             }
 
             Rect rect = getFramingRectInPreview(width, height);
-//            Image barcode = new Image(width, height, "Y800");
-//            barcode.setData(data);
-//            //指定截取范围
-//            barcode.setCrop(rect.left, rect.top, rect.width(), rect.height());
-//            int result = mScanner.scanImage(barcode);
             if (!startDecode(data,rect,width,height)) {
                 camera.setOneShotPreviewCallback(this);
             }
@@ -143,7 +132,12 @@ public class MZbarScannerView extends BarcodeScannerView {
         //            }else{
         //                Log.e("zjy", "MZbarScannerView->onPreviewFrame(): 2data==" + data.length + "\t" + data1.length);
         //            }
-        Log.e("zjy", "MZbarScannerView->onPreviewFrame(): CropWh==" + width1 + "x" + height2);
+        if(!debugFlag){
+            Log.e("zjy", "MZbarScannerView->onPreviewFrame(): CropWh==" + width1 + "x" + height2 + "," +
+                    "thread=" + Thread.currentThread().toString());
+
+            debugFlag = true;
+        }
         int result = mScanner.scanImage(barcode);
         if (result != 0) {
             SymbolSet syms = mScanner.getResults();

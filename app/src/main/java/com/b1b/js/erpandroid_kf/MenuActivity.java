@@ -15,9 +15,9 @@ import android.widget.EditText;
 import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SlideBackActivity;
 import com.b1b.js.erpandroid_kf.adapter.MenuGvAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
-import com.b1b.js.erpandroid_kf.activity.base.SlideBackActivity;
 import com.b1b.js.erpandroid_kf.service.LogUploadService;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.yundan.SFActivity;
@@ -49,6 +49,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     private GridView gv;
     private final String tag_hetong = "hetong";
     private final String tag_HKPIC = "HK出库拍照";
+    private final String tag_ScanCheck = "扫码复核";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +85,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Chukudan, "查看出库单和出库通知单"));
         if (CheckUtils.isAdmin()) {
             data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Admin, "101"));
+            data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_ScanCheck, "101"));
 //            data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_SHQD, "清单"));
             //            data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_Zbar, "测试zbar"));
 //            data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_hetong, "测试zbar"));
@@ -115,10 +117,10 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     protected void onDestroy() {
         super.onDestroy();
         SPrinter printer = SPrinter.getPrinter();
-//        if (printer != null) {
-//            printer.close();
-//        }
-        printer.close();
+        if (printer != null) {
+            printer.close();
+        }
+//        printer.close();
     }
 
     @Override
@@ -212,6 +214,10 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
                 break;
             case tag_HKPIC:
                 intent.setClass(mContext, HonkongChukuCheck.class);
+                startActivity(intent);
+                break;
+            case tag_ScanCheck:
+                intent.setClass(mContext, Check2_scan_activity.class);
                 startActivity(intent);
                 break;
         }

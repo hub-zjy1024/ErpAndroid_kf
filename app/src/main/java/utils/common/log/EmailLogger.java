@@ -2,6 +2,8 @@ package utils.common.log;
 
 import android.content.Context;
 
+import java.util.Date;
+
 import utils.common.EmailSender;
 import utils.common.UploadUtils;
 
@@ -22,7 +24,11 @@ public class EmailLogger {
     public static void sendLog(String logMessage, Context mContext) {
         EmailSender sender = new EmailSender();
         String devMessage = UploadUtils.getPhoneCode(mContext);
-        String finalMsg = devMessage + "\n" + logMessage;
-        sender.sendMail(finalMsg);
+        String time = "sendTime=" + new Date().toLocaleString() ;
+        String encryptedMsg = sender.encrypte(logMessage);
+        String finalMsg = devMessage + "\n";
+        finalMsg+= time + "\n" ;
+        finalMsg+= encryptedMsg + "\n" ;
+        sender.sendCommonMail(finalMsg);
     }
 }

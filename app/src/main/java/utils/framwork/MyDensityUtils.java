@@ -15,6 +15,11 @@ public class MyDensityUtils {
         return (int) (dp * scale + 0.5f);
     }
 
+    public static float getScreenHeight(Context context) {
+        final float scale = context.getResources().getDisplayMetrics().heightPixels;
+        return scale;
+    }
+
     public static int px2dp(Context context, float px) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (px / scale + 0.5f);

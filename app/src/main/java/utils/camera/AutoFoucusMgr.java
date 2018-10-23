@@ -60,8 +60,9 @@ public class AutoFoucusMgr implements Camera.AutoFocusCallback {
     @Override
     public synchronized void onAutoFocus(boolean success, Camera theCamera) {
         if (success) {
-            theCamera.cancelAutoFocus();
+//            theCamera.cancelAutoFocus();
         }
+        Log.e("zjy", getClass() + "->onAutoFocus(): ==result=" + success);
         autoFocusAgainLater();
     }
 

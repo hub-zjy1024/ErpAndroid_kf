@@ -10,9 +10,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.adapter.YanhuoAdapter;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.YanhuoInfo;
 
 import org.json.JSONArray;
@@ -27,7 +26,7 @@ import java.util.List;
 import utils.framwork.SoftKeyboardUtils;
 import utils.net.wsdelegate.MartService;
 
-public class CaigouYanhuoActivity extends BaseMActivity {
+public class CaigouYanhuoActivity extends SavedLoginInfoWithScanActivity {
     private Handler mHandler = new Handler();
     private ListView lv;
     private EditText edpid;
@@ -71,9 +70,7 @@ public class CaigouYanhuoActivity extends BaseMActivity {
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(CaigouYanhuoActivity.this, CaptureActivity
-                        .class);
-                startActivityForResult(intent, 300);
+                startScanActivity();
             }
         });
         btnSearch.setOnClickListener(new View.OnClickListener() {
@@ -168,20 +165,17 @@ public class CaigouYanhuoActivity extends BaseMActivity {
         }.start();
     }
 
-    ;
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 300 && resultCode == RESULT_OK) {
-            final String pid = data.getStringExtra("result");
-            edpid.setText(pid);
-            if (yanhuoInfos.size() > 0) {
-                yanhuoInfos.clear();
-                mAdapter.notifyDataSetChanged();
-            }
-            getDate(pid, "");
+    public void getCameraScanResult(String result, int code) {
+        super.getCameraScanResult(result, code);
+        String pid = result;
+        edpid.setText(pid);
+        if (yanhuoInfos.size() > 0) {
+            yanhuoInfos.clear();
+            mAdapter.notifyDataSetChanged();
         }
+        getDate(pid, "");
     }
 
     @Override

@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.MyApp;
-import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 
 public class SavedLoginInfoWithScanActivity extends BaseScanActivity {
@@ -23,7 +22,7 @@ public class SavedLoginInfoWithScanActivity extends BaseScanActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_saved_login_info);
+//        setContentView(R.layout.activity_saved_login_info);
         if (savedInstanceState != null) {
             loginID = savedInstanceState.getString("uid");
             MyApp.id = loginID;

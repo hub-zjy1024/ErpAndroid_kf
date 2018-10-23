@@ -123,6 +123,8 @@
         </activity>
         <activity android:name=".HongkongChukuTakpic"/>
         <activity android:name=".HonkongChukuCheck"/>
+        <activity android:name=".Check2_scan_activity">
+        </activity>
     </application>
 
 </manifest>

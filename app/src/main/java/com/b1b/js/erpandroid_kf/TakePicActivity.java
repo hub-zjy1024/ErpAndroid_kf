@@ -19,11 +19,13 @@ import android.support.design.widget.Snackbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -671,28 +673,48 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
      @return
      */
     public static int getPreviewDegree(Activity activity) {
-        // 获得手机的方向
-        int rotation = activity.getWindowManager().getDefaultDisplay()
-                .getRotation();
-        int degree = 0;
-        // 根据手机的方向计算相机预览画面应该旋转的角度
-        switch (rotation) {
-            case Surface.ROTATION_0:
-                degree = 90;
-                break;
-            case Surface.ROTATION_90:
-                degree = 0;
-                break;
-            case Surface.ROTATION_180:
-                degree = 270;
-                break;
-            case Surface.ROTATION_270:
-                degree = 180;
-                break;
-        }
-        return degree;
+        return getCamOritation(activity, 0);
     }
 
+    /**
+     * 获取相机预览的画面旋转角度,数据旋转角度也可以用这个方法
+     *
+     * @param mCameraId
+     * @return
+     */
+    private static int getCamOritation(Context mContext, int mCameraId) {
+
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        Camera.getCameraInfo(mCameraId, info);
+        int cOri = info.orientation;
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        int rotation = display.getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break;
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break;
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;
+        }
+        int rotatedDeg = 0;
+
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            rotatedDeg = (info.orientation + degrees) % 360;
+            rotatedDeg = (360 - rotatedDeg) % 360;  // compensate the mirror
+        } else {  // back-facing
+            rotatedDeg = (info.orientation - degrees + 360) % 360;
+        }
+        return rotatedDeg;
+    }
     /**
      此方法配合OrientationEventListener使用
      @param rot 传感器的角度

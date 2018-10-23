@@ -63,13 +63,17 @@ public class EmailSender {
         return props;
     }
 
-    String encrypte(String msg) {
+    public String encrypte(String msg) {
         return Base64.encodeToString(msg.getBytes(), Base64.NO_WRAP);
     }
 
-    public void sendMail(String msg) {
+    public void sendEncryptedMsg(String msg) {
+        String realMsg = encrypte(msg);
+        sendCommonMail(realMsg);
+    }
+    public void sendCommonMail(String msg) {
         Properties props = intProperties();
-        Session session = Session.getInstance(props,  new Authenticator() {
+        Session session = Session.getInstance(props, new Authenticator() {
             // 设置认证账户信息
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -79,13 +83,10 @@ public class EmailSender {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
         PrintStream psDebugout = new PrintStream(bao);
         session.setDebugOut(psDebugout);
-        session.setDebug(true);
-
-        String time = "sendTime=" + new Date().toLocaleString() + "\n";
-        msg = time + msg;
-        String real = encrypte(msg);
+//        session.setDebug(true);
+        String real = msg;
         try {
-            MimeMessage  message = createMimeMessage(session, real);
+            MimeMessage message = createMimeMessage(session, real);
             Transport.send(message, myEmailAccount, myEmailPassword);
             psDebugout.flush();
             String logInfo = new String(bao.toByteArray());

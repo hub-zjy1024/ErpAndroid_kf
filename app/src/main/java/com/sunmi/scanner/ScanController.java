@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
@@ -31,40 +32,25 @@ public class ScanController {
     public ScanController(Context mContext, ScanListener mListener) {
         this.mContext = mContext;
         this.mListener = mListener;
+    }
+
+    public void open(){
         registerListener();
         bindService();
+    }
+
+    public boolean isShangMi() {
+        if ("SUNMI".equals(Build.BRAND) || "L2".equals(Build.MODEL)) {
+            return true;
+        }
+        return false;
     }
 
     private IScanInterface mScanner = null;
 
     //    IScanInterface iScanInterface;
-    private BroadcastReceiver mScanRec = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String code = intent.getStringExtra(DATAKey);
-
-            if (code != null && !code.isEmpty()) {
-                Log.e("zjy", "ScanController->onReceive(): SunmiScan==" + code);
-                stop();
-                if (mListener != null) {
-                    mListener.onScanResult(code);
-                }
-            }
-        }
-    };
-    private ServiceConnection mConection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            mScanner = IScanInterface.Stub.asInterface(service);
-            Log.e("zjy", "ScanController->onServiceConnected(): SunmiScanDev==" + getScannerModel());
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            Log.e("zjy", "com.sunmi.scanner.ScanController->onServiceDisconnected(): ==");
-
-        }
-    };
+    private BroadcastReceiver mScanRec;
+    private ServiceConnection mConection ;
 
     public void bindScanKey(KeyEvent keyEvent) {
         if (mScanner != null) {
@@ -126,6 +112,20 @@ public class ScanController {
         //        com.sunmi.scanner
         IntentFilter mFilter = new IntentFilter();
         mFilter.addAction(ACTION);
+        mScanRec = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String code = intent.getStringExtra(DATAKey);
+
+                if (code != null && !code.isEmpty()) {
+                    Log.e("zjy", "ScanController->onReceive(): SunmiScan==" + code);
+                    stop();
+                    if (mListener != null) {
+                        mListener.onScanResult(code);
+                    }
+                }
+            }
+        };
         mContext.registerReceiver(mScanRec, mFilter);
     }
 
@@ -133,11 +133,29 @@ public class ScanController {
         Intent intent = new Intent();
         intent.setPackage("com.sunmi.scanner");
         intent.setAction("com.sunmi.scanner.IScanInterface");
+        mConection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                mScanner = IScanInterface.Stub.asInterface(service);
+                Log.e("zjy", "ScanController->onServiceConnected(): SunmiScanDev==" + getScannerModel());
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                Log.e("zjy", "com.sunmi.scanner.ScanController->onServiceDisconnected(): ==");
+            }
+        };
         mContext.bindService(intent, mConection, Service.BIND_AUTO_CREATE);
     }
 
     public void release() {
-        mContext.unbindService(mConection);
-        mContext.unregisterReceiver(mScanRec);
+        if (mConection != null) {
+            mContext.unbindService(mConection);
+            mConection = null;
+        }
+        if (mScanRec != null) {
+            mContext.unregisterReceiver(mScanRec);
+            mScanRec = null;
+        }
     }
 }

@@ -25,8 +25,7 @@ import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.yundan.kyeexpress.entity.BillOrder;
@@ -69,7 +68,7 @@ import utils.net.wsdelegate.SF_Server;
 /**
  * 跨越快递下单页
  */
-public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback {
+public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback {
 
     private Spinner spiType;
     private String pid;
@@ -250,8 +249,7 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
         btnMoreScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent scanIntent = new Intent(mContext, CaptureActivity.class);
-                startActivityForResult(scanIntent, CaptureActivity.REQ_CODE);
+                startScanActivity();
             }
         });
         final Button btnMoreCommit = (Button) findViewById(R.id.yundanprint_btn_addmore);
@@ -812,12 +810,13 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && requestCode == CaptureActivity.REQ_CODE) {
-            String result = data.getStringExtra("result");
-            edMorePid.setText(result);
-        }
+    public void resultBack(String result) {
+        getCameraScanResult(result);
+    }
+
+    @Override
+    public void getCameraScanResult(String result, int code) {
+        edMorePid.setText(result);
     }
 
     OrderRetInfo getOrderRetInfo(OrderInfo orderInfo) throws IOException {

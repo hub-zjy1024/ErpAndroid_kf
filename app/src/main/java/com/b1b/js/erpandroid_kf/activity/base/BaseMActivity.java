@@ -1,11 +1,14 @@
 package com.b1b.js.erpandroid_kf.activity.base;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.b1b.js.erpandroid_kf.MyApp;
 
@@ -18,6 +21,7 @@ import utils.framwork.MyToast;
 public abstract class BaseMActivity extends AppCompatActivity {
     protected Context mContext;
 
+    ProgressDialog proDialog;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +40,11 @@ public abstract class BaseMActivity extends AppCompatActivity {
         return (T) findViewById(resId);
     }
 
+    public void useFullScreen() {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
 
     public abstract void init();
 
@@ -69,5 +78,25 @@ public abstract class BaseMActivity extends AppCompatActivity {
                 DialogUtils.getSpAlert(mContext, fMSg, title).show();
             }
         });
+    }
+
+    public void showProgress(String msg) {
+        proDialog = new ProgressDialog(this);
+        proDialog.setTitle("请稍后");
+        proDialog.setMessage(msg);
+        proDialog.show();
+    }
+
+    public void showProgress(String msg, int progress) {
+        proDialog = new ProgressDialog(this);
+        proDialog.setTitle("请稍后");
+        proDialog.setProgress(progress);
+        proDialog.setMessage(msg);
+        proDialog.show();
+    }
+    public void cancelProgress() {
+        if (proDialog != null) {
+            proDialog.cancel();
+        }
     }
 }

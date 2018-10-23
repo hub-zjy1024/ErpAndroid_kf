@@ -126,10 +126,11 @@ public class HttpUtils {
         public String sendRequest() throws IOException {
             HttpURLConnection conn = getConnection();
             String cs = defCharset;
-            OutputStream outputStream = conn.getOutputStream();
-            outputStream.write(reqBody.getBytes());
+            if (M_POST.equals(reqMethod)) {
+                OutputStream outputStream = conn.getOutputStream();
+                outputStream.write(reqBody.getBytes());
+            }
             int responseCode = conn.getResponseCode();
-            conn.setRequestMethod(reqMethod);
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 InputStream in = conn.getInputStream();
                 String contentType = conn.getHeaderField("Content-Type");

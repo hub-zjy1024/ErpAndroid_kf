@@ -32,8 +32,7 @@ import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
-import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.yundan.sf.entity.Cargo;
@@ -76,7 +75,7 @@ import utils.net.wsdelegate.SF_Server;
 /**
  * 顺丰快递下单页
  */
-public class SetYundanActivity extends BaseMActivity implements NoLeakHandler.NoLeakCallback{
+public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback{
     private List<Province> provinces;
     String jAddress;
     String payByWho;
@@ -523,8 +522,7 @@ public class SetYundanActivity extends BaseMActivity implements NoLeakHandler.No
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, CaptureActivity.class);
-                startActivityForResult(intent, CaptureActivity.REQ_CODE);
+                startScanActivity();
             }
         });
         final Intent intent = getIntent();
@@ -1228,15 +1226,10 @@ public class SetYundanActivity extends BaseMActivity implements NoLeakHandler.No
     //    GetBD_YunDanInfoByID
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CaptureActivity.REQ_CODE && resultCode == RESULT_OK) {
-            if (data != null) {
-                String result = data.getStringExtra("result");
-                edMorePid.setText(result);
-            }
-        }
+    public void getCameraScanResult(String result, int code) {
+        edMorePid.setText(result);
     }
+
 
     private void checkPrintCouts(String times, final CheckBox boxBaojia, final EditText edBaojia, final Intent intent, final
     Spinner spiPayType, final Spinner spiServerType, final CheckBox boxDuanxin, final CheckBox boxEsign, final CheckBox

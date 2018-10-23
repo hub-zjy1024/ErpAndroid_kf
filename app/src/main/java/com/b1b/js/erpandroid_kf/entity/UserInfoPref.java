@@ -10,7 +10,8 @@ import java.lang.reflect.Field;
 public class UserInfoPref {
     public int cid;
     public int did;
-    public String uname;
+    public String name;
+    public String oprName;
     public String pwd;
     public String ftp;
     public String debugPwd;

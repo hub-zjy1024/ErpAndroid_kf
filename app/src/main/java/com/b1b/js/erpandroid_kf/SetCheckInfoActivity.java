@@ -13,6 +13,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
+import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.entity.UserInfoPref;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -32,6 +34,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
     private Button btnViewPic;
     private Handler mHandler = new Handler() ;
     private Context mContext;
+    private String userName = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +56,9 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
             tv.setText("单据号：" + pid);
         }
         mContext =this;
+        SharedPreferences sharedPreferences = getSharedPreferences(SpSettings.PREF_USERINFO, MODE_PRIVATE);
+        UserInfoPref pref = new UserInfoPref(sharedPreferences);
+        userName= pref.oprName;
     }
 
     /**
@@ -111,7 +117,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
                         showMsgToast( "请输入不通过原因");
                         return;
                     }
-                    getSetCheckInfo(1, info, pid, 1, "", loginID);
+                    getSetCheckInfo(1, info, pid, 1, userName, loginID);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
@@ -123,7 +129,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
                     if ("".equals(info)) {
                         info = "通过";
                     }
-                    getSetCheckInfo(2, info, pid, 0, "", loginID);
+                    getSetCheckInfo(2, info, pid, 0, userName, loginID);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {

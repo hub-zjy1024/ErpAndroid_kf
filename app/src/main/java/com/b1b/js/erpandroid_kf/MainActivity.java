@@ -80,6 +80,7 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
     private String storID;
     UserInfoPref pref;
 
+    boolean isLogin = false;
     public void handleMessage(final Message msg) {
         super.handleMessage(msg);
         switch (msg.what) {
@@ -253,6 +254,9 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
         cboAutol = (CheckBox) findViewById(R.id.login_autol);
         tvVersion = (TextView) findViewById(R.id.main_version);
         sp = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
+//        long time1 = System.currentTimeMillis();
+//        Log.e("zjy", getClass() + "->init(): userTime==" + (System.currentTimeMillis() - time1) / 1000f);
+//        time1 = System.currentTimeMillis();
         pref = new UserInfoPref(sp);
 //        pref.cid = sp.getInt("cid", -1);
 //        pref.did = sp.getInt("did", -1);
@@ -491,6 +495,7 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                 Socket socket = new Socket();
                 SocketAddress remoteAddr = new InetSocketAddress(url1, 21);
                 socket.connect(remoteAddr, 10 * 1000);
+                socket.close();
                 com.b1b.js.erpandroid_kf.MyApp.ftpUrl = url1;
                 sp.edit().putString("ftp", com.b1b.js.erpandroid_kf.MyApp.ftpUrl).apply();
                 break;

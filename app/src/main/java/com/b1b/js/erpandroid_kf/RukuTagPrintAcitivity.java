@@ -218,12 +218,16 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                             printer2.printBarCode(code, 0, 1, 80);
                             printer2.printText("M" + code);
                             printer2.newLine(3);
+                            MyApp.myLogger.writeInfo("start print rkTag,flag=oboOnlyCode,pid=" + edPid
+                                    .getText().toString());
                             return;
                         }
                         if (isOffline) {
                             printer2.printBarCode(code, 0, 1, 80);
                             printer2.printText(code);
                             printer2.newLine(3);
+                            MyApp.myLogger.writeInfo("start print rkTag,flag=oboOnlyCode,pid=" + edPid
+                                    .getText().toString());
                             return;
                         }
                         for (int i = 0; i < infos.size(); i++) {

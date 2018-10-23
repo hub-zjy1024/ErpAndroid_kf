@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".Check2_scan_activity">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.b1b.js.erpandroid_kf.myview.ZbarScanContainer
+            android:id="@+id/m_scan3"
+            android:padding="0dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+        <ScrollView
+            android:id="@+id/activity_check2_recycleviewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/color_white"
+            android:layout_alignParentBottom="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+<!--                android:background="@color/color_white"-->
+                <Button
+                    android:id="@+id/activity_check2_caputure"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:text="截图3" />
+                <com.b1b.js.erpandroid_kf.myview.ZoomImageView
+                    android:id="@+id/recorder_show"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <!--<com.b1b.js.erpandroid_kf.myview.ScanViewContainer-->
+                <!--android:id="@+id/m_scan3"-->
+                <!--android:layout_width="300dp"-->
+                <!--android:layout_height="200dp"-->
+                <!--/>-->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" >
+
+                        <TextView
+                            android:id="@+id/activity_check2_left_count"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:textSize="@dimen/def_text_size"
+                            android:layout_weight="1"/>
+                        <TextView
+                            android:id="@+id/activity_check2_pid"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textSize="@dimen/def_text_size" />
+                    </LinearLayout>
+
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/activity_check2_recycleview"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+                </LinearLayout>
+                <com.b1b.js.erpandroid_kf.scancode.zbar.view.MZbarScannerView
+                    android:id="@+id/m_scan"
+                    android:layout_width="300dp"
+                    android:layout_height="300dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </ScrollView>
+    </RelativeLayout>
+
+</LinearLayout>

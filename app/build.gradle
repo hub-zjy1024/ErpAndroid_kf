@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-ext.appReleaseDir = "D:/dyj/"
+//ext.appReleaseDir = "D:/dyj/"
 
 def static getDate() {
     def date = new Date()
@@ -19,7 +19,6 @@ android {
         }
     }
     compileSdkVersion 24
-    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.b1b.js.erpandroid_kf"
         minSdkVersion 16
