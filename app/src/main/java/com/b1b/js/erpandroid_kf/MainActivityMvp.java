@@ -40,11 +40,7 @@ public class MainActivityMvp extends MvpBaseAc<IMainTaskPresenter> implements Ma
     private ProgressDialog scanDialog;
     private TextView tvVersion;
     private String versionName = "1";
-    private String tempPassword = "62105300";
-    private int time = 0;
     final Context mContext = MainActivityMvp.this;
-
-
     private AlertDialog permissionDialog;
     private Handler zHandler = new NoLeakHandler(this);
 
@@ -65,6 +61,14 @@ public class MainActivityMvp extends MvpBaseAc<IMainTaskPresenter> implements Ma
         btnScancode.setOnClickListener(this);
         btnPrintCode.setOnClickListener(this);
         mPresenter = new MainPresenter(this, new MainSourceImpl(this));
+        try {
+            PackageManager pm = getPackageManager();
+            PackageInfo info=  pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
+            versionName = info.versionName;
+            tvVersion.setText("当前版本为：" + versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
         mPresenter.startUpdate();
     }
 
@@ -72,23 +76,18 @@ public class MainActivityMvp extends MvpBaseAc<IMainTaskPresenter> implements Ma
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.main_debug:
+                mPresenter.changePwd();
                 break;
             case R.id.activity_main_btn_code:
-                startScanActivity();
+                Intent rkIntent = new Intent(mContext, RukuTagPrintAcitivity.class);
+                rkIntent.putExtra(com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity.extraMode, com.b1b.js.erpandroid_kf
+                        .RukuTagPrintAcitivity.MODE_OFFLINE);
+                openAc(rkIntent);
                 break;
             case R.id.login_btnlogin:
                 final String phoneCode = UploadUtils.getPhoneCode(mContext);
                 String debugPwd = mPresenter.getDebugPwd();
-                PackageManager pm = getPackageManager();
-                PackageInfo info = null;
-                try {
-                    info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
-                    int code = info.versionCode;
-                    versionName = info.versionName;
-                } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
-                }
-                Log.e("zjy", "MainActivity->onClick(): password==" + tempPassword);
+                Log.e("zjy", "MainActivity->onClick(): password==" + debugPwd);
                 if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590") ||
                         phoneCode.endsWith
                                 ("864394010742122") || phoneCode.endsWith("A0000043F41515")
@@ -99,8 +98,7 @@ public class MainActivityMvp extends MvpBaseAc<IMainTaskPresenter> implements Ma
                 }
                 break;
             case R.id.login_scancode:
-
-
+                startScanActivity();
                 break;
         }
 
@@ -113,7 +111,7 @@ public class MainActivityMvp extends MvpBaseAc<IMainTaskPresenter> implements Ma
 
     @Override
     public int getId() {
-        return R.id.activity_main;
+        return R.layout.activity_main;
     }
 
     @Override

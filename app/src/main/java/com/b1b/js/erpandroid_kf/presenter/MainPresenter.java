@@ -1,5 +1,6 @@
 package com.b1b.js.erpandroid_kf.presenter;
 
+import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.buss.IMainDataSource;
 import com.b1b.js.erpandroid_kf.buss.MainSourceImpl;
 import com.b1b.js.erpandroid_kf.viewinterface.MainAcView;
@@ -31,8 +32,9 @@ public class MainPresenter implements IMainTaskPresenter {
             @Override
             public void result(String result) {
                 if (result.startsWith("SUCCESS")) {
+                    MyApp.id = uname;
                     mView.loginFinish("1", "");
-                    savePwd(uname, password);
+                    //savePwd(uname, password);
                 } else {
                     mView.loginFinish("0", result);
                 }

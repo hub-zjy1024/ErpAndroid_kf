@@ -145,7 +145,7 @@ public class MainSourceImpl implements IMainDataSource {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mCall.result("0，扫码结果json解析异常，" + e.getMessage());
+                    mCall.result("0，登录失败json解析异常，" + e.getMessage());
                 }
             });
         }
@@ -281,14 +281,21 @@ public class MainSourceImpl implements IMainDataSource {
     @Override
     public void startUpdateCheck(final UpdateInfoCallback updateCallback) {
 
-        UpdateClient client = new UpdateClient(mContext) {
+        final UpdateClient client = new UpdateClient(mContext) {
             @Override
             public void getUpdateInfo(HashMap<String, String> map) {
                 super.getUpdateInfo(map);
                 updateCallback.getUpdateInfo(map);
             }
         };
-        client.startUpdate();
+        Runnable updateRun=new Runnable() {
+            @Override
+            public void run() {
+                client.startUpdate();
+            }
+        };
+        TaskManager.getInstance().execute(updateRun);
+
     }
 
     private Context mContext;

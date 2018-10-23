@@ -19,4 +19,6 @@ public interface MainAcView extends BaseView<MainPresenter> {
     void logSuccess();
 
     void setUpdateInfo(String updateInfo);
+
+    void loginFail(String msg);
 }
