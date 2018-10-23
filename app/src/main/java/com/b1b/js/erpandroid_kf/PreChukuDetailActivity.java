@@ -17,9 +17,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuDetialAdapter;
 import com.b1b.js.erpandroid_kf.entity.PreChukuDetailInfo;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
+import com.b1b.js.erpandroid_kf.printer.PrinterStyle;
 import com.b1b.js.erpandroid_kf.printer.entity.XiaopiaoInfo;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
@@ -41,15 +43,13 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import utils.DialogUtils;
-import utils.MyPrinter;
-import utils.MyToast;
-import utils.PrinterStyle;
-import utils.SoftKeyboardUtils;
 import utils.btprint.MyBluePrinter;
+import utils.btprint.MyPrinter;
+import utils.framwork.DialogUtils;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.ChuKuServer;
-import utils.wsdelegate.MartService;
+import utils.net.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.MartService;
 
 public class PreChukuDetailActivity extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback {
 
@@ -78,7 +78,7 @@ public class PreChukuDetailActivity extends SavedLoginInfoActivity implements No
             case 1:
                 tvState.setText("连接失败");
                 btnPrint.setEnabled(false);
-                MyToast.showToast(PreChukuDetailActivity.this, "连接打印机失败");
+                showMsgToast( "连接打印机失败");
                 if (pDialog != null && pDialog.isShowing()) {
                     pDialog.cancel();
                 }
@@ -98,17 +98,17 @@ public class PreChukuDetailActivity extends SavedLoginInfoActivity implements No
                 }
                 break;
             case 5:
-                MyToast.showToast(PreChukuDetailActivity.this, "打印次数插入成功");
+                showMsgToast( "打印次数插入成功");
                 break;
             case 6:
-                MyToast.showToast(PreChukuDetailActivity.this, "打印次数插入失败");
+                showMsgToast( "打印次数插入失败");
                 MyApp.myLogger.writeError("插入打印次数失败：" + info.getPid());
                 break;
             case 7:
-                DialogUtils.getSpAlert(PreChukuDetailActivity.this, "打印出现错误，请检查打印机是否正常工作", "提示").show();
+                DialogUtils.getSpAlert(mContext, "打印出现错误，请检查打印机是否正常工作", "提示").show();
                 break;
             case 8:
-                DialogUtils.safeShowDialog(PreChukuDetailActivity.this, DialogUtils.getSpAlert(PreChukuDetailActivity.this,
+                DialogUtils.safeShowDialog(mContext, DialogUtils.getSpAlert(mContext,
                         "查询不到相关信息", "提示"));
                 break;
 
@@ -131,21 +131,21 @@ public class PreChukuDetailActivity extends SavedLoginInfoActivity implements No
         edIP = (EditText) findViewById(R.id.pre_chuku_detail_printerip);
         detailAdapter = new PreChukuDetialAdapter(list, this, R.layout.pre_chuku_lv_detail_items);
         lv.setAdapter(detailAdapter);
-        pDialog = new ProgressDialog(PreChukuDetailActivity.this);
+        pDialog = new ProgressDialog(mContext);
         pDialog.setCancelable(false);
         sp = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
         pAddress = sp.getString("printerIP", "");
         btnSet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(PreChukuDetailActivity.this, SettingActivity.class);
+                Intent intent = new Intent(mContext, SettingActivity.class);
                 startActivity(intent);
             }
         });
         btnPrintTag.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivityForResult(new Intent(PreChukuDetailActivity.this, PrintSettingActivity.class), reqBtCode);
+                startActivityForResult(new Intent(mContext, PrintSettingActivity.class), reqBtCode);
             }
         });
         btnReconnect.setOnClickListener(new View.OnClickListener() {
@@ -156,13 +156,13 @@ public class PreChukuDetailActivity extends SavedLoginInfoActivity implements No
                     pDialog.show();
                 }
                 if (pAddress.equals("")) {
-                    MyToast.showToast(PreChukuDetailActivity.this, "打印机地址还未设置好");
-                    AlertDialog.Builder builder = new AlertDialog.Builder(PreChukuDetailActivity.this);
+                    showMsgToast( "打印机地址还未设置好");
+                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                     builder.setTitle("提示").setMessage("是否前往配置页配置打印机地址").setPositiveButton("前往", new DialogInterface
                             .OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(PreChukuDetailActivity.this, SettingActivity.class);
+                            Intent intent = new Intent(mContext, SettingActivity.class);
                             startActivity(intent);
                         }
                     }).show();
@@ -221,11 +221,11 @@ public class PreChukuDetailActivity extends SavedLoginInfoActivity implements No
             @Override
             public void onClick(View v) {
                 if (info == null) {
-                    MyToast.showToast(PreChukuDetailActivity.this, "请稍等，打印数据还未获取完成");
+                    showMsgToast( "请稍等，打印数据还未获取完成");
                     return;
                 }
                 if (localKuqu.equals("")) {
-                    MyToast.showToast(PreChukuDetailActivity.this, "请稍等，正在获取库区信息");
+                    showMsgToast( "请稍等，正在获取库区信息");
                     return;
                 }
                 new Thread() {
@@ -301,7 +301,7 @@ public class PreChukuDetailActivity extends SavedLoginInfoActivity implements No
                         .OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(PreChukuDetailActivity.this, SettingActivity.class);
+                        Intent intent = new Intent(mContext, SettingActivity.class);
                         startActivity(intent);
                     }
                 }).show();
@@ -355,7 +355,7 @@ public class PreChukuDetailActivity extends SavedLoginInfoActivity implements No
     protected void onResume() {
         super.onResume();
         pAddress = sp.getString("printerIP", "");
-        SoftKeyboardUtils.closeInputMethod(edIP, PreChukuDetailActivity.this);
+        SoftKeyboardUtils.closeInputMethod(edIP, mContext);
     }
 
     public String getPreChukuDetail(int pid, int uid) throws IOException, XmlPullParserException, JSONException {

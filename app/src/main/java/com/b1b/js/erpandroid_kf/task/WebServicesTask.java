@@ -7,7 +7,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 
-import utils.WebserviceUtils;
+import utils.net.wsdelegate.WebserviceUtils;
 
 /**
  Created by 张建宇 on 2017/8/17. */

@@ -11,9 +11,9 @@ import com.b1b.js.erpandroid_kf.task.UploadPicRunnable2;
 
 import java.io.InputStream;
 
-import utils.FTPUtils;
-import utils.FtpManager;
-import utils.UploadUtils;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
+import utils.common.UploadUtils;
 
 public class ObtainPicPanku extends ReUploadActivity implements View.OnClickListener {
     @Override

@@ -32,21 +32,43 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 
-import utils.FTPUtils;
-import utils.FtpManager;
-import utils.ImageWaterUtils;
-import utils.MyFileUtils;
-import utils.MyImageUtls;
-import utils.MyToast;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
+import utils.common.ImageWaterUtils;
+import utils.common.MyFileUtils;
+import utils.common.MyImageUtls;
+import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
+import utils.net.wsdelegate.WebserviceUtils;
 
 public class CaigouTakePic2Activity extends TakePicActivity implements View.OnClickListener {
 
     NotificationManager notificationManager;
     private final static int ERROR_NO_SD = 2;
-    private Context mContext = CaigouTakePic2Activity.this;
+    //TakePic2Ac
+    //    @Override
+    //    public String getUploadFlag() {
+    //        return "SCCG";
+    //    }
+    //
+    //    @Override
+    //    public void initUploadInfos() {
+    //        super.initUploadInfos();
+    //        mUrl = FTPUtils.DB_HOST;
+    //    }
+    //
+    //    @Override
+    //    protected PicUploader getUpLoader() {
+    //        return new CaigouFtpUploader(mUrl);
+    //    }
+    //
+    //    @Override
+    //    public String getUploadRemotePath() {
+    //        String remoteName = UploadUtils.createSCCGRemoteName(pid) + ".jpg";
+    //        String remotePath = UploadUtils.getCaigouRemoteDir(remoteName);
+    //        return remotePath;
+    //    }
+
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
@@ -65,10 +87,10 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                         llResult.removeView(textView);
                     }
                 }, 2000);
-                MyToast.showToast(mContext, "后台剩余图片：" + (MyApp.cachedThreadPool.getActiveCount() - 1));
+                showMsgToast("后台剩余图片：" + (MyApp.cachedThreadPool.getActiveCount() - 1));
                 break;
             case ERROR_NO_SD:
-                MyToast.showToast(mContext, "sd卡不存在，不可用后台上传");
+                showMsgToast("sd卡不存在，不可用后台上传");
                 btn_commit.setEnabled(false);
                 break;
         }
@@ -92,7 +114,7 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
         if (viewID == R.id.main_commit) {
             final File sFile = MyFileUtils.getFileParent();
             if (sFile == null) {
-                MyToast.showToast(mContext, "无法获取存储路径，请换用普通拍照功能");
+                showMsgToast("无法获取存储路径，请换用普通拍照功能");
                 return;
             }
             toolbar.setVisibility(View.GONE);
@@ -128,10 +150,13 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                         Bitmap bmp = BitmapFactory.decodeByteArray(cData, 0, cData.length);
                         Matrix matrixs = new Matrix();
                         matrixs.setRotate(90 + cRotate);
-                        Bitmap photo = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrixs, true);
-                        Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext, photo, bitmap);
-                        textBitmap = ImageWaterUtils.drawTextToRightTop(mContext, waterBitmap, pid, (int) (photo
-                                .getWidth() * 0.015), Color.RED, 20, 20);
+                        Bitmap photo = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(),
+                                matrixs, true);
+                        Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext, photo,
+                                bitmap);
+                        textBitmap = ImageWaterUtils.drawTextToRightTop(mContext, waterBitmap, pid, (int)
+                                (photo
+                                        .getWidth() * 0.015), Color.RED, 20, 20);
                         MyImageUtls.releaseBitmap(bitmap);
                         MyImageUtls.releaseBitmap(photo);
                     } catch (OutOfMemoryError error) {
@@ -139,7 +164,7 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                MyToast.showToast(mContext, "请选择合适的尺寸，重新拍摄!!");
+                                showMsgToast("请选择合适的尺寸，重新拍摄!!");
                                 showFinalDialog("请选择合适的尺寸，重新拍摄!!");
                             }
                         });
@@ -147,7 +172,7 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                     }
                     String remoteName = UploadUtils.createSCCGRemoteName(pid);
                     String notifyName = remoteName;
-                    String localPath = UploadUtils.createSCCGRemoteName(pid);
+                    String localPath = remoteName;
                     final File upFile = new File(sFile, "dyj_img/" + localPath + ".jpg");
                     File dyjImgDir = upFile.getParentFile();
                     if (!dyjImgDir.exists()) {
@@ -173,7 +198,7 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                         pIntent = null;
                         boolean isStop = false;
                         String commonMessage = "上传失败,等待再次上传";
-                        String message="";
+                        String message = "";
                         while (!isStop) {
                             FileInputStream localInputStream = null;
                             boolean upSuccess = false;
@@ -188,7 +213,7 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                                     ftpUtil = FtpManager.getTestFTP();
                                     remotePath = UploadUtils.getTestPath(pid);
                                 } else {
-                                    mUrl = CaigouActivity.ftpAddress;
+                                    mUrl = FTPUtils.CaigouFTPAddr;
                                     ftpUtil = FTPUtils.getGlobalFTP();
                                     remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
                                 }
@@ -229,7 +254,8 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                                             isStop = true;
                                             notificationManager.cancel(finalId);
                                             map.remove(finalId);
-                                            MyApp.myLogger.writeInfo("background upload caigou success：" + pid + "\t" +
+                                            MyApp.myLogger.writeInfo("background upload caigou success：" +
+                                                    pid + "\t" +
                                                     remoteName);
                                             Message hMsg = Message.obtain(mHandler, PICUPLOAD_SUCCESS);
                                             hMsg.obj = textView;
@@ -300,13 +326,15 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
         return textView;
     }
 
-    private void changeNotificationMsg(NotificationCompat.Builder builder, int finalId, String msg, int progress, PendingIntent
-            pIntent) {
+    private void changeNotificationMsg(NotificationCompat.Builder builder, int finalId, String msg, int
+            progress, PendingIntent
+                                               pIntent) {
         if (pIntent != null) {
             builder.setContentIntent(pIntent);
         }
         builder.setProgress(100, progress, false).setContentText(msg);
         notificationManager.notify(finalId, builder.build());
     }
+
 
 }

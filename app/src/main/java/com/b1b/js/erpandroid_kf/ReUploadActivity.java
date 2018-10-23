@@ -17,11 +17,10 @@ import com.b1b.js.erpandroid_kf.task.UploadPicRunnable2;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
-import utils.FTPUtils;
-import utils.FtpManager;
-import utils.MyToast;
-import utils.UploadUtils;
+import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
 
 public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandler.NoLeakCallback {
     @Override
@@ -104,7 +103,7 @@ public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandle
                     return;
                 }
                 if (!uploadPicInfo.getState().equals("-1")) {
-                    MyToast.showToast(mContext, "当前图片已经上传完成");
+                    showMsgToast( "当前图片已经上传完成");
                     return;
                 }
                 Button btn = (Button) v;
@@ -129,7 +128,7 @@ public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandle
         //重新上传失败的文件
         String nowPath = item.getPath();
         if (isCaigou) {
-            mUrl = CaigouActivity.ftpAddress;
+            mUrl = FTPUtils.CaigouFTPAddr;
             ftpUtil = FTPUtils.getGlobalFTP();
             String fileName = nowPath.substring(nowPath.lastIndexOf("/") + 1, nowPath.lastIndexOf("."));
             remoteName = getRemarkName(fileName, false);
@@ -215,7 +214,7 @@ public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandle
                     }
                 }
                 if (count == uploadPicInfos.size()) {
-                    MyToast.showToast(mContext, "所有图片已上传完成");
+                    showMsgToast( "所有图片已上传完成");
                     pd.cancel();
                 }
                 break;

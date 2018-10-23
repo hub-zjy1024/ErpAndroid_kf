@@ -16,14 +16,15 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.R;
-import com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity;
-import com.b1b.js.erpandroid_kf.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.SettingActivity;
-import com.b1b.js.erpandroid_kf.yundan.kyeexpress.KyPrintAcitivity;
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
+import com.b1b.js.erpandroid_kf.entity.SpSettings;
 import com.b1b.js.erpandroid_kf.printer.entity.Yundan;
+import com.b1b.js.erpandroid_kf.task.StorageUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.task.WebCallback;
 import com.b1b.js.erpandroid_kf.task.WebServicesTask;
+import com.b1b.js.erpandroid_kf.yundan.kyeexpress.KyPrintAcitivity;
 import com.b1b.js.erpandroid_kf.yundan.sf.SetYundanActivity;
 
 import org.json.JSONArray;
@@ -37,11 +38,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
-import utils.DialogUtils;
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
+import utils.framwork.DialogUtils;
+import utils.framwork.MyToast;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
+import utils.net.wsdelegate.WebserviceUtils;
 
 public class SFActivity extends SavedLoginInfoWithScanActivity {
     private String storageID = "";
@@ -110,8 +111,8 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
         pdDialog = new ProgressDialog(this);
         pdDialog.setMessage("正在查询。。。");
         prefKF = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
-        String info = prefKF.getString(RukuTagPrintAcitivity.storageKey, "");
-        storageID = RukuTagPrintAcitivity.getStorageIDFromJson(info);
+        String info = prefKF.getString(SpSettings.storageKey, "");
+        storageID = StorageUtils.getStorageIDFromJson(info);
         if (storageID.equals("")) {
             pdDialog.setMessage("正在判断库房");
             pdDialog.show();
@@ -121,9 +122,9 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
                     String finalStr = "";
                     try {
                         String info = null;
-                        info = RukuTagPrintAcitivity.getStorageByIp();
-                        storageID = RukuTagPrintAcitivity.getStorageIDFromJson(info);
-                        prefKF.edit().putString(RukuTagPrintAcitivity.storageKey, info).commit();
+                        info = StorageUtils.getStorageByIp();
+                        storageID = StorageUtils.getStorageIDFromJson(info);
+                        prefKF.edit().putString(SpSettings.storageKey, info).commit();
                         finalStr = "当前库房ID是：" + storageID;
                     } catch (IOException e) {
                         String msg = e.getMessage();
@@ -135,7 +136,7 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            DialogUtils.getSpAlert(SFActivity.this, str, "提示").show();
+                            DialogUtils.getSpAlert(mContext, str, "提示").show();
                             pdDialog.setMessage("正在查询。。。");
                             pdDialog.cancel();
                         }
@@ -167,7 +168,7 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
                 break;
             case R.id.sf_btnSFservice:
                 if (storageID.equals("")) {
-                    MyToast.showToast(SFActivity.this, "当前库房ID未知,请重新进入");
+                    showMsgToast( "当前库房ID未知,请重新进入");
                     return;
                 }
                 SoftKeyboardUtils.closeInputMethod(edPid, this);
@@ -192,14 +193,14 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
                     msg = e.getMessage();
                 }
                 pdDialog.cancel();
-                MyToast.showToast(SFActivity.this, "查找失败：" + msg);
+                showMsgToast( "查找失败：" + msg);
             }
 
             @Override
             public void okCallback(String obj) {
                 yundanData.clear();
                 if (obj == null) {
-                    MyToast.showToast(SFActivity.this, "查找失败");
+                    showMsgToast( "查找失败");
                     return;
                 }
                 try {
@@ -239,10 +240,10 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
                         yundan.setPihao(pihao);
                         yundanData.add(yundan);
                     }
-                    MyToast.showToast(SFActivity.this, "查找到：" + yundanData.size() + "条数据");
+                    showMsgToast( "查找到：" + yundanData.size() + "条数据");
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    MyToast.showToast(SFActivity.this, "找不到相关数据");
+                    showMsgToast( "找不到相关数据");
                 }
                 adapter.notifyDataSetChanged();
                 pdDialog.cancel();
@@ -259,7 +260,7 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
             t.executeOnExecutor(TaskManager.getInstance().getExecutor(), "GetYunDanListNew", WebserviceUtils.SF_Server);
         } catch (RejectedExecutionException e) {
             e.printStackTrace();
-            MyToast.showToast(SFActivity.this, "查询太过频繁，请稍后再试。。");
+            showMsgToast( "查询太过频繁，请稍后再试。。");
         }
         tasks.add(t);
     }
@@ -295,7 +296,7 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
         if (isNum) {
             getYundanResult();
         } else {
-            MyToast.showToast(this, getString(R.string.error_numberformate));
+            showMsgToast( getString(R.string.error_numberformate));
         }
     }
 
@@ -307,7 +308,7 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
         if (isNum) {
             getYundanResult();
         } else {
-            MyToast.showToast(this, getString(R.string.error_numberformate));
+            showMsgToast( getString(R.string.error_numberformate));
         }
     }
 }

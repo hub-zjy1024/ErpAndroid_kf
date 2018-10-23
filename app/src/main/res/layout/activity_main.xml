@@ -110,19 +110,6 @@
     </LinearLayout>
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="如需手动更新请扫描下方二维码(默认有自动更新)"
-        android:textColor="#be3232"
-        />
-
-    <ImageView
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_marginTop="10dp"
-        android:layout_gravity="center_horizontal"
-        android:src="@drawable/download_apk2"/>
-    <TextView
         android:id="@+id/main_version"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

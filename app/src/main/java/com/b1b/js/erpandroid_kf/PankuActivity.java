@@ -19,6 +19,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.adapter.PankuAdapter;
 import com.b1b.js.erpandroid_kf.entity.PankuInfo;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -32,10 +33,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.ChuKuServer;
 
 public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback {
 
@@ -67,15 +67,15 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
     public void handleMessage(Message msg) {
         switch (msg.what) {
             case GET_DATA:
-                MyToast.showToast(PankuActivity.this, "获取到" + pkData.size() + "条数据");
+                showMsgToast("获取到" + pkData.size() + "条数据");
                 mAdapter.notifyDataSetChanged();
                 break;
             case GET_FAIL:
-                MyToast.showToast(PankuActivity.this, "网络质量较差，请检查网络");
+                showMsgToast("网络质量较差，请检查网络");
                 mAdapter.notifyDataSetChanged();
                 break;
             case GET_NUll:
-                MyToast.showToast(PankuActivity.this, "条件有误");
+                showMsgToast("条件有误");
                 mAdapter.notifyDataSetChanged();
                 break;
             case INSERT_SUCCESS:
@@ -107,7 +107,7 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
                 mAdapter.notifyDataSetChanged();
                 break;
             case INSERT_FAIL:
-                MyToast.showToast(PankuActivity.this, "插入盘库信息失败");
+                showMsgToast("插入盘库信息失败");
                 mAdapter.notifyDataSetChanged();
                 break;
             case CHANGEFLAG_SUCCESS:
@@ -139,7 +139,7 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
 
                 break;
             case CHANGEFLAG_ERROR:
-                MyToast.showToast(PankuActivity.this, "解锁失败");
+                showMsgToast("解锁失败");
                 mAdapter.notifyDataSetChanged();
                 break;
             case GET_PANKUINFO:
@@ -247,7 +247,7 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
             Integer.parseInt(result);
             getData();
         } catch (NumberFormatException e) {
-            MyToast.showToast(this, getString(R.string.error_numberformate));
+            showMsgToast( getString(R.string.error_numberformate));
             e.printStackTrace();
         }
     }
@@ -276,8 +276,6 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
             dialogScanPlace.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //                    startActivityForResult(new Intent(PankuActivity.this,
-                    // CaptureActivity.class),reqScan);
                     startScanActivity(reqScan);
                 }
             });
@@ -357,7 +355,7 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
                 Integer.parseInt(result);
                 getData();
             } catch (NumberFormatException e) {
-                MyToast.showToast(this, "扫码结果有误");
+                showMsgToast( "扫码结果有误");
                 e.printStackTrace();
             }
         }

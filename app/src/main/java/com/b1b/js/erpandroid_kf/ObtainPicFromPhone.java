@@ -19,10 +19,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
-import com.b1b.js.erpandroid_kf.imagepicker.utils.MyAdapter;
 import com.b1b.js.erpandroid_kf.imagepicker.PickPicActivity;
+import com.b1b.js.erpandroid_kf.imagepicker.utils.MyAdapter;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.task.UpLoadPicRunable;
@@ -40,14 +41,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
-import utils.FTPUtils;
-import utils.FtpManager;
-import utils.ImageWaterUtils;
-import utils.MyImageUtls;
-import utils.MyToast;
-import utils.UploadUtils;
+import utils.common.ImageWaterUtils;
+import utils.common.MyImageUtls;
+import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.MartStock;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
+import utils.net.wsdelegate.MartStock;
 
 public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
 
@@ -63,7 +63,7 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
     protected Context mContext = ObtainPicFromPhone.this;
     protected int count = 0;
     protected String uploadResult = "";
-
+    protected String kfFTP = MyApp.ftpUrl;
     @Override
     public void handleMessage(Message msg) {
         int arg1 = msg.arg1;
@@ -193,10 +193,7 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
         if (pid != null) {
             edPid.setText(pid);
         }
-        userInfo = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
-        SharedPreferences sp = userInfo;
-        cid = sp.getInt("cid", -1);
-        did = sp.getInt("did", -1);
+
         mGvAdapter = new UploadPicAdapter(mContext, uploadPicInfos, new UploadPicAdapter.OnItemBtnClickListener() {
             @Override
             public void onClick(View v, final int position) {
@@ -206,7 +203,7 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
                     return;
                 }
                 if (!uploadPicInfo.getState().equals("-1")) {
-                    MyToast.showToast(mContext, "当前图片已经上传完成");
+                    showMsgToast( "当前图片已经上传完成");
                     return;
                 }
                 Button btn = (Button) v;
@@ -217,12 +214,38 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
             }
         });
         gv.setAdapter(mGvAdapter);
+        initUploadInfo();
     }
 
     public boolean checkPid(int len) {
-        return TakePicActivity.checkPid(mContext, pid, len);
+        if ("".equals(pid) || pid == null) {
+            showMsgToast( "请输入单据号");
+            return true;
+        } else {
+            if (pid.length() < len) {
+                showMsgToast( "请输入" + len + "位单据号");
+                return true;
+            }
+        }
+        return false;
     }
-
+    public void initUploadInfo(){
+        userInfo = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
+        SharedPreferences sp = userInfo;
+        cid = sp.getInt("cid", -1);
+        did = sp.getInt("did", -1);
+        if (kfFTP == null) {
+            kfFTP = userInfo.getString("ftp", "");
+        }
+        final String intentFlag = getIntent().getStringExtra("flag");
+        if (intentFlag != null && intentFlag.equals("caigou")) {
+            kfFTP = FTPUtils.CaigouFTPAddr;
+        }else{
+            if (CheckUtils.isAdmin()) {
+                kfFTP = FTPUtils.mainAddress;
+            }
+        }
+    }
     private void nUpload(final int position, final UploadPicInfo uploadPicInfo, final int arg2) {
         final String intentFlag = getIntent().getStringExtra("flag");
         String insertPath = "";
@@ -233,7 +256,7 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
         UpLoadPicRunable runable = null;
         String encoding = "iso-8859-1";
         if (intentFlag != null && intentFlag.equals("caigou")) {
-            mUrl = CaigouActivity.ftpAddress;
+            mUrl = FTPUtils.CaigouFTPAddr;
             ftpUtil =FTPUtils.getGlobalFTP();
             remoteName = UploadUtils.createSCCGRemoteName(pid);
             remoteName = getRemarkName(remoteName, true);
@@ -267,6 +290,7 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
             remotePath = "/Zjy/kf/" + remoteName + ".jpg";
             ftpUtil = FtpManager.getTestFTPMain();
         }
+
         insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
         runable = new UploadPicRunnable2(remotePath, insertPath, ftpUtil) {
 
@@ -355,7 +379,7 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
                 if (checkPid(5))
                     return;
                 if (uploadPicInfos.size() == 0) {
-                    MyToast.showToast(mContext, "请先添加一张图片");
+                    showMsgToast( "请先添加一张图片");
                     return;
                 }
                 showProgressDialog();
@@ -367,11 +391,11 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
                         nUpload(i, item, 2);
                     } else {
                         count++;
-                        MyToast.showToast(mContext, "图片" + i + "已上传完成");
+                        showMsgToast( "图片" + i + "已上传完成");
                     }
                 }
                 if (count == uploadPicInfos.size()) {
-                    MyToast.showToast(mContext, "所有图片已上传完成");
+                    showMsgToast( "所有图片已上传完成");
                     pd.cancel();
                 }
                 break;

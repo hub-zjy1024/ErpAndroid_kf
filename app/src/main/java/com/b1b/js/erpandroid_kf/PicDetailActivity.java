@@ -30,8 +30,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import utils.HttpUtils;
-import utils.MyImageUtls;
+import utils.net.HttpUtils;
+import utils.common.MyImageUtls;
 
 public class PicDetailActivity extends AppCompatActivity {
 

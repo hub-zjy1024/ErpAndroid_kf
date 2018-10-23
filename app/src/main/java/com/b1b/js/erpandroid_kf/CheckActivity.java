@@ -15,8 +15,10 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
+import com.b1b.js.erpandroid_kf.scancode.zbar.ZbarScanActivity;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONException;
@@ -26,11 +28,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import utils.MyJsonUtils;
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
+import utils.common.MyJsonUtils;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.ChuKuServer;
 
 public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
     private ListView lv;
@@ -54,15 +55,15 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
             case 0:
                 SoftKeyboardUtils.closeInputMethod(edPartno, this);
                 mAdapter.notifyDataSetChanged();
-                MyToast.showToast(this, "查询到" + data.size() + "条数据");
+                showMsgToast( "查询到" + data.size() + "条数据");
                 break;
             case 1:
                 mAdapter.notifyDataSetChanged();
-                MyToast.showToast(this, "请输入正确的查询条件");
+                showMsgToast( "请输入正确的查询条件");
                 break;
             case 2:
                 mAdapter.notifyDataSetChanged();
-                MyToast.showToast(this, "查询失败，网络状态不佳");
+                showMsgToast( "查询失败，网络状态不佳");
                 break;
         }
         if (pd != null) {
@@ -122,13 +123,19 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
     }
 
     @Override
+    public void startScanActivity() {
+        Intent intent = new Intent(this, ZbarScanActivity.class);
+        startActivityForResult(intent,REQ_CODE);
+    }
+
+    @Override
     public void resultBack(String result) {
         edPid.setText(result);
         try {
             Integer.parseInt(result);
         } catch (NumberFormatException e) {
             e.printStackTrace();
-            MyToast.showToast(CheckActivity.this, getString(R.string.error_numberformate));
+            showMsgToast( getString(R.string.error_numberformate));
             return;
         }
         pid = result;
@@ -163,7 +170,7 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
                                 if (pd != null && pd.isShowing()) {
                                     pd.cancel();
                                 }
-                                MyToast.showToast(CheckActivity.this, "查询到" + data.size() + "条数据");
+                                showMsgToast( "查询到" + data.size() + "条数据");
                                 if (tempAuto) {
                                     startActivity(intent);
                                 }
@@ -186,15 +193,6 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
 
     private String getChuKuCheckInfoByTypeID(int typeId, String pid, String partNo, String uid) throws IOException,
             XmlPullParserException {
-//        LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
-//        properties.put("checkWord", "");
-//        properties.put("typeid", typeId);
-//        properties.put("pid", pid);
-//        properties.put("partNo", partNo);
-//        properties.put("uid", uid);
-//        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuCheckInfoByTypeID");
-//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
-//        return response.toString()
         return ChuKuServer.GetChuKuCheckInfoByTypeID("",typeId, pid, partNo, uid);
     }
 
@@ -215,8 +213,6 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
                 getData(2, pid, partNo, false);
                 break;
             case R.id.check_btn_scancode:
-                //                Intent intent = new Intent(CheckActivity.this, CaptureActivity.class);
-                //                startActivityForResult(intent, 100);
                 startScanActivity();
                 break;
 

@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import utils.wsdelegate.MartService;
+import utils.net.wsdelegate.MartService;
 
 /**
  * Created by 张建宇 on 2018/11/1.

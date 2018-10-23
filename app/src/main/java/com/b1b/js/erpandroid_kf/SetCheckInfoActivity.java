@@ -12,14 +12,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 
-import utils.MyToast;
-import utils.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.ChuKuServer;
 
 public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View.OnClickListener {
 
@@ -75,7 +75,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            MyToast.showToast(mContext, soapRes);
+                            showMsgToast( soapRes);
                         }
                     });
                 } catch (IOException e) {
@@ -95,7 +95,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                MyToast.showToast(mContext, getResources().getString(R.string.bad_connection));
+                showMsgToast( getResources().getString(R.string.bad_connection));
             }
         });
     }
@@ -108,7 +108,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
             case R.id.setcheckinfo_fail:
                 try {
                     if ("".equals(info)) {
-                        MyToast.showToast(mContext, "请输入不通过原因");
+                        showMsgToast( "请输入不通过原因");
                         return;
                     }
                     getSetCheckInfo(1, info, pid, 1, "", loginID);

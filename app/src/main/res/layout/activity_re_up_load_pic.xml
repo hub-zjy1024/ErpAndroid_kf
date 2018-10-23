@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ReUpLoadPicActivity">
+
+    <TextView
+        style="@style/zjy_title"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/activity_title_height"
+        android:text="图片重传"/>
+
+    <LinearLayout
+        style="@style/lrPadding"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/def_text_size"
+                android:text="上传失败的图片数:"/>
+
+            <TextView
+                android:id="@+id/activity_reupload_tv_totalcount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/def_text_size"
+                android:textColor="@color/alertcolor_bg_whight"
+                android:text=""/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/activity_reupload_btn_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="开始重传"/>
+
+        <TextView
+            android:id="@+id/activity_reupload_tv_process"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/activity_reupload_tv_log"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/def_text_size"
+            android:text="上传记录："/>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/activity_reupload_tv_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/color_alert_red"
+                android:textSize="@dimen/def_text_size"/>
+        </ScrollView>
+    </LinearLayout>
+</LinearLayout>

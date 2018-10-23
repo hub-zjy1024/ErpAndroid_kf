@@ -30,6 +30,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.ReuseFtpRunnable;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -45,20 +46,19 @@ import java.util.Arrays;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
-import utils.FTPUtils;
-import utils.FtpManager;
-import utils.ImageWaterUtils;
-import utils.MyImageUtls;
-import utils.MyToast;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
 import utils.camera.AutoFoucusMgr;
 import utils.camera.CamRotationManager;
+import utils.common.ImageWaterUtils;
+import utils.common.MyImageUtls;
+import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
+import utils.net.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.WebserviceUtils;
 
 public class TakePicActivity extends SavedLoginInfoActivity implements View.OnClickListener, NoLeakHandler.NoLeakCallback {
 
-    private int rotation = 0;
     private SurfaceView surfaceView;
     private Button btn_tryagain;
     private Button btn_setting;
@@ -78,7 +78,6 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
     private MaterialDialog resultDialog;
     protected final static int PICUPLOAD_SUCCESS = 0;
     protected final static int PICUPLOAD_ERROR = 1;
-    private Context mContext = TakePicActivity.this;
     protected int tempRotate = 0;
     protected Snackbar finalSnackbar;
     private boolean isDestoryed = false;
@@ -215,12 +214,12 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                 public void surfaceCreated(SurfaceHolder holder) {
                     int counts = Camera.getNumberOfCameras();
                     if (counts == 0) {
-                        MyToast.showToast(mContext, "设备无摄像头");
+                        showMsgToast( "设备无摄像头");
                         return;
                     }
                     mCamera = Camera.open(0); // 打开摄像头
                     if (mCamera == null) {
-                        MyToast.showToast(mContext, "检测不到摄像头");
+                        showMsgToast( "检测不到摄像头");
                         return;
                     }
                     cameraSp = getSharedPreferences(SettingActivity.PREF_CAMERA_INFO, 0);
@@ -433,7 +432,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
             dialog.setCancelable(false);
             dialog.show();
         } else {
-            MyToast.showToast(mContext, "没有可选的尺寸");
+            showMsgToast( "没有可选的尺寸");
         }
     }
 
@@ -461,14 +460,13 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
     }
 
 
-    public static boolean checkPid(Context mContext, String pid, int len) {
-
+    public  boolean checkPid(Context mContext, String pid, int len) {
         if ("".equals(pid) || pid == null) {
-            MyToast.showToast(mContext, "请输入单据号");
+            showMsgToast( "请输入单据号");
             return true;
         } else {
             if (pid.length() < len) {
-                MyToast.showToast(mContext, "请输入" + len + "位单据号");
+                showMsgToast( "请输入" + len + "位单据号");
                 return true;
             }
         }
@@ -501,7 +499,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                         tempRotate  = rotationManager.getRotation();
                         isPreview = false;
                         if (data == null || data.length == 0) {
-                            MyToast.showToast(mContext, "拍照出现错误，请重启程序");
+                            showMsgToast( "拍照出现错误，请重启程序");
                             tempBytes = null;
                             return;
                         }
@@ -521,7 +519,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
             //提交
             case R.id.main_commit:
                 if (tempBytes == null) {
-                    MyToast.showToast(mContext, "拍照数据为空,请重新进入页面");
+                    showMsgToast( "拍照数据为空,请重新进入页面");
                     if (mCamera != null) {
                         mCamera.startPreview();
                         auto.start();
@@ -597,7 +595,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
         final Bitmap bitmap = waterBitmap;
         if (kfFTP == null || "".equals(kfFTP)) {
             if (!CheckUtils.isAdmin()) {
-                MyToast.showToast(mContext, "读取上传地址失败，请重启程序");
+                showMsgToast( "读取上传地址失败，请重启程序");
                 return;
             }
         }
@@ -711,7 +709,9 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
 
     public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
                                    String stypeID) throws IOException, XmlPullParserException {
-        return TakePic2Activity.setInsertPicInfo(checkWord, cid, did, uid, pid, fileName, filePath, stypeID);
+        String str = ChuKuServer.SetInsertPicInfo(checkWord, cid, did, uid, pid, fileName, filePath, stypeID);
+        return str;
+//        return TakePic2Activity.setInsertPicInfo(checkWord, cid, did, uid, pid, fileName, filePath, stypeID);
     }
 
     @Override

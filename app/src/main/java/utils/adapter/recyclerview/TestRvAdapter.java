@@ -2,6 +2,7 @@ package utils.adapter.recyclerview;
 
 import android.content.Context;
 
+import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.entity.ChuKuDanInfo;
 
 import java.util.List;
@@ -17,6 +18,6 @@ public class TestRvAdapter extends BaseRvAdapter<ChuKuDanInfo> {
 
     @Override
     protected void convert(BaseRvViewholder holder, ChuKuDanInfo item) {
-        holder.setText(1, 2);
+        holder.setText(R.id.chukudan_items_tv , item.toStringSmall());
     }
 }

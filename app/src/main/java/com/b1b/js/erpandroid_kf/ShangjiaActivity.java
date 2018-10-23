@@ -20,7 +20,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.entity.ShangJiaInfo;
+import com.b1b.js.erpandroid_kf.entity.SpSettings;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
@@ -34,9 +36,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import utils.MyDecoration;
-import utils.MyToast;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.RKServer;
 
 public class ShangjiaActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback {
     private Handler mHandler = new NoLeakHandler(this);
@@ -51,8 +53,8 @@ public class ShangjiaActivity extends SavedLoginInfoWithScanActivity implements 
     private boolean isShangjia = false;
     private ShangJiaInfo currentItem = null;
     private String storageInfo;
+    private String currentIp;
     private ProgressDialog pd;
-    private Context sjContext = ShangjiaActivity.this;
     @Override
 
     public void handleMessage(Message msg) {
@@ -82,13 +84,6 @@ public class ShangjiaActivity extends SavedLoginInfoWithScanActivity implements 
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //                new Thread() {
-                //                    @Override
-                //                    public void run() {
-                //                        Instrumentation instru = new Instrumentation();
-                //                        instru.sendKeyDownUpSync(KeyEvent.KEYCODE_MUTE);
-                //                    }
-                //                }.start();
                 isShangjia = false;
                 startScanActivity();
             }
@@ -98,20 +93,40 @@ public class ShangjiaActivity extends SavedLoginInfoWithScanActivity implements 
             public void onClick(View v) {
                 String mxID = edMxID.getText().toString();sjInfos.clear();
                 if (mxID.equals("")) {
-                    MyToast.showToast(sjContext, "请先输入明细ID");
+                    showMsgToast( "请先输入明细ID");
                     return;
                 }
                 getData(mxID);
             }
         });
-        spKf = getSharedPreferences(SettingActivity.PREF_KF, MODE_PRIVATE);
-        storageInfo = spKf.getString(RukuTagPrintAcitivity.storageKey, "");
-        storageID = RukuTagPrintAcitivity.getStorageIDFromJson(storageInfo);
+        spKf = getSharedPreferences(SpSettings.PREF_KF, MODE_PRIVATE);
+        storageInfo = spKf.getString(SpSettings.storageKey, "");
+        storageID = StorageUtils.getStorageIDFromJson(storageInfo);
         kuquID = spKf.getString(KuQq_ID, "");
         mAdapter = new RVAdapter(sjInfos, R.layout.item_shangjia, this);
         rv.setAdapter(mAdapter);
-    }
+        Runnable getInfoRun = new Runnable() {
+            @Override
+            public void run() {
+                currentIp = StorageUtils.getCurrentIp();
+                if (currentIp.equals("")) {
+//                    currentIp = "4g";
+                }
+                if (storageID.equals("")) {
+                    String info = null;
+                    try {
+                        info = StorageUtils.getStorageByIp();
+                        storageID = StorageUtils.getStorageIDFromJson(info);
+                        spKf.edit().putString(SpSettings.storageKey, info).commit();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+        TaskManager.getInstance().execute(getInfoRun);
 
+    }
     @Override
     public void resultBack(String result) {
         if (isShangjia) {
@@ -146,45 +161,38 @@ public class ShangjiaActivity extends SavedLoginInfoWithScanActivity implements 
             Runnable sjRun = new Runnable() {
                 @Override
                 public void run() {
+                    String errMsg = "";
                     try {
-                        String currentIp = StorageUtils.getCurrentIp();
-                        if (currentIp.equals("")) {
+                        final String tip = currentIp;
+                        if (tip.equals("")) {
                             throw new IOException("获取IP地址失败");
                         }
-                        String sjResult = Shangjia(id, result, kuquID, description, loginID, currentIp);
+                        String sjResult = Shangjia(id, result, kuquID, description, loginID, tip);
                         if (sjResult.equals("上架成功")) {
                             currentItem.setStatus(String.format("位置变更成功：%s->%s", currentItem.getPlace(), result));
                             MyApp.myLogger.writeInfo("上架成功：" + currentItem.getCodeStr() + "," + description);
-                            mHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mAdapter.notifyDataSetChanged();
-                                    MyToast.showToast(sjContext, "上架成功");
-                                }
-                            });
                         } else {
                             MyApp.myLogger.writeInfo("上架失败：" + currentItem.getCodeStr() + "," + description + ",结果：" + result);
-                            mHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    MyToast.showToast(sjContext, "上架失败！！！！");
-                                }
-                            });
+                            throw new IOException(String.format("返回结果=''", sjResult));
                         }
                     } catch (final IOException e) {
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                MyToast.showToast(sjContext, "上架失败：" + e.getMessage());
-                            }
-                        });
+                        errMsg = "上架失败：" + e.getMessage();
                         e.printStackTrace();
                     } catch (XmlPullParserException e) {
+                        errMsg = "上架失败：" + e.getMessage();
                         e.printStackTrace();
                     }
+                    final String finalErrMsg = errMsg;
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
+                            if (!"".equals(finalErrMsg)) {
+                                showMsgDialog(finalErrMsg);
+                            }else{
+                                mAdapter.notifyDataSetChanged();
+
+                                showMsgToast( "上架成功");
+                            }
                             pd.cancel();
                         }
                     });
@@ -192,7 +200,7 @@ public class ShangjiaActivity extends SavedLoginInfoWithScanActivity implements 
             };
             TaskManager.getInstance().execute(sjRun);
         } else {
-            MyToast.showToast(this, "请先点击上架按钮");
+            showMsgToast("请先点击上架按钮");
         }
     }
 
@@ -287,14 +295,22 @@ public class ShangjiaActivity extends SavedLoginInfoWithScanActivity implements 
         Runnable run = new Runnable() {
             @Override
             public void run() {
+                String errMsg = "";
                 try {
-                    if (storageID.equals("")) {
-                        String info = RukuTagPrintAcitivity.getStorageByIp();
-                        storageID = RukuTagPrintAcitivity.getStorageIDFromJson(info);
-                        spKf.edit().putString(RukuTagPrintAcitivity.storageKey, info).commit();
+                    final String tempStorId = storageID;
+                    String balaceInfo = "";
+                    if (mxID.contains("|")||mxID.contains("-")) {
+                        balaceInfo = RKServer.GetShangJiaInfo(mxID);
+                    }else{
+                        int iPid = 0;
+                        try {
+                            iPid = Integer.parseInt(mxID);
+                        } catch (Exception e) {
+                            throw new IOException("请输入纯数字形式的明细号");
+                        }
+                        balaceInfo =  ChuKuServer.GetStorageBlanceInfoByID(iPid, "", tempStorId );
                     }
-                    String balaceInfo = RukuTagPrintAcitivity.getBalaceInfo(mxID, storageID, "");
-                    Log.e("zjy", "SangjiaActivity->run(): balanceInfo==" + balaceInfo);
+                   Log.e("zjy", "SangjiaActivity->run(): balanceInfo==" + balaceInfo);
                     JSONObject jobj = new JSONObject(balaceInfo);
                     JSONArray jarray = jobj.getJSONArray("表");
                     for (int i = 0; i < jarray.length(); i++) {
@@ -315,7 +331,7 @@ public class ShangjiaActivity extends SavedLoginInfoWithScanActivity implements 
                         String fengzhuang = tj.getString("封装");
                         String description = tj.getString("描述");
                         String place = tj.getString("位置");
-                        String storageID = ShangjiaActivity.this.storageID;
+                        String storageID =tempStorId;
                         String flag = tj.getString("SQInvoiceType");
                         String shangjiaID = tj.getString("ID");
                         String company = tj.getString("name");
@@ -331,23 +347,23 @@ public class ShangjiaActivity extends SavedLoginInfoWithScanActivity implements 
                         sjInfos.add(info);
                     }
                 } catch (final IOException e) {
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            MyToast.showToast(sjContext, "连接服务器失败：" + e.getMessage());
-                        }
-                    });
+                    errMsg = "连接服务器失败,"+e.getMessage();
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
+                    errMsg = "xml异常," + e.getMessage();
                     e.printStackTrace();
                 } catch (JSONException e) {
+                    errMsg = "查询不到数据,"+e.getMessage();
+                    e.printStackTrace();
+                }
+                if (!errMsg.equals("")) {
+                    final String finalErrMsg = errMsg;
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            MyToast.showToast(sjContext, "查询不到数据");
+                            showMsgToast(finalErrMsg);
                         }
                     });
-                    e.printStackTrace();
                 }
                 mHandler.sendEmptyMessage(GET_DATA);
             }
@@ -356,6 +372,6 @@ public class ShangjiaActivity extends SavedLoginInfoWithScanActivity implements 
     }
 
     public static String getKuquID(String storageInfo) {
-        return RukuTagPrintAcitivity.getStorageInfo(storageInfo, "ChildStorageID");
+        return StorageUtils.getStorageInfo(storageInfo, "ChildStorageID");
     }
 }

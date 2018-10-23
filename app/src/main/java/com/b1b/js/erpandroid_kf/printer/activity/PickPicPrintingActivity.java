@@ -25,7 +25,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import utils.DialogUtils;
+import utils.framwork.DialogUtils;
 
 public class PickPicPrintingActivity extends AppCompatActivity {
     private List<PrinterItem> selcetItems;

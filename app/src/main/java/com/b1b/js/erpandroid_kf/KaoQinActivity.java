@@ -6,6 +6,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.adapter.KqAdapter;
 import com.b1b.js.erpandroid_kf.entity.KaoqinInfo;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
@@ -20,10 +21,9 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import utils.MyJsonUtils;
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
+import utils.common.MyJsonUtils;
+import utils.framwork.SoftKeyboardUtils;
+import utils.net.wsdelegate.WebserviceUtils;
 
 public class KaoQinActivity extends SavedLoginInfoActivity {
 
@@ -66,7 +66,7 @@ public class KaoQinActivity extends SavedLoginInfoActivity {
                     }
                 }
                 if (data.size() == 0) {
-                    MyToast.showToast(getApplicationContext(), "当前无迟到早退记录");
+                    showMsgToast("当前无迟到早退记录");
                 }
                 adapter.notifyDataSetChanged();
             }
@@ -78,7 +78,7 @@ public class KaoQinActivity extends SavedLoginInfoActivity {
                 String id = inputId.getText().toString().trim();
                 String date = inputDate.getText().toString().trim();
                 if (date.equals("") || id.equals("")) {
-                    MyToast.showToast(KaoQinActivity.this, "请输入完整查询条件");
+                    showMsgToast( "请输入完整查询条件");
                 } else {
                     initData(new String[]{date, id});
                 }
@@ -95,7 +95,7 @@ public class KaoQinActivity extends SavedLoginInfoActivity {
         new WebServicesTask<>(new WebCallback<String>() {
             @Override
             public void errorCallback(Throwable e) {
-                MyToast.showToast(KaoQinActivity.this, "网络较差");
+                showMsgToast( "网络较差");
             }
 
             @Override
@@ -109,9 +109,9 @@ public class KaoQinActivity extends SavedLoginInfoActivity {
                     data.clear();
                     data.addAll(kqList);
                     adapter.notifyDataSetChanged();
-                    MyToast.showToast(KaoQinActivity.this, "查询到" + kqList.size() + "条考勤记录");
+                    showMsgToast( "查询到" + kqList.size() + "条考勤记录");
                 } catch (JSONException e) {
-                    MyToast.showToast(KaoQinActivity.this, "查询条件有误");
+                    showMsgToast( "查询条件有误");
                     e.printStackTrace();
                 }
             }

@@ -2,22 +2,24 @@ package com.b1b.js.erpandroid_kf.dtr.zxing.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 
 import com.android.dev.BarcodeAPI;
+import com.b1b.js.erpandroid_kf.R;
+import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
 
 import utils.CameraScanInterface;
 import utils.handler.NoLeakHandler;
 
-public abstract class BaseScanActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback,CameraScanInterface{
+public abstract class BaseScanActivity extends BaseMActivity implements NoLeakHandler.NoLeakCallback, CameraScanInterface{
     private Handler scanHandler = new NoLeakHandler(this);
     @Override
     public void handleMessage(Message msg) {
@@ -33,7 +35,7 @@ public abstract class BaseScanActivity extends AppCompatActivity implements NoLe
     boolean hasScanBtn = false;
     boolean hasInit = false;
     protected BarcodeAPI scanTool = null;
-
+    private MediaPlayer mmediaplayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,9 +44,21 @@ public abstract class BaseScanActivity extends AppCompatActivity implements NoLe
     }
 
     public  void resultBack(String result){
-
+        playSuccessVoice();
     }
 
+    @Override
+    public void init() {
+        mmediaplayer = new MediaPlayer();
+        mmediaplayer = MediaPlayer.create(this, R.raw.scanok);
+        mmediaplayer.setLooping(false);
+    }
+
+    void playSuccessVoice(){
+        if (mmediaplayer != null) {
+            mmediaplayer.start();
+        }
+    }
     @Override
     public void getCameraScanResult(String result) {
 
@@ -77,10 +91,14 @@ public abstract class BaseScanActivity extends AppCompatActivity implements NoLe
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if ( resultCode == RESULT_OK) {
-            String result = data.getStringExtra("result");
-            getCameraScanResult(result, requestCode);
-            if (requestCode == REQ_CODE) {
-                getCameraScanResult(result);
+            if (data != null) {
+                //可能为空，导致空指针崩溃
+                String result = data.getStringExtra("result");
+                getCameraScanResult(result, requestCode);
+                if (requestCode == REQ_CODE) {
+                    getCameraScanResult(result);
+                }
+                playSuccessVoice();
             }
         }
     }
@@ -101,6 +119,10 @@ public abstract class BaseScanActivity extends AppCompatActivity implements NoLe
         super.onDestroy();
         if (scanTool != null) {
             scanTool.close();
+        }
+        if (mmediaplayer != null) {
+            mmediaplayer.release();
+            mmediaplayer = null;
         }
     }
     public final void disbleScanService(Context mContext) {

@@ -33,11 +33,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import utils.MyJsonUtils;
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
+import utils.common.MyJsonUtils;
+import utils.framwork.MyToast;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.ChuKuServer;
 
 
 /**
@@ -72,13 +72,13 @@ public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler
             adapter.notifyDataSetChanged();
             isFinish = true;
             SoftKeyboardUtils.closeInputMethod(edPartNo, getActivity());
-            MyToast.showToast(getActivity(), "查询到" + data.size() + "条数据");
+            MyToast.showToast(mContext, "查询到" + data.size() + "条数据");
         } else if (msg.what == 1) {
             isFinish = true;
-            MyToast.showToast(getActivity(), "查询条件有误");
+            MyToast.showToast(mContext, "查询条件有误");
         } else if (msg.what == 2) {
             isFinish = true;
-            MyToast.showToast(getActivity(), "当前网络质量较差，查询失败");
+            MyToast.showToast(mContext, "当前网络质量较差，查询失败");
         }
     }
     private Handler handler = new NoLeakHandler(this);
@@ -99,7 +99,7 @@ public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler
         lv = (ListView) view.findViewById(R.id.frag_chukudan_lv);
         edPartNo = (EditText) view.findViewById(R.id.frag_chukudan_GoodNo);
         edPid = (EditText) view.findViewById(R.id.frag_chukudan_pid);
-        adapter = new ChuKuDanAdapter(data, getActivity());
+        adapter = new ChuKuDanAdapter(data, mContext);
         btnSearch = (Button) view.findViewById(R.id.frag_chukudan_search);
         tvStime = (TextView) view.findViewById(R.id.chukudan_stime);
         tvEtime = (TextView) view.findViewById(R.id.chukudan_etime);
@@ -110,7 +110,7 @@ public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler
             @Override
             public void onClick(View v) {
                 com.b1b.js.erpandroid_kf.ChuKuActivity activity = (com.b1b.js.erpandroid_kf.ChuKuActivity)
-                        getActivity();
+                        mContext;
                 activity.startScanActivity();
             }
         });
@@ -151,7 +151,7 @@ public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler
 
 
     private void setTvTime(final TextView textView) {
-        DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), new DatePickerDialog
+        DatePickerDialog datePickerDialog = new DatePickerDialog(mContext, new DatePickerDialog
                 .OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
@@ -240,7 +240,7 @@ public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler
                     }
                     getData(loginID, partNo, pid, sttime, endtime);
                 } else {
-                    MyToast.showToast(getActivity(), "请稍后，上次查询还未完成");
+                    MyToast.showToast(mContext, "请稍后，上次查询还未完成");
                 }
                 break;
 

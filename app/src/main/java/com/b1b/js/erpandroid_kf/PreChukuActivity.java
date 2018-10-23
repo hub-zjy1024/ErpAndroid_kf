@@ -15,6 +15,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuAdapter2;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
@@ -29,10 +30,10 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Vector;
 
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
+import utils.framwork.MyToast;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.ChuKuServer;
 
 public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements View.OnClickListener {
 
@@ -54,10 +55,10 @@ public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements 
         super.handleMessage(msg);
         switch (msg.what) {
             case REQUEST_ERROR:
-                MyToast.showToast(PreChukuActivity.this, "连接服务器失败，请检查网络");
+                showMsgToast( "连接服务器失败，请检查网络");
                 break;
             case REQUEST_NO_DATA:
-                MyToast.showToast(PreChukuActivity.this, "查询条件有误");
+                showMsgToast( "查询条件有误");
                 break;
             case REQUEST_SUCCESS:
                 adapter.notifyDataSetChanged();
@@ -112,7 +113,7 @@ public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements 
             SoftKeyboardUtils.closeInputMethod(edPid, PreChukuActivity.this);
             getPreChukuList("", "", Integer.parseInt(result));
         } else {
-            MyToast.showToast(PreChukuActivity.this, getString(R.string.error_numberformate));
+            showMsgToast( getString(R.string.error_numberformate));
         }
     }
 
@@ -146,7 +147,7 @@ public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements 
             getPreChukuList("", "", Integer.parseInt(result));
         } catch (NumberFormatException e) {
             e.printStackTrace();
-            MyToast.showToast(PreChukuActivity.this, "扫码结果不是数字");
+            showMsgToast( "扫码结果不是数字");
         }
     }
 
@@ -162,7 +163,7 @@ public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements 
 //                getPreChukuList("", "", Integer.parseInt(pid));
 //            } catch (NumberFormatException e) {
 //                e.printStackTrace();
-//                MyToast.showToast(PreChukuActivity.this, "扫码结果不是数字");
+//                showMsgToast( "扫码结果不是数字");
 //            }
 //        }
 //    }
@@ -212,7 +213,7 @@ public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements 
                     tempID = Integer.parseInt(pid);
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
-                    MyToast.showToast(PreChukuActivity.this, "单据号不合法");
+                    showMsgToast( "单据号不合法");
                     return;
                 }
                 final int id = tempID;

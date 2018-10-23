@@ -4,7 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 
-import utils.ImageWaterUtils;
+import utils.common.ImageWaterUtils;
 
 /**
  * Created by 张建宇 on 2019/1/11.

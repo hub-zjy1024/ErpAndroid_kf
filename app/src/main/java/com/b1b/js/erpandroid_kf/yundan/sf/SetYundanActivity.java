@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -33,6 +32,7 @@ import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
+import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -67,17 +67,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import utils.DialogUtils;
-import utils.MyToast;
-import utils.Myuuid;
-import utils.SoftKeyboardUtils;
+import utils.common.Myuuid;
+import utils.framwork.DialogUtils;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.SF_Server;
+import utils.net.wsdelegate.SF_Server;
 
 /**
  * 顺丰快递下单页
  */
-public class SetYundanActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback{
+public class SetYundanActivity extends BaseMActivity implements NoLeakHandler.NoLeakCallback{
     private List<Province> provinces;
     String jAddress;
     String payByWho;
@@ -457,10 +456,10 @@ public class SetYundanActivity extends AppCompatActivity implements NoLeakHandle
             public void onClick(View v) {
                 final String targetPid = edMorePid.getText().toString().trim();
                 if (targetPid.equals("")) {
-                    MyToast.showToast(mContext, "请输入单据号");
+                   showMsgToast( "请输入单据号");
                 } else {
                     if (desOrderid == null) {
-                        MyToast.showToast(mContext, "请先下单");
+                       showMsgToast( "请先下单");
                         return;
                     }
                     pd.setMessage("正在关联其他单据号");
@@ -613,7 +612,7 @@ public class SetYundanActivity extends AppCompatActivity implements NoLeakHandle
             @Override
             public void onClick(View v) {
                 if (desOrderid == null) {
-                    MyToast.showToast(mContext, "还未下单");
+                   showMsgToast( "还未下单");
                     return;
                 }
                 pd.setMessage("正在重新插入单号信息");
@@ -1216,6 +1215,16 @@ public class SetYundanActivity extends AppCompatActivity implements NoLeakHandle
         //                R.id.item_province_tv, provinces));
 
     }
+
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
+    }
     //    GetBD_YunDanInfoByID
 
     @Override
@@ -1275,16 +1284,14 @@ public class SetYundanActivity extends AppCompatActivity implements NoLeakHandle
                                EditText edDTel, final String yundanType) {
 
         if (flag != 1) {
-            Toast.makeText(mContext, "获取寄送信息失败，请稍等或返回重新进入", Toast
-                    .LENGTH_SHORT).show();
+            showMsgToast( "获取寄送信息失败，请稍等或返回重新进入");
             return;
         }
 
         if (boxBaojia.isChecked()) {
             String strBaojia = edBaojia.getText().toString();
             if (strBaojia.equals("")) {
-                Toast.makeText(mContext, "必须输入保价金额", Toast
-                        .LENGTH_SHORT).show();
+                showMsgToast( "必须输入保价金额");
                 return;
             }
         }
@@ -1296,38 +1303,31 @@ public class SetYundanActivity extends AppCompatActivity implements NoLeakHandle
         dTel = edDTel.getText().toString();
         final String bags = edBags.getText().toString().trim();
         if (bags.equals("")) {
-            Toast.makeText(mContext, "请输入包裹数", Toast
-                    .LENGTH_SHORT).show();
+            showMsgToast( "请输入包裹数");
             return;
         }
         if (jTel.equals("")) {
-            Toast.makeText(mContext, "必须输入寄件人电话", Toast
-                    .LENGTH_SHORT).show();
+            showMsgToast( "必须输入寄件人电话");
             return;
         }
         if (jAddress.equals("")) {
-            Toast.makeText(mContext, "必须输入寄件人地址", Toast
-                    .LENGTH_SHORT).show();
+            showMsgToast( "必须输入寄件人地址");
             return;
         }
         if (jName.equals("")) {
-            Toast.makeText(mContext, "必须输入寄件人姓名", Toast
-                    .LENGTH_SHORT).show();
+            showMsgToast( "必须输入寄件人姓名");
             return;
         }
         if (dTel.equals("")) {
-            Toast.makeText(mContext, "必须输入收件人电话", Toast
-                    .LENGTH_SHORT).show();
+            showMsgToast( "必须输入收件人电话");
             return;
         }
         if (dAddress.equals("")) {
-            Toast.makeText(mContext, "必须输入收件人地址", Toast
-                    .LENGTH_SHORT).show();
+            showMsgToast( "必须输入收件人地址");
             return;
         }
         if (dName.equals("")) {
-            Toast.makeText(mContext, "必须输入收件人姓名", Toast
-                    .LENGTH_SHORT).show();
+            showMsgToast( "必须输入收件人姓名");
             return;
         }
         pd.setMessage("正在打印中");

@@ -28,8 +28,8 @@ import android.widget.Toast;
 import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
-import com.b1b.js.erpandroid_kf.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.SettingActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -59,12 +59,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import utils.DialogUtils;
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
+import utils.framwork.DialogUtils;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.MartService;
-import utils.wsdelegate.SF_Server;
+import utils.net.wsdelegate.MartService;
+import utils.net.wsdelegate.SF_Server;
 
 /**
  * 跨越快递下单页
@@ -256,11 +255,11 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
             public void onClick(View v) {
                 final String tempPID = edMorePid.getText().toString();
                 if (tempPID.equals("")) {
-                    MyToast.showToast(mContext, "请输入需要关联的单据号");
+                    showMsgToast("请输入需要关联的单据号");
                     return;
                 }
                 if (yundanID == null) {
-                    MyToast.showToast(mContext, "当前还未下单");
+                    showMsgToast("当前还未下单");
                     return;
                 }
                 pd.setMessage("正在关联");

@@ -14,16 +14,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.adapter.MenuGvAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
-import com.b1b.js.erpandroid_kf.yundan.SFActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SlideBackActivity;
 import com.b1b.js.erpandroid_kf.service.LogUploadService;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
+import com.b1b.js.erpandroid_kf.yundan.SFActivity;
 
 import java.util.ArrayList;
 
-import utils.DialogUtils;
 import utils.btprint.SPrinter;
+import utils.framwork.DialogUtils;
 
 public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickListener {
     private final String tag_Ruku = "库存标签";
@@ -32,16 +34,20 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     private final String tag_Chukudan = "出库单";
     private final String tag_ChukudanPrint = "出库单打印";
     private final String tag_Viewpic = "单据图片";
-    private final String tag_Panku ="盘库";
-    private final String tag_CaigouTakePic ="采购拍照";
-    private final String tag_ChukuCheck ="出库拍照";
-    private final String tag_Admin ="特殊";
+    private final String tag_Panku = "盘库";
+    private final String tag_CaigouTakePic = "采购拍照";
+    private final String tag_ChukuCheck = "出库拍照";
+    private final String tag_Admin = "特殊";
     private final String tag_Setting = "设置";
     private final String tag_shangjia = "货物上架";
-    private final String tag_SHQD = "SH清单";
+    private final String tag_SHQD = "送货清单";
 
+    private final String tag_Zbar = "TestZbar";
+    private final String tag_SlideBack = "SlidebackAc";
+    private final String tag_TestReupload = "图片重传";
 
     private GridView gv;
+    private final String tag_hetong = "hetong";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +66,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             // 按下BACK，同时没有重复
-            int size = (int) MyApp.cachedThreadPool.getActiveCount()-1;
+            int size = (int) MyApp.cachedThreadPool.getActiveCount() - 1;
             if (size > 0) {
                 DialogUtils.getSpAlert(this, "后台还有" + size +
                         "张图片未上传完成，强制退出将导致图片上传失败", "提示").show();
@@ -76,8 +82,12 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Chukudan, "查看出库单和出库通知单"));
         if (CheckUtils.isAdmin()) {
             data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Admin, "101"));
-            data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_SHQD, "清单"));
+//            data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_SHQD, "清单"));
+            //            data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_Zbar, "测试zbar"));
+//            data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_hetong, "测试zbar"));
+            //            data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_SlideBack, "测试zbar"));
         }
+        data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_TestReupload, "tag_TestReupload"));
         data.add(new MyMenuItem(R.mipmap.menu_preprint, tag_ChukudanPrint, "出库单单据信息打印"));
         data.add(new MyMenuItem(R.mipmap.menu_check, tag_ChukuCheck, "出库审核功能和审核完成的拍照功能"));
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Print, "顺丰下单并打印功能,以及打印手机接受的文件的功能"));
@@ -160,7 +170,8 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
                 break;
             case tag_Admin:
                 AlertDialog.Builder specialDialog = new AlertDialog.Builder(MenuActivity.this);
-                View v = LayoutInflater.from(MenuActivity.this).inflate(R.layout.dialog_admin_manager_layout, null);
+                View v = LayoutInflater.from(MenuActivity.this).inflate(R.layout
+                        .dialog_admin_manager_layout, null);
                 final EditText edID = (EditText) v.findViewById(R.id.admin_manager_ed_id);
                 final EditText edFtp = (EditText) v.findViewById(R.id.admin_manager_ed_ftp);
                 Button btnChange = (Button) v.findViewById(R.id.admin_manager_btnCommit);
@@ -189,6 +200,22 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
                 intent.setClass(MenuActivity.this, ShangjiaActivity.class);
                 startActivity(intent);
                 MyApp.myLogger.writeInfo("<page> shangjia");
+                break;
+            case tag_SlideBack:
+                intent.setClass(MenuActivity.this, SlideBackActivity.class);
+                startActivity(intent);
+                break;
+            case tag_TestReupload:
+                intent.setClass(MenuActivity.this, ReUpLoadPicActivity.class);
+                startActivity(intent);
+                break;
+            case tag_hetong:
+                intent.setClass(MenuActivity.this, HetongActivity.class);
+                startActivity(intent);
+                break;
+            case tag_Zbar:
+                intent.setClass(MenuActivity.this, KyExpressAcitivity.class);
+                startActivity(intent);
                 break;
         }
     }

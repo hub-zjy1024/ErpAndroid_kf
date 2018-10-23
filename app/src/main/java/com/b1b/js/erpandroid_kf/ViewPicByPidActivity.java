@@ -30,13 +30,12 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import utils.DialogUtils;
-import utils.FTPUtils;
-import utils.MyFileUtils;
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
+import utils.common.MyFileUtils;
+import utils.framwork.DialogUtils;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.ChuKuServer;
+import utils.net.ftp.FTPUtils;
+import utils.net.wsdelegate.ChuKuServer;
 
 public class ViewPicByPidActivity extends BaseScanActivity{
 
@@ -74,15 +73,15 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                 break;
             case 1:
                 dismissDialog();
-                MyToast.showToast(mContext, "当前单据没有对应的图片");
+               showMsgToast( "当前单据没有对应的图片");
                 break;
             case 2:
                 dismissDialog();
-                MyToast.showToast(mContext, "当前网络质量较差，请重试");
+               showMsgToast( "当前网络质量较差，请重试");
                 break;
             case 3:
                 dismissDialog();
-                MyToast.showToast(mContext, "图片上传地址不在本地服务器，无法访问");
+               showMsgToast( "图片上传地址不在本地服务器，无法访问");
                 break;
             case 4:
                 int totalSize = msg.arg1;
@@ -91,7 +90,7 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                 break;
             case 5:
                 dismissDialog();
-                MyToast.showToast(mContext, "图片上传地址不在本地服务器，无法访问");
+               showMsgToast( "图片上传地址不在本地服务器，无法访问");
                 break;
         }
     }
@@ -127,17 +126,17 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                                              final String pid = edPid.getText().toString().trim();
                                              imgsData.clear();
                                              if (pid.equals("")) {
-                                                 MyToast.showToast(mContext, "请输入单据号");
+                                                showMsgToast( "请输入单据号");
                                                  return;
                                              }
                                              adapter.notifyDataSetChanged();
                                              File imgFile = Environment.getExternalStorageDirectory();
                                              if (imgFile == null) {
-                                                 MyToast.showToast(mContext, "当前无可用的存储设备");
+                                                showMsgToast( "当前无可用的存储设备");
                                                  return;
                                              }
                                              final File file = new File(imgFile, "dyj_img/");
-                                             MyFileUtils.checkImgFileSize(file, 100, mContext);
+                                             MyFileUtils.checkImgFileSize(file, 300, mContext);
                                              startSearch(pid);
                                          }
                                      }
@@ -160,6 +159,31 @@ public class ViewPicByPidActivity extends BaseScanActivity{
             }
         });
         alertDialog = (AlertDialog) DialogUtils.getSpAlert(this, "", "结果");
+
+        String pid = getIntent().getStringExtra("pid");
+        if (pid != null) {
+            edPid.setText(pid);
+            File imgFile = Environment.getExternalStorageDirectory();
+            if (imgFile == null) {
+               showMsgToast( "当前无可用的存储设备");
+                return;
+            }
+            if (pid.equals("")) {
+               showMsgToast( "请输入单据号");
+                return;
+            }
+            startSearch(pid);
+        }
+    }
+
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
     }
 
 
@@ -174,22 +198,6 @@ public class ViewPicByPidActivity extends BaseScanActivity{
     @Override
     protected void onResume() {
         super.onResume();
-        imgsData.clear();
-        adapter.notifyDataSetChanged();
-        String pid = getIntent().getStringExtra("pid");
-        if (pid != null) {
-            edPid.setText(pid);
-            File imgFile = Environment.getExternalStorageDirectory();
-            if (imgFile == null) {
-                MyToast.showToast(mContext, "当前无可用的存储设备");
-                return;
-            }
-            if (pid.equals("")) {
-                MyToast.showToast(mContext, "请输入单据号");
-                return;
-            }
-            startSearch(pid);
-        }
 
     }
 
@@ -320,12 +328,6 @@ public class ViewPicByPidActivity extends BaseScanActivity{
     //    name="checkWord" type="xs:string"
     //   name="ID" type="xs:string"
     public String getRelativePicInfoByPid(String checkWord, String pid) throws IOException, XmlPullParserException {
-//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-//        map.put("checkWord", checkWord);
-//        map.put("ID", pid);
-//        SoapObject request = WebserviceUtils.getRequest(map, "GetBILL_PictureRelatenfoByID");
-//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
-//                .ChuKuServer);
         return ChuKuServer.GetBILL_PictureRelatenfoByID(checkWord, pid);
     }
 

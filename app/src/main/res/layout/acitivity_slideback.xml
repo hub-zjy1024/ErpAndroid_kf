@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="match_parent"
+    android:background="@color/title_background">
+    <!--// setContentView(View view)方法会把view放到bgLayout中。-->
+    <!--setContentView(R.layout.layout_second);-->
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="这是测试backactivity"/>
+
+</android.support.constraint.ConstraintLayout>

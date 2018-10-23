@@ -5,7 +5,7 @@ import android.app.Application;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import utils.LogRecoder;
+import utils.common.LogRecoder;
 
 /**
  Created by js on 2016/12/27. */

@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import utils.wsdelegate.SF_Server;
+import utils.net.wsdelegate.SF_Server;
 
 /**
  * Created by 张建宇 on 2019/1/24.

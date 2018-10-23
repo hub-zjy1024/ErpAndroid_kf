@@ -1,11 +1,11 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -17,14 +17,17 @@ import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -36,52 +39,29 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import utils.DialogUtils;
-import utils.MyToast;
+import utils.framwork.DialogUtils;
 import utils.handler.NoLeakHandler;
-import utils.handler.SafeHandler;
-import utils.WebserviceUtils;
+import utils.net.wsdelegate.WebserviceUtils;
 
-public class SettingActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback{
+public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLeakCallback {
+    private static final int MSG_ERROR_DATA_ILLEGAL_JSON = 1;
+    private static final int MSG_ERROR_KFINOFAILED = 2;
 
-    static class LHandler extends SafeHandler<SettingActivity>{
-
-        private LHandler(SettingActivity mContext) {
-            super(mContext);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            SettingActivity activity = getActivity();
-            if (activity == null) {
-                return;
-            }
-            switch (msg.what) {
-                case 1:
-                    activity.aDialog.setMessage("解析数据出错");
-                    activity.aDialog.show();
-                    break;
-                case 2:
-                    activity.aDialog.setMessage("获取库房信息失败：" + activity.getString(R.string.bad_connection));
-                    activity.aDialog.show();
-                    break;
-            }
-        }
-    }
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
-            case 1:
-              aDialog.setMessage("解析数据出错");
-              aDialog.show();
+            case MSG_ERROR_DATA_ILLEGAL_JSON:
+                aDialog.setMessage("解析数据出错");
+                aDialog.show();
                 break;
-            case 2:
+            case MSG_ERROR_KFINOFAILED:
                 aDialog.setMessage("获取库房信息失败：" + getString(R.string.bad_connection));
-              aDialog.show();
+                aDialog.show();
                 break;
         }
     }
-    private Handler zHandler = new LHandler(this);
+
+    private Handler zHandler = new NoLeakHandler(this);
 
     public static final String NAME = "kfName";
     public static final String KYACCOUNT = "kyAccount";
@@ -119,17 +99,26 @@ public class SettingActivity extends AppCompatActivity implements NoLeakHandler.
         final TextView tvSavedKf = (TextView) findViewById(R.id.activity_setting_tvkf);
         final RadioButton rdoKY = (RadioButton) findViewById(R.id.activity_setting_rdo_ky);
         final Spinner spiUpLoad = (Spinner) findViewById(R.id.activity_setting_spi_picupload_style);
+        final Button btnCheckUpdate = (Button) findViewById(R.id.activity_setting_btncheckupdate);
+        btnCheckUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(mContext, AboutActivity.class));
+            }
+        });
         String[] arrays = getResources().getStringArray(R.array.upload_type);
         String[] strs = Arrays.copyOf(arrays, arrays.length + 1);
         strs[strs.length - 1] = "手动";
-        spiUpLoad.setAdapter(new ArrayAdapter<String>(this, R.layout.item_province, R.id.item_province_tv, strs));
+        spiUpLoad.setAdapter(new ArrayAdapter<String>(this, R.layout.item_province, R.id.item_province_tv, 
+                strs));
         sp = getSharedPreferences(PREF_KF, 0);
         spPicUpload = getSharedPreferences(PREF_TKPIC, 0);
         aDialog = (AlertDialog) DialogUtils.getSpAlert(this, "msg", "提示");
         LinkedHashMap<String, Object> initMap = new LinkedHashMap<>();
         initMap.put(NAME, "请选择");
         mlist.add(initMap);
-        sAdapter = new SimpleAdapter(this, mlist, R.layout.item_province, new String[]{NAME}, new int[]{R.id.item_province_tv});
+        sAdapter = new SimpleAdapter(this, mlist, R.layout.item_province, new String[]{NAME}, new int[]{R
+                .id.item_province_tv});
         spiKF.setAdapter(sAdapter);
         setViewValue(tvSavedKf, rdoSF, rdoKY, edPrinterIP, edPrinterServer, edDiaohuoAccount);
         btnSave.setOnClickListener(new View.OnClickListener() {
@@ -146,14 +135,14 @@ public class SettingActivity extends AppCompatActivity implements NoLeakHandler.
                 SharedPreferences.Editor editor = sp.edit();
                 if (!ip.equals("")) {
                     if (!matches) {
-                        MyToast.showToast(SettingActivity.this, "保存失败，请输入正确的小票打印机ip格式");
+                        showMsgToast( "保存失败，请输入正确的小票打印机ip格式");
                         return;
                     }
                 }
                 editor.putString("printerIP", ip);
                 if (!serverIp.equals("")) {
                     if (!serverMatcher.matches()) {
-                        MyToast.showToast(SettingActivity.this, "保存失败，请输入正确的ip格式");
+                        showMsgToast( "保存失败，请输入正确的ip格式");
                         return;
                     }
                 }
@@ -164,10 +153,11 @@ public class SettingActivity extends AppCompatActivity implements NoLeakHandler.
                 } else if (rdoSF.isChecked()) {
                     editor.putString(PREF_EXPRESS, getString(R.string.express_sf));
                 }
-                @SuppressWarnings("unchecked") Map<String, Object> selectedItem = (Map<String, Object>) spiKF.getSelectedItem();
+                @SuppressWarnings("unchecked") Map<String, Object> selectedItem = (Map<String, Object>) 
+                        spiKF.getSelectedItem();
                 if (selectedItem != null) {
                     if ("请选择".equals(selectedItem.get(NAME))) {
-                        MyToast.showToast(SettingActivity.this, "请先选择库房");
+                        showMsgToast( "请先选择库房");
                         return;
                     }
                     editor.putString(NAME, selectedItem.get(NAME).toString());
@@ -182,12 +172,13 @@ public class SettingActivity extends AppCompatActivity implements NoLeakHandler.
                 }
                 Object selectedItem1 = spiUpLoad.getSelectedItem();
                 spPicUpload.edit().putString("style", selectedItem1.toString()).commit();
-                MyApp.myLogger.writeInfo(SettingActivity.class, "set takepic style :" + selectedItem1.toString());
+                MyApp.myLogger.writeInfo(SettingActivity.class, "set takepic style :" + 
+                        selectedItem1.toString());
                 boolean commit = editor.commit();
                 if (commit) {
-                    MyToast.showToast(SettingActivity.this, "保存成功");
+                    showMsgToast( "保存成功");
                 } else {
-                    MyToast.showToast(SettingActivity.this, "保存失败！！");
+                    showMsgToast( "保存失败！！");
                 }
                 setViewValue(tvSavedKf, rdoSF, rdoKY, edPrinterIP, edPrinterServer, edDiaohuoAccount);
             }
@@ -195,7 +186,8 @@ public class SettingActivity extends AppCompatActivity implements NoLeakHandler.
         spiKF.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                @SuppressWarnings("unchecked")  Map<String, Object> itemAtPosition = (Map<String, Object>) parent.getItemAtPosition(position);
+                @SuppressWarnings("unchecked") Map<String, Object> itemAtPosition = (Map<String, Object>) 
+                        parent.getItemAtPosition(position);
                 if (!"请选择".equals(itemAtPosition.get(NAME))) {
                     edPrinterServer.setText(itemAtPosition.get(PRINTERSERVER).toString());
                     edPrinterIP.setText(itemAtPosition.get(CHUKU_PRINTER).toString());
@@ -217,8 +209,19 @@ public class SettingActivity extends AppCompatActivity implements NoLeakHandler.
 
     }
 
-    public void setViewValue(TextView tvSavedKf, RadioButton rdoSF, RadioButton rdoKY, EditText edPrinterIP, EditText
-            edPrinterServer,EditText edDiaohuoAccount) {
+    @Override
+    public void init() {
+        
+    }
+
+    @Override
+    public void setListeners() {
+
+    }
+
+    public void setViewValue(TextView tvSavedKf, RadioButton rdoSF, RadioButton rdoKY, EditText 
+            edPrinterIP, EditText
+            edPrinterServer, EditText edDiaohuoAccount) {
 
         String localPrinterIP = sp.getString("printerIP", "");
         final String serverIP = sp.getString(PRINTERSERVER, "");
@@ -244,11 +247,12 @@ public class SettingActivity extends AppCompatActivity implements NoLeakHandler.
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(15 * 1000);
             InputStream in = conn.getInputStream();
-            byte[] buf = new byte[1024];
-            int len;
+            BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
             StringBuilder builder = new StringBuilder();
-            while ((len = in.read(buf)) != -1) {
-                builder.append(new String(buf, 0, len, "UTF-8"));
+            String temps = "";
+            while ((temps = br.readLine()) != null) {
+                builder.append(temps);
+                builder.append("\n");
             }
             Log.e("zjy", "SettingActivity->getOnlineConfig(): result==" + builder.toString());
             JSONArray array = new JSONArray(builder.toString());
@@ -277,10 +281,10 @@ public class SettingActivity extends AppCompatActivity implements NoLeakHandler.
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            zHandler.sendEmptyMessage(2);
+            zHandler.sendEmptyMessage(MSG_ERROR_KFINOFAILED);
             e.printStackTrace();
         } catch (final JSONException e) {
-            zHandler.sendEmptyMessage(1);
+            zHandler.sendEmptyMessage(MSG_ERROR_DATA_ILLEGAL_JSON);
             e.printStackTrace();
         }
     }

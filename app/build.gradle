@@ -90,5 +90,10 @@ dependencies {
     implementation 'com.joanzapata.pdfview:android-pdfview:1.0.4@aar'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation 'junit:junit:4.12'
+    //需要添加so libBarcode.so
     implementation project(':redlinescan')
+    implementation('me.dm7.barcodescanner:zbar:1.9.13', {
+        exclude group: 'com.android.support'
+//        , module: 'support-annotations'
+    })
 }

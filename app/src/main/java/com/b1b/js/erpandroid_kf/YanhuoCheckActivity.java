@@ -12,15 +12,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
+
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 
-import utils.DialogUtils;
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
-import utils.UploadUtils;
-import utils.wsdelegate.MartService;
+import utils.common.UploadUtils;
+import utils.framwork.DialogUtils;
+import utils.framwork.SoftKeyboardUtils;
+import utils.net.wsdelegate.MartService;
 
 public class YanhuoCheckActivity extends SavedLoginInfoActivity {
 
@@ -44,11 +45,11 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
             @Override
             public void onClick(View v) {
                 if (loginID == null) {
-                    MyToast.showToast(YanhuoCheckActivity.this, "登陆人为空，请重启");
+                    showMsgToast( "登陆人为空，请重启");
                     return;
                 }
                 String content = getYanhuoStr(loginID, "同意");
-                Log.e("zjy", "YanhuoCheckActivity->onClick(): tv.Txt==" + tvPid.getText
+                Log.e("zjy", "YanhuoCheckActivity->onClick(): tvTotalCount.Txt==" + tvPid.getText
                         ().toString());
                 yanhuo(tvPid.getText().toString(), "等待入库", content);
             }
@@ -58,13 +59,13 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
             @Override
             public void onClick(View v) {
                 if (loginID == null) {
-                    MyToast.showToast(YanhuoCheckActivity.this, "登陆人为空，请重启");
+                    showMsgToast( "登陆人为空，请重启");
                     return;
                 }
 
                 String note = edNote.getText().toString();
                 if (note.equals("")) {
-                    MyToast.showToast(YanhuoCheckActivity.this, "请输入不通过理由");
+                    showMsgToast( "请输入不通过理由");
                     return;
                 }
                 String content = getYanhuoStr(loginID, note);
@@ -85,7 +86,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
 
     public void takePic(final String pid) {
         AlertDialog.Builder builder = new AlertDialog.Builder
-                (YanhuoCheckActivity.this);
+                (mContext);
         builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface
                 .OnClickListener() {
             @Override
@@ -93,21 +94,21 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                 Intent intent;
                 switch (which) {
                     case 0:
-                        intent = new Intent(YanhuoCheckActivity.this,
+                        intent = new Intent(mContext,
                                 TakePicActivity.class);
                         intent.putExtra("pid", pid);
                         intent.putExtra("flag", "caigou");
                         startActivity(intent);
                         break;
                     case 1:
-                        intent = new Intent(YanhuoCheckActivity.this,
+                        intent = new Intent(mContext,
                                 ObtainPicFromPhone.class);
                         intent.putExtra("pid", pid);
                         intent.putExtra("flag", "caigou");
                         startActivity(intent);
                         break;
                     case 2:
-                        intent = new Intent(YanhuoCheckActivity.this,
+                        intent = new Intent(mContext,
                                 CaigouTakePic2Activity.class);
                         intent.putExtra("pid", pid);
                         intent.putExtra("flag", "caigou");
@@ -133,7 +134,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                DialogUtils.getSpAlert(YanhuoCheckActivity.this,
+                                DialogUtils.getSpAlert(mContext,
                                         "验货完成，是否拍照", "提示", new DialogInterface
                                                 .OnClickListener() {
                                             @Override
@@ -152,7 +153,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                DialogUtils.getSpAlert(YanhuoCheckActivity.this,
+                                DialogUtils.getSpAlert(mContext,
                                         "验货失败！！！", "提示").show();
                                 DialogUtils.dismissDialog(pd);
                             }
@@ -162,7 +163,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            DialogUtils.getSpAlert(YanhuoCheckActivity.this,
+                            DialogUtils.getSpAlert(mContext,
                                     "连接服务器失败！！！", "提示").show();
                             DialogUtils.dismissDialog(pd);
                         }

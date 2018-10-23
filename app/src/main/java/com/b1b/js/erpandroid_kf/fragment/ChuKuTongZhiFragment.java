@@ -33,11 +33,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import utils.MyJsonUtils;
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
+import utils.common.MyJsonUtils;
+import utils.framwork.MyToast;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.ChuKuServer;
 
 
 /**
@@ -65,16 +65,16 @@ public class ChuKuTongZhiFragment extends ChukuBaseFragment implements View.OnCl
                 data.addAll(list);
                 adapter.notifyDataSetChanged();
                 isFinish = true;
-                SoftKeyboardUtils.closeInputMethod(edPartNo, getActivity());
-                MyToast.showToast(getActivity(), "查询到" + data.size() + "条数据");
+                SoftKeyboardUtils.closeInputMethod(edPartNo, mContext);
+                MyToast.showToast(mContext, "查询到" + data.size() + "条数据");
                 break;
             case 1:
                 isFinish = true;
-                MyToast.showToast(getActivity(), "查询条件有误");
+                MyToast.showToast(mContext, "查询条件有误");
                 break;
             case 2:
                 isFinish = true;
-                MyToast.showToast(getActivity(), "当前网络质量较差，请稍后尝试");
+                MyToast.showToast(mContext, "当前网络质量较差，请稍后尝试");
                 break;
         }
     }
@@ -107,14 +107,14 @@ public class ChuKuTongZhiFragment extends ChukuBaseFragment implements View.OnCl
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ChuKuActivity activity = (ChuKuActivity) getActivity();
+                ChuKuActivity activity = (ChuKuActivity) mContext;
                 activity.startScanActivity();
             }
         });
         radioGroup = (RadioGroup) view.findViewById(R.id.chukutongzhi_rgroup);
         //初始化listView并填充
         lv = (ListView) view.findViewById(R.id.frag_chukutongzhidan_lv);
-        adapter = new ChuKuTongZhiAdapter(data, getActivity());
+        adapter = new ChuKuTongZhiAdapter(data, mContext);
         lv.setAdapter(adapter);
 
         tvStime.setOnClickListener(this);
@@ -137,7 +137,7 @@ public class ChuKuTongZhiFragment extends ChukuBaseFragment implements View.OnCl
 
     private void setTvTime(final TextView textView) {
         Calendar calendar = Calendar.getInstance();
-        DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(mContext, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 textView.setText(year + "-" + (month + 1) + "-" + dayOfMonth);
@@ -205,7 +205,7 @@ public class ChuKuTongZhiFragment extends ChukuBaseFragment implements View.OnCl
                 }
                 getData(loginID, partNo, pid, sttime, endtime);
                 //                } else {
-                //                    MyToast.showToast(getActivity(), "请稍后，上次查询还未完成");
+                //                    MyToast.showToast(mContext, "请稍后，上次查询还未完成");
                 //                }
                 break;
 

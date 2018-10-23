@@ -58,14 +58,16 @@
 
         <activity android:name=".UploadActivity">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http"
-                      android:host="www.example.com"
-                      android:pathPrefix="/gizmos" />
-            </intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
 
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data
+                    android:host="www.example.com"
+                    android:pathPrefix="/gizmos"
+                    android:scheme="http"/>
+            </intent-filter>
         </activity>
 
         <receiver
@@ -96,6 +98,7 @@
         <activity android:name=".AboutActivity"/>
 
         <service android:name=".service.LogUploadService"/>
+        <service android:name=".service.ReUploadService"/>
 
         <activity android:name=".KyExpressAcitivity"/>
         <activity android:name=".PrintSettingActivity"/>
@@ -105,12 +108,19 @@
         <activity android:name=".ReUploadActivity"/>
         <activity android:name=".ShangjiaActivity">
         </activity>
-        <activity android:name=".SavedLoginInfoActivity">
+        <activity android:name=".activity.base.SavedLoginInfoActivity">
         </activity>
-        <activity android:name=".SavedLoginInfoWithScanActivity"/>
+        <activity android:name=".activity.base.SavedLoginInfoWithScanActivity"/>
         <activity android:name=".QdListActivity">
         </activity>
         <activity android:name=".QdTakePicActivity"/>
+        <activity android:name=".scancode.zbar.ZbarScanActivity"/>
+        <activity android:name=".scancode.zxing.ZxingScanActivcity"/>
+        <activity
+            android:name=".activity.base.SlideBackActivity"
+            android:theme="@style/Theme.zjy.activity.slideback"/>
+        <activity android:name=".ReUpLoadPicActivity">
+        </activity>
     </application>
 
 </manifest>

@@ -31,15 +31,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import utils.FTPUtils;
-import utils.FtpManager;
-import utils.ImageWaterUtils;
-import utils.MyFileUtils;
-import utils.MyImageUtls;
-import utils.MyToast;
-import utils.UploadUtils;
+import utils.common.ImageWaterUtils;
+import utils.common.MyFileUtils;
+import utils.common.MyImageUtls;
+import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.MartService;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
+import utils.net.wsdelegate.MartService;
 
 /**
  * Created by 张建宇 on 2018/10/31.
@@ -74,7 +73,7 @@ public class QdTakePicActivity extends TakePicActivity {
                         llResult.removeView(textView);
                     }
                 }, 2000);
-                MyToast.showToast(mContext, "后台剩余图片：" + (MyApp.cachedThreadPool.getActiveCount() - 1));
+                showMsgToast("后台剩余图片：" + (MyApp.cachedThreadPool.getActiveCount() - 1));
                 break;
         }
     }
@@ -94,7 +93,7 @@ public class QdTakePicActivity extends TakePicActivity {
         final long first = System.currentTimeMillis();
         final File sFile = MyFileUtils.getFileParent();
         if (sFile == null) {
-            MyToast.showToast(mContext, "无法获取存储路径，请换用普通拍照功能");
+            showMsgToast("无法获取存储路径，请换用普通拍照功能");
             return;
         }
         mCamera.startPreview();
@@ -149,7 +148,7 @@ public class QdTakePicActivity extends TakePicActivity {
                                     * 0.015), Color.RED, 20, 20);
                 } catch (OutOfMemoryError error) {
                     error.printStackTrace();
-                    MyToast.showToast(mContext, "请选择合适的尺寸，重新拍摄");
+                    showMsgToast("请选择合适的尺寸，重新拍摄");
                     showSizeChoiceDialog(parameters);
                     return;
                 }

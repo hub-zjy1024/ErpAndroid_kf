@@ -31,7 +31,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 
-import utils.MySSLProtocolSocketFactory;
+import utils.net.MySSLProtocolSocketFactory;
 
 /**
  Created by 张建宇 on 2017/11/6. */
@@ -171,7 +171,7 @@ public class KyExpressUtils {
             }catch (KeyManagementException e) {
                 e.printStackTrace();
             }
-            HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("kye", kye);
             String accessToken = Md5.getMD5(accesskey + strKV);

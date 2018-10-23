@@ -1,8 +1,12 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+
+import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
+import com.sunmi.scanner.ScanController;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,13 +18,49 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class HetongActivity extends AppCompatActivity {
+public class HetongActivity extends BaseMActivity {
+
+    private ScanController mScanner;
 
     @Override
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hetong);
+    }
 
+    @Override
+    public void init() {
+        mScanner = new ScanController(mContext, new ScanController.ScanListener() {
+            @Override
+            public void onScanResult(String code) {
+
+            }
+        });
+
+        Button btn = getViewInContent(R.id.activity_hetong_btn_smscan);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    mScanner.scan();
+                } catch (Exception e) {
+                    showMsgToast(e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void setListeners() {
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mScanner.release();
     }
 
     public void heTong() {

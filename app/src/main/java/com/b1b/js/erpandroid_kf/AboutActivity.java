@@ -5,15 +5,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
+import com.b1b.js.erpandroid_kf.task.TaskManager;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -32,20 +41,22 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Hashtable;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import utils.MyFileUtils;
-import utils.MyToast;
+import utils.common.MyFileUtils;
+import utils.net.wsdelegate.WebserviceUtils;
 
-public class AboutActivity extends AppCompatActivity {
+public class AboutActivity extends BaseMActivity {
 
     private Handler mHandler = new Handler();
     private ProgressDialog downPd;
     private TextView tvNewVersion;
-
+    final String updateUrl = WebserviceUtils.ROOT_URL+"DownLoad/dyj_kf/dyjkfapp.apk";
+    private ImageView updateIv;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +64,8 @@ public class AboutActivity extends AppCompatActivity {
         tvNewVersion = (TextView) findViewById(R.id.activity_about_tv_newversion);
         TextView tvVersion = (TextView) findViewById(R.id.activity_about_tv_version);
         Button btnDonloadNew = (Button) findViewById(R.id.activity_about_btn_downloadnew);
+         updateIv = (ImageView) findViewById(R.id.iv_about_update_qr);
+
         Button btnCheck = (Button) findViewById(R.id.activity_about_btn_check);
         btnCheck.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,17 +86,30 @@ public class AboutActivity extends AppCompatActivity {
         downPd.setMax(100);
         downPd.setMessage("下载中");
         downPd.setProgress(0);
+        downPd.show();
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                getNewVersion();
+            }
+        }.start();
         btnDonloadNew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String downUrl = "http://172.16.6.160:8006/DownLoad/dyj_kf/dyjkfapp.apk";
                 //必须设定进图条样式
                 downPd.show();
-                try {
-                    updateAPK(AboutActivity.this, mHandler, downUrl);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                new Thread() {
+                    @Override
+                    public void run() {
+                        super.run();
+                        try {
+                            updateAPK(mContext, mHandler, updateUrl);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }.start();
             }
         });
         PackageManager pm = getPackageManager();
@@ -92,24 +118,95 @@ public class AboutActivity extends AppCompatActivity {
         try {
             info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
             if (info != null) {
-                tvVersion.setText(info.versionCode);
+                tvVersion.setText("版本:v" + info.versionCode);
             }
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
+    }
 
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateIv.measure(0, 0);
+        int w = updateIv.getMeasuredWidth();
+        int h = updateIv.getMeasuredHeight();
+        if (w == 0 || h == 0) {
+            showMsgToast( "获取Iv大小失败");
+            return;
+        }
+        Runnable mkQr = new Runnable() {
+            @Override
+            public void run() {
+                createQRcodeImage(updateUrl, updateIv);
+            }
+        };
+        TaskManager.getInstance().execute(mkQr);
+    }
+
+    public void createQRcodeImage(String url, final ImageView im1) {
+        int w = im1.getMeasuredWidth();
+        int h = im1.getMeasuredHeight();
+        try {
+            //判断URL合法性
+            if (url == null || "".equals(url)) {
+                return;
+            }
+            Hashtable<EncodeHintType, String> hints = new Hashtable<EncodeHintType, String>();
+            hints.put(EncodeHintType.CHARACTER_SET, "utf-8");
+            //图像数据转换，使用了矩阵转换
+            BitMatrix bitMatrix = new QRCodeWriter().encode(url, BarcodeFormat.QR_CODE, w, h, hints);
+            int[] pixels = new int[w * h];
+            //下面这里按照二维码的算法，逐个生成二维码的图片，
+            //两个for循环是图片横列扫描的结果
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (bitMatrix.get(x, y)) {
+                        pixels[y * w + x] = 0xff000000;
+                    } else {
+                        pixels[y * w + x] = 0xffffffff;
+                    }
+                }
+            }
+            //生成二维码图片的格式，使用ARGB_8888
+            final Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            bitmap.setPixels(pixels, 0, w, 0, 0, w, h);
+            //显示到我们的ImageView上面
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    im1.setImageBitmap(bitmap);
+                }
+            });
+
+        } catch (WriterException e) {
+            e.printStackTrace();
+        }
     }
 
     public void updateAPK(final Context context, Handler mHandler, String downUrl) throws IOException {
         URL url = new URL(downUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(3 * 1000);
-        conn.setReadTimeout(60000);
+        conn.setReadTimeout(30000);
         if (conn.getResponseCode() == 200) {
             InputStream is = conn.getInputStream();
             int size = conn.getContentLength();
             File targetDir = MyFileUtils.getFileParent();
             File file1 = new File(targetDir, "dyjkfapp.apk");
+            if(!file1.getParentFile().exists()){
+                file1.getParentFile().mkdirs();
+            }
             FileOutputStream fos = new FileOutputStream(file1);
             int len = 0;
             int hasRead = 0;
@@ -132,14 +229,10 @@ public class AboutActivity extends AppCompatActivity {
                         downPd.setProgress(percent);
                         if (percent == 100) {
                             downPd.cancel();
-                            MyToast.showToast(context, "下载完成");
+                            showMsgToast( "下载完成");
                         }
                     }
                 });
-                //                Message msg = mHandler.obtainMessage(8);
-                //                msg.arg1 = percent;
-                //                mHandler.sendMessage(msg);
-                //写入时第三个参数使用len
                 fos.write(buf, 0, len);
             }
             fos.flush();
@@ -147,10 +240,9 @@ public class AboutActivity extends AppCompatActivity {
             fos.close();
             MyApp.myLogger.writeInfo("update download");
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            File file = new File(targetDir, "dyjkfapp.apk");
-            if (file.exists()) {
-                MimeTypeMap.getSingleton().getMimeTypeFromExtension(".apk");
-                intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
+            if (file1.exists()) {
+                String mimeTypeFromExtension = MimeTypeMap.getSingleton().getMimeTypeFromExtension(".apk");
+                intent.setDataAndType(Uri.fromFile(file1), "application/vnd.android.package-archive");
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
             } else {
@@ -160,10 +252,9 @@ public class AboutActivity extends AppCompatActivity {
     }
 
     public void getNewVersion() {
-        ;
         HashMap<String, String> updateInfo = null;
         try {
-            updateInfo = getUpdateXml("http://172.16.6.160:8006/DownLoad/dyj_kf/updateXml.txt");
+            updateInfo = getUpdateXml(WebserviceUtils.ROOT_URL+"/DownLoad/dyj_kf/updateXml.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -174,16 +265,19 @@ public class AboutActivity extends AppCompatActivity {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    tvNewVersion.setText(sCode);
+                    tvNewVersion.setText("v"+sCode);
+                    downPd.cancel();
+                    showMsgToast( "已获取最新版本信息");
                 }
             });
         }
     }
-    public static HashMap<String, String>  getUpdateXml(String url) throws IOException {
+
+    public static HashMap<String, String> getUpdateXml(String url) throws IOException {
         URL urll = new URL(url);
         HttpURLConnection conn = (HttpURLConnection) urll.openConnection();
         conn.setConnectTimeout(30 * 1000);
-        conn.setReadTimeout(30*1000);
+        conn.setReadTimeout(30 * 1000);
         if (conn.getResponseCode() == 200) {
             InputStream is = conn.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "utf-8"));

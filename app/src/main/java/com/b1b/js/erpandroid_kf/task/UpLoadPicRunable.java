@@ -7,7 +7,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 
-import utils.FTPUtils;
+import utils.net.ftp.FTPUtils;
 
 /**
  Created by 张建宇 on 2018/2/28. */

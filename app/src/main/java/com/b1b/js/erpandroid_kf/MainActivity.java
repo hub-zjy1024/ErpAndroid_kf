@@ -16,10 +16,8 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
@@ -37,21 +35,18 @@ import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
-import utils.MyFileUtils;
-import utils.MyToast;
-import utils.UpdateClient;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
+import utils.common.MyFileUtils;
+import utils.common.UpdateClient;
+import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.Login;
-import utils.wsdelegate.MartService;
+import utils.net.wsdelegate.Login;
+import utils.net.wsdelegate.MartService;
+import utils.net.wsdelegate.WebserviceUtils;
 
-public class MainActivity extends BaseScanActivity {
+public class MainActivity extends BaseScanActivity implements View.OnClickListener{
 
     private EditText edUserName;
     private EditText edPwd;
-    private Button btnLogin;
-    private Button btnScancode;
     private CheckBox cboRemp;
     private CheckBox cboAutol;
     private SharedPreferences sp;
@@ -62,23 +57,27 @@ public class MainActivity extends BaseScanActivity {
     private final int SCANCODE_LOGIN_SUCCESS = 4;
     private final int NEWWORK_ERROR = 2;
     private final int FTPCONNECTION_ERROR = 5;
+    private final int MSG_LOGIN_FAILED = 0;
+    private  final int MSG_LOGIN_SUCCESS = 1;
+    public final String key_debugkey = "debugPwd";
+
     private String versionName = "1";
-    private String tempPassword = "62105300";
+    private String tempPassword;
     private int time = 0;
-    final MainActivity mContext = MainActivity.this;
     TaskManager taskManger = TaskManager.getInstance(5, 9);
     private AlertDialog permissionDialog;
     private Handler zHandler = new NoLeakHandler(this);
+    private String phoneCode;
 
     public void handleMessage(final Message msg) {
         super.handleMessage(msg);
         switch (msg.what) {
             //失败
-            case 0:
+            case MSG_LOGIN_FAILED:
                 pd.cancel();
-                MyToast.showToast(MainActivity.this, msg.obj.toString());
+                showMsgToast( msg.obj.toString());
                 break;
-            case 1:
+            case MSG_LOGIN_SUCCESS:
                 //成功
                 HashMap<String, String> infoMap = (HashMap<String, String>) msg.obj;
                 //每次登录检查userInfo是否有变动，以免数据库更新（流量允许）
@@ -98,9 +97,9 @@ public class MainActivity extends BaseScanActivity {
                 //是否记住密码
                 //                    ifSavePwd(true, "101", "62105300");
                 pd.cancel();
-                Intent intent = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf.MenuActivity.class);
+                Intent intent = new Intent(mContext, com.b1b.js.erpandroid_kf.MenuActivity.class);
                 startActivity(intent);
-                zHandler.removeMessages(1);
+                zHandler.removeMessages(MSG_LOGIN_SUCCESS);
                 zHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -110,7 +109,7 @@ public class MainActivity extends BaseScanActivity {
                 break;
             case NEWWORK_ERROR:
                 com.b1b.js.erpandroid_kf.MyApp.myLogger.writeError("bad network");
-                MyToast.showToast(MainActivity.this, "网络状态不佳,请检查网络状态");
+                showMsgToast( "网络状态不佳,请检查网络状态");
                 if (pd != null) {
                     pd.cancel();
                 }
@@ -150,7 +149,7 @@ public class MainActivity extends BaseScanActivity {
                                     if (scanDialog != null && scanDialog.isShowing()) {
                                         scanDialog.cancel();
                                     }
-                                    Intent intentScan = new Intent(MainActivity.this, com.b1b.js
+                                    Intent intentScan = new Intent(mContext, com.b1b.js
                                             .erpandroid_kf.MenuActivity
                                             .class);
                                     startActivity(intentScan);
@@ -169,44 +168,29 @@ public class MainActivity extends BaseScanActivity {
                     if (scanDialog != null && scanDialog.isShowing()) {
                         scanDialog.cancel();
                     }
-                    MyToast.showToast(MainActivity.this, "扫描结果有误");
+                    showMsgToast( "扫描结果有误");
                 }
                 break;
             //获取ftp地址
             case FTPCONNECTION_ERROR:
                 //连接ftp失败
-                MyToast.showToast(MainActivity.this, "连接不到ftp服务器:" + msg.obj.toString() + ",扫码登录失败");
+                showMsgToast( "连接不到ftp服务器:" + msg.obj.toString() + ",扫码登录失败");
                 if (scanDialog != null && scanDialog.isShowing()) {
                     scanDialog.cancel();
                 }
                 break;
             case 6:
-                MyToast.showToast(MainActivity.this, "获取ftp地址成功:" + com.b1b.js.erpandroid_kf.MyApp.ftpUrl);
+                showMsgToast( "获取ftp地址成功:" + com.b1b.js.erpandroid_kf.MyApp.ftpUrl);
                 if (pd != null && pd.isShowing()) {
                     pd.cancel();
                 }
-                Intent intentScan = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf.MenuActivity
+                Intent intentScan = new Intent(mContext, com.b1b.js.erpandroid_kf.MenuActivity
                         .class);
                 startActivity(intentScan);
                 finish();
                 break;
-            case 8:
-                int percent = msg.arg1;
-                if (percent < 0) {
-                    return;
-                }
-                downPd.setProgress(percent);
-                if (percent == 100) {
-                    downPd.cancel();
-                    MyToast.showToast(MainActivity.this, "下载完成");
-                }
-                break;
             case 10:
-                MyToast.showToast(MainActivity.this, "部门号或公司号为空");
-                break;
-            case 11:
-                downPd.cancel();
-                MyToast.showToast(MainActivity.this, "下载失败");
+                showMsgToast( "部门号或公司号为空");
                 break;
         }
     }
@@ -218,46 +202,19 @@ public class MainActivity extends BaseScanActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+    }
+
+    @Override
+    public void init() {
         edUserName = (EditText) findViewById(R.id.login_username);
-        ImageView ivDebug = (ImageView) findViewById(R.id.main_debug);
-        ivDebug.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (time == 5) {
-                    MyToast.showToast(MainActivity.this, "进入debug模式");
-                    String pwd = sp.getString("debugPwd", "");
-                    if (pwd.equals(tempPassword)) {
-                        sp.edit().putString("debugPwd", "621053000").commit();
-                    } else {
-                        sp.edit().putString("debugPwd", tempPassword).commit();
-                    }
-                    return;
-                }
-                time++;
-            }
-        });
         edPwd = (EditText) findViewById(R.id.login_pwd);
-        btnLogin = (Button) findViewById(R.id.login_btnlogin);
-        btnScancode = (Button) findViewById(R.id.login_scancode);
         cboRemp = (CheckBox) findViewById(R.id.login_rpwd);
         cboAutol = (CheckBox) findViewById(R.id.login_autol);
         tvVersion = (TextView) findViewById(R.id.main_version);
-        final Button btnPrintCode = (Button) findViewById(R.id.activity_main_btn_code);
-        btnPrintCode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf
-                        .RukuTagPrintAcitivity.class);
-                intent.putExtra(com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity.extraMode, com.b1b.js
-                        .erpandroid_kf
-                        .RukuTagPrintAcitivity.MODE_OFFLINE);
-                startActivity(intent);
-            }
-        });
         sp = getSharedPreferences(com.b1b.js.erpandroid_kf.SettingActivity.PREF_USERINFO, 0);
-        final String phoneCode = UploadUtils.getPhoneCode(MainActivity.this);
+        phoneCode = UploadUtils.getPhoneCode(mContext);
         Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
-        MyFileUtils.obtainFileDir(MainActivity.this);
+        MyFileUtils.obtainFileDir(mContext);
         int code = 0;
         try {
             PackageManager pm = getPackageManager();
@@ -310,29 +267,71 @@ public class MainActivity extends BaseScanActivity {
         };
         TaskManager.getInstance().execute(updateRun);
         //登录
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String debugPwd = sp.getString("debugPwd", "");
-                Log.e("zjy", "MainActivity->onClick(): password==" + tempPassword);
-                if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590") ||
-                        phoneCode.endsWith
-                        ("864394010742122") || phoneCode.endsWith("A0000043F41515")
-                        || phoneCode.endsWith("866462026203849") || phoneCode.endsWith("869552022575930")) {
-                    login("101", debugPwd);
-                    //                    disbleScanService(MainActivity.this);
-                } else {
-                    MyToast.showToast(MainActivity.this, "请使用扫码登录");
+        tempPassword = sp.getString(key_debugkey, "");
+        if ("".equals(tempPassword)) {
+            tempPassword = "62105300";
+        }
+    }
+
+    private String getDebugPwd(String mPwd) {
+        String newPwd = "62105300";
+        if (mPwd.equals("621053000")) {
+            newPwd = "62105300";
+        } else if (mPwd.equals("62105300")) {
+            newPwd = "621053000";
+        }
+        return newPwd;
+    }
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.activity_main_btn_code:
+                Intent intent = new Intent(mContext, com.b1b.js.erpandroid_kf
+                        .RukuTagPrintAcitivity.class);
+                intent.putExtra(com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity.extraMode, com.b1b.js
+                        .erpandroid_kf
+                        .RukuTagPrintAcitivity.MODE_OFFLINE);
+                startActivity(intent);
+                break;
+            case R.id.main_debug:
+                if (time == 5) {
+                    showMsgToast( "进入debug模式");
+                    WebserviceUtils.ROOT_URL = WebserviceUtils.COMMON_URL;
+                    String tempPwd= sp.getString(key_debugkey, "");
+                    tempPassword = getDebugPwd(tempPwd);
+                    return;
                 }
-            }
-        });
-        //扫码登录
-        btnScancode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+
+                time++;
+                break;
+            case R.id.login_btnlogin:
+                String tempPhone = phoneCode;
+                Log.e("zjy", "MainActivity->onClick(): password==" + tempPassword);
+                if (tempPhone.endsWith("868930027847564") || tempPhone.endsWith("358403032322590") ||
+                        tempPhone.endsWith
+                                ("864394010742122") || tempPhone.endsWith("A0000043F41515")
+                        || tempPhone.endsWith("866462026203849") || tempPhone.endsWith("869552022575930")
+                        || tempPhone.endsWith("460011060601459")   || tempPhone.endsWith("868591030284169") ) {
+                    login("101", tempPassword);
+                } else {
+                    showMsgToast( "请使用扫码登录");
+                }
+                break;
+            case R.id.login_scancode:
                 startScanActivity();
-            }
-        });
+                break;
+        }
+    }
+    @Override
+    public void setListeners() {
+        //离线条码打印
+        setOnClickListener(this, R.id.activity_main_btn_code);
+        //调试模式
+        setOnClickListener(this, R.id.main_debug);
+        //用户名密码登录
+        setOnClickListener(this, R.id.login_btnlogin);
+        //扫码登录
+        setOnClickListener(this, R.id.login_scancode);
     }
 
 
@@ -351,7 +350,7 @@ public class MainActivity extends BaseScanActivity {
             Log.e("zjy", "MenuActivity.java->onRequestPermissionsResult(): ok==");
         } else {
             if (permissionDialog == null) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setTitle("建议");
                 builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
                     @Override
@@ -360,7 +359,7 @@ public class MainActivity extends BaseScanActivity {
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                         intent.setData(Uri.fromParts("package", getPackageName(), null));
-                        MainActivity.this.startActivity(intent);
+                        mContext.startActivity(intent);
                     }
                 });
                 builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
@@ -479,7 +478,7 @@ public class MainActivity extends BaseScanActivity {
      * @param code onActivtyResult()回调的data
      */
     private void readCode(final String code) {
-        scanDialog = new ProgressDialog(MainActivity.this);
+        scanDialog = new ProgressDialog(mContext);
         scanDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         scanDialog.setMessage("登录中");
         scanDialog.setCancelable(false);
@@ -522,7 +521,7 @@ public class MainActivity extends BaseScanActivity {
      * 登录
      */
     private void login(final String name, final String pwd) {
-        pd = new ProgressDialog(MainActivity.this);
+        pd = new ProgressDialog(mContext);
         pd.setMessage("登陆中");
         pd.show();
         Runnable normalLoginRun = new Runnable() {
@@ -540,11 +539,13 @@ public class MainActivity extends BaseScanActivity {
                         HashMap<String, String> infoMap = new HashMap<>();
                         infoMap.put("name", name);
                         infoMap.put("pwd", pwd);
-                        msg1.what = 1;
+                        msg1.what = MSG_LOGIN_SUCCESS;
                         msg1.obj = infoMap;
                         zHandler.sendMessage(msg1);
+                        sp.edit().putString(key_debugkey, tempPassword).commit();
                     } else {
-                        Message msg = zHandler.obtainMessage(0);
+                        tempPassword = getDebugPwd(tempPassword);
+                        Message msg = zHandler.obtainMessage(MSG_LOGIN_FAILED);
                         msg.obj = soapResult;
                         zHandler.sendMessage(msg);
                     }

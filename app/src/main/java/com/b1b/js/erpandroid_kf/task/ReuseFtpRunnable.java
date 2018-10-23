@@ -4,7 +4,7 @@ import com.b1b.js.erpandroid_kf.MyApp;
 
 import java.io.IOException;
 
-import utils.FTPUtils;
+import utils.net.ftp.FTPUtils;
 
 /**
  Created by 张建宇 on 2018/3/19. */

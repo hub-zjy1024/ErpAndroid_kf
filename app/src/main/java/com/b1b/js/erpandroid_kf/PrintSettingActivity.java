@@ -6,7 +6,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -17,6 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import java.util.ArrayList;
@@ -25,14 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import utils.MyToast;
 import utils.btprint.BtHelper;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.MyPrinterParent;
 import utils.btprint.SPrinter;
 import utils.handler.NoLeakHandler;
 
-public class PrintSettingActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback {
+public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler.NoLeakCallback {
+    
     private String TAG = "BtSetting";
     private Button bt_scan;
     private TextView tv_status;
@@ -50,13 +50,13 @@ public class PrintSettingActivity extends AppCompatActivity implements NoLeakHan
         switch (msg.what) {
             case BtHelper.STATE_SCAN_FINISHED:
                 pdScanDialog.cancel();
-                MyToast.showToast(PrintSettingActivity.this, "扫描完成");
+                showMsgToast("扫描完成");
                 tv_status.setText("搜索完成");
                 progress.setVisibility(View.INVISIBLE);
                 break;
             case BtHelper.STATE_CONNECTED:
                 pdDialog.cancel();
-                MyToast.showToast(PrintSettingActivity.this, "连接成功");
+                showMsgToast("连接成功");
                 getSharedPreferences(SettingActivity.PREF_USERINFO, MODE_PRIVATE).edit().putString
                         ("btPrinterMac", macAddr)
                         .apply();
@@ -65,7 +65,7 @@ public class PrintSettingActivity extends AppCompatActivity implements NoLeakHan
                 break;
             case BtHelper.STATE_DISCONNECTED:
                 pdDialog.cancel();
-                MyToast.showToast(PrintSettingActivity.this, "连接失败");
+                showMsgToast("连接失败");
                 break;
             case BtHelper.STATE_OPENED:
                 Set<BluetoothDevice> bindedDevice = ((SPrinter) printer2).getBindedDevice();
@@ -80,9 +80,11 @@ public class PrintSettingActivity extends AppCompatActivity implements NoLeakHan
                     map.put("deviceAddress", d.getAddress());
                     listData.add(map);
                 }
-                SimpleAdapter bonedAdapter = new SimpleAdapter(PrintSettingActivity.this, listData, android.R.layout
+                SimpleAdapter bonedAdapter = new SimpleAdapter(PrintSettingActivity.this, listData, android
+                        .R.layout
                         .simple_list_item_2, new
-                        String[]{"title", "deviceAddress"}, new int[]{android.R.id.text1, android.R.id.text2});
+                        String[]{"title", "deviceAddress"}, new int[]{android.R.id.text1, android.R.id
+                        .text2});
                 lvBounded.setAdapter(bonedAdapter);
                 lvBounded.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
@@ -102,6 +104,7 @@ public class PrintSettingActivity extends AppCompatActivity implements NoLeakHan
                 break;
         }
     }
+
     private static MyBluePrinter mPrinter;
     private ProgressDialog pdDialog;
     private ProgressDialog pdScanDialog;
@@ -124,7 +127,7 @@ public class PrintSettingActivity extends AppCompatActivity implements NoLeakHan
         pdScanDialog.setTitle("提示");
         tv_status = (TextView) findViewById(R.id.tv_status);
         progress = (ProgressBar) findViewById(R.id.progressBar2);
-         lvBounded = (ListView) findViewById(R.id.bt_setting_lv_bonded);
+        lvBounded = (ListView) findViewById(R.id.bt_setting_lv_bonded);
         bt_scan = (Button) findViewById(R.id.bt_scan);
         simpleAdapter = new SimpleAdapter(this, listData, android.R.layout.simple_list_item_2, new
                 String[]{"title", "deviceAddress"}, new int[]{android.R.id.text1, android.R.id.text2});
@@ -190,7 +193,7 @@ public class PrintSettingActivity extends AppCompatActivity implements NoLeakHan
                 simpleAdapter.notifyDataSetChanged();
             }
         });
-        Runnable openBtRun=new Runnable(){
+        Runnable openBtRun = new Runnable() {
             @Override
             public void run() {
                 if (!printer2.isOpen()) {
@@ -201,6 +204,16 @@ public class PrintSettingActivity extends AppCompatActivity implements NoLeakHan
             }
         };
         TaskManager.getInstance().execute(openBtRun);
+    }
+
+    @Override
+    public void init() {
+        
+    }
+
+    @Override
+    public void setListeners() {
+
     }
 
     private void addBindedDevice() {
@@ -219,6 +232,8 @@ public class PrintSettingActivity extends AppCompatActivity implements NoLeakHan
     @Override
     protected void onPause() {
         super.onPause();
-        ((SPrinter)printer2).unRegisterReceiver();
+        if (printer2 != null) {
+            ((SPrinter) printer2).unRegisterReceiver();
+        }
     }
 }

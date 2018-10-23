@@ -9,12 +9,12 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.joanzapata.pdfview.PDFView;
 import com.joanzapata.pdfview.listener.OnLoadCompleteListener;
@@ -37,13 +37,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 
-import utils.DialogUtils;
-import utils.FTPUtils;
-import utils.MyToast;
+import utils.framwork.DialogUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.MartService;
+import utils.net.ftp.FTPUtils;
+import utils.net.wsdelegate.MartService;
 
-public class CaigouDetailActivity extends AppCompatActivity implements OnPageChangeListener,NoLeakHandler.NoLeakCallback {
+public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeListener, NoLeakHandler
+        .NoLeakCallback {
 
     private String goodInfos;
     private String provider = "";
@@ -57,6 +57,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
     private boolean flag = false;
     private String path;
     private ProgressDialog reviewDialog;
+
     @Override
     public void handleMessage(Message msg) {
         AlertDialog.Builder builder = new AlertDialog.Builder(CaigouDetailActivity.this);
@@ -66,7 +67,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                 break;
             case 1:
                 //                    btnCommit.setEnabled(true);
-                MyToast.showToast(CaigouDetailActivity.this, "本单据已存在合同文件");
+                showMsgToast("本单据已存在合同文件");
                 break;
             case 2:
                 DialogUtils.dismissDialog(dialog);
@@ -96,7 +97,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                             public void loadComplete(int nbPages) {
                                 int pageCount = pdfView.getPageCount();
                                 String msg = String.format("正在加载%s/%s", nbPages, pageCount);
-                                MyToast.showToast(CaigouDetailActivity.this, msg);
+                                showMsgToast(msg);
                             }
                         })//是否允许翻页，默认是允许翻页
                         .load();
@@ -163,7 +164,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         btnCommit = (Button) findViewById(R.id.activity_caigou_detial_btn_commit);
         btnReview = (Button) findViewById(R.id.activity_caigou_detial_btn_review);
         btnTakepic = (Button) findViewById(R.id.activity_caigou_detial_btn_takepic);
-         tvPath = (TextView) findViewById(R.id.activity_caigou_detial_tv_open);
+        tvPath = (TextView) findViewById(R.id.activity_caigou_detial_tv_open);
         pdfView = (PDFView) findViewById(R.id.activity_caigou_detial_pdfview);
         dialog = new ProgressDialog(this);
         dialog.setTitle("提示");
@@ -182,7 +183,8 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                 final Intent uploadIntent = new Intent();
                 uploadIntent.putExtra("flag", "caigou");
                 uploadIntent.putExtra("pid", pid);
-                builder.setItems(getResources().getStringArray(R.array.upload_type), new DialogInterface.OnClickListener() {
+                builder.setItems(getResources().getStringArray(R.array.upload_type), new DialogInterface
+                        .OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
@@ -195,7 +197,8 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                                 MyApp.myLogger.writeInfo("obtain-caigou");
                                 break;
                             case 2:
-                                uploadIntent.setClass(CaigouDetailActivity.this, CaigouTakePic2Activity.class);
+                                uploadIntent.setClass(CaigouDetailActivity.this, CaigouTakePic2Activity
+                                        .class);
                                 MyApp.myLogger.writeInfo("takepic2-caigou");
                                 break;
                         }
@@ -209,17 +212,17 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
             @Override
             public void onClick(View v) {
                 if (goodInfos == null) {
-                    MyToast.showToast(CaigouDetailActivity.this, "正在获取数据，请稍后");
+                    showMsgToast("正在获取数据，请稍后");
                     return;
                 } else if (goodInfos.equals("")) {
-                    MyToast.showToast(CaigouDetailActivity.this, "无采购列表");
+                    showMsgToast("无采购列表");
                     return;
                 } else if (provider.equals("")) {
-                    MyToast.showToast(CaigouDetailActivity.this, "供货方为空，请重新进入当前页面");
+                    showMsgToast("供货方为空，请重新进入当前页面");
                     return;
                 }
                 if ("".equals(proID) || "0".equals(proID)) {
-                    MyToast.showToast(CaigouDetailActivity.this, "供应商ID错误，请联系后台人员");
+                    showMsgToast("供应商ID错误，请联系后台人员");
                     return;
                 }
                 dialog.setMessage("正在生成合同");
@@ -234,7 +237,8 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                         String url = "http://172.16.6.160:8009/2017/Manage/FileInfo/CreatMarkStockFile.aspx?";
                         //                        printType=0 表示是送货单，非0表示合同
                         //
-                        //                  String url = "http://175.16.6.160:8009/2017/Manage/FileInfo/CreatMarkStockFile.aspx?";
+                        //                  String url =
+                        // "http://175.16.6.160:8009/2017/Manage/FileInfo/CreatMarkStockFile.aspx?";
                         BufferedReader reader = null;
                         try {
                             url += "printType=" + URLEncoder.encode("1", "utf-8");
@@ -282,8 +286,8 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
 
                 File dir = Environment
                         .getExternalStorageDirectory();
-//                String name = pid + "_" + (int) (Math.random() * 1000) + ".pdf";
-                String name = pid  + ".pdf";
+                //                String name = pid + "_" + (int) (Math.random() * 1000) + ".pdf";
+                String name = pid + ".pdf";
                 final File file = new File(dir, "dyj_ht/" + name);
                 if (!file.exists()) {
                     file.getParentFile().mkdirs();
@@ -294,10 +298,10 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                             "缓存的pdf文件达到40M，是否清理", "提示", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    for(int i=0;i<listFiles.length;i++) {
+                                    for (int i = 0; i < listFiles.length; i++) {
                                         listFiles[i].delete();
                                     }
-                                    MyToast.showToast(CaigouDetailActivity.this, "删除成功");
+                                    showMsgToast("删除成功");
                                 }
                             }, "是", new DialogInterface.OnClickListener() {
                                 @Override
@@ -310,12 +314,12 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
 
                 if (file.exists()) {
                     if (System.currentTimeMillis() - cTime < 5 * 1000) {
-                        MyToast.showToast(CaigouDetailActivity.this, "请不要点击过快");
+                        showMsgToast("请不要点击过快");
                         return;
                     }
                     filePath = file.getAbsolutePath();
                     String path = filePath.substring(filePath.indexOf("dyj") - 1);
-                    tvPath.setText("文件存储路径为：" +path);
+                    tvPath.setText("文件存储路径为：" + path);
                     pdfView.fromFile(file) //设置pdf文件地址
                             .showMinimap(true) //pdf放大的时候，是否在屏幕的右上角生成小地图
                             .enableSwipe(true)
@@ -324,7 +328,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                                 public void loadComplete(int nbPages) {
                                     int pageCount = pdfView.getPageCount();
                                     String msg = String.format("正在加载%s/%s", nbPages, pageCount);
-                                    MyToast.showToast(CaigouDetailActivity.this, msg);
+                                    showMsgToast(msg);
                                 }
                             })//是否允许翻页，默认是允许翻页
                             .load();
@@ -375,7 +379,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
                                     e.printStackTrace();
                                     mHandler.sendEmptyMessage(10);
                                 }
-                            } else{
+                            } else {
                                 mHandler.sendEmptyMessage(8);
                             }
                         }
@@ -431,6 +435,16 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         TaskManager.getInstance().execute(getFileRun);
     }
 
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
+    }
+
     private void javaHttp(String pid, String corpID) {
         String fullName = provider;
         String proShortName = provider;
@@ -478,10 +492,11 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
     }
 
     public String getHetongInfo(String pid) throws IOException, XmlPullParserException {
-//        LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-//        properties.put("pid", pid);
-//        SoapObject req = WebserviceUtils.getRequest(properties, "GetHeTongFileInfo");
-//        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.MartService);
+        //        LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+        //        properties.put("pid", pid);
+        //        SoapObject req = WebserviceUtils.getRequest(properties, "GetHeTongFileInfo");
+        //        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils
+        // .MartService);
         String result = MartService.GetHeTongFileInfo(Integer.parseInt(pid));
         Log.e("zjy", "CaigouDetailActivity->getHetongInfo(): result==" + result);
         if (result.equals("anyType{}")) {
@@ -490,12 +505,14 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
         return result;
     }
 
-    public void getData(String corpID, String proDetialID) throws IOException, XmlPullParserException, JSONException {
-//        LinkedHashMap<String, Object> map1 = new LinkedHashMap<>();
-//        map1.put("id", corpID);
-//        SoapObject req = WebserviceUtils.getRequest(map1, "GetInvoiceCorpInfo");
-//        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req,  WebserviceUtils.MartService);
-        String soapRes= MartService.GetInvoiceCorpInfo(Integer.parseInt(corpID));
+    public void getData(String corpID, String proDetialID) throws IOException, XmlPullParserException,
+            JSONException {
+        //        LinkedHashMap<String, Object> map1 = new LinkedHashMap<>();
+        //        map1.put("id", corpID);
+        //        SoapObject req = WebserviceUtils.getRequest(map1, "GetInvoiceCorpInfo");
+        //        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req,  WebserviceUtils
+        // .MartService);
+        String soapRes = MartService.GetInvoiceCorpInfo(Integer.parseInt(corpID));
         JSONObject obj = new JSONObject(soapRes);
         JSONArray table = obj.getJSONArray("表");
         for (int i = 0; i < table.length(); i++) {
@@ -504,10 +521,11 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
             provider = temp.getString("Name");
             //            address = temp.getString("Address");
         }
-        Log.e("zjy", "CaigouDetailActivity->getData(): invoice==" +soapRes);
-//        map1.put("id", proDetialID);
-//        SoapObject req1 = WebserviceUtils.getRequest(map1, "GetPriviteInfo");
-//        SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(req1,  WebserviceUtils.MartService);
+        Log.e("zjy", "CaigouDetailActivity->getData(): invoice==" + soapRes);
+        //        map1.put("id", proDetialID);
+        //        SoapObject req1 = WebserviceUtils.getRequest(map1, "GetPriviteInfo");
+        //        SoapPrimitive res1 = WebserviceUtils.getSoapPrimitiveResponse(req1,  WebserviceUtils
+        // .MartService);
         String soapRes2 = MartService.GetPriviteInfo(Integer.parseInt(proDetialID));
         try {
             JSONObject root = new JSONObject(soapRes2);
@@ -527,6 +545,7 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
     public String getData2(String pid) throws IOException, XmlPullParserException {
         return MartService.GetOLDMartStockView_mx(pid);
     }
+
     @Override
     public void onPageChanged(int page, int pageCount) {
 

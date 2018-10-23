@@ -24,6 +24,8 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.XiaopiaoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
+import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.printer.PrinterStyle;
 import com.b1b.js.erpandroid_kf.printer.entity.XiaopiaoInfo;
 import com.b1b.js.erpandroid_kf.receiver.AlarmRepeatReceive;
 import com.b1b.js.erpandroid_kf.receiver.OneShotReceiver;
@@ -42,33 +44,32 @@ import java.util.Calendar;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
-import utils.DialogUtils;
-import utils.MyToast;
-import utils.PrinterStyle;
-import utils.SoftKeyboardUtils;
 import utils.btprint.BtHelper;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.SPrinter;
+import utils.framwork.DialogUtils;
+import utils.framwork.MyToast;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.ChuKuServer;
 
 public class RukuTagPrintAcitivity extends BaseScanActivity {
     private Handler mHandler = new NoLeakHandler(this);
     private final static int FLAG_PRINT = 3;
     private String storageID = "";
-    public static final String storageKey = "storageID";
+    public static final String storageKey = SpSettings.storageKey;
 
     @Override
     public void handleMessage(Message msg) {
         super.handleMessage(msg);
         switch (msg.what) {
             case BtHelper.STATE_CONNECTED:
-                MyToast.showToast(this, "连接成功");
+                showMsgToast( "连接成功");
                 this.tvState.setTextColor(Color.GREEN);
                 this.tvState.setText("已连接");
                 break;
             case BtHelper.STATE_DISCONNECTED:
-                MyToast.showToast(this, "连接失败");
+                showMsgToast( "连接失败");
                 this.tvState.setTextColor(Color.RED);
                 this.tvState.setText("连接失败");
                 break;
@@ -89,6 +90,10 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                         }
                     };
                     TaskManager.getInstance().execute(printRun);
+                }
+                if (msg.obj != null) {
+                    List<XiaopiaoInfo> tInfos = (List<XiaopiaoInfo>) msg.obj;
+                    infos.addAll(tInfos);
                 }
                 this.xpAdapter.notifyDataSetChanged();
                 break;
@@ -151,17 +156,11 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         alertDialog = new MaterialDialog(this);
         alertDialog.setCanceledOnTouchOutside(true);
         alertDialog.setTitle("错误");
-        prefKF = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
-        String storageInfo = prefKF.getString(storageKey, "");
-        storageID = getStorageIDFromJson(storageInfo);
-                time1 = System.currentTimeMillis();
+
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startScanActivity();
-
-                //                Intent intent = new Intent(mContext, CaptureActivity.class);
-                //                startActivityForResult(intent, CaptureActivity.REQ_CODE);
             }
         });
         btnSearch.setOnClickListener(new View.OnClickListener() {
@@ -172,14 +171,14 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                 // "123487523", 40
                 //                 * 8, 50, true, 10));
                 if (System.currentTimeMillis() - time1 < 500) {
-                    MyToast.showToast(RukuTagPrintAcitivity.this, "点击频率过快");
+                    showMsgToast( "点击频率过快");
                     return;
                 }
                 time1 = System.currentTimeMillis();
                 final String pid = edPid.getText().toString();
                 SoftKeyboardUtils.closeInputMethod(edPid, mContext);
                 if (pid.equals("")) {
-                    MyToast.showToast(mContext, "请输入明细ID号");
+                    showMsgToast("请输入明细ID号");
                     return;
                 }
                 infos.clear();
@@ -204,7 +203,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
             @Override
             public void onClick(View v) {
                 if (printer2 == null) {
-                    MyToast.showToast(mContext, "请先配置蓝牙打印机，并确认已连接");
+                    showMsgToast("请先配置蓝牙打印机，并确认已连接");
                     return;
                 }
 
@@ -217,7 +216,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                             mHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    MyToast.showToast(RukuTagPrintAcitivity.this, "请输入明细ID");
+                                    showMsgToast( "请输入明细ID");
                                 }
                             });
                             return;
@@ -297,6 +296,44 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
     }
 
     @Override
+    public void init() {
+        prefKF = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
+        String storageInfo = prefKF.getString(storageKey, "");
+        storageID = getStorageIDFromJson(storageInfo);
+        time1 = System.currentTimeMillis();
+        Runnable getStorId = new Runnable() {
+            @Override
+            public void run() {
+                if (storageID.equals("")) {
+                    String info = null;
+                    try {
+                        info = getStorageByIp();
+                        storageID = getStorageIDFromJson(info);
+                        prefKF.edit().putString(storageKey, info).commit();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                showMsgDialog("当前库房ID未知，返回重试");
+                            }
+                        });
+                    }
+                }
+                MyApp.myLogger.writeInfo("Storageid " + storageID);
+            }
+        };
+        TaskManager.getInstance().execute(getStorId);
+
+    }
+
+    @Override
+    public void setListeners() {
+
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         if (printer2 != null) {
@@ -363,7 +400,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
             infos.clear();
             getData(result);
         } else {
-            MyToast.showToast(this, getString(R.string.error_numberformate));
+            showMsgToast( getString(R.string.error_numberformate));
         }
     }
 
@@ -372,15 +409,10 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
             @Override
             public void run() {
                 try {
-                    if (storageID.equals("")) {
-                        String info = getStorageByIp();
-                        storageID = getStorageIDFromJson(info);
-                        prefKF.edit().putString(storageKey, info).commit();
-                    }
-                    MyApp.myLogger.writeInfo("Storageid " + storageID);
-                    String balaceInfo = getBalaceInfo(pid, storageID, "");
+                    String balaceInfo =ChuKuServer.GetStorageBlanceInfoByID(Integer.parseInt(pid), "", storageID);
                     JSONObject jobj = new JSONObject(balaceInfo);
                     JSONArray jarray = jobj.getJSONArray("表");
+                    List<XiaopiaoInfo> tempList = new ArrayList<>();
                     for (int i = 0; i < jarray.length(); i++) {
                         JSONObject tj = jarray.getJSONObject(i);
                         String parno = tj.getString("型号");
@@ -408,10 +440,9 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                                 producefrom, pihao, fengzhuang, description, place, notes, flag, detailPID, storageID,
                                 company);
                         info.setPid(pid);
-                        infos.add(info);
+                        tempList.add(info);
                     }
-                    //                    instorageInfo(pid);
-                    mHandler.sendEmptyMessage(FLAG_PRINT);
+                    mHandler.obtainMessage(FLAG_PRINT, tempList).sendToTarget();
                 } catch (final IOException e) {
                     mHandler.post(new Runnable() {
                         @Override
@@ -427,7 +458,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            MyToast.showToast(RukuTagPrintAcitivity.this, "查询不到相关信息");
+                            showMsgToast( "查询不到相关信息");
                         }
                     });
                     e.printStackTrace();
@@ -451,8 +482,9 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         }
         return storageID;
     }
+
     protected void instorageInfo(String mxID) throws IOException, XmlPullParserException, JSONException {
-        String detailInfo = getDetailInfoByDetailId(mxID);
+        String detailInfo =ChuKuServer.GetInstorectInfoByMXID(Integer.parseInt(mxID));
         Log.e("zjy", "RukuTagPrintAcitivity->run(): detailInfo==" + detailInfo);
         JSONObject jobj = new JSONObject(detailInfo);
         JSONArray jarray = jobj.getJSONArray("表");
@@ -522,15 +554,6 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
     }
 
 
-    public static String getBalaceInfo(String pid, String storageID, String partno) throws IOException, XmlPullParserException {
-//        LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-//        properties.put("pid", pid);
-//        properties.put("partno", partno);
-//        properties.put("storageid", storageID);
-//        SoapObject req = WebserviceUtils.getRequest(properties, "GetStorageBlanceInfoByID");
-//        SoapPrimitive result = WebserviceUtils.getSoapPrimitiveResponse(req, WebserviceUtils.ChuKuServer);
-        return ChuKuServer.GetStorageBlanceInfoByID(Integer.parseInt(pid), partno, storageID);
-    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -539,14 +562,6 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         }
     }
 
-    public String getDetailInfoByDetailId(String pid) throws IOException, XmlPullParserException {
-//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-//        map.put("mxid", pid);
-//        SoapObject request = WebserviceUtils.getRequest(map, "GetInstorectInfoByMXID");
-//        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(request,
-//                WebserviceUtils.ChuKuServer);
-        return ChuKuServer.GetInstorectInfoByMXID(Integer.parseInt(pid));
-    }
     @Override
     public void getCameraScanResult(String result) {
         edPid.setText(result);
@@ -555,12 +570,12 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
             Integer.parseInt(result);
         } catch (NumberFormatException e) {
             e.printStackTrace();
-            MyToast.showToast(mContext, "扫码结果不为数字");
+            showMsgToast( "扫码结果不为数字");
             return;
         }
         if (isOffline) {
             if (printer2 == null) {
-                MyToast.showToast(mContext, "请先连接蓝牙打印机");
+                showMsgToast( "请先连接蓝牙打印机");
                 return;
             }
             printer2.printBarCode(result, 0, 1, 80);

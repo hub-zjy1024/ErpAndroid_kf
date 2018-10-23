@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +14,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
 import com.b1b.js.erpandroid_kf.adapter.TableAdapter;
 import com.b1b.js.erpandroid_kf.entity.KucunFBInfo;
 import com.b1b.js.erpandroid_kf.task.WebCallback;
@@ -35,13 +35,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import utils.MyToast;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
+import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.MartService;
+import utils.net.wsdelegate.MartService;
+import utils.net.wsdelegate.WebserviceUtils;
 
-public class KucunFBActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback{
+public class KucunFBActivity extends BaseMActivity implements NoLeakHandler.NoLeakCallback {
 
     private List<KucunFBInfo> data;
     private static final int ERROR_NET = 1;
@@ -70,10 +69,10 @@ public class KucunFBActivity extends AppCompatActivity implements NoLeakHandler.
                 }
                 break;
             case ERROR_NET:
-                MyToast.showToast(KucunFBActivity.this, "连接服务器失败，请检查网络");
+                showMsgToast("连接服务器失败，请检查网络");
                 break;
             case ERROR_OPTION:
-                MyToast.showToast(KucunFBActivity.this, "查询条件有误，请更改");
+                showMsgToast("查询条件有误，请更改");
                 break;
             case SUCCESS_PRICE:
                 AlertDialog.Builder builder = new AlertDialog.Builder(KucunFBActivity.this);
@@ -115,6 +114,7 @@ public class KucunFBActivity extends AppCompatActivity implements NoLeakHandler.
                 break;
         }
     }
+
     private Handler zHandler = new NoLeakHandler(this);
 
 
@@ -175,6 +175,16 @@ public class KucunFBActivity extends AppCompatActivity implements NoLeakHandler.
         getIP();
     }
 
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
+    }
+
     private void showEditDialog(final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(KucunFBActivity.this);
         View v = LayoutInflater.from(KucunFBActivity.this).inflate(R.layout.kucunfb_dialog_fabujiage, null);
@@ -211,11 +221,11 @@ public class KucunFBActivity extends AppCompatActivity implements NoLeakHandler.
             public void onClick(View v) {
                 final String price = editText.getText().toString().trim();
                 if (price.equals("")) {
-                    MyToast.showToast(KucunFBActivity.this, "请输入发布价格");
+                    showMsgToast("请输入发布价格");
                     return;
                 }
                 if (currentIp.equals("")) {
-                    MyToast.showToast(KucunFBActivity.this, "请稍等，正在获取信息");
+                    showMsgToast("请稍等，正在获取信息");
                     return;
                 }
                 String ip = currentIp;
@@ -233,13 +243,13 @@ public class KucunFBActivity extends AppCompatActivity implements NoLeakHandler.
                         if (e != null) {
                             msg = e.getMessage();
                         }
-                        MyToast.showToast(KucunFBActivity.this, "连接服务器出现错误"+msg);
+                        showMsgToast("连接服务器出现错误" + msg);
                     }
 
                     @Override
                     public void okCallback(String obj) {
                         if (obj == null) {
-                            MyToast.showToast(KucunFBActivity.this, "连接服务器失败，请检查网络");
+                            showMsgToast("连接服务器失败，请检查网络");
                         } else if (obj.equals("1")) {
                             fbInfo.setFabuPrice(price);
                             AlertDialog.Builder builder = new AlertDialog.Builder(KucunFBActivity.this);
@@ -267,7 +277,7 @@ public class KucunFBActivity extends AppCompatActivity implements NoLeakHandler.
 
     private void changeFBState(final int position, final boolean isFB) {
         if (currentIp.equals("")) {
-            MyToast.showToast(KucunFBActivity.this, "请稍等，正在获取信息");
+            showMsgToast("请稍等，正在获取信息");
             return;
         }
         new Thread() {
@@ -356,13 +366,13 @@ public class KucunFBActivity extends AppCompatActivity implements NoLeakHandler.
 
     public void getFabuInfo(String part, int pcount, boolean isbhbm) throws IOException,
             XmlPullParserException, JSONException {
-//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-//        map.put("part", part);
-//        map.put("pcount", pcount);
-//        map.put("isbhbm", isbhbm);
-//        SoapObject request = WebserviceUtils.getRequest(map, "GetInstorageBalanceInfoNew");
-//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
-//                .MartService);
+        //        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        //        map.put("part", part);
+        //        map.put("pcount", pcount);
+        //        map.put("isbhbm", isbhbm);
+        //        SoapObject request = WebserviceUtils.getRequest(map, "GetInstorageBalanceInfoNew");
+        //        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils
+        //                .MartService);
         String soapRes = MartService.GetInstorageBalanceInfoNew(part, pcount, isbhbm);
         Log.e("zjy", "KucunFBActivity->getFabuInfo(): reponse==" + soapRes);
         JSONObject root = new JSONObject(soapRes);
@@ -466,8 +476,9 @@ public class KucunFBActivity extends AppCompatActivity implements NoLeakHandler.
         }
     }
 
-    public String setFBState(String detailID, boolean isfb, String uid, String ip, String dogSN) throws IOException,
+    public String setFBState(String detailID, boolean isfb, String uid, String ip, String dogSN) throws
+            IOException,
             XmlPullParserException {
-        return MartService.SetStypeInfo(Integer.parseInt(detailID),isfb,Integer.parseInt(uid),ip,dogSN);
+        return MartService.SetStypeInfo(Integer.parseInt(detailID), isfb, Integer.parseInt(uid), ip, dogSN);
     }
 }

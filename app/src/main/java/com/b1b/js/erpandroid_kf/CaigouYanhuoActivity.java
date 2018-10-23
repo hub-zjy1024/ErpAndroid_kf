@@ -1,17 +1,16 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
 import com.b1b.js.erpandroid_kf.adapter.YanhuoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.entity.YanhuoInfo;
@@ -25,19 +24,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
-import utils.wsdelegate.MartService;
+import utils.framwork.SoftKeyboardUtils;
+import utils.net.wsdelegate.MartService;
 
-public class CaigouYanhuoActivity extends AppCompatActivity {
-
+public class CaigouYanhuoActivity extends BaseMActivity {
     private Handler mHandler = new Handler();
     private ListView lv;
     private EditText edpid;
     private YanhuoAdapter mAdapter;
     private List<YanhuoInfo> yanhuoInfos;
     private ProgressDialog pd;
-    private Context mContext = this;
     private EditText edpartno;
 
     @Override
@@ -95,6 +91,16 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
+    }
+
     public void getDate(final String pid, final String partno) {
         pd.show();
         new Thread() {
@@ -141,7 +147,7 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            MyToast.showToast(CaigouYanhuoActivity.this, "连接服务器超时，请重试");
+                            showMsgToast( "连接服务器超时，请重试");
                             pd.cancel();
                         }
                     });
@@ -152,7 +158,7 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            MyToast.showToast(CaigouYanhuoActivity.this, "查询条件有误");
+                            showMsgToast( "查询条件有误");
                             pd.cancel();
                         }
                     });

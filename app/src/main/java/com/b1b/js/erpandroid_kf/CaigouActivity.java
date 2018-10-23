@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.entity.Caigoudan;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
@@ -22,12 +23,12 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 
-import utils.MyToast;
-import utils.SoftKeyboardUtils;
+import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.MartService;
+import utils.net.wsdelegate.MartService;
 
 public class CaigouActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback {
 
@@ -36,11 +37,9 @@ public class CaigouActivity extends SavedLoginInfoWithScanActivity implements No
     private EditText edPartNo;
     private ArrayList<Caigoudan> caigoudans;
     private ArrayAdapter<Caigoudan> caigouAdapter;
-    public static String username = "mingming";
-    public static String password = "ryDl42QF";
-    public static String ftpAddress = "172.16.6.22";
     final Context packageContext = this;
     private Handler mHandler = new NoLeakHandler(this);
+    private static final int ERROR_CODE = 3;
 
     @Override
     public void handleMessage(Message msg) {
@@ -50,28 +49,39 @@ public class CaigouActivity extends SavedLoginInfoWithScanActivity implements No
                 int counts = caigoudans.size();
                 if (counts != 0) {
                     caigouAdapter.notifyDataSetChanged();
-                    MyToast.showToast(packageContext, "查询到" + counts + "条数据");
+                    showMsgToast( "查询到" + counts + "条数据");
                     SoftKeyboardUtils.closeInputMethod(edPartNo, packageContext);
                 }
                 break;
             case 1:
-                MyToast.showToast(packageContext, "当前网络状态不佳");
+                showMsgToast( "当前网络状态不佳");
                 break;
             case 2:
-                MyToast.showToast(packageContext, "条件有误，请重新输入");
+                showMsgToast( "条件有误，请重新输入");
+                break;
+            case ERROR_CODE:
+                String errMsg = "";
+                if (msg.obj != null) {
+                    errMsg = msg.obj.toString();
+                }
+                showMsgToast( errMsg);
                 break;
         }
+    }
+
+    void sendErrorMsg(String errMsg) {
+        mHandler.obtainMessage(ERROR_CODE, errMsg).sendToTarget();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_caigoudan_take_pic);
-        lv = (ListView) findViewById(R.id.activity_caigoudan_take_pic_lv);
-        edPid = (EditText) findViewById(R.id.activity_caigoudan_take_pic_ed_pid);
-        edPartNo = (EditText) findViewById(R.id.activity_caigoudan_take_pic_ed_partno);
-        Button btnSearch = (Button) findViewById(R.id.activity_caigoudan_take_pic_btn_search);
-        Button btnSaoma = (Button) findViewById(R.id.activity_caigoudan_take_pic_btn_saoma);
+        lv = getViewInContent(R.id.activity_caigoudan_take_pic_lv);
+        edPid = getViewInContent(R.id.activity_caigoudan_take_pic_ed_pid);
+        edPartNo = getViewInContent(R.id.activity_caigoudan_take_pic_ed_partno);
+        Button btnSearch =getViewInContent(R.id.activity_caigoudan_take_pic_btn_search);
+        Button btnSaoma = getViewInContent(R.id.activity_caigoudan_take_pic_btn_saoma);
         btnSaoma.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,7 +118,8 @@ public class CaigouActivity extends SavedLoginInfoWithScanActivity implements No
             }
         });
         caigoudans = new ArrayList<>();
-        caigouAdapter = new ArrayAdapter<Caigoudan>(this, R.layout.zjy_spinner_simple_item, R.id.spinner_item_tv, caigoudans);
+        caigouAdapter = new ArrayAdapter<Caigoudan>(this, R.layout.zjy_spinner_simple_item, R.id
+                .spinner_item_tv, caigoudans);
         lv.setAdapter(caigouAdapter);
     }
 
@@ -122,7 +133,7 @@ public class CaigouActivity extends SavedLoginInfoWithScanActivity implements No
         if (!CheckUtils.checkUID(packageContext, "当前登录人为空，请重新登录")) {
             return;
         }
-        getData("", pid);
+        getData(partNo, pid);
     }
 
 
@@ -155,7 +166,8 @@ public class CaigouActivity extends SavedLoginInfoWithScanActivity implements No
                         boolean isForeignClient = obj.getBoolean("IsForeignClient");
                         String corpID = obj.getString("InvoiceCorp");
                         String providerID = obj.getString("ProviderID");
-                        Caigoudan caigoudan = new Caigoudan(state, pid, createdDate, ywName, caigouName, partNo1);
+                        Caigoudan caigoudan = new Caigoudan(state, pid, createdDate, ywName, caigouName,
+                                partNo1);
                         caigoudan.setInPrice(inPrice);
                         caigoudan.setSalePrice(salePrice);
                         caigoudan.setNote(note);
@@ -171,12 +183,17 @@ public class CaigouActivity extends SavedLoginInfoWithScanActivity implements No
                     }
                     mHandler.sendEmptyMessage(0);
                 } catch (IOException e) {
-                    mHandler.sendEmptyMessage(1);
+                    if (e instanceof ConnectException) {
+                        sendErrorMsg("网络连接失败，请检查wifi连接是否正常");
+                    }else{
+                        sendErrorMsg("其他网络错误," + e.getMessage());
+                    }
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
+                    sendErrorMsg("接口调用失败," + e.getMessage());
                 } catch (JSONException e) {
-                    mHandler.sendEmptyMessage(2);
+                    sendErrorMsg("查询结果为空," + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -187,7 +204,8 @@ public class CaigouActivity extends SavedLoginInfoWithScanActivity implements No
     //    172.16.6.22
     //    用户名：mingming
     //    密码：ryDl42QF
-    public String getCaigoudanByPidAndPartNo(String checkWord, int buyerId, String partNo, String pid) throws IOException,
+    public String getCaigoudanByPidAndPartNo(String checkWord, int buyerId, String partNo, String pid)
+            throws IOException,
             XmlPullParserException {
         return MartService.GetBillByPartNoAndPid(checkWord, buyerId, pid, partNo);
     }

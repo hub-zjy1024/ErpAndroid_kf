@@ -21,9 +21,9 @@ import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 
-import utils.FTPUtils;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
+import utils.net.ftp.FTPUtils;
+import utils.common.UploadUtils;
+import utils.net.wsdelegate.WebserviceUtils;
 
 public class LogUploadService extends Service {
     //配置url、log文件名称、log保存地址、ftp用户名密码

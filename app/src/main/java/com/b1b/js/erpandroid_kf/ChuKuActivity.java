@@ -1,5 +1,6 @@
 package com.b1b.js.erpandroid_kf;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -10,9 +11,11 @@ import android.support.v4.view.ViewPager;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.fragment.ChuKuTongZhiFragment;
 import com.b1b.js.erpandroid_kf.fragment.ChuKudanFragment;
 import com.b1b.js.erpandroid_kf.fragment.ChukuBaseFragment;
+import com.b1b.js.erpandroid_kf.scancode.zxing.ZxingScanActivcity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +52,12 @@ public class ChuKuActivity extends SavedLoginInfoWithScanActivity {
         frags.add(fragChukuTongzhi);
         fragAdapter = new MyPagerAdapter(fm, frags, tabTitles);
         viewPager.setAdapter(fragAdapter);
+    }
+
+    @Override
+    public void startScanActivity() {
+        Intent mIntent = new Intent(this, ZxingScanActivcity.class);
+        startActivityForResult(mIntent, REQ_CODE);
     }
 
     @Override

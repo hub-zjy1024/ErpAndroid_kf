@@ -24,8 +24,7 @@ import java.util.Date;
 import java.util.List;
 
 import utils.MyDecoration;
-import utils.MyToast;
-import utils.UploadUtils;
+import utils.common.UploadUtils;
 
 public class QdListActivity extends BaseScanActivity implements View.OnClickListener, QdContract.QdView {
 
@@ -69,6 +68,16 @@ public class QdListActivity extends BaseScanActivity implements View.OnClickList
     }
 
     @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
+    }
+
+    @Override
     public void getCameraScanResult(String result, int code) {
         super.getCameraScanResult(result, code);
         readCode(result);
@@ -79,7 +88,7 @@ public class QdListActivity extends BaseScanActivity implements View.OnClickList
         if (isOk.length == 2) {
             presenter.startSearch2(isOk[1],isOk[0] );
         }else{
-            MyToast.showToast(this, "条码格式有误");
+            showMsgToast( "条码格式有误");
         }
     }
 
@@ -146,7 +155,7 @@ public class QdListActivity extends BaseScanActivity implements View.OnClickList
             @Override
             public void run() {
                 pd.cancel();
-                MyToast.showToast(QdListActivity.this, "查询不到相关信息！！！");
+                showMsgToast("查询不到相关信息！！！");
             }
         });
     }
