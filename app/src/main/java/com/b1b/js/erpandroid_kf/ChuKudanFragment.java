@@ -135,30 +135,6 @@ public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler
         return view;
     }
 
-    public static String getFormatDate(Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        return sdf.format(date);
-    }
-
-    public String getStringDateBefore(int day) {
-        Calendar c = Calendar.getInstance(); // 当时的日期和时间
-        int oldtime = c.get(Calendar.DAY_OF_MONTH) - day;
-        c.set(Calendar.DAY_OF_MONTH, oldtime);
-        return getFormatDate(c.getTime());
-    }
-
-
-    private void setTvTime(final TextView textView) {
-        DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), new DatePickerDialog
-                .OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                textView.setText(year + "-" + (month + 1) + "-" + dayOfMonth);
-            }
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-        datePickerDialog.show();
-    }
-
     private void getData(final String uid, final String partNo, final String pid, final String stime, final
     String etime) {
         new Thread() {

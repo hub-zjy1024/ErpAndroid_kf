@@ -110,13 +110,18 @@ public class MainActivityMvp extends MvpBaseAc<IMainTaskPresenter> implements Ma
     }
 
     @Override
+    public void resultBack(String result) {
+        mPresenter.readCode(result);
+    }
+
+    @Override
     public int getId() {
         return R.layout.activity_main;
     }
 
     @Override
     public void initPresenter() {
-
+        mPresenter = new MainPresenter(this, new MainSourceImpl(this));
     }
 
     @Override

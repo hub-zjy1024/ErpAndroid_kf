@@ -130,30 +130,6 @@ public class ChuKuTongZhiFragment extends ChukuBaseFragment implements View.OnCl
         return view;
     }
 
-    private void setTvTime(final TextView textView) {
-        Calendar calendar = Calendar.getInstance();
-        DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                textView.setText(year + "-" + (month + 1) + "-" + dayOfMonth);
-            }
-        }, calendar.get(Calendar.YEAR), calendar.get(java.util.Calendar.MONTH), calendar.get(java.util.Calendar.DAY_OF_MONTH));
-        datePickerDialog.show();
-    }
-
-
-    public static String getFormatDate(Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        return sdf.format(date);
-    }
-
-    public String getStringDateBefore(int day) {
-        Calendar c = Calendar.getInstance(); // 当时的日期和时间
-        int oldtime = c.get(Calendar.DAY_OF_MONTH) - day;
-        c.set(Calendar.DAY_OF_MONTH, oldtime);
-        return getFormatDate(c.getTime());
-    }
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {

@@ -1,12 +1,19 @@
 package com.b1b.js.erpandroid_kf;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.TextView;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class ChukuBaseFragment extends Fragment implements View.OnClickListener {
 
@@ -14,7 +21,27 @@ public class ChukuBaseFragment extends Fragment implements View.OnClickListener 
     public ChukuBaseFragment() {
         // Required empty public constructor
     }
+    public  String getFormatDate(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(date);
+    }
 
+    public String getStringDateBefore(int day) {
+        Calendar c = Calendar.getInstance(); // 当时的日期和时间
+        int oldtime = c.get(Calendar.DAY_OF_MONTH) - day;
+        c.set(Calendar.DAY_OF_MONTH, oldtime);
+        return getFormatDate(c.getTime());
+    }
+    protected void setTvTime(final TextView textView) {
+        Calendar calendar = Calendar.getInstance();
+        DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                textView.setText(year + "-" + (month + 1) + "-" + dayOfMonth);
+            }
+        }, calendar.get(Calendar.YEAR), calendar.get(java.util.Calendar.MONTH), calendar.get(java.util.Calendar.DAY_OF_MONTH));
+        datePickerDialog.show();
+    }
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
