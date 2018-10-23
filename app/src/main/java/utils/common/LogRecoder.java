@@ -76,7 +76,7 @@ public class LogRecoder {
     }
 
 
-    private static String getAllStackInfo(Throwable e) {
+    public String getAllStackInfo(Throwable e) {
         String result = "null Exception";
         if (e != null) {
             StringWriter sw = new StringWriter();
@@ -97,50 +97,66 @@ public class LogRecoder {
             simpleMsg.append(mainMsg);
             simpleMsg.append("\n");
         }
+        Throwable mainThrowa= tempT;
+        String mainStackMsg = getInnerEx(mainThrowa);
+        simpleMsg.append("\tmainStack= ");
+        simpleMsg.append(mainStackMsg);
+        simpleMsg.append("\n");
+        while (tempT != null) {
+            simpleMsg.append("causedBy=");
+            Throwable cause = tempT.getCause();
+            String msg = getInnerEx(cause);
+            //            Log.e("zjy", getClass() + "->getExStackTrace inner(): ==" + msg);
+            simpleMsg.append(msg);
+            tempT = cause;
+        }
+        return simpleMsg.toString();
+    }
+
+    String getInnerEx(Throwable tempT) {
+        if (tempT == null) {
+            return "no cause";
+        }
+       /* 获取栈信息的最大深度*/
         int deep = 100;
         StackTraceElement[] mainStackTrace = tempT.getStackTrace();
         int stackDeep = mainStackTrace.length;
-
         int msgLines = 0;
+        StringBuilder simpleMsg = new StringBuilder();
         //倒序导出
-        for (int j = stackDeep- 1; j >= 0; j--) {
+        for (int j = stackDeep - 1; j >= 0; j--) {
             if (stackDeep - j <= deep) {
                 StackTraceElement ele = mainStackTrace[j];
+//                Log.e("zjy", getClass() + "->getExStackTrace():stack ==" + ele.toString());
                 try {
                     String className = ele.getClassName();
                     Class cla = Class.forName(className);
                     Class loaderCla = cla.getClassLoader().getClass();
                     String loaderName = loaderCla.getName();
+//                                        Log.e("zjy", "LogRecoder->getExStackTrace(): Loader==" + loaderName + "\t " +
+//                                                "ele_cla_name=" + className);
                     //过滤系统class，只关注程序内部class
                     String filterLoader = "java.lang.BootClassLoader";
-                    if (loaderName.equals(filterLoader)) {
-                        //                        simpleMsg.append("\tat ");
-                        //                        simpleMsg.append("...");
-                        //                        simpleMsg.append("\n");
-                        continue;
+                    if (!loaderName.equals(filterLoader)) {
+                        simpleMsg.append("\tat ");
+                        simpleMsg.append(ele.toString());
+                        simpleMsg.append("\n");
+                        msgLines++;
+                    }else{
+                        simpleMsg.append("\tat ");
+                        simpleMsg.append("not my code...");
+                        simpleMsg.append("\n");
                     }
-                    //                    Log.e("zjy", "LogRecoder->getExStackTrace(): Loader==" + loaderName + "\t " +
-                    //                            "ele_cla_name=" + className);
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 }
-                simpleMsg.append("\tat ");
-                simpleMsg.append(ele.toString());
-                simpleMsg.append("\n");
-                msgLines++;
             } else {
                 break;
             }
         }
-        if (msgLines == 0) {
-            simpleMsg.append(getAllStackInfo(ex));
-        }
-        Throwable cause = tempT.getCause();
-        while (cause != null) {
-            simpleMsg.append("causedBy=");
-            String msg = getExStackTrace(tempT);
-            simpleMsg.append(msg);
-            tempT = cause;
+        if (msgLines <= 3) {
+            simpleMsg = new StringBuilder();
+            simpleMsg.append(getAllStackInfo(tempT));
         }
         return simpleMsg.toString();
     }

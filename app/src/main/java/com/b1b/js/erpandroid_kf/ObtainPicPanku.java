@@ -11,9 +11,8 @@ import com.b1b.js.erpandroid_kf.task.UploadPicRunnable2;
 
 import java.io.InputStream;
 
-import utils.net.ftp.FTPUtils;
-import utils.net.ftp.FtpManager;
 import utils.common.UploadUtils;
+import utils.net.ftp.FTPUtils;
 
 public class ObtainPicPanku extends ReUploadActivity implements View.OnClickListener {
     @Override
@@ -43,8 +42,8 @@ public class ObtainPicPanku extends ReUploadActivity implements View.OnClickList
         ftpUtil = FTPUtils.getLocalFTP(mUrl);
         remotePath = "/" + UploadUtils.getCurrentDate() + "/pk/" + remoteName;
         if (isTest) {
-            mUrl = FtpManager.mainAddress;
-            ftpUtil =  FtpManager.getTestFTP();
+            mUrl = FTPUtils.mainAddress;
+            ftpUtil = FTPUtils.getTestFTP();
             remotePath = UploadUtils.getTestPath(pid);
         }
         insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
@@ -75,8 +74,7 @@ public class ObtainPicPanku extends ReUploadActivity implements View.OnClickList
                     return true;
                 } else {
                     String flag = "PK";
-                    res = setInsertPicInfo("", cid, did, Integer.parseInt(loginID), pid, remoteName,
-                            insertPath, flag);
+                    res = setInsertPicInfo2(remoteName,insertPath, flag);
                 }
                 return res.equals("操作成功");
             }

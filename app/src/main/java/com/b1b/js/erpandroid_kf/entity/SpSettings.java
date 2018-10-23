@@ -1,5 +1,10 @@
 package com.b1b.js.erpandroid_kf.entity;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Log;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 /**
  Created by 张建宇 on 2019/4/29. */
 public class SpSettings {
@@ -23,4 +28,29 @@ public class SpSettings {
 
     public static final String Ruku_storageKey = "storageID";
     public static final String storageKey = "storageID";
+
+    /**
+     * 反射获取所有SharedPreferences的名称，即以"PREF_"开头的静态变量，并进行清理
+     * @param mContext
+     */
+    public static void clearAllSp(Context mContext) {
+        Class<SpSettings> spSettingsClass = SpSettings.class;
+        Field[] declaredFields = spSettingsClass.getDeclaredFields();
+        for (Field field : declaredFields) {
+            String fName = field.getName();
+            if (field.getType().toString().endsWith("java.lang.String") && Modifier.isStatic(field
+                    .getModifiers()) && fName.startsWith("PREF_")) {
+                try {
+                    String spName = field.get(spSettingsClass).toString();
+                    SharedPreferences sp = mContext.getSharedPreferences(spName, Context.MODE_PRIVATE);
+                    sp.edit().clear().apply();
+                    Log.e("zjy", spSettingsClass.getName() + "->clearAllSp():clear ==" + field.getName() +
+                            " , "
+                            + spName);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }

@@ -161,11 +161,11 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
                 SharedPreferences spTk = getSharedPreferences(SettingActivity.PREF_TKPIC, MODE_PRIVATE);
                 String style = spTk.getString("style", "");
                 if (style.equals(getResources().getString(R.string.upload_nomarl))) {
-                    intent1.setClass(this, TakePicActivity.class);
+                    intent1.setClass(mContext, TakePicActivity.class);
                 } else if (style.equals(getResources().getString(R.string.upload_fromphone))) {
-                    intent1.setClass(this, ObtainPicFromPhone.class);
+                    intent1.setClass(mContext, ObtainPicFromPhone.class);
                 } else if (style.equals(getResources().getString(R.string.upload_continue))) {
-                    intent1.setClass(this, TakePic2Activity.class);
+                    intent1.setClass(mContext, TakePic2Activity.class);
                 } else {
                     builder.create().show();
                 }

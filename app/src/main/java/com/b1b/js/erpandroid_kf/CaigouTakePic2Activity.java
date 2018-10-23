@@ -38,7 +38,6 @@ import utils.common.MyImageUtls;
 import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.ftp.FTPUtils;
-import utils.net.ftp.FtpManager;
 import utils.net.wsdelegate.WebserviceUtils;
 
 public class CaigouTakePic2Activity extends TakePicActivity implements View.OnClickListener {
@@ -209,8 +208,8 @@ public class CaigouTakePic2Activity extends TakePicActivity implements View.OnCl
                                 String mUrl = null;
                                 FTPUtils ftpUtil = null;
                                 if (CheckUtils.isAdmin()) {
-                                    mUrl = FtpManager.mainAddress;
-                                    ftpUtil = FtpManager.getTestFTP();
+                                    mUrl = FTPUtils.mainAddress;
+                                    ftpUtil = FTPUtils.getTestFTP();
                                     remotePath = UploadUtils.getTestPath(pid);
                                 } else {
                                     mUrl = FTPUtils.CaigouFTPAddr;

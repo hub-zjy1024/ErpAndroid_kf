@@ -6,12 +6,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
@@ -23,7 +20,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
@@ -33,6 +29,10 @@ import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.CaptureActivity;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
+import com.b1b.js.erpandroid_kf.yundan.kyeexpress.entity.BillOrder;
+import com.b1b.js.erpandroid_kf.yundan.kyeexpress.entity.BillUserInfo;
+import com.b1b.js.erpandroid_kf.yundan.kyeexpress.entity.OrderInfo;
+import com.b1b.js.erpandroid_kf.yundan.kyeexpress.entity.OrderRetInfo;
 import com.b1b.js.erpandroid_kf.yundan.kyeexpress.entity.YundanJson;
 import com.b1b.js.erpandroid_kf.yundan.kyeexpress.entity.YundanShixiao;
 import com.b1b.js.erpandroid_kf.yundan.kyeexpress.util.KyExpressUtils;
@@ -59,6 +59,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import utils.common.UploadUtils;
 import utils.framwork.DialogUtils;
 import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
@@ -70,7 +71,6 @@ import utils.net.wsdelegate.SF_Server;
  */
 public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback {
 
-    private Context mContext = this;
     private Spinner spiType;
     private String pid;
     private String jName;
@@ -107,6 +107,7 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
     private List<YundanShixiao> shixiaoList;
     private final int MSG_SHIXIAO = 2;
     private final int MSG_GETINFO = 0;
+    private final int MSG_CANCEL_DIALOG = 1;
     private final int ShengWaiIndex = 6;
     private final int TongchengIndex = 2;
     private final int ShengNei = 0;
@@ -164,12 +165,12 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                             .id.item_province_tv, shixiaoList));
                 }
                 break;
-            case 1:
+            case MSG_CANCEL_DIALOG:
                 DialogUtils.dismissDialog(pd);
                 break;
         }
     }
-    private List<Map<String,String>> addrList;
+    private List<Map<String, String>> addrList;
     private Handler mHandler = new NoLeakHandler(this);
     private EditText eddPerson;
     private TextView tvYundanID;
@@ -208,13 +209,17 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
         cboSign = (CheckBox) findViewById(R.id.yundanprint_cbo_sign);
         spiDiaohuo = (Spinner) findViewById(R.id.yundanprint_spi_printer);
         LinearLayout llDiaohuo = (LinearLayout) findViewById(R.id.yundanprint_ll_diaohuo);
-        final String[] serverTypes = new String[]{"省内次日-省内","省内即日-省内" ,
-                "同城次日-同城", "同城即日-同城","陆运件-货多(慢)", "隔日达-快（空）", "次日达-很快（空）",
+        final String[] serverTypes = new String[]{"省内次日-省内", "省内即日-省内",
+                "同城次日-同城", "同城即日-同城", "陆运件-货多(慢)", "隔日达-快（空）", "次日达-很快（空）",
                 "当天达-极快（空）"};
+//        final String[] serverTypes2 = new String[]{"省内次日-160", "同城次日-50", "同城即日-70", "陆运件-40", "隔日达-30",
+//                "次日达-20",
+//                "当天达-10", "次晨达-60", "航空件-80", "早班件-90", "中班件-100", "晚班件-110"};
         spiType.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_province, R.id
                 .item_province_tv, serverTypes));
         final String[] payTypes = new String[]{"寄付月结", "到付", "转第三方付款"};
-        spiPayType.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_province, R.id.item_province_tv, payTypes));
+        spiPayType.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_province, R.id.item_province_tv,
+                payTypes));
         final List<String> printerItems = new ArrayList<>();
         printerItems.add("请选择打印机");
         reIntent = getIntent();
@@ -264,19 +269,18 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                 }
                 pd.setMessage("正在关联");
                 pd.show();
-                Runnable addMordRunnable= new Runnable() {
+                Runnable addMordRunnable = new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            String ok = insertYundanInfo(tempPID, yundanID, ddestcode, expressName);
-                            changeInsertState(ok, tempPID);
+                            relateYdToDB(tempPID, yundanID, ddestcode, expressName);
                         } catch (IOException e) {
-                            showAlert("关联失败：" +getString(R.string.bad_connection));
+                            showAlert("关联失败：" + getString(R.string.bad_connection) + "," + e.getMessage());
                             e.printStackTrace();
                         } catch (XmlPullParserException e) {
                             e.printStackTrace();
                         }
-                        mHandler.sendEmptyMessage(1);
+                        mHandler.sendEmptyMessage(MSG_CANCEL_DIALOG);
                     }
                 };
                 TaskManager.getInstance().execute(addMordRunnable);
@@ -318,15 +322,12 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
         try {
             Log.e("zjy", "KyPrintAcitivity->onCreate(): configJson==" + configJson);
             JSONObject obj = new JSONObject(configJson);
-             kfName = obj.getString(SettingActivity.NAME);
+            kfName = obj.getString(SettingActivity.NAME);
             KyExpressUtils.uuid = obj.getString(SettingActivity.KYUUID);
             KyExpressUtils.key = obj.getString(SettingActivity.KYKEY);
-            smsNum= obj.getString(SettingActivity.KY_SMSNUM);
+            smsNum = obj.getString(SettingActivity.KY_SMSNUM);
             edAccount.setText(obj.getString(SettingActivity.KYACCOUNT));
             if (kfName.equals("深圳")) {
-                String uuid = "01083729273";
-                edAccount.setText(uuid);
-//                KyExpressUtils.uuid = uuid;
                 if (spiPayType.getCount() > 2) {
                     spiPayType.setSelection(2);
                 }
@@ -335,18 +336,7 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
             KyExpressUtils.uuid = "";
             KyExpressUtils.key = KyExpressUtils.uuid = "";
             edAccount.setText("");
-            if (smsNum.equals("")) {
-                try {
-                    PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
-                    if (packageInfo.versionCode == 51) {
-                        showAlert("由于添加了短信服务号，请重新配置库房信息");
-                    }
-                } catch (PackageManager.NameNotFoundException e1) {
-                    e1.printStackTrace();
-                }
-            } else {
-                showAlert("请先配置库房信息");
-            }
+            showAlert("请在设置中配置库房信息");
             MyApp.myLogger.writeError("KYprint:no config" + e.toString());
             e.printStackTrace();
         }
@@ -439,7 +429,8 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                 account = edAccount.getText().toString().trim();
                 String counts = edBags.getText().toString();
                 if (printerAddress.equals("")) {
-                    DialogUtils.getSpAlert(mContext, "当前未配置打印服务器地址，是否前往配置?", "提示", new DialogInterface.OnClickListener() {
+                    DialogUtils.getSpAlert(mContext, "当前未配置打印服务器地址，是否前往配置?", "提示", new DialogInterface
+                            .OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Intent intent = new Intent(mContext, SettingActivity.class);
@@ -459,60 +450,30 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                 String serverType = spiType.getSelectedItem().toString();
                 serverType = serverType.substring(0, serverType.indexOf("-"));
                 final String bags = edBags.getText().toString().trim();
-                if (bags.equals("")) {
-                    Toast.makeText(mContext, "请输入包裹数", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (jTel.equals("")) {
-                    Toast.makeText(mContext, "必须输入寄件人电话", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (jAddress.equals("")) {
-                    Toast.makeText(mContext, "必须输入寄件人地址", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (jName.equals("")) {
-                    Toast.makeText(mContext, "必须输入寄件人姓名", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (dTel.equals("")) {
-                    Toast.makeText(mContext, "必须输入收件人电话", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (dAddress.equals("")) {
-                    Toast.makeText(mContext, "必须输入收件人地址", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (dName.equals("")) {
-                    Toast.makeText(mContext, "必须输入收件人姓名", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
+               if(!checkNeedInfo(bags)){
+                   return;
+               }
                 String goodInfos = reIntent.getStringExtra("goodInfos");
                 final String tGoodInfos = goodInfos;
                 final String tpayType = payType;
                 final String tserverType = serverType;
                 final String tCounts = counts;
-                if(yundanID!=null){
-                    DialogUtils.getSpAlert(mContext, "当前单据已有运单:" + yundanID + "，是否继续", "提示", new DialogInterface
+                if (yundanID != null) {
+                    DialogUtils.getSpAlert(mContext, "当前单据已有运单:" + yundanID + "，是否继续", "提示", new
+                            DialogInterface
                             .OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             pd.setMessage("正在打印中");
                             pd.show();
-                            startOrder(tGoodInfos, account, tpayType, tserverType, tCounts, dprintName);
+                            //startOrder
+                            startOrderNew(tGoodInfos, account, tpayType, tserverType, tCounts, dprintName);
                         }
                     }, "是", null, "否").show();
-                }else{
+                } else {
                     pd.setMessage("正在打印中");
                     pd.show();
-                    startOrder(goodInfos, account, payType, serverType, counts, dprintName);
+                    startOrderNew(goodInfos, account, payType, serverType, counts, dprintName);
                 }
             }
         });
@@ -527,39 +488,7 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                 dTel = eddTel.getText().toString();
                 account = edAccount.getText().toString().trim();
                 final String bags = edBags.getText().toString().trim();
-                if (bags.equals("")) {
-                    Toast.makeText(mContext, "请输入包裹数", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (jTel.equals("")) {
-                    Toast.makeText(mContext, "必须输入寄件人电话", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (jAddress.equals("")) {
-                    Toast.makeText(mContext, "必须输入寄件人地址", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (jName.equals("")) {
-                    Toast.makeText(mContext, "必须输入寄件人姓名", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (dTel.equals("")) {
-                    Toast.makeText(mContext, "必须输入收件人电话", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (dAddress.equals("")) {
-                    Toast.makeText(mContext, "必须输入收件人地址", Toast
-                            .LENGTH_SHORT).show();
-                    return;
-                }
-                if (dName.equals("")) {
-                    Toast.makeText(mContext, "必须输入收件人姓名", Toast
-                            .LENGTH_SHORT).show();
+                if(!checkNeedInfo(bags)){
                     return;
                 }
                 String printer = "";
@@ -575,24 +504,25 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                 dserverType = serverType;
                 pd.setMessage("正在重新打印");
                 pd.show();
-                 Runnable rePrintRun=new Runnable() {
+                Runnable rePrintRun = new Runnable() {
                     @Override
                     public void run() {
                         try {
                             String isSigned = cboSign.isChecked() ? "1" : "0";
-                            boolean ok = printKyYundan(printerAddress, yundanID, dgoodInfos, dcardID, dpayType, bags,
+                            boolean ok = printKyYundan(printerAddress, yundanID, dgoodInfos, dcardID,
+                                    dpayType, bags,
                                     dprintName, ddestcode
-                                    , dserverType,isSigned);
-                            if (ok) {
-                                showAlert("打印成功");
-                            } else {
-                                showAlert("打印失败，打印过程出错");
+                                    , dserverType, isSigned);
+                            String msg = "打印成功";
+                            if (!ok) {
+                                throw new IOException("打印失败，打印过程出错");
                             }
+                            showAlert(msg);
                         } catch (IOException e) {
-                            showAlert("打印失败，连接服务器失败");
+                            showAlert("打印失败，连接服务器失败," + e.getMessage());
                             e.printStackTrace();
                         }
-                        mHandler.sendEmptyMessage(1);
+                        mHandler.sendEmptyMessage(MSG_CANCEL_DIALOG);
                     }
                 };
                 TaskManager.getInstance().execute(rePrintRun);
@@ -608,15 +538,14 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                     public void run() {
                         String insertResult = null;
                         try {
-                            insertResult = insertYundanInfo(pid, yundanID, ddestcode, expressName);
-                            changeInsertState(insertResult, pid);
+                            relateYdToDB(pid, yundanID, ddestcode, expressName);
                         } catch (IOException e) {
-                            showAlert("关联运单号失败，网络连接失败");
+                            showAlert("关联运单号失败，网络连接失败" +e.getMessage());
                             e.printStackTrace();
                         } catch (XmlPullParserException e) {
                             e.printStackTrace();
                         }
-                        mHandler.sendEmptyMessage(1);
+                        mHandler.sendEmptyMessage(MSG_CANCEL_DIALOG);
                     }
                 };
                 TaskManager.getInstance().execute(reInsertRun);
@@ -628,10 +557,11 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
         pd.setTitle("请稍等");
         pd.setMessage("正在打印中。。。");
         final List<String> spiItems = new ArrayList<>();
-        final ArrayAdapter<String> printerAdapter = new ArrayAdapter<>(this, R.layout.item_province, R.id.item_province_tv,
+        final ArrayAdapter<String> printerAdapter = new ArrayAdapter<>(this, R.layout.item_province, R.id
+                .item_province_tv,
                 spiItems);
-//        spiPrinter.setAdapter(printerAdapter);
-      Runnable pdRun=  new Runnable() {
+        //        spiPrinter.setAdapter(printerAdapter);
+        Runnable pdRun = new Runnable() {
             @Override
             public void run() {
                 String ip = "http://" + printerAddress + ":8080";
@@ -689,7 +619,7 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
             }
         };
         TaskManager.getInstance().execute(onLineRun);
-        Runnable onlineSavedRunnable=new Runnable() {
+        Runnable onlineSavedRunnable = new Runnable() {
             @Override
             public void run() {
                 try {
@@ -699,7 +629,7 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                     }
                     ddestcode = onlineSavedYdInfo.getDestcode();
                     yundanID = onlineSavedYdInfo.getOrderID();
-                    final String  exName = onlineSavedYdInfo.getExName();
+                    final String exName = onlineSavedYdInfo.getExName();
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -707,29 +637,6 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                             btnRePrint.setEnabled(true);
                         }
                     });
-
-//
-//                    String result = YunInfoTool.getOnlineSavedYdInfo(pid);
-//                    Log.e("zjy", "SetYundanActivity->run(): onlineYundan==" + result);
-//                    //                    "objid":"613","parentid":"0","objname":"1176338","objvalue":"616606640489",
-//                    // "objtype":"顺丰","objexpress":"010",
-//                    JSONObject obj = new JSONObject(result);
-//                    JSONArray root = obj.getJSONArray("表");
-//                    if (root.length() > 0) {
-//                        JSONObject t = root.getJSONObject(0);
-//                        String orderID = t.getString("objvalue");
-//                        String destcode = t.getString("objexpress");
-//                        final String exName = t.getString("objtype");
-//                        ddestcode = destcode;
-//                        yundanID = orderID;
-//                        mHandler.post(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                tvYundanID.setText("当前单据已有单号：" + exName + yundanID);
-//                                btnRePrint.setEnabled(true);
-//                            }
-//                        });
-//                    }
                 } catch (IOException e) {
                     mHandler.post(new Runnable() {
                         @Override
@@ -750,24 +657,56 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
             }
         };
         TaskManager.getInstance().execute(onlineSavedRunnable);
-//        getYundanShixiao();
+        //        getYundanShixiao();
+    }
+
+    public boolean checkNeedInfo(String bags) {
+        if (bags.equals("")) {
+            showMsgToast("请输入包裹数");
+            return false;
+        }
+        if (jTel.equals("")) {
+            showMsgToast("必须输入寄件人电话");
+            return false;
+        }
+        if (jAddress.equals("")) {
+            showMsgToast("必须输入寄件人地址");
+            return false;
+        }
+        if (jName.equals("")) {
+            showMsgToast("必须输入寄件人姓名");
+            return false;
+        }
+        if (dTel.equals("")) {
+            showMsgToast("必须输入收件人电话");
+            return false;
+        }
+        if (dAddress.equals("")) {
+            showMsgToast("必须输入收件人地址");
+            return false;
+        }
+        if (dName.equals("")) {
+            showMsgToast("必须输入收件人姓名");
+            return false;
+        }
+        return true;
     }
 
     private String readRaw(int rawId) {
-            String content = "";
-            InputStream is = getResources().openRawResource(rawId);
-            try {
-                StringBuilder stringBuilder = new StringBuilder();
-                String temp = null;
-                BufferedReader breader = new BufferedReader(new InputStreamReader(is, "utf-8"));
-                while ((temp = breader.readLine()) != null) {
-                    stringBuilder.append(temp);
-                }
-                content = stringBuilder.toString();
-            } catch (IOException e) {
-                e.printStackTrace();
+        String content = "";
+        InputStream is = getResources().openRawResource(rawId);
+        try {
+            StringBuilder stringBuilder = new StringBuilder();
+            String temp = null;
+            BufferedReader breader = new BufferedReader(new InputStreamReader(is, "utf-8"));
+            while ((temp = breader.readLine()) != null) {
+                stringBuilder.append(temp);
             }
-            return content;
+            content = stringBuilder.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return content;
     }
 
     public boolean isShengNei(String json, String address) {
@@ -845,24 +784,31 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
         strURL += "&signreturn=" + URLEncoder.encode(ifSign,
                 urlCoding);
         Log.e("zjy", "SetYundanActivity->printKyYundan(): StrUrl==" + strURL);
-        URL url = new URL(strURL);
-        HttpURLConnection conn = (HttpURLConnection) url
-                .openConnection();
-        conn.setConnectTimeout(20 * 1000);
-        InputStream in = conn.getInputStream();
-        StringBuilder builder = new StringBuilder();
-        String s = "";
-        BufferedReader reader = new BufferedReader(new
-                InputStreamReader(in, "UTF-8"));
-        while ((s = reader.readLine()) != null) {
-            builder.append(s);
+        try {
+            URL url = new URL(strURL);
+            HttpURLConnection conn = (HttpURLConnection) url
+                    .openConnection();
+            conn.setConnectTimeout(20 * 1000);
+            InputStream in = conn.getInputStream();
+            StringBuilder builder = new StringBuilder();
+            String s = "";
+            BufferedReader reader = new BufferedReader(new
+                    InputStreamReader(in, "UTF-8"));
+            while ((s = reader.readLine()) != null) {
+                builder.append(s);
+            }
+            String res = builder.toString();
+            Log.e("zjy", "SetYundanActivity->run(): print_result==" + builder
+                    .toString());
+            double len = (double) (System.currentTimeMillis() - time1) / 1000;
+            MyApp.myLogger.writeInfo("KY yundan" + orderID + "\ttime:" + len);
+            if (!res.equals("ok")) {
+                throw new IOException("打印返回异常,res=" + res);
+            }
+            return true;
+        } catch (IOException e) {
+            throw new IOException("连接打印服务器异常," + e.getMessage());
         }
-        String res = builder.toString();
-        Log.e("zjy", "SetYundanActivity->run(): print_result==" + builder
-                .toString());
-        double len = (double) (System.currentTimeMillis() - time1) / 1000;
-        MyApp.myLogger.writeInfo("KY yundan" + orderID + "\ttime:" + len);
-        return res.equals("ok");
     }
 
     @Override
@@ -872,6 +818,211 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
             String result = data.getStringExtra("result");
             edMorePid.setText(result);
         }
+    }
+
+    OrderRetInfo getOrderRetInfo(OrderInfo orderInfo) throws IOException {
+        String errMsg = "";
+        try {
+            OrderRetInfo mInfo = new OrderRetInfo();
+            com.alibaba.fastjson.JSONObject mObj = (com.alibaba.fastjson.JSONObject) com
+                    .alibaba.fastjson.JSONObject.toJSON
+                            (orderInfo);
+            String newOrderJson = mObj.toString();
+            Log.e("zjy", getClass() + "->run():newApi json ==" + newOrderJson);
+            String newApiRes = SF_Server.PostDataOpenApiInfo(newOrderJson);
+            Log.e("zjy", getClass() + "->run():newApi Res ==" + newApiRes);
+            com.alibaba.fastjson.JSONObject mresJobj = com.alibaba.fastjson.JSONObject.parseObject
+                    (newApiRes);
+            int code = mresJobj.getIntValue("code");
+            String msg = mresJobj.getString("msg");
+            if (code == 10000) {
+                if (mresJobj.containsKey("data")) {
+                    com.alibaba.fastjson.JSONObject dataObj = mresJobj.getJSONArray("data")
+                            .getJSONObject(0);
+                    mInfo = com.alibaba.fastjson.JSONObject.parseObject(dataObj.toJSONString(),
+                            OrderRetInfo.class);
+//                    JSONObject mob = new JSONObject.wrap(mInfo);
+                    return mInfo;
+                } else {
+                    throw new IOException("接口错误,返回数据为空");
+                }
+            } else {
+                throw new IOException("接口错误,"+msg);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            errMsg = "io异常," + e.getMessage();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+            errMsg = "xml," + e.getMessage();
+        } catch (com.alibaba.fastjson.JSONException e) {
+            e.printStackTrace();
+            errMsg = "json异常," + e.getMessage();
+        }
+        throw new IOException(errMsg);
+    }
+
+    public void startOrderNew(final String goodInfos, final String cardID, final String
+            payType, final String serverType, final String counts,
+                              final String printName) {
+        String ifSing = "0";
+        if (cboSign.isChecked()) {
+            ifSing = "1";
+        }
+        final String finalIfSing = ifSing;
+        Runnable orderRun = new Runnable() {
+            @Override
+            public void run() {
+                OrderInfo orderInfo = new OrderInfo();
+                List<BillOrder> mBills = new ArrayList<>();
+                BillOrder realBill = new BillOrder();
+                //寄件人信息
+                BillUserInfo jUser = new BillUserInfo();
+                jUser.setAddress(jAddress);
+                jUser.setPerson(jName);
+                jUser.setMobile(jTel);
+                jUser.setCompanyName(jComapany);
+                //收件人信息
+                BillUserInfo dUser = new BillUserInfo();
+                dUser.setAddress(dAddress);
+                dUser.setPerson(dName);
+                dUser.setMobile(dTel);
+                dUser.setCompanyName(dCompany);
+
+                realBill.setPreWaybillDelivery(jUser);
+                realBill.setPreWaybillPickup(dUser);
+
+                //其他参数
+                realBill.setCount(Integer.parseInt(counts));
+                //                serverType
+                //10-当天达
+                int serviceMode = 20;
+                switch (serverType) {
+                    case "当天达":
+                        serviceMode = 10;
+                        break;
+                    case "次日达":
+                        serviceMode = 20;
+                        break;
+                    case "隔日达":
+                        serviceMode = 30;
+                        break;
+                    case "陆运件":
+                        serviceMode = 40;
+                        break;
+                    case "同城次日":
+                        serviceMode = 50;
+                        break;
+                    case "次晨达":
+                        serviceMode = 50;
+                        break;
+                    case "同城即日":
+                        serviceMode = 70;
+                        break;
+                    case "航空件":
+                        serviceMode = 80;
+                        break;
+                    case "早班件":
+                        serviceMode = 90;
+                        break;
+                    case "中班件":
+                        serviceMode = 100;
+                        break;
+                    case "晚班件":
+                        serviceMode = 110;
+                        break;
+                    case "省内次日":
+                        serviceMode = 160;
+                        break;
+                    case "省内即日":
+                        serviceMode = 170;
+                        break;
+                    case "空运":
+                        serviceMode = 210;
+                        break;
+                    case "专运":
+                        serviceMode = 220;
+                        break;
+                    default:
+                        break;
+                }
+                realBill.setServiceMode(serviceMode);
+                int payMode = 10;
+                if ("转第三方付款".equals(payType)) {
+                    payMode = 30;
+                } else if ("到付".equals(payType)) {
+                    payMode = 20;
+                }
+                realBill.setPayMode(payMode);
+                realBill.setGoodsType(goodInfos);
+                String tempOrderId = pid + "_" + UploadUtils.getRandomNumber(6);
+
+                realBill.setOrderId(tempOrderId);
+                realBill.setPaymentCustomer(cardID);
+                int setReceiptFlag = 20;
+                if (finalIfSing.equals("1")) {
+                    setReceiptFlag = 10;
+                }
+                realBill.setReceiptFlag(setReceiptFlag);
+                realBill.setWaybillRemark("");
+                mBills.add(realBill);
+
+                orderInfo.setCustomerCode(KyExpressUtils.uuid);
+                orderInfo.setPlatformFlag(KyExpressUtils.platformFlag);
+                orderInfo.setOrderInfos(mBills);
+                OrderRetInfo retInfo = null;
+
+                String errMsg = "未知错误";
+                int code = 1;
+                try {
+                     retInfo = getOrderRetInfo(orderInfo);
+                } catch (IOException e) {
+                    errMsg = e.getMessage();
+                    e.printStackTrace();
+                }
+                if (retInfo != null) {
+                    yundanID = retInfo.waybillNumber;
+                    ddestcode = retInfo.areaCode;
+                    dgoodInfos = goodInfos;
+                    dcardID = cardID;
+                    dpayType = payType;
+                    dserverType = serverType;
+
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            tvYundanID.setText("下单成功：" + yundanID);
+                            btnRePrint.setEnabled(true);
+                        }
+                    });
+
+                    boolean printOk = false;
+                    try {
+                        relateYdToDB(pid, yundanID, ddestcode, expressName);
+                        printKyYundan(printerAddress, yundanID, dgoodInfos,
+                                dcardID,
+                                dpayType, counts,
+                                dprintName,
+                                ddestcode
+                                , dserverType, finalIfSing);
+                        code = 0;
+                        errMsg = "打印成功";
+                        if (isDiaohuo) {
+                            MyApp.myLogger.writeInfo("ky diaohuo result" + printOk + ",pid=" +
+                                    pid);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        errMsg = e.getMessage();
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                    }
+                }
+                showAlert(errMsg);
+                mHandler.sendEmptyMessage(MSG_CANCEL_DIALOG);
+            }
+        };
+        TaskManager.getInstance().execute(orderRun);
     }
 
     public void startOrder(final String goodInfos, final String cardID, final String
@@ -934,7 +1085,7 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                         });
                     } else {
                         msg = jobj.getString("errMsg");
-                        showAlert("下单错误:" + msg);
+                        throw new IOException("下单错误:" + msg);
                     }
                     dgoodInfos = goodInfos;
                     dcardID = cardID;
@@ -948,9 +1099,9 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                 }
                 if (!receiveID.equals("")) {
                     try {
-                        String insertResult = insertYundanInfo(pid, receiveID, destcode, expressName);
-                        Log.e("zjy", "KyPrintAcitivity->insertYundanInfo(): result==" + insertResult);
-                        changeInsertState(insertResult, pid);
+//                        String insertResult = insertYundanInfo(pid, receiveID, destcode, expressName);
+//                        changeInsertState(insertResult, pid);
+                        relateYdToDB(pid, yundanID, ddestcode, expressName);
                         boolean printOk = printKyYundan(printerAddress, yundanID, dgoodInfos, dcardID,
                                 dpayType, counts,
                                 dprintName,
@@ -971,7 +1122,7 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                         e.printStackTrace();
                     }
                 }
-                mHandler.sendEmptyMessage(1);
+                mHandler.sendEmptyMessage(MSG_CANCEL_DIALOG);
             }
         };
         TaskManager.getInstance().execute(orderRun);
@@ -982,68 +1133,67 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
         YundanDBData yundanDBData1 = yundanDBData.get(0);
         CPidData = yundanDBData1;
         jTel = yundanDBData1.getjTel();
-        jName =yundanDBData1.getjName();
+        jName = yundanDBData1.getjName();
         jAddress = yundanDBData1.getjAddress();
-        jComapany =yundanDBData1.getjComapany();
+        jComapany = yundanDBData1.getjComapany();
         payByWho = yundanDBData1.getPayByWho();
-        dAddress =yundanDBData1.getdAddress();
+        dAddress = yundanDBData1.getdAddress();
         dTel = yundanDBData1.getdTel();
-        dName =yundanDBData1.getdName();
-        dCompany =yundanDBData1.getdCompany();
+        dName = yundanDBData1.getdName();
+        dCompany = yundanDBData1.getdCompany();
         pidNotes = yundanDBData1.getPidNotes();
         mHandler.sendEmptyMessage(MSG_GETINFO);
     }
+
     public void showAlert(final String msg) {
-        DialogUtils.dismissDialog(alertDg);
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            alertDg.setMessage(msg);
-            DialogUtils.safeShowDialog(mContext, alertDg);
-        } else {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    alertDg.setMessage(msg);
-                    DialogUtils.safeShowDialog(mContext, alertDg);
-                }
-            });
-        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                alertDg.setMessage(msg);
+                DialogUtils.safeShowDialog(mContext, alertDg);
+            }
+        });
     }
 
-    //    string objname, string objvalue, string express, string objtype  四个参数：随后一个是类型，跨越或者
-    // 顺丰
-    public String insertYundanInfo(String pid, String orderID, String destcode, String objtype) throws IOException,
-            XmlPullParserException {
+
+    public void relateYdToDB(final String pid, String orderID, String destcode, String objtype) throws
+            IOException, XmlPullParserException {
+        String result = "";
         if (CheckUtils.isAdmin()) {
-            return "成功";
+            result = "成功";
+            Log.e("zjy", getClass() + "->relateYdToDB(): isAdmin res==" + result);
+        }else{
+            try {
+                result = SF_Server.InsertBD_YunDanInfoOfType(pid, orderID, destcode, objtype);
+            } catch (IOException e) {
+                throw new IOException("关联接口异常，" + e.getMessage());
+            }
+            if (result.equals("")) {
+                MyApp.myLogger.writeError(KyPrintAcitivity.class, getResources().getString(R.string
+                        .error_soapobject) + pid +
+                        "\t" + loginID);
+            }
+            Log.e("zjy", getClass() + "->relateYdToDB(): res==" + result);
         }
-        String result = SF_Server.InsertBD_YunDanInfoOfType(pid, orderID, destcode, objtype);
-        if (result.equals("")) {
-            MyApp.myLogger.writeError(KyPrintAcitivity.class, getResources().getString(R.string.error_soapobject) + pid +
-                    "\t" + loginID);
-        }
-        return result;
-    }
-
-    public void changeInsertState(String result, final String pid) {
-        if ("成功".equals(result)) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    tvInsertState.setTextColor(Color.GREEN);
+        final String finalResult = result;
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if ("成功".equals(finalResult)) {
+                    tvInsertState.setTextColor(Color.BLUE);
                     tvInsertState.setText("关联单号到" + pid + "成功");
-                }
-            });
-        } else {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
+                } else {
                     tvInsertState.setTextColor(Color.RED);
                     tvInsertState.setText("关联单号到" + pid + "失败！！！");
                 }
-            });
+            }
+        });
+        if (!"成功".equals(finalResult)) {
+            throw new IOException("关联失败,ret=" + result);
         }
     }
-    public void getYundanShixiao(){
+
+    public void getYundanShixiao() {
         //获取数据库中跨越的时效类型
         Runnable mRun = new Runnable() {
             @Override
@@ -1061,7 +1211,6 @@ public class KyPrintAcitivity extends SavedLoginInfoActivity implements NoLeakHa
                         tempList.add(shixiao);
                     }
                     mHandler.obtainMessage(MSG_SHIXIAO, tempList).sendToTarget();
-//                    objname
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {

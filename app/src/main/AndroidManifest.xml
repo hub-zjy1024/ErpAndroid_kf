@@ -121,6 +121,8 @@
             android:theme="@style/Theme.zjy.activity.slideback"/>
         <activity android:name=".ReUpLoadPicActivity">
         </activity>
+        <activity android:name=".HongkongChukuTakpic"/>
+        <activity android:name=".HonkongChukuCheck"/>
     </application>
 
 </manifest>

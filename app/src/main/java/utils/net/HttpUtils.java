@@ -4,10 +4,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -24,8 +27,14 @@ public class HttpUtils {
         private int connTimeout = 30 * 1000;
         private String reqUrl;
         private boolean isOutputStreamEnable = false;
+        private final String M_POST = "POST";
+        private final String M_GET = "GET";
+
         private String reqMethod = "GET";
         private String defCharset = "utf-8";
+        private String reqBody = "";
+
+        private HashMap<String, Object> urlQuerys = new HashMap<>();
 
         private HashMap<String, Object> headers = new HashMap<>();
         private onResult resultListener;
@@ -50,10 +59,6 @@ public class HttpUtils {
             return this;
         }
 
-        public Builder setReadTimeout(String reqMethod) {
-            this.reqMethod = reqMethod;
-            return this;
-        }
 
         public Builder setProperty(String k, String v) {
             headers.put(k, v);
@@ -74,8 +79,18 @@ public class HttpUtils {
             return sendRequest();
         }
 
-        public long getContentLength() throws IOException {
-            return getConnection().getContentLength();
+        public Builder addReqBody(String body) {
+            this.reqBody = body;
+            return this;
+        }
+
+        public Builder get() {
+            reqMethod = M_GET;
+            return this;
+        }
+        public Builder post() {
+            reqMethod = M_POST;
+            return this;
         }
 
         public InputStream getInputStream() throws IOException {
@@ -98,7 +113,9 @@ public class HttpUtils {
             conn.setConnectTimeout(connTimeout);
             conn.setReadTimeout(readTimeout);
             conn.setRequestMethod(reqMethod);
-            conn.setDoOutput(isOutputStreamEnable);
+            if (M_POST.equals(reqMethod)) {
+                conn.setDoOutput(true);
+            }
             Set<String> strings = headers.keySet();
             for (String s : strings) {
                 conn.setRequestProperty(s, headers.get(s).toString());
@@ -108,16 +125,24 @@ public class HttpUtils {
 
         public String sendRequest() throws IOException {
             HttpURLConnection conn = getConnection();
-            InputStream in = conn.getInputStream();
-            String contentType = conn.getHeaderField("Content-Type");
             String cs = defCharset;
-            if (contentType != null) {
-                int index = contentType.indexOf("charset=");
-                if (index != -1) {
-                    cs = contentType.substring(index + 8);
+            OutputStream outputStream = conn.getOutputStream();
+            outputStream.write(reqBody.getBytes());
+            int responseCode = conn.getResponseCode();
+            conn.setRequestMethod(reqMethod);
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                InputStream in = conn.getInputStream();
+                String contentType = conn.getHeaderField("Content-Type");
+                if (contentType != null) {
+                    int index = contentType.indexOf("charset=");
+                    if (index != -1) {
+                        cs = contentType.substring(index + 8);
+                    }
                 }
+                return inputStream2String(in, cs);
+            }else{
+                throw new IOException("网络请求失败,reqCode=" + responseCode);
             }
-            return inputStream2String(in, cs);
         }
 
     }
@@ -141,5 +166,30 @@ public class HttpUtils {
             sbuilder.append(temp);
         }
         return sbuilder.toString();
+    }
+
+    public static String buildQueryParams(Map<String, Object> data) {
+        StringBuilder sb = new StringBuilder("?");
+        if (data != null) {
+            for (Map.Entry<String, Object> entry : data.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                if (value instanceof String) {
+                    try {
+                        sb.append(key+"=" + URLEncoder.encode(value.toString(), "utf-8"));
+                        sb.append("&");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    sb.append(key + "=" + value);
+                    sb.append("&");
+                }
+            }
+            if (sb.length() > 0) {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+        }
+        return sb.toString();
     }
 }

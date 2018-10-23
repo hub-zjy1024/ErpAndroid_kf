@@ -53,7 +53,6 @@ import utils.common.UploadUtils;
 import utils.framwork.NetWorkCheck;
 import utils.handler.NoLeakHandler;
 import utils.net.ftp.FTPUtils;
-import utils.net.ftp.FtpManager;
 
 public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.OnClickListener, NoLeakHandler.NoLeakCallback {
 
@@ -231,7 +230,7 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
                     cameraSp = getSharedPreferences(SpSettings.PREF_CAMERA_INFO, 0);
 
                     //设置旋转角度
-                    mCamera.setDisplayOrientation(getPreviewDegree((TakePicActivity) mContext));
+                    mCamera.setDisplayOrientation(getPreviewDegree((Activity) mContext));
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = mCamera.getParameters();
                     try {
@@ -274,7 +273,7 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
                             showSizeChoiceDialog(parameters);
                         }
                         MyApp.myLogger.writeInfo(sb.toString());
-                        Log.e("zjy", "TakePicActivity->surfaceCreated()init: ==" + sb.toString());
+                        Log.e("zjy", getClass()+"->surfaceCreated()init: ==" + sb.toString());
                         mCamera.startPreview();
                         isPreview = true;
                         container.setOnClickListener(new View.OnClickListener() {
@@ -384,10 +383,10 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
     }
 
     /**
-     弹出尺寸选择对话框
-     防止照出的图片太大，内存溢出
+     * 弹出尺寸选择对话框
+     * 防止照出的图片太大，内存溢出
      */
-    protected void showSizeChoiceDialog(final Camera.Parameters parameters) {
+    protected final void showSizeChoiceDialog(final Camera.Parameters parameters) {
         picSizes = parameters.getSupportedPictureSizes();
         //剔除出尺寸太小的，和尺寸太大的，宽度（1280-2048)
         String sizesStr = "";
@@ -441,7 +440,7 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
             dialog.setCancelable(false);
             dialog.show();
         } else {
-            showMsgToast( "没有可选的尺寸");
+            showMsgToast("没有可选的尺寸");
         }
     }
 
@@ -476,7 +475,7 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
     }
 
     @Override
-    public void onClick(View v) {
+    public final void onClick(View v) {
         switch (v.getId()) {
             //拍照
             case R.id.btn_takepic:
@@ -556,7 +555,7 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
         if (CheckUtils.isAdmin()) {
             String ipAddress = NetWorkCheck.getIPAddress(mContext);
             Log.e("zjy", "TakePicBaseActivity->initUploadInfos(): ==my_ip=" + ipAddress);
-            mUrl = FtpManager.mainAddress;
+            mUrl = FTPUtils.mainAddress;
         }
     }
 
@@ -574,10 +573,10 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
         }
         showProgressDialog();
         if (kfFTP == null || "".equals(kfFTP)) {
-            if (!CheckUtils.isAdmin()) {
-                showMsgToast( "读取上传地址失败，请重启程序");
-                return false;
-            }
+//            if (!CheckUtils.isAdmin()) {
+//                showMsgToast( "读取上传地址失败，请重启程序");
+//                return false;
+//            }
         }
         return true;
     }
@@ -704,7 +703,7 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
         rotationManager.attachToSensor();
     }
 
-    protected void showFinalDialog(String message) {
+    protected final void showFinalDialog(String message) {
         if (!isFinishing()) {
             if (pd != null) {
                 pd.cancel();

@@ -16,7 +16,7 @@ public class StorageUtils {
     public static String getCurrentIp() {
         String url = "http://172.16.6.101:802/ErpV5IP.asp";
         try {
-            return HttpUtils.create(url).getBodyString();
+            return HttpUtils.create(url).post().getBodyString();
         } catch (IOException e) {
             e.printStackTrace();
         }

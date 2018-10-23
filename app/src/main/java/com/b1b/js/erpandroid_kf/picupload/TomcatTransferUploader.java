@@ -1,44 +1,42 @@
 package com.b1b.js.erpandroid_kf.picupload;
 
-import android.content.Context;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 
 /**
- Created by 张建宇 on 2019/5/10. */
+ * Created by 张建宇 on 2019/5/10.
+ */
 public class TomcatTransferUploader extends PicUploader {
-//        String url = "http://192.168.10.65:8080";
+//            String url = "http://192.168.10.66:8080";
     String url = "http://oa.wl.net.cn:6060/";
     String path = "/PicTransferServer/TransferServlet";
-
-    private Context mContext;
+    String downUrl = "/PicTransferServer/PicDownload";
 
     public TomcatTransferUploader(String sig) {
         super(sig);
     }
 
     @Override
-     void uploadPic(String pid, InputStream in, String path, String uid, String cid, String did, String remoteName,
-                          String insertType, String insertPath, String sig) throws IOException {
-
-        uploadByHttp(remoteName, in, insertPath, path, pid, cid, uid, did, sig);
+    void uploadPic(String pid, InputStream in, String path, String uid, String cid, String did, String
+            remoteName,
+                   String insertType, String insertPath, String sig) throws IOException {
+        uploadByHttp(remoteName, in, insertPath, path, pid, cid, uid, did, sig, insertType);
     }
 
-    InputStream download(String remotePath) throws IOException {
-
-        return null;
-    }
-
-    void uploadByHttp( String remoteName,InputStream in, String insertPath, String remotePath, String pid, String cid, String uid, String did,
-                      String sig) throws IOException {
+    void uploadByHttp(String remoteName, InputStream in, String insertPath, String remotePath, String pid,
+                      String cid, String uid, String did,
+                      String sig,String type) throws IOException {
 
         String uploadPath = remotePath;
         String encCs = "utf-8";
@@ -56,13 +54,15 @@ public class TomcatTransferUploader extends PicUploader {
                             "&did=%s" +
                             "&loginID=%s" +
                             "&pid=%s" +
-                            "&sig=%s",
+                            "&sig=%s" +
+                            "&picType=%s",
                     URLEncoder.encode(uploadPath, encCs),
                     URLEncoder.encode(cid, encCs),
                     URLEncoder.encode(did, encCs),
                     URLEncoder.encode(uid, encCs),
                     URLEncoder.encode(pid, encCs),
-                    URLEncoder.encode(sig, encCs)
+                    URLEncoder.encode(sig, encCs),
+                    URLEncoder.encode(type, encCs)
             );
             // 服务器的域名
             URL url = new URL(urlstr);
@@ -71,13 +71,8 @@ public class TomcatTransferUploader extends PicUploader {
             conn.setRequestMethod("POST");
             // 发送POST请求必须设置如下两行
             conn.setDoOutput(true);
-            //conn.setDoInput(true);/不必加，默认为true
             //conn.setUseCaches(false);//用于设置缓存，默认为true，不改也没有影响（至少在传输单个文件这里没有）
             // 设置请求头参数
-            //关于keep-alive的说明：https://www.kafan.cn/edu/5110681.html
-            //conn.setRequestProperty("connection", "Keep-Alive");//现在的默认设置一般即为keep-Alive，因此此项为强调用，可以不加
-            //conn.setRequestProperty("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows Nt 5.1; SV1)");//用于模拟浏览器，非必须
-
             //请求头，用于表示上传形式，必须
             conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
             conn.setRequestProperty("Charset", encCs);
@@ -103,8 +98,8 @@ public class TomcatTransferUploader extends PicUploader {
             System.out.print(sb);
 
             //写文件数据（通过数据输入流）
-//            File file = new File(fileName);
-//            FileInputStream in = new FileInputStream(file);
+            //            File file = new File(fileName);
+            //            FileInputStream in = new FileInputStream(file);
             System.out.println("inputFileLength=" + in.available() / 1024f);
             byte[] bufferOut = new byte[1024 * 20];
             int bytes = 0;
@@ -158,5 +153,34 @@ public class TomcatTransferUploader extends PicUploader {
             insertPath, String
                                       type) throws IOException {
         //关联图片由tomcat实现
+    }
+
+    public void download(String picUrl, String localPath) throws IOException {
+        String msig = sig;
+        String cs = "utf-8";
+        try {
+            String fUrl = url + downUrl + "?ftpUrl=" + URLEncoder.encode(picUrl, cs)
+                    + "&sig=" + URLEncoder.encode(msig, cs);
+            URL murl = new URL(fUrl);
+            URLConnection urlConnection = murl.openConnection();
+            int timeout = 10 * 1000;
+            urlConnection.setReadTimeout(timeout);
+            urlConnection.setConnectTimeout(timeout);
+            InputStream outputStream = urlConnection.getInputStream();
+            byte[] m = new byte[1024 * 10];
+            int len = 0;
+            File mFile = new File(localPath);
+            if (!mFile.getParentFile().exists()) {
+                mFile.getParentFile().mkdirs();
+            }
+            FileOutputStream fileOutputStream = new FileOutputStream(localPath);
+            while ((len = outputStream.read(m)) != -1) {
+                fileOutputStream.write(m, 0, len);
+            }
+            fileOutputStream.close();
+            outputStream.close();
+        } catch (Exception m) {
+            throw new IOException(m.getMessage());
+        }
     }
 }

@@ -37,7 +37,6 @@ import utils.common.MyImageUtls;
 import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.ftp.FTPUtils;
-import utils.net.ftp.FtpManager;
 import utils.net.wsdelegate.MartService;
 
 /**
@@ -190,9 +189,9 @@ public class QdTakePicActivity extends TakePicActivity {
                             FileInputStream fis = new FileInputStream(upFile);
                             boolean upSuccess = false;
                             String mUrl;
-                            mUrl = FtpManager.mainAddress;
-                            ftpUtil = FtpManager.getTestFTPMain();
-                            ftpUtil.login(30);
+                            mUrl = FTPUtils.mainAddress;
+                            ftpUtil = FTPUtils.getAdminFTP();;
+                            ftpUtil.login();
                             insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
                             Log.e("zjy", "QdTakePicActivity->run(): InsertPath==" + insertPath);
                             upSuccess = ftpUtil.upload(fis, remotePath);

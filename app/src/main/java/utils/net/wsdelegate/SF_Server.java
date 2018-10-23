@@ -151,5 +151,10 @@ public class SF_Server{
 		String res=WebserviceUtils.getWcfResult(properties, "SetFileExpress", serverName);
 		return res;
 	}
+	public static String PostDataOpenApiInfo(String json)throws IOException, XmlPullParserException {
+		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+		properties.put("json", json);
+		return WebserviceUtils.getWcfResult(properties, "PostDataOpenApiInfo", serverName);
+	}
 
 }

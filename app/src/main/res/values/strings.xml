@@ -39,4 +39,6 @@
     <string name="upload_continue">连拍(连续多张时较快)</string>
     <string name="upload_nomarl">拍照</string>
     <string name="upload_fromphone">从手机选择</string>
+    <string name="menu_hk_check">"HK出库拍照"</string>
+    <string name="err_pic_no_ftpurl">读取上传地址失败，请重启程序</string>
 </resources>

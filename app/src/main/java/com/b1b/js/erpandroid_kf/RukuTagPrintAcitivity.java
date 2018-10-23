@@ -1,13 +1,10 @@
 package com.b1b.js.erpandroid_kf;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -27,9 +24,6 @@ import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.SpSettings;
 import com.b1b.js.erpandroid_kf.printer.PrinterStyle;
 import com.b1b.js.erpandroid_kf.printer.entity.XiaopiaoInfo;
-import com.b1b.js.erpandroid_kf.receiver.AlarmRepeatReceive;
-import com.b1b.js.erpandroid_kf.receiver.OneShotReceiver;
-import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
@@ -40,7 +34,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
@@ -166,7 +159,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                oneShotAlarm();
+//                oneShotAlarm();
                 //                                ivTest.setImageBitmap(BarcodeCreater.creatBarcode(RukuTagPrintAcitivity.this,
                 // "123487523", 40
                 //                 * 8, 50, true, 10));
@@ -299,7 +292,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
     public void init() {
         prefKF = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
         String storageInfo = prefKF.getString(storageKey, "");
-        storageID = getStorageIDFromJson(storageInfo);
+        storageID = StorageUtils.getStorageIDFromJson(storageInfo);
         time1 = System.currentTimeMillis();
         Runnable getStorId = new Runnable() {
             @Override
@@ -307,8 +300,8 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                 if (storageID.equals("")) {
                     String info = null;
                     try {
-                        info = getStorageByIp();
-                        storageID = getStorageIDFromJson(info);
+                        info = StorageUtils.getStorageByIp();
+                        storageID = StorageUtils.getStorageIDFromJson(info);
                         prefKF.edit().putString(storageKey, info).commit();
 
                     } catch (IOException e) {
@@ -349,49 +342,6 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         }
     }
 
-    public void registerOnshotAlarm(Context mContext) {
-        IntentFilter alarmFilter = new IntentFilter();
-        alarmFilter.addAction(mContext.getPackageName() + ".alarm.oneshot");
-        mContext.registerReceiver(new OneShotReceiver(), alarmFilter);
-    }
-
-    public void setRepeatAlarm() {
-        Intent intent = new Intent(this,
-                AlarmRepeatReceive.class);
-        intent.setAction(mContext.getPackageName() + ".alarm.repeat");
-        PendingIntent sender = PendingIntent.getBroadcast(
-                this, 0, intent, 0);
-        // We want the alarm to go off 10 seconds from now.
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.add(Calendar.SECOND, 10);
-        // Schedule the alarm!
-        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
-        if (am != null) {
-            am.setRepeating(AlarmManager.RTC_WAKEUP,
-                    calendar.getTimeInMillis(), 60 * 1000, sender);
-        }
-    }
-    public void oneShotAlarm(){
-        if (!CheckUtils.isAdmin()) {
-            return;
-        }
-        Context mContext = this;
-        Intent intent = new Intent(mContext, OneShotReceiver.class);
-        intent.setAction(mContext.getPackageName() + ".alarm.oneshot");
-        PendingIntent sender = PendingIntent.getBroadcast(
-                mContext, 0, intent, 0);
-        // We want the alarm to go off 10 seconds from now.
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.add(Calendar.SECOND, 10);
-
-        // Schedule the alarm!
-        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
-        if (am != null) {
-            am.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), sender);
-        }
-    }
     @Override
     public void resultBack(String result) {
         boolean isNum = MyToast.checkNumber(result);
@@ -468,20 +418,6 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         TaskManager.getInstance().execute(dataRunnable);
     }
 
-    public static String getStorageIDFromJson(String info) {
-        return getStorageInfo(info, "StoreRoomID");
-    }
-    public static String getStorageInfo(String info, String tag) {
-        String storageID = "";
-        try {
-            JSONObject obj = new JSONObject(info);
-            JSONArray table = obj.getJSONArray("表");
-            storageID = table.getJSONObject(0).getString(tag);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return storageID;
-    }
 
     protected void instorageInfo(String mxID) throws IOException, XmlPullParserException, JSONException {
         String detailInfo =ChuKuServer.GetInstorectInfoByMXID(Integer.parseInt(mxID));
@@ -530,29 +466,6 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
             }
         }
     }
-
-    public static String getStorageByIp() throws IOException {
-        //        GetStoreRoomIDByIP
-        String ip = StorageUtils.getCurrentIp();
-        if ("".equals(ip)) {
-            throw new IOException("获取当前IP失败");
-        }
-        String bodyString = "";
-        String info = "";
-        try {
-            bodyString = ChuKuServer.GetStoreRoomIDByIP(ip);
-        } catch (IOException e) {
-            info = e.getMessage();
-            e.printStackTrace();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        }
-        if (bodyString.equals("")) {
-            throw new IOException("获取库房ID出错：" + info);
-        }
-        return bodyString;
-    }
-
 
     @Override
     protected void onDestroy() {

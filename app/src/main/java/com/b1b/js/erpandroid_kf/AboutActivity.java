@@ -6,9 +6,12 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.webkit.MimeTypeMap;
@@ -17,6 +20,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
+import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.picupload.TomcatTransferUploader;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -48,11 +53,28 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import utils.common.MyFileUtils;
+import utils.common.UploadUtils;
+import utils.common.log.LogUploader;
 import utils.net.wsdelegate.WebserviceUtils;
 
 public class AboutActivity extends BaseMActivity {
 
     private Handler mHandler = new Handler();
+    private Handler logHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case LogUploader.LOG_UPLOAD_FAIL:
+                    showMsgToast("上传失败");
+                    break;
+                case LogUploader.LOG_UPLOAD_SUCCESS:
+                    showMsgToast("上传成功");
+                    break;
+
+            }
+        }
+    };
     private ProgressDialog downPd;
     private TextView tvNewVersion;
     final String updateUrl = WebserviceUtils.ROOT_URL+"DownLoad/dyj_kf/dyjkfapp.apk";
@@ -92,6 +114,9 @@ public class AboutActivity extends BaseMActivity {
             public void run() {
                 super.run();
                 getNewVersion();
+             /*   PushManager mgr = new PushManager();
+                mgr.testPush();
+                mgr.testPushWx();*/
             }
         }.start();
         btnDonloadNew.setOnClickListener(new View.OnClickListener() {
@@ -132,7 +157,20 @@ public class AboutActivity extends BaseMActivity {
 
     @Override
     public void setListeners() {
+        setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SpSettings.clearAllSp(mContext);
+            }
+        },R.id.activity_about_btn_clear_sp);
 
+        setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LogUploader logUploader = new LogUploader(mContext);
+                logUploader.upload(logHandler);
+            }
+        },R.id.activity_about_btn_upload);
     }
 
     @Override
@@ -149,9 +187,32 @@ public class AboutActivity extends BaseMActivity {
             @Override
             public void run() {
                 createQRcodeImage(updateUrl, updateIv);
+//                testPicDownLoad();
             }
         };
         TaskManager.getInstance().execute(mkQr);
+    }
+
+    public void testPicDownLoad(){
+        //                sig = "868591030278039";
+        String picUrl = "ftp://172.16.6.22/ZJy/kf/and_1206447_20180103140515_5932.jpg";
+        String local = Environment.getExternalStorageDirectory().getAbsolutePath()+"/"+"test.jpeg";
+        Log.e("zjy", getClass() + "->run(): ==" + local);
+        String sig = UploadUtils.getDeviceID(mContext);
+        TomcatTransferUploader mUploader = new TomcatTransferUploader(sig);
+        //                FtpUploader mUploader2 = new TomcatTransferUploader(finalHost);
+        try {
+            mUploader.download(picUrl, local);
+            final Bitmap bitmap = BitmapFactory.decodeFile(local);
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    updateIv.setImageBitmap(bitmap);
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void createQRcodeImage(String url, final ImageView im1) {

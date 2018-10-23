@@ -1,17 +1,24 @@
 package com.b1b.js.erpandroid_kf.picupload;
 
+import android.util.Log;
+
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import utils.net.wsdelegate.ChuKuServer;
+import utils.net.wsdelegate.MartStock;
 import utils.net.wsdelegate.WebserviceUtils;
 
 /**
  Created by 张建宇 on 2019/5/10. */
 public abstract class PicUploader {
-    private String sig;
+    protected String sig;
+
+    public String picType_SCCG = "SCCG";
+    public String picType_CKTZ = "CKTZ";
+    public String picType_PK = "PK";
 
     public PicUploader(String sig) {
         this.sig = sig;
@@ -34,9 +41,17 @@ public abstract class PicUploader {
                               String insertPath, String type) throws IOException {
         String errMsg = "";
         try {
-            String res = ChuKuServer.SetInsertPicInfo(WebserviceUtils.WebServiceCheckWord,
-                    Integer.parseInt(cid), Integer.parseInt(did), Integer.parseInt(loginID), pid,
-                    remoteName, insertPath, type);
+            String res = "错误";
+            if (picType_SCCG.equals(type)) {
+                res = MartStock.InsertSSCGPicInfo("", Integer.parseInt(cid), Integer.parseInt(did), Integer
+                                .parseInt(loginID),
+                        pid, remoteName, insertPath, type);
+            } else {
+                res = ChuKuServer.SetInsertPicInfo(WebserviceUtils.WebServiceCheckWord,
+                        Integer.parseInt(cid), Integer.parseInt(did), Integer.parseInt(loginID), pid,
+                        remoteName, insertPath, type);
+            }
+            Log.e("zjy", getClass() + "->insertToDb(): ==upload" + insertPath + ",res=" + res);
             if (!"操作成功".equals(res)) {
                 throw new IOException("ret=" + res);
             }

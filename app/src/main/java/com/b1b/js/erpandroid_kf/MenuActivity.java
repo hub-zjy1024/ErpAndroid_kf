@@ -48,6 +48,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
 
     private GridView gv;
     private final String tag_hetong = "hetong";
+    private final String tag_HKPIC = "HK出库拍照";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,11 +56,12 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         setContentView(R.layout.menu_layout);
         Toolbar tb = (Toolbar) findViewById(R.id.dyjkf_normalTb);
         tb.setTitle("菜单");
-        tb.setSubtitle("登陆人:" + MyApp.id);
+        tb.setSubtitle("登陆人:" + loginID);
         setSupportActionBar(tb);
         gv = (GridView) findViewById(R.id.menu_gv);
         gv.setOnItemClickListener(this);
         addItemGV();
+        MyApp.myLogger.writeInfo("user=" +loginID);
     }
 
     @Override
@@ -87,7 +89,6 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
 //            data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_hetong, "测试zbar"));
             //            data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_SlideBack, "测试zbar"));
         }
-        data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_TestReupload, "tag_TestReupload"));
         data.add(new MyMenuItem(R.mipmap.menu_preprint, tag_ChukudanPrint, "出库单单据信息打印"));
         data.add(new MyMenuItem(R.mipmap.menu_check, tag_ChukuCheck, "出库审核功能和审核完成的拍照功能"));
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Print, "顺丰下单并打印功能,以及打印手机接受的文件的功能"));
@@ -96,6 +97,8 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         data.add(new MyMenuItem(R.mipmap.menu_shangjia, tag_shangjia, "上架"));
         data.add(new MyMenuItem(R.mipmap.menu_caigou_96, tag_CaigouTakePic, "采购单拍照功能"));
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Ruku, "蓝牙打印，打印入库标签"));
+        data.add(new MyMenuItem(R.mipmap.menu_hk_outstor, tag_HKPIC, "HK拍照"));
+        data.add(new MyMenuItem(R.mipmap.menu_restart, tag_TestReupload, "tag_TestReupload"));
         data.add(new MyMenuItem(R.mipmap.menu_kaoqin, tag_Kaoqin, "查询考勤状态"));
         data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_Setting, "设置"));
         MenuGvAdapter adapter = new MenuGvAdapter(this, data, R.layout.item_menu_gv);
@@ -112,9 +115,10 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     protected void onDestroy() {
         super.onDestroy();
         SPrinter printer = SPrinter.getPrinter();
-        if (printer != null) {
-            printer.close();
-        }
+//        if (printer != null) {
+//            printer.close();
+//        }
+        printer.close();
     }
 
     @Override
@@ -124,53 +128,44 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         Intent intent = new Intent();
         switch (value) {
             case tag_SHQD:
-                intent.setClass(MenuActivity.this, QdListActivity.class);
+                intent.setClass(mContext, QdListActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> QdListActivity");
                 break;
             case tag_Chukudan:
-                intent.setClass(MenuActivity.this, ChuKuActivity.class);
+                intent.setClass(mContext, ChuKuActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> chukudan");
                 break;
             case tag_ChukuCheck:
-                intent.setClass(MenuActivity.this, CheckActivity.class);
+                intent.setClass(mContext, CheckActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> CheckActivity");
                 break;
             case tag_Kaoqin:
-                intent.setClass(MenuActivity.this, KaoQinActivity.class);
+                intent.setClass(mContext, KaoQinActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> KaoQinActivity");
                 break;
             case tag_Panku:
-                intent.setClass(MenuActivity.this, PankuActivity.class);
+                intent.setClass(mContext, PankuActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> PankuActivity");
                 break;
             case tag_Viewpic:
-                intent.setClass(MenuActivity.this, ViewPicByPidActivity.class);
+                intent.setClass(mContext, ViewPicByPidActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> ViewPicByPidActivity");
                 break;
             case tag_ChukudanPrint:
-                intent.setClass(MenuActivity.this, PreChukuActivity.class);
+                intent.setClass(mContext, PreChukuActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> PreChukuActivity");
                 break;
             case tag_CaigouTakePic:
-                intent.setClass(MenuActivity.this, CaigouActivity.class);
-                MyApp.myLogger.writeInfo("<page> CaigouActivity");
+                intent.setClass(mContext, CaigouActivity.class);
                 startActivity(intent);
                 break;
             case tag_Ruku:
-                intent.setClass(MenuActivity.this, RukuTagPrintAcitivity.class);
-                MyApp.myLogger.writeInfo("<page> RukuTagPrintAcitivity");
+                intent.setClass(mContext, RukuTagPrintAcitivity.class);
                 startActivity(intent);
                 break;
             case tag_Admin:
-                AlertDialog.Builder specialDialog = new AlertDialog.Builder(MenuActivity.this);
-                View v = LayoutInflater.from(MenuActivity.this).inflate(R.layout
+                AlertDialog.Builder specialDialog = new AlertDialog.Builder(mContext);
+                View v = LayoutInflater.from(mContext).inflate(R.layout
                         .dialog_admin_manager_layout, null);
                 final EditText edID = (EditText) v.findViewById(R.id.admin_manager_ed_id);
                 final EditText edFtp = (EditText) v.findViewById(R.id.admin_manager_ed_ftp);
@@ -187,34 +182,36 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
                 specialDialog.show();
                 break;
             case tag_Setting:
-                intent.setClass(MenuActivity.this, SettingActivity.class);
+                intent.setClass(mContext, SettingActivity.class);
                 MyApp.myLogger.writeInfo("<page> SettingActivity");
                 startActivity(intent);
                 break;
             case tag_Print:
-                intent = new Intent(MenuActivity.this, SFActivity.class);
+                intent = new Intent(mContext, SFActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> SFActivity");
                 break;
             case tag_shangjia:
-                intent.setClass(MenuActivity.this, ShangjiaActivity.class);
+                intent.setClass(mContext, ShangjiaActivity.class);
                 startActivity(intent);
-                MyApp.myLogger.writeInfo("<page> shangjia");
                 break;
             case tag_SlideBack:
-                intent.setClass(MenuActivity.this, SlideBackActivity.class);
+                intent.setClass(mContext, SlideBackActivity.class);
                 startActivity(intent);
                 break;
             case tag_TestReupload:
-                intent.setClass(MenuActivity.this, ReUpLoadPicActivity.class);
+                intent.setClass(mContext, ReUpLoadPicActivity.class);
                 startActivity(intent);
                 break;
             case tag_hetong:
-                intent.setClass(MenuActivity.this, HetongActivity.class);
+                intent.setClass(mContext, HetongActivity.class);
                 startActivity(intent);
                 break;
             case tag_Zbar:
-                intent.setClass(MenuActivity.this, KyExpressAcitivity.class);
+                intent.setClass(mContext, KyExpressAcitivity.class);
+                startActivity(intent);
+                break;
+            case tag_HKPIC:
+                intent.setClass(mContext, HonkongChukuCheck.class);
                 startActivity(intent);
                 break;
         }

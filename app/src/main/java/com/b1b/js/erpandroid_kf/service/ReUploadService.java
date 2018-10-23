@@ -75,6 +75,11 @@ public class ReUploadService extends Service implements ReUploadContract.IView {
     }
 
     @Override
+    public void uploadFinished() {
+
+    }
+
+    @Override
     public void setPrinter(ReUploadContract.IPresent iPresent) {
 
     }

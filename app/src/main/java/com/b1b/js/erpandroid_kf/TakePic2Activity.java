@@ -58,7 +58,6 @@ import utils.common.UploadUtils;
 import utils.dbutils.PicUploadDB;
 import utils.handler.NoLeakHandler;
 import utils.net.ftp.FTPUtils;
-import utils.net.ftp.FtpManager;
 import utils.net.wsdelegate.ChuKuServer;
 
 public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnClickListener, NoLeakHandler
@@ -522,7 +521,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                             String remotePath = "";
                             String uploadTag = "CKTZ";
 
-                            String mUrl = FtpManager.mainAddress;
+                            String mUrl = FTPUtils.mainAddress;
                             String ftpStr = FTPUtils.getMainStr();
                             while (!isStop) {
                                 remoteName = UploadUtils.getChukuRemoteName(pid);
@@ -532,9 +531,9 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                     FileInputStream fis = new FileInputStream(upFile);
                                     boolean upSuccess = false;
                                     if (CheckUtils.isAdmin()) {
-                                        ftpUtil = FtpManager.getTestFTP();
-                                        mUrl  = FtpManager.getTestUrl();
-                                        ftpStr = FtpManager.getTestFTPStr();
+                                        ftpUtil = FTPUtils.getTestFTP();
+                                        mUrl  = FTPUtils.TEST_FTP_ULR;
+                                        ftpStr = FTPUtils.getTestFTPStr();
                                         remotePath = UploadUtils.getTestPath(pid);
                                     } else {
                                         mUrl = kfFTP;

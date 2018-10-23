@@ -24,8 +24,8 @@ android {
         applicationId "com.b1b.js.erpandroid_kf"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 58
-        versionName "6.6"
+        versionCode 59
+        versionName "6.7"
         ndk {
             abiFilters "armeabi", "armeabi-v7a"
         }
@@ -70,6 +70,9 @@ android {
             proguardFiles 'proguard-rules.txt'
         }
     }
+    packagingOptions {
+        pickFirst 'META-INF/*' // picks the JavaMail license file
+    }
 }
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
@@ -96,4 +99,9 @@ dependencies {
         exclude group: 'com.android.support'
 //        , module: 'support-annotations'
     })
+//    implementation 'com.sun.mail:javax.mail:1.6.2'
+//    implementation   'javax.activation:activation:1.1.1'
+    implementation 'com.sun.mail:android-mail:1.5.6'
+    implementation 'com.sun.mail:android-activation:1.5.6'
+    implementation 'com.alibaba:fastjson:1.2.58'
 }

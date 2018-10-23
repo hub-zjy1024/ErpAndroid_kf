@@ -58,6 +58,7 @@ public class KyExpressUtils {
      客户编码(必)
      */
     public static String uuid = "075517225569";
+    public static String platformFlag = "331F789B8E570EDBFD374CC8B572B4F8";
     /**
      客户密码(必)
      */

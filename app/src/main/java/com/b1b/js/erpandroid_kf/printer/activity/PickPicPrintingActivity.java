@@ -7,9 +7,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.provider.MediaStore;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
@@ -18,6 +16,7 @@ import android.widget.GridView;
 import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.R;
+import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
 import com.b1b.js.erpandroid_kf.printer.adapter.ImageGvAdapter;
 import com.b1b.js.erpandroid_kf.printer.entity.PrinterItem;
 
@@ -25,29 +24,24 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import utils.framwork.DialogUtils;
-
-public class PickPicPrintingActivity extends AppCompatActivity {
+public class PickPicPrintingActivity extends BaseMActivity {
     private List<PrinterItem> selcetItems;
 
-    private Handler mHandler = new Handler(){
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case 0:
-                    DialogUtils.dismissDialog(pdialog);
-                    adapter.notifyDataSetChanged();
-                    break;
-            }
-        }
-    };
+    private Handler mHandler = new Handler();
     private int page = 1;
     private int picCount = 30;
-    ProgressDialog pdialog ;
+    ProgressDialog pdialog;
     private List<PrinterItem> dataList = new ArrayList<>();
     private List<PrinterItem> total = new ArrayList<>();
     private ImageGvAdapter adapter;
+
+    public void loadDataFinished() {
+        if (pdialog != null) {
+            pdialog.cancel();
+        }
+        adapter.notifyDataSetChanged();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,13 +60,14 @@ public class PickPicPrintingActivity extends AppCompatActivity {
                             }
                         }
                         page++;
-                        mHandler.sendEmptyMessage(0);
+                        loadDataFinished();
                     }
                 }
             }
 
             @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int
+                    totalItemCount) {
 
             }
         });
@@ -85,13 +80,13 @@ public class PickPicPrintingActivity extends AppCompatActivity {
                 Log.e("zjy", "PickPicPrintingActivity->onClick(): arrayList.size==" +
                         arrayList.size());
                 if (arrayList.size() == 0) {
-                    Toast.makeText(PickPicPrintingActivity.this, "请选择要打印的图片", Toast
+                    Toast.makeText(mContext, "请选择要打印的图片", Toast
                             .LENGTH_SHORT).show();
                     return;
                 }
                 String[] paths = new String[arrayList.size()];
                 String[] flags = new String[arrayList.size()];
-                for(int i=0;i<arrayList.size();i++) {
+                for (int i = 0; i < arrayList.size(); i++) {
                     PrinterItem item = arrayList.get(i);
                     paths[i] = item.getFile().getAbsolutePath();
                     flags[i] = item.getFlag();
@@ -111,24 +106,34 @@ public class PickPicPrintingActivity extends AppCompatActivity {
     }
 
     @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         if (total.size() > 0) {
             page = 1;
             dataList.clear();
-            for (int i =0; i <  picCount; i++) {
+            for (int i = 0; i < picCount; i++) {
                 if (i < total.size()) {
                     dataList.add(total.get(i));
                 }
             }
-            mHandler.sendEmptyMessage(0);
+            loadDataFinished();
         } else {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     String firstImage = null;
                     Uri mImageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                    ContentResolver mContentResolver = PickPicPrintingActivity.this.getContentResolver();
+                    ContentResolver mContentResolver = mContext.getContentResolver();
                     // 只查询jpeg和png的图片
                     Cursor mCursor = mContentResolver.query(mImageUri, null,
                             MediaStore.Images.Media.MIME_TYPE + "=? or "
@@ -157,7 +162,12 @@ public class PickPicPrintingActivity extends AppCompatActivity {
 
                             }
                             if (i == picCount) {
-                                mHandler.sendEmptyMessage(0);
+                                mHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        loadDataFinished();
+                                    }
+                                });
                             }
                             i++;
                         }

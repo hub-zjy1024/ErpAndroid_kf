@@ -18,6 +18,7 @@ import android.widget.GridView;
 import com.b1b.js.erpandroid_kf.adapter.ViewPicAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
+import com.b1b.js.erpandroid_kf.picupload.FtpUploader;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -201,6 +202,27 @@ public class ViewPicByPidActivity extends BaseScanActivity{
 
     }
 
+    public void startDownLoad(String url, String local) throws IOException {
+        String imgUrl = url;
+        String urlNoShema = imgUrl.substring("ftp://".length());
+        int endIndex = urlNoShema.indexOf("/");
+        String remoteAbsolutePath = urlNoShema.substring(endIndex);
+        String imgFtp = urlNoShema.substring(0, endIndex);
+        int index = imgFtp.indexOf(":");
+        String finalHost = imgFtp;
+        int port = 21;
+        if (index != -1) {
+            String tp = imgFtp.substring(index + 1);
+            finalHost = imgFtp.substring(0, index);
+            try {
+                port = Integer.parseInt(tp);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        FtpUploader mUploader = new FtpUploader(finalHost);
+        mUploader.download(url, local);
+    }
     private void startSearch(final String pid) {
         showProgressDialog();
         SoftKeyboardUtils.closeInputMethod(edPid, mContext);
@@ -241,61 +263,71 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                         String urlNoShema = imgUrl.substring("ftp://".length());
                         int endIndex = urlNoShema.indexOf("/");
                         String remoteAbsolutePath = urlNoShema.substring(endIndex);
+                        File fileParent = MyFileUtils.getFileParent();
+                        File file = new File(fileParent, "dyj_img/" + imgName);
+                        String localPath = file.getAbsolutePath();
                         try {
-                            remoteAbsolutePath = new String(remoteAbsolutePath.getBytes("utf-8"), "iso-8859-1");
-                            String imgFtp = urlNoShema.substring(0, endIndex);
-                            int index = imgFtp.indexOf(":");
-                            String finalHost = imgFtp;
-                            int port = 21;
-                            if (index != -1) {
-                                String tp = imgFtp.substring(index + 1);
-                                finalHost = imgFtp.substring(0, index);
-                                try {
-                                    port = Integer.parseInt(tp);
-                                } catch (NumberFormatException e) {
-                                    e.printStackTrace();
-                                }
-                            }
+//                            remoteAbsolutePath = new String(remoteAbsolutePath.getBytes("utf-8"), "iso-8859-1");
+//                            String imgFtp = urlNoShema.substring(0, endIndex);
+//                            int index = imgFtp.indexOf(":");
+//                            String finalHost = imgFtp;
+//                            int port = 21;
+//                            if (index != -1) {
+//                                String tp = imgFtp.substring(index + 1);
+//                                finalHost = imgFtp.substring(0, index);
+//                                try {
+//                                    port = Integer.parseInt(tp);
+//                                } catch (NumberFormatException e) {
+//                                    e.printStackTrace();
+//                                }
+//                            }
+//                            FTPImgInfo fti = new FTPImgInfo();
+//
+//                            //图片未下载的需要下载
+//                            if (!file.exists()) {
+//                                if (!tempUrl.equals(imgFtp)) {
+//                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
+//                                    if (finalHost.equals(FTPUtils.DB_HOST)) {
+//                                        mFtpClient = FTPUtils.getGlobalFTP();
+//                                    }
+//                                }
+//                                if (mFtpClient == null) {
+//                                    MyApp.myLogger.writeBug(String.format("ViewPic bug at '%s',host='%s'," +
+//                                            "last='%s'", pid, imgFtp, tempUrl));
+//                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
+//                                }
+//                                if (!mFtpClient.serverIsOpen()) {
+//                                    mFtpClient.login();
+//                                }
+//                                boolean exitsFIle = mFtpClient.fileExists(remoteAbsolutePath);
+//                                Log.e("zjy", "ViewPicByPidActivity->run(): file exist==" + exitsFIle);
+//                                if (exitsFIle) {
+//                                    mFtpClient.download(localPath, remoteAbsolutePath);
+//                                    downCounts++;
+//                                    fti.setImgPath(localPath);
+//                                    list.add(fti);
+//                                    downloadResult += "第" + (i + 1) + "张,下载成功\r\n";
+//                                    mHandler.obtainMessage(4, searchSize, i).sendToTarget();
+//                                } else {
+//                                    downloadResult += "服务器上不存在该文件";
+//                                }
+//                            } else {
+//                                if (mFtpClient == null) {
+//                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
+//                                }
+//                                downloadResult += "第" + (i + 1) + "张,已从手机找到\r\n";
+//                                fti.setImgPath(localPath);
+//                                list.add(fti);
+//                            }
+//                            tempUrl = imgFtp;
                             FTPImgInfo fti = new FTPImgInfo();
-                            File fileParent = MyFileUtils.getFileParent();
-                            File file = new File(fileParent, "dyj_img/" + imgName);
-                            //图片未下载的需要下载
                             if (!file.exists()) {
-                                if (!tempUrl.equals(imgFtp)) {
-                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
-                                    if (finalHost.equals(FTPUtils.DB_HOST)) {
-                                        mFtpClient = FTPUtils.getGlobalFTP();
-                                    }
-                                }
-                                if (mFtpClient == null) {
-                                    MyApp.myLogger.writeBug(String.format("ViewPic bug at '%s',host='%s'," +
-                                            "last='%s'", pid, imgFtp, tempUrl));
-                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
-                                }
-                                if (!mFtpClient.serverIsOpen()) {
-                                    mFtpClient.login();
-                                }
-                                boolean exitsFIle = mFtpClient.fileExists(remoteAbsolutePath);
-                                Log.e("zjy", "ViewPicByPidActivity->run(): file exist==" + exitsFIle);
-                                if (exitsFIle) {
-                                    mFtpClient.download(file.getAbsolutePath(), remoteAbsolutePath);
-                                    downCounts++;
-                                    fti.setImgPath(file.getAbsolutePath());
-                                    list.add(fti);
-                                    downloadResult += "第" + (i + 1) + "张,下载成功\r\n";
-                                    mHandler.obtainMessage(4, searchSize, i).sendToTarget();
-                                } else {
-                                    downloadResult += "服务器上不存在该文件";
-                                }
-                            } else {
-                                if (mFtpClient == null) {
-                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
-                                }
+                                startDownLoad(imgUrl, localPath);
+                            }else{
                                 downloadResult += "第" + (i + 1) + "张,已从手机找到\r\n";
-                                fti.setImgPath(file.getAbsolutePath());
-                                list.add(fti);
                             }
-                            tempUrl = imgFtp;
+                            fti.setImgPath(localPath);
+                            list.add(fti);
                         } catch (UnsupportedEncodingException e) {
                             e.printStackTrace();
                         } catch (IOException e) {

@@ -9,6 +9,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.MyApp;
+import com.b1b.js.erpandroid_kf.entity.SpSettings;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -51,7 +52,7 @@ public class LogUploadService extends Service {
     @Override
     public void onCreate() {
         //contextWrapper此时创建
-        sp = getSharedPreferences("uploadlog", MODE_PRIVATE);
+        sp = getSharedPreferences(SpSettings.PREF_LOGUPLOAD, MODE_PRIVATE);
         MyApp.myLogger.writeInfo("UploadService start");
         super.onCreate();
     }

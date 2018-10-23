@@ -57,6 +57,12 @@ public class ReUpLoadPicActivity extends BaseMActivity implements View.OnClickLi
     }
 
     @Override
+    public void uploadFinished() {
+        progressDialog.cancel();
+        mInfos.clear();
+    }
+
+    @Override
     public void onUpload(int index, PicUploadInfo info, String msg) {
 //        String nowProcess = "进度:" + index + "/" + mInfos.size();
 //        tvProcess.setText(nowProcess);
@@ -68,7 +74,7 @@ public class ReUpLoadPicActivity extends BaseMActivity implements View.OnClickLi
             failedInfos.add(info);
         }
         tvStatus.setText(log);
-        Log.e("zjy", "ReUpLoadPicActivity->onUpload(): finsh==" + +index + "/" + mInfos.size() + ",msg=" +
+        Log.e("zjy", "ReUpLoadPicActivity->onUpload(): finsh==" + index + "/" + mInfos.size() + ",msg=" +
                 mlog);
         if (mInfos.size() == index) {
            progressDialog.cancel();
@@ -90,6 +96,7 @@ public class ReUpLoadPicActivity extends BaseMActivity implements View.OnClickLi
                     showMsgDialog("暂无需要上传的图片");
                     return;
                 }
+                tvStatus.setText(null);
                 mPresent.startUpload(mInfos);
                 break;
         }

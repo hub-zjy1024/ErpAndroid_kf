@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -15,7 +17,7 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToobarSaveWithScanAc;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
 import com.b1b.js.erpandroid_kf.scancode.zbar.ZbarScanActivity;
@@ -33,7 +35,7 @@ import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.ChuKuServer;
 
-public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
+public class CheckActivity extends ToobarSaveWithScanAc implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
     private ListView lv;
     private EditText edPid;
     private EditText edPartno;
@@ -47,6 +49,7 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
     private ProgressDialog pd;
     private boolean isFirst = true;
     private RadioButton rdb_checkFirst;
+    private final int err_code = 1;
     private Handler mHandler = new NoLeakHandler(this);
     @Override
     public void handleMessage(Message msg) {
@@ -57,13 +60,13 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
                 mAdapter.notifyDataSetChanged();
                 showMsgToast( "查询到" + data.size() + "条数据");
                 break;
-            case 1:
+            case err_code:
                 mAdapter.notifyDataSetChanged();
-                showMsgToast( "请输入正确的查询条件");
-                break;
-            case 2:
-                mAdapter.notifyDataSetChanged();
-                showMsgToast( "查询失败，网络状态不佳");
+                String mmsg = "其他异常";
+                if (msg.obj != null) {
+                    mmsg = msg.obj.toString();
+                }
+                showMsgToast( mmsg);
                 break;
         }
         if (pd != null) {
@@ -100,9 +103,8 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(CheckActivity.this, SetCheckInfoActivity.class);
-                intent.putExtra("pid", data.get(position).getPid());
-                startActivity(intent);
+                CheckInfo checkInfo = data.get(position);
+                onItemClickMy(checkInfo);
             }
         });
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -122,6 +124,12 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
         pd.setMessage("正在查询。。。");
     }
 
+
+    protected void onItemClickMy(CheckInfo minfo) {
+        Intent intent = new Intent(CheckActivity.this, SetCheckInfoActivity.class);
+        intent.putExtra("pid", minfo.getPid());
+        startActivity(intent);
+    }
     @Override
     public void startScanActivity() {
         Intent intent = new Intent(this, ZbarScanActivity.class);
@@ -148,6 +156,11 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
         getData(2, pid, partNo, cboStart.isChecked());
     }
 
+    public void OnAutoGo(CheckInfo fInfo) {
+        final Intent intent = new Intent(CheckActivity.this, SetCheckInfoActivity.class);
+        intent.putExtra("pid", fInfo.getPid());
+        startActivity(intent);
+    }
     public void getData(final int typeId, final String pid, final String partNo, boolean auto) {
         final boolean tempAuto = Boolean.valueOf(auto);
 
@@ -156,13 +169,10 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
             public void run() {
                 try {
                     String json = getChuKuCheckInfoByTypeID(typeId, pid, partNo, loginID);
-                    List<CheckInfo> list = MyJsonUtils.getCheckInfo(json);
+                    final List<CheckInfo> list = MyJsonUtils.getCheckInfo(json);
                     if (list != null && list.size() > 0) {
                         data.addAll(list);
-                        final Intent intent = new Intent(CheckActivity.this, SetCheckInfoActivity.class);
-                        CheckInfo fInfo = list.get(0);
-                        intent.putExtra("pid", fInfo.getPid());
-                        mHandler.post(new Runnable() {
+                        mHandler.post(new Runnable(){
                             @Override
                             public void run() {
                                 SoftKeyboardUtils.closeInputMethod(edPartno, CheckActivity.this);
@@ -172,18 +182,21 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
                                 }
                                 showMsgToast( "查询到" + data.size() + "条数据");
                                 if (tempAuto) {
-                                    startActivity(intent);
+                                    CheckInfo fInfo = list.get(0);
+                                    OnAutoGo(fInfo);
                                 }
                             }
                         });
                     }
                 } catch (IOException e) {
-                    mHandler.sendEmptyMessage(2);
+                    String errMsg = "查询失败，网络状态不佳";
+                    mHandler.obtainMessage(err_code, errMsg).sendToTarget();
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
-                    mHandler.sendEmptyMessage(1);
+                    String errMsg =  "请输入正确的查询条件";
+                    mHandler.obtainMessage(err_code, errMsg).sendToTarget();
                     e.printStackTrace();
                 }
             }
@@ -244,5 +257,28 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
         pid = result;
         edPid.setText(pid);
         isScan = true;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        return false;
+    }
+
+    @Override
+    public String setTitle() {
+        return "出库审核";
+    }
+
+    /**
+     * This method will be invoked when a menu item is clicked if the item itself did
+     * not already handle the event.
+     *
+     * @param item {@link MenuItem} that was clicked
+     * @return <code>true</code> if the event was handled, <code>false</code> otherwise.
+     */
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        return false;
     }
 }

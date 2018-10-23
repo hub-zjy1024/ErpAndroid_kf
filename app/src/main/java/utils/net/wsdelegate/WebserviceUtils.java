@@ -1,5 +1,8 @@
 package utils.net.wsdelegate;
 
+import android.util.Log;
+
+import com.b1b.js.erpandroid_kf.BuildConfig;
 import com.b1b.js.erpandroid_kf.MyApp;
 
 import org.ksoap2.SoapEnvelope;
@@ -220,6 +223,9 @@ public class WebserviceUtils {
                 throw new IOException("接口调用失败，Soap response Unknow");
             }
             ret = sob.toString();
+            if (BuildConfig.DEBUG) {
+                Log.e("zjy", "wcf,cla=" + sob.getClass() + "->getResNew(): ==" + ret );
+            }
         } catch (XmlPullParserException e) {
             e.printStackTrace();
             throw new IOException("接口解析失败");

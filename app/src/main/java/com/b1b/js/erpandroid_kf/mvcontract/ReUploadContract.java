@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import utils.dbutils.PicUploadDB;
 import utils.net.ftp.FTPUtils;
@@ -28,6 +29,8 @@ public class ReUploadContract {
         void onUpload(int index, PicUploadInfo info, String msg);
 
         void showProgress(String msg);
+
+        void uploadFinished();
 
     }
 
@@ -113,13 +116,17 @@ public class ReUploadContract {
 
         @Override
         public void startUpload(final List<PicUploadInfo> infos) {
-            mView.showProgress("开始上传,总数：" + infos.size());
+            final int totalCount = infos.size();
+            mView.showProgress("开始上传,总数：" + totalCount);
             proVider.startUpload(infos, new ProVider.UploadListner() {
                 @Override
                 public void callback(int index, PicUploadInfo info, String msg) {
-                    String nowProcess = "进度:" + index + "/" + infos.size();
+                    String nowProcess = "进度:" + index + "/" + totalCount;
                     mView.showProgress("正在上传:" + nowProcess);
                     mView.onUpload(index, info, msg);
+                    if (totalCount== index) {
+                        mView.uploadFinished();
+                    }
                 }
             });
         }
@@ -145,6 +152,7 @@ public class ReUploadContract {
 
         public void startUpload(List<PicUploadInfo> infos, final UploadListner listner) {
             final int[] ok = {0};
+            final Semaphore finalSemaphore = new Semaphore(1);
             for (int i = 0; i < infos.size(); i++) {
                 final int finalI = i;
                 final PicUploadInfo picUploadInfo = infos.get(i);
@@ -153,14 +161,24 @@ public class ReUploadContract {
                     public void run() {
                         String msg = "异常";
                         try {
+                            Thread.currentThread().interrupt();
+                            finalSemaphore.acquire();
+                        try {
                             upload(picUploadInfo);
                             msg = "成功";
                         } catch (Exception e) {
                             e.printStackTrace();
                             msg = "上传失败," + e.getMessage();
                         }
+                        } catch (InterruptedException e) {
+                            msg = "中断异常";
+                            e.printStackTrace();
+                        }finally {
+
+                        }
                         synchronized (ok) {
                             ok[0]++;
+                            Log.e("zjy", getClass() + "->run(): startUpload index==" + ok[0]);
                             final String finalMsg = msg;
                             mHandler.post(new Runnable() {
                                 @Override
@@ -169,6 +187,7 @@ public class ReUploadContract {
                                 }
                             });
                         }
+                        finalSemaphore.release();
                     }
                 };
                 TaskManager.getInstance().execute(run, mContext);

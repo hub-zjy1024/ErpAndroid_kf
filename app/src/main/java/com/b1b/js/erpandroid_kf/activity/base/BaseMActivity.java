@@ -7,6 +7,8 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+import com.b1b.js.erpandroid_kf.MyApp;
+
 import utils.framwork.DialogUtils;
 import utils.framwork.MyToast;
 
@@ -20,6 +22,7 @@ public abstract class BaseMActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
+        MyApp.myLogger.writeInfo("create" + getClass());
     }
 
     @Override

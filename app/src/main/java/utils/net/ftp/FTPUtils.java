@@ -46,7 +46,7 @@ public class FTPUtils {
     public static final int ADMIN_PORT = DEFAULT_PORT;
     public static final String ADMIN_NAME = mainName;
     public static final String ADMIN_PWD = mainPwd;
-
+    public static final String TEST_FTP_ULR = "192.168.10.66";
     public static FTPUtils getGlobalFTP() {
         return new FTPUtils(mainAddress, mainName, mainPwd);
     }
@@ -66,6 +66,17 @@ public class FTPUtils {
         } else {
             throw new IllegalArgumentException("ftpStr格式为host|uname|pwd|port");
         }
+    }
+    public static FTPUtils getTestFTP() {
+        String localFTPStr = getTestFTPStr();
+        return FTPUtils.getFtpFromStr(localFTPStr);
+    }
+    public static String getTestFTPStr() {
+        String host = TEST_FTP_ULR;
+        String user= "zjy";
+        String pwd = "123456";
+        int port = 21;
+        return FTPUtils.getFtpStr(host, user, pwd, port);
     }
     public static String getFtpStr(  String host , String username,String pwd , int port ) {
         return host+"|"+username+"|"+pwd+"|"+port;

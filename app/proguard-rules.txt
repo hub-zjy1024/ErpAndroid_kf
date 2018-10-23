@@ -64,6 +64,7 @@
     java.lang.Object readResolve();
 }
 
+
 -keep class **.Webview2JsInterface { *; }  #保护WebView对HTML页面的API不被混淆
 -keepclassmembers class * extends android.webkit.WebViewClient {  #如果你的项目中用到了webview的复杂操作 ，最好加入
      public void *(android.webkit.WebView,java.lang.String,android.graphics.Bitmap);
@@ -94,6 +95,27 @@
 #ksoap2-android-assembly-2.6.0-jar-with-dependencies.jar中重复添加org.xmlpull.v1包和libaray中自带的冲突
 -dontwarn org.xmlpull.v1.**
 -keep class org.xmlpull.v1.**{*;}
+#zbar混淆
+-keep class me.dm7.barcodescanner.core.**{*;}
+-keep class me.dm7.barcodescanner.zbar.**{*;}
+-keep class com.b1b.js.erpandroid_kf.scancode.zxing.view.**{*;}
+-keep class com.google.zxing.**{*;}
+#mail混淆
+-keep class com.sun.mail.**{*;}
+-keep class javax.mail.**{*;}
+-keep class javax.activation.**{*;}
+-keep class java.awt.datatransfer.**{*;}
+
+-keep class org.apache.** { *; }
+-keep class com.sun.** { *; }
+-dontwarn com.sun.mail.handlers.handler_base
+#fastJson
+-keep class com.alibaba.fastjson.** { *; }
+-dontwarn com.alibaba.fastjson.**
+-dontnote com.alibaba.fastjson.**
+#让实体类实现Serializable，避免json解析异常
+-keep class * implements java.io.Serializable { *; }
+
 -dontnote org.xmlpull.v1.**
 -dontnote org.kobjects.util.**
 -dontnote com.squareup.**

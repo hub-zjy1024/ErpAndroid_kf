@@ -21,7 +21,7 @@ public class CaigouFtpUploader extends FtpUploader {
         try {
             String sccg = MartStock.InsertSSCGPicInfo("", Integer.parseInt(cid), Integer.parseInt(did),
                     Integer.parseInt(loginID), pid, remoteName, insertPath,
-                    "SCCG");
+                    picType_SCCG);
             if (!"操作成功".equals(sccg)) {
                 throw new IOException("插入采购图片失败，" + sccg);
             }

@@ -20,7 +20,6 @@ import java.io.InputStream;
 import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.ftp.FTPUtils;
-import utils.net.ftp.FtpManager;
 
 public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandler.NoLeakCallback {
     @Override
@@ -74,6 +73,7 @@ public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandle
     protected static final int MSG_ERROR = 1;
     private String typeFlag;
     protected boolean isTest = false;
+
     private boolean isCaigou = false;
 
     @Override
@@ -141,8 +141,8 @@ public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandle
             remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
         }
         if (isTest) {
-            mUrl = FtpManager.mainAddress;
-            ftpUtil =  FtpManager.getTestFTP();
+            mUrl = FTPUtils.mainAddress;
+            ftpUtil =  FTPUtils.getTestFTP();
             remotePath = UploadUtils.getTestPath(pid);
         }
         insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
@@ -178,8 +178,7 @@ public class ReUploadActivity extends ObtainPicFromPhone implements NoLeakHandle
                                 insertPath, flag);
                     } else {
                         flag = "CKTZ";
-                        res = setInsertPicInfo("", cid, did, Integer.parseInt(loginID), pid, remoteName,
-                                insertPath, flag);
+                        res = setInsertPicInfo2(remoteName, insertPath, flag);
                     }
                 }
                 return res.equals("操作成功");

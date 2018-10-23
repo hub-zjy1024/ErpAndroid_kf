@@ -53,7 +53,6 @@ import utils.common.MyImageUtls;
 import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.ftp.FTPUtils;
-import utils.net.ftp.FtpManager;
 import utils.net.wsdelegate.ChuKuServer;
 import utils.net.wsdelegate.WebserviceUtils;
 
@@ -224,7 +223,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                     }
                     cameraSp = getSharedPreferences(SettingActivity.PREF_CAMERA_INFO, 0);
                     //设置旋转角度
-                    mCamera.setDisplayOrientation(getPreviewDegree((TakePicActivity) mContext));
+                    mCamera.setDisplayOrientation(getPreviewDegree((Activity) mContext));
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = mCamera.getParameters();
                     try {
@@ -453,7 +452,9 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
         TaskManager.getInstance().execute(new Runnable() {
             @Override
             public void run() {
-                ftpUtil.exitServer();
+                if (ftpUtil != null) {
+                    ftpUtil.exitServer();
+                }
             }
         });
         MyImageUtls.releaseBitmap(waterBitmap);
@@ -583,8 +584,13 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
             ftpUtil = FTPUtils.getLocalFTP(mUrl);
         }
         if (CheckUtils.isAdmin()) {
-            ftpUtil = FtpManager.getTestFTP();
-            mUrl = FtpManager.mainAddress;
+            ftpUtil = FTPUtils.getGlobalFTP();
+            mUrl = FTPUtils.mainAddress;
+        }
+        if ("101".equals(loginID)) {
+            ftpUtil = FTPUtils.getGlobalFTP();
+            kfFTP = FTPUtils.mainAddress;
+            mUrl = kfFTP;
         }
     }
 
@@ -595,7 +601,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
         final Bitmap bitmap = waterBitmap;
         if (kfFTP == null || "".equals(kfFTP)) {
             if (!CheckUtils.isAdmin()) {
-                showMsgToast( "读取上传地址失败，请重启程序");
+                showMsgToast(getResources().getString(R.string.err_pic_no_ftpurl));
                 return;
             }
         }

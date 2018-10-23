@@ -31,6 +31,7 @@ public class CheckUtils {
      @return true是，false否
      */
     public static boolean isAdmin() {
-        return ("101".equals(MyApp.id));
+//        return ("101".equals(MyApp.id));
+        return false;
     }
 }

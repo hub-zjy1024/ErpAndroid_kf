@@ -78,6 +78,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="下载最新版本"/>
+            <Button
+                android:id="@+id/activity_about_btn_upload"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="上传日志"/>
+            <Button
+                android:id="@+id/activity_about_btn_clear_sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="清空数据"/>
+
         </LinearLayout>
         <ImageView
             android:layout_marginTop="@dimen/view_def_margin"

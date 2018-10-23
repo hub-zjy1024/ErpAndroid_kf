@@ -15,7 +15,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.entity.PicUploadInfo;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
 import java.io.File;
@@ -61,13 +60,6 @@ public class TakePic2Ac extends TakePicBaseActivity {
                 }, 2000);
 
                 showMsgToast("上传成功，后台剩余图片：" + (MyApp.cachedThreadPool.getActiveCount() - 1));
-                break;
-            case FTP_CONNECT_FAIL:
-                showMsgToast("连接ftp服务器失败，请检查网络");
-                break;
-            case PICUPLOAD_ERROR_NO_SD:
-                showMsgToast("sd卡不存在，不可用后台上传");
-                btn_commit.setEnabled(false);
                 break;
         }
     }
@@ -200,15 +192,15 @@ public class TakePic2Ac extends TakePicBaseActivity {
                     if (counts >= 3) {
                         upLoadFailed(notifyer, textView);
                         //                         记录失败图片
-                        PicUploadInfo upInfo = new PicUploadInfo(upFile
-                                .getAbsolutePath(), pid, type  , remotePath, "" +
-                                cid, "" + did, loginID, remoteName, insertPath);
-                        upInfo.okcount = 0;
-                        upInfo.ftpurl = mUrl;
-                        int res = picDb.insertRecord(upInfo);
-                        if (res != 1) {
-                            MyApp.myLogger.writeError("reupload insert=" + res);
-                        }
+//                        PicUploadInfo upInfo = new PicUploadInfo(upFile
+//                                .getAbsolutePath(), pid, type  , remotePath, "" +
+//                                cid, "" + did, loginID, remoteName, insertPath);
+//                        upInfo.okcount = 0;
+//                        upInfo.ftpurl = mUrl;
+//                        int res = picDb.insertRecord(upInfo);
+//                        if (res != 1) {
+//                            MyApp.myLogger.writeError("reupload insert=" + res);
+//                        }
                         break;
                     }
                 }
@@ -318,7 +310,7 @@ public class TakePic2Ac extends TakePicBaseActivity {
         }
         if (kfFTP == null || "".equals(kfFTP)) {
             if (!CheckUtils.isAdmin()) {
-                errMsg = "读取上传地址失败，请重启程序";
+//                errMsg = "读取上传地址失败，请重启程序";
             }
         }
         if (!errMsg.equals("")) {

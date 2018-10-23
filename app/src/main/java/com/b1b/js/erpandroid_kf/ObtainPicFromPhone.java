@@ -24,10 +24,11 @@ import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
 import com.b1b.js.erpandroid_kf.imagepicker.PickPicActivity;
 import com.b1b.js.erpandroid_kf.imagepicker.utils.MyAdapter;
+import com.b1b.js.erpandroid_kf.picupload.CaigouFtpUploader;
+import com.b1b.js.erpandroid_kf.picupload.FtpUploader;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.task.UpLoadPicRunable;
-import com.b1b.js.erpandroid_kf.task.UploadPicRunnable2;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -46,7 +47,7 @@ import utils.common.MyImageUtls;
 import utils.common.UploadUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.ftp.FTPUtils;
-import utils.net.ftp.FtpManager;
+import utils.net.wsdelegate.ChuKuServer;
 import utils.net.wsdelegate.MartStock;
 
 public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
@@ -246,12 +247,17 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
             }
         }
     }
+
+//    public PicUploader getUploader() {
+//        return new FtpUploader(murl);
+//    }
+
     private void nUpload(final int position, final UploadPicInfo uploadPicInfo, final int arg2) {
         final String intentFlag = getIntent().getStringExtra("flag");
         String insertPath = "";
         String remoteName = UploadUtils.getChukuRemoteName(pid) + ".jpg";
         String remotePath = "/" + UploadUtils.getCurrentDate() + "/";
-        String mUrl = MyApp.ftpUrl;
+        String mUrl = kfFTP;
         FTPUtils ftpUtil = null;
         UpLoadPicRunable runable = null;
         String encoding = "iso-8859-1";
@@ -267,7 +273,7 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
             }
             remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
         } else {
-            mUrl = MyApp.ftpUrl;
+            mUrl = kfFTP;
             ftpUtil = FTPUtils.getLocalFTP(mUrl);
             remoteName = UploadUtils.getChukuRemoteName(pid);
             remoteName = getRemarkName(remoteName, true);
@@ -279,7 +285,7 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
             remotePath = UploadUtils.getChukuRemotePath(remoteName, pid);
         }
         if (CheckUtils.isAdmin()) {
-            mUrl = FtpManager.mainAddress;
+            mUrl = FTPUtils.mainAddress;
             remoteName = UploadUtils.getChukuRemoteName(pid);
             remoteName = getRemarkName(remoteName, true);
             try {
@@ -288,53 +294,91 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
                 e.printStackTrace();
             }
             remotePath = "/Zjy/kf/" + remoteName + ".jpg";
-            ftpUtil = FtpManager.getTestFTPMain();
+            ftpUtil = FTPUtils.getAdminFTP();
         }
 
         insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
-        runable = new UploadPicRunnable2(remotePath, insertPath, ftpUtil) {
-
+        final String finalRemotePath = remotePath;
+        final String finalRemoteName = remoteName;
+        final String finalInsertPath = insertPath;
+        final String finalMUrl = mUrl;
+        Runnable newRun = new Runnable() {
             @Override
-            public void onResult(int code, String err) {
+            public void run() {
+               int code=0;
+                String errMsg = "未知异常";
+                try {
+                    String fPath = uploadPicInfo.getPath();
+                    InputStream mIn=getTransferedImg(fPath);
+                    FtpUploader muploader = new FtpUploader(finalMUrl);
+                    String picType = muploader.picType_CKTZ;
+                    if ("caigou".equals(intentFlag)) {
+                        muploader = new CaigouFtpUploader(finalMUrl);
+                        picType = muploader.picType_SCCG;
+                    }
+                    muploader.upload(pid, mIn, finalRemotePath, loginID, String.valueOf(cid), String.valueOf
+                            (did), finalRemoteName, picType, finalInsertPath);
+                    code = 1;
+                } catch (Exception e) {
+                    errMsg = e.getMessage();
+                }
                 Message msg = nHandler.obtainMessage();
                 msg.arg1 = position;
                 msg.arg2 = arg2;
-                if (code == SUCCESS) {
+                if (code == 0) {
                     msg.what = PICUPLOAD_SUCCESS;
                 } else {
-                    MyApp.myLogger.writeError(ObtainPicFromPhone.class, "ftp:" + MyApp.ftpUrl + "\t");
+                    MyApp.myLogger.writeError(ObtainPicFromPhone.class, "ftp:" + kfFTP + "\t");
                     msg.what = PICUPLOAD_ERROR;
-                    msg.obj = err;
+                    msg.obj = errMsg;
                 }
                 nHandler.sendMessage(msg);
             }
-
-            @Override
-            public boolean getInsertResult() throws Exception {
-                String remoteName = getRemoteName();
-                String insertPath = getInsertpath();
-                Log.e("zjy", "ObtainPicFromPhone->getInsertResult(): insertpath==" + insertPath);
-                if (CheckUtils.isAdmin()) {
-                    return true;
-                }
-                String res = "";
-                if ("caigou".equals(intentFlag)) {
-                    res = setSSCGPicInfo("", cid,
-                            did, Integer.parseInt(loginID), pid, remoteName, insertPath, "SCCG");
-                } else {
-                    res = setInsertPicInfo("", cid,
-                            did, Integer.parseInt(loginID), pid, remoteName, insertPath, "CKTZ");
-                }
-                return res.equals("操作成功");
-            }
-
-            @Override
-            public InputStream getInputStream() throws Exception {
-                String fPath = uploadPicInfo.getPath();
-                return getTransferedImg(fPath);
-            }
         };
-        TaskManager.getInstance().execute(runable);
+        TaskManager.getInstance().execute(newRun);
+
+//        runable = new UploadPicRunnable2(remotePath, insertPath, ftpUtil) {
+//
+//            @Override
+//            public void onResult(int code, String err) {
+//                Message msg = nHandler.obtainMessage();
+//                msg.arg1 = position;
+//                msg.arg2 = arg2;
+//                if (code == SUCCESS) {
+//                    msg.what = PICUPLOAD_SUCCESS;
+//                } else {
+//                    MyApp.myLogger.writeError(ObtainPicFromPhone.class, "ftp:" + kfFTP + "\t");
+//                    msg.what = PICUPLOAD_ERROR;
+//                    msg.obj = err;
+//                }
+//                nHandler.sendMessage(msg);
+//            }
+//
+//            @Override
+//            public boolean getInsertResult() throws Exception {
+//                String remoteName = getRemoteName();
+//                String insertPath = getInsertpath();
+//                Log.e("zjy", "ObtainPicFromPhone->getInsertResult(): insertpath==" + insertPath);
+//                if (CheckUtils.isAdmin()) {
+//                    return true;
+//                }
+//                String res = "";
+//                if ("caigou".equals(intentFlag)) {
+//                    res = setSSCGPicInfo("", cid,
+//                            did, Integer.parseInt(loginID), pid, remoteName, insertPath, "SCCG");
+//                } else {
+//                    res = setInsertPicInfo2(remoteName, insertPath, "CKTZ");
+//                }
+//                return res.equals("操作成功");
+//            }
+//
+//            @Override
+//            public InputStream getInputStream() throws Exception {
+//                String fPath = uploadPicInfo.getPath();
+//                return getTransferedImg(fPath);
+//            }
+//        };
+//        TaskManager.getInstance().execute(runable);
     }
 
     public InputStream getTransferedImg(String filePath) throws IOException {
@@ -365,10 +409,10 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
             throw new IOException(e);
         }
     }
-
-    public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
-                                   String stypeID) throws IOException, XmlPullParserException {
-        return TakePic2Activity.setInsertPicInfo(checkWord, cid, did, uid, pid, fileName, filePath, stypeID);
+    public String setInsertPicInfo2(String fileName, String filePath,
+                                    String stypeID) throws IOException, XmlPullParserException {
+        return ChuKuServer.SetInsertPicInfo("", cid, did, Integer.parseInt(loginID), pid, fileName, filePath,
+                stypeID);
     }
 
     @Override
