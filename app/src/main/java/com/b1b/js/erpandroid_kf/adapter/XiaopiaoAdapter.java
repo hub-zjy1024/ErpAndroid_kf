@@ -4,11 +4,12 @@ import android.content.Context;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.R;
+import com.b1b.js.erpandroid_kf.printer.entity.XiaopiaoInfo;
 
 import java.util.List;
 
-import printer.entity.XiaopiaoInfo;
 import utils.adapter.CommonAdapter;
+
 
 /**
  Created by 张建宇 on 2017/11/9. */

@@ -1,6 +1,7 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -30,7 +31,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
     private String pid;
     private Button btnViewPic;
     private Handler mHandler = new Handler() ;
-
+    private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +52,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
         if (pid != null) {
             tv.setText("单据号：" + pid);
         }
+        mContext =this;
     }
 
     /**
@@ -73,7 +75,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            MyToast.showToast(SetCheckInfoActivity.this, soapRes);
+                            MyToast.showToast(mContext, soapRes);
                         }
                     });
                 } catch (IOException e) {
@@ -93,7 +95,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                MyToast.showToast(SetCheckInfoActivity.this, getResources().getString(R.string.bad_connection));
+                MyToast.showToast(mContext, getResources().getString(R.string.bad_connection));
             }
         });
     }
@@ -106,7 +108,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
             case R.id.setcheckinfo_fail:
                 try {
                     if ("".equals(info)) {
-                        MyToast.showToast(SetCheckInfoActivity.this, "请输入不通过原因");
+                        MyToast.showToast(mContext, "请输入不通过原因");
                         return;
                     }
                     getSetCheckInfo(1, info, pid, 1, "", loginID);
@@ -129,31 +131,27 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
                 }
                 break;
             case R.id.setcheckinfo_photo:
-                AlertDialog.Builder builder = new AlertDialog.Builder(SetCheckInfoActivity.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                final Intent uploadIntent = new Intent();
+                uploadIntent.putExtra("pid", pid);
                 builder.setItems(getResources().getStringArray(R.array.upload_type), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0:
-                                Intent intent1 = new Intent(SetCheckInfoActivity.this, TakePicActivity.class);
-                                intent1.putExtra("pid", pid);
-                                startActivity(intent1);
+                                uploadIntent.setClass(mContext, TakePicActivity.class);
                                 MyApp.myLogger.writeInfo("checkpage-take");
                                 break;
                             case 1:
-                                Intent intent2 = new Intent(SetCheckInfoActivity.this, ObtainPicFromPhone.class);
-                                intent2.putExtra("pid", pid);
-                                startActivity(intent2);
+                                uploadIntent.setClass(mContext, ObtainPicFromPhone.class);
                                 MyApp.myLogger.writeInfo("checkpage-obtain");
-
                                 break;
                             case 2:
-                                Intent intent3 = new Intent(SetCheckInfoActivity.this, TakePic2Activity.class);
-                                intent3.putExtra("pid", pid);
-                                startActivity(intent3);
+                                uploadIntent.setClass(mContext, TakePic2Activity.class);
                                 MyApp.myLogger.writeInfo("checkpage-take2");
                                 break;
                         }
+                        startActivity(uploadIntent);
                     }
                 });
 //                builder.create().show();
@@ -176,7 +174,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
                 }
                 break;
             case R.id.setcheckinfo_viewpic:
-                Intent intent = new Intent(SetCheckInfoActivity.this, ViewPicByPidActivity.class);
+                Intent intent = new Intent(mContext, ViewPicByPidActivity.class);
                 intent.putExtra("pid", pid);
                 startActivity(intent);
                 break;

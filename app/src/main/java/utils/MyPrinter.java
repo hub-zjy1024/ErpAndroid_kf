@@ -8,6 +8,8 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.Log;
 
+import com.b1b.js.erpandroid_kf.printer.entity.PrinterInterface;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,12 +17,11 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 
-import printer.entity.PrinterInterface;
 
 /**
  Created by 张建宇 on 2017/4/28. */
 
-public class MyPrinter implements PrinterInterface{
+public class MyPrinter implements PrinterInterface {
     private static int[] CMD_INIT = new int[]{27, 64};
     private static int[] CMD_PRINT_GO = new int[]{27, 100, 0};
     private static int[] CMD_COD128 = new int[]{29, 107, 74};

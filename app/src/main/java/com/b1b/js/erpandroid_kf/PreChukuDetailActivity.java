@@ -20,6 +20,7 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuDetialAdapter;
 import com.b1b.js.erpandroid_kf.entity.PreChukuDetailInfo;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
+import com.b1b.js.erpandroid_kf.printer.entity.XiaopiaoInfo;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
 import org.json.JSONArray;
@@ -40,7 +41,6 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import printer.entity.XiaopiaoInfo;
 import utils.DialogUtils;
 import utils.MyPrinter;
 import utils.MyToast;

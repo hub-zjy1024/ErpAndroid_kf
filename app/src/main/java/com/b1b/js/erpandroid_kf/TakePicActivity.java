@@ -498,7 +498,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                             throwable.printStackTrace();
                             MyApp.myLogger.writeError(throwable);
                         }
-                        tempRotate  = rotationManager.getRotation();;
+                        tempRotate  = rotationManager.getRotation();
                         isPreview = false;
                         if (data == null || data.length == 0) {
                             MyToast.showToast(mContext, "拍照出现错误，请重启程序");

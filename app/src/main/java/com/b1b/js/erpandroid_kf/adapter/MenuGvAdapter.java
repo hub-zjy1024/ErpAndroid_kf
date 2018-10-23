@@ -9,8 +9,8 @@ import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
 
 import java.util.List;
 
-import zhy.utils.CommonAdapter;
-import zhy.utils.ViewHolder;
+import utils.adapter.CommonAdapter;
+import utils.adapter.ViewHolder;
 
 /**
  Created by 张建宇 on 2018/1/30. */

@@ -1,6 +1,7 @@
 package com.b1b.js.erpandroid_kf.entity;
 
-import printer.entity.XiaopiaoInfo;
+
+import com.b1b.js.erpandroid_kf.printer.entity.XiaopiaoInfo;
 
 /**
  Created by 张建宇 on 2018/4/19. */

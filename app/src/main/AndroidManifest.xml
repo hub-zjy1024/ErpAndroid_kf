@@ -38,7 +38,7 @@
         <activity android:name=".KaoQinActivity"/>
         <activity android:name=".TakePicActivity"/>
         <activity android:name=".TakePic2Activity"/>
-        <activity android:name="zhy.imageloader.PickPicActivity"/>
+        <activity android:name=".imagepicker.PickPicActivity"/>
         <activity android:name=".dtr.zxing.activity.CaptureActivity"/>
         <activity android:name=".dtr.zxing.activity.ResultActivity"/>
         <activity android:name=".ChuKuActivity"/>
@@ -86,10 +86,11 @@
         <activity android:name=".CaigouTakePic2Activity"/>
         <activity android:name=".HetongActivity"/>
         <activity android:name=".CaigouDetailActivity"/>
-        <activity android:name="printer.activity.PickPicPrintingActivity"/>
-        <activity android:name="printer.activity.SetYundanActivity"/>
-        <activity android:name="printer.activity.SFActivity"/>
-        <activity android:name="printer.activity.ToolbarTestActivity"/>
+        <activity android:name=".printer.activity.PickPicPrintingActivity"/>
+        <activity android:name=".printer.activity.ToolbarTestActivity"/>
+        <activity android:name=".yundan.sf.SetYundanActivity"/>
+        <activity android:name=".yundan.SFActivity"/>
+        <activity android:name=".yundan.kyeexpress.KyPrintAcitivity"/>
         <activity android:name=".CaigouYanhuoActivity"/>
         <activity android:name=".YanhuoCheckActivity"/>
         <activity android:name=".AboutActivity"/>
@@ -98,7 +99,6 @@
 
         <activity android:name=".KyExpressAcitivity"/>
         <activity android:name=".PrintSettingActivity"/>
-        <activity android:name=".YundanPrintAcitivity"/>
         <activity android:name=".RukuTagPrintAcitivity"/>
         <activity android:name=".TakePicBaseActivity"/>
         <activity android:name=".TakePicChildPanku"/>

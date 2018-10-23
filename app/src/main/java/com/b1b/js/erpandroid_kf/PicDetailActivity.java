@@ -25,6 +25,7 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.myview.ZoomImageView;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -163,6 +164,10 @@ public class PicDetailActivity extends AppCompatActivity {
                 protected int sizeOf(String key, Bitmap value) {
                     //在每次存入缓存时调用，告诉系统这张缓存图片有多大
                     // 相当于 为每次 要缓存的 资源 分配 大小空间
+                    if (value == null) {
+                        MyApp.myLogger.writeBug("value is Null,key=" + key + "\t to ");
+                        return 0;
+                    }
                     return value.getByteCount();
                 }
             };
@@ -230,14 +235,18 @@ public class PicDetailActivity extends AppCompatActivity {
                         Log.e("zjy", "PicDetailActivity->run(): Decode==" + imgPath.substring(imgPath
                                 .lastIndexOf("/") + 1));
                     final Bitmap decodeBmp = loadImg(imgPath);
-                    Log.e("zjy", "PicDetailActivity->run(): BitampSize==" + decodeBmp.getByteCount());
-                    cacheMap.put(imgPath, decodeBmp);
+                    if (decodeBmp != null) {
+                        cacheMap.put(imgPath, decodeBmp);
                         mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mImgView.setImageBitmap(decodeBmp);
-                        }
-                    });
+                            @Override
+                            public void run() {
+                                mImgView.setImageBitmap(decodeBmp);
+                            }
+                        });
+                        Log.e("zjy", "PicDetailActivity->run(): BitampSize==" + decodeBmp.getByteCount());
+                    }else{
+                        MyApp.myLogger.writeBug("load bitmap Failed ,key=" + imgPath);
+                    }
                 }
             };
             TaskManager.getInstance().execute(imgRun);
@@ -267,21 +276,20 @@ public class PicDetailActivity extends AppCompatActivity {
 
         Bitmap loadImg(String path) {
             if (path.startsWith("http")||path.startsWith("https")) {
-                final Bitmap[] newBitmap = new Bitmap[1];
-                HttpUtils.create(path).execute(new HttpUtils.onResult<InputStream>() {
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onOk(InputStream result) {
-                        newBitmap[0] = BitmapFactory.decodeStream(result);
-                    }
-                });
-                return newBitmap[0];
+                try {
+                    InputStream inputStream = HttpUtils.create(path).getInputStream();
+                    return BitmapFactory.decodeStream(inputStream);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
             }else {
-                return BitmapFactory.decodeFile(imgPath);
+                try {
+                    return BitmapFactory.decodeFile(imgPath);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+                return null;
             }
         }
         @Override

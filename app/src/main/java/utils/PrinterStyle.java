@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.entity.PreChukuDetailInfo;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
+import com.b1b.js.erpandroid_kf.printer.entity.XiaopiaoInfo;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -12,7 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import printer.entity.XiaopiaoInfo;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.SPrinter;
 
@@ -35,7 +35,7 @@ public class PrinterStyle {
         printer.setCharHeight(2);
         printer.printTextLn(info.getOutType());
         printer.setFont(1);
-        //        printer.printTextLn(info.getSalesman() + "-" + info.getEmployeeID() + "-" + pid.substring(0, 3)+ "\t[VIP]");
+        //        com.b1b.js.erpandroid_kf.printer.printTextLn(info.getSalesman() + "-" + info.getEmployeeID() + "-" + pid.substring(0, 3)+ "\t[VIP]");
         printer.printTextLn(info.getSalesman() + "-" + info.getEmployeeID() + "-" + pid.substring(0, 3) + "\t" + (info.getIsVip
                 ().equals("1") ? "[VIP]" : ""));
         printer.setFont(0);
@@ -46,7 +46,7 @@ public class PrinterStyle {
             for (int i = 0; i < detailInfos.size(); i++) {
                 PreChukuDetailInfo dInfo = detailInfos.get(i);
                 //一行47个字符
-                //                printer.printTextLn((i + 1) + ".-----------------------------------------");
+                //                com.b1b.js.erpandroid_kf.printer.printTextLn((i + 1) + ".-----------------------------------------");
                 // TODO: 2017/7/24 修改打印格式
                 String date = dInfo.getInitialDate();
                 Date compareDate = new Date(117, 6, 1);

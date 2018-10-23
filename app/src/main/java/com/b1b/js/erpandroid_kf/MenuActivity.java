@@ -16,12 +16,12 @@ import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.adapter.MenuGvAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
+import com.b1b.js.erpandroid_kf.yundan.SFActivity;
 import com.b1b.js.erpandroid_kf.service.LogUploadService;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
 import java.util.ArrayList;
 
-import printer.activity.SFActivity;
 import utils.DialogUtils;
 import utils.btprint.SPrinter;
 

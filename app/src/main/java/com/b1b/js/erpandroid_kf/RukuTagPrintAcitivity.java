@@ -24,8 +24,10 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.XiaopiaoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
+import com.b1b.js.erpandroid_kf.printer.entity.XiaopiaoInfo;
 import com.b1b.js.erpandroid_kf.receiver.AlarmRepeatReceive;
 import com.b1b.js.erpandroid_kf.receiver.OneShotReceiver;
+import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
@@ -40,7 +42,6 @@ import java.util.Calendar;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
-import printer.entity.XiaopiaoInfo;
 import utils.DialogUtils;
 import utils.MyToast;
 import utils.PrinterStyle;
@@ -335,6 +336,9 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         }
     }
     public void oneShotAlarm(){
+        if (!CheckUtils.isAdmin()) {
+            return;
+        }
         Context mContext = this;
         Intent intent = new Intent(mContext, OneShotReceiver.class);
         intent.setAction(mContext.getPackageName() + ".alarm.oneshot");

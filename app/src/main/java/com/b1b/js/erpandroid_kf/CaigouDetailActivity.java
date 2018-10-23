@@ -179,32 +179,27 @@ public class CaigouDetailActivity extends AppCompatActivity implements OnPageCha
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(CaigouDetailActivity.this);
                 builder.setTitle("上传方式选择");
+                final Intent uploadIntent = new Intent();
+                uploadIntent.putExtra("flag", "caigou");
+                uploadIntent.putExtra("pid", pid);
                 builder.setItems(getResources().getStringArray(R.array.upload_type), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0:
-                                Intent intent1 = new Intent(CaigouDetailActivity.this, TakePicActivity.class);
-                                intent1.putExtra("flag", "caigou");
-                                intent1.putExtra("pid", pid);
-                                startActivity(intent1);
+                                uploadIntent.setClass(CaigouDetailActivity.this, TakePicActivity.class);
                                 MyApp.myLogger.writeInfo("takepic-caigou");
                                 break;
                             case 1:
-                                Intent intent2 = new Intent(CaigouDetailActivity.this, ObtainPicFromPhone.class);
-                                intent2.putExtra("flag", "caigou");
-                                intent2.putExtra("pid", pid);
-                                startActivity(intent2);
+                                uploadIntent.setClass(CaigouDetailActivity.this, ObtainPicFromPhone.class);
                                 MyApp.myLogger.writeInfo("obtain-caigou");
                                 break;
                             case 2:
-                                Intent intent3 = new Intent(CaigouDetailActivity.this, CaigouTakePic2Activity.class);
-                                intent3.putExtra("flag", "caigou");
-                                intent3.putExtra("pid", pid);
+                                uploadIntent.setClass(CaigouDetailActivity.this, CaigouTakePic2Activity.class);
                                 MyApp.myLogger.writeInfo("takepic2-caigou");
-                                startActivity(intent3);
                                 break;
                         }
+                        startActivity(uploadIntent);
                     }
                 });
                 builder.show();

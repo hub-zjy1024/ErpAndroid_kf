@@ -10,6 +10,10 @@ import android.support.v4.view.ViewPager;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.b1b.js.erpandroid_kf.fragment.ChuKuTongZhiFragment;
+import com.b1b.js.erpandroid_kf.fragment.ChuKudanFragment;
+import com.b1b.js.erpandroid_kf.fragment.ChukuBaseFragment;
+
 import java.util.ArrayList;
 import java.util.List;
 

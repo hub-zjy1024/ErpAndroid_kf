@@ -21,6 +21,8 @@ import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
+import com.b1b.js.erpandroid_kf.imagepicker.utils.MyAdapter;
+import com.b1b.js.erpandroid_kf.imagepicker.PickPicActivity;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.task.UpLoadPicRunable;
@@ -46,8 +48,6 @@ import utils.MyToast;
 import utils.UploadUtils;
 import utils.handler.NoLeakHandler;
 import utils.wsdelegate.MartStock;
-import zhy.imageloader.MyAdapter;
-import zhy.imageloader.PickPicActivity;
 
 public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
 

@@ -280,6 +280,9 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                                     downloadResult += "服务器上不存在该文件";
                                 }
                             } else {
+                                if (mFtpClient == null) {
+                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
+                                }
                                 downloadResult += "第" + (i + 1) + "张,已从手机找到\r\n";
                                 fti.setImgPath(file.getAbsolutePath());
                                 list.add(fti);

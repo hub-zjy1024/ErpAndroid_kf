@@ -119,7 +119,6 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
         }
     }
 
-    private OrientationEventListener mOrientationListener;
     private CamRotationManager rotationManager;
     private SharedPreferences sp;
     private int itemPosition;
@@ -719,9 +718,6 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
     @Override
     protected void onPause() {
         super.onPause();
-        if (mOrientationListener != null) {
-            mOrientationListener.disable();
-        }
         if (rotationManager != null) {
             rotationManager.disable();
         }
