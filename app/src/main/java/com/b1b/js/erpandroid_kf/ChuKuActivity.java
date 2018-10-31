@@ -10,6 +10,9 @@ import android.support.v4.view.ViewPager;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.b1b.js.erpandroid_kf.acview.CktzFragment;
+import com.b1b.js.erpandroid_kf.contract.CktzContract;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,13 +37,11 @@ public class ChuKuActivity extends SavedLoginInfoWithScanActivity {
         fm = getSupportFragmentManager();
         tabLayout.setupWithViewPager(viewPager);
         ChukuBaseFragment fragChuku = new ChuKudanFragment();
-        Bundle b = new Bundle();
-        b.putString("loginID", loginID);
-        fragChuku.setArguments(b);
-        ChukuBaseFragment fragChukuTongzhi = new ChuKuTongZhiFragment();
-        b = new Bundle();
-        b.putString("loginID", loginID);
-        fragChukuTongzhi.setArguments(b);
+        fragChuku.addArgLoginId(loginID);
+        //ChukuBaseFragment fragChukuTongzhi = new ChuKuTongZhiFragment();
+        CktzFragment fragChukuTongzhi = new CktzFragment();
+        CktzContract.IcktzPresenter ckPresenter = new CktzContract.CktzPresent(fragChukuTongzhi);
+        fragChukuTongzhi.addArgLoginId(loginID);
         frags.add(fragChuku);
         frags.add(fragChukuTongzhi);
         fragAdapter = new MyPagerAdapter(fm, frags, tabTitles);

@@ -1,15 +1,12 @@
 package com.b1b.js.erpandroid_kf.acview;
 
-import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioGroup;
@@ -18,13 +15,10 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.ChuKuActivity;
 import com.b1b.js.erpandroid_kf.ChukuBaseFragment;
 import com.b1b.js.erpandroid_kf.R;
-import com.b1b.js.erpandroid_kf.adapter.ChuKuDanAdapter;
 import com.b1b.js.erpandroid_kf.adapter.ChuKuTongZhiAdapter;
 import com.b1b.js.erpandroid_kf.contract.CktzContract;
-import com.b1b.js.erpandroid_kf.entity.ChuKuDanInfo;
 import com.b1b.js.erpandroid_kf.entity.ChukuTongZhiInfo;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -80,7 +74,6 @@ public class CktzFragment extends ChukuBaseFragment implements CktzContract.Ickt
                 return true;
             }
         });
-        mPresenter=new CktzContract.CktzPresent();
         return view;
 
     }
@@ -91,6 +84,13 @@ public class CktzFragment extends ChukuBaseFragment implements CktzContract.Ickt
         setTvTime(tvStime);
     }
 
+    public Button getBtnSearch() {
+        return btnSearch;
+    }
+
+    public EditText getEdPid() {
+        return edPid;
+    }
 
     @Override
     public void onClick(View v) {
@@ -145,7 +145,13 @@ public class CktzFragment extends ChukuBaseFragment implements CktzContract.Ickt
         pid = edPid.getText().toString().trim();
         partNo = edPartNo.getText().toString().trim();
     }
-    public void updateList(List<ChukuTongZhiInfo> list,String msg){
+
+    @Override
+    public void setPresenter(CktzContract.IcktzPresenter presenter) {
+        mPresenter = presenter;
+    }
+
+    public void updateList(List<ChukuTongZhiInfo> list, String msg){
 
         if(list!=null){
             data.clear();

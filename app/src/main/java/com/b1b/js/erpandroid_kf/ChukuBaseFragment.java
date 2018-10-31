@@ -17,9 +17,14 @@ import java.util.Date;
 
 public class ChukuBaseFragment extends Fragment implements View.OnClickListener {
 
-
     public ChukuBaseFragment() {
         // Required empty public constructor
+    }
+
+    public void addArgLoginId(String id) {
+        Bundle b = new Bundle();
+        b.putString("loginID", id);
+        setArguments(b);
     }
     public  String getFormatDate(Date date) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
