@@ -1,7 +1,6 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -14,11 +13,9 @@ import android.widget.Spinner;
 /**
  A simple {@link Fragment} subclass.
  Activities that contain this fragment must implement the
- {@link SFFragment.OnFragmentInteractionListener} interface
  to handle interaction events. */
 public class SFFragment extends Fragment {
 
-    private OnFragmentInteractionListener mListener;
     private Spinner spiType;
 
     public SFFragment() {
@@ -40,11 +37,6 @@ public class SFFragment extends Fragment {
         return v;
     }
 
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
 
     @Override
     public void onAttach(Context context) {
@@ -55,19 +47,6 @@ public class SFFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
     }
 
-    /**
-     This interface must be implemented by activities that contain this
-     fragment to allow an interaction in this fragment to be communicated
-     to the activity and potentially other fragments contained in that
-     activity.
-     See the Android Training lesson <a href=
-     "http://developer.android.com/training/basics/fragments/communicating.html"
-     >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
-    }
 }

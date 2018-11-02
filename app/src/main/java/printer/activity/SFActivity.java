@@ -256,7 +256,7 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
         try {
             //            t.executeOnExecutor(TaskManager.getInstance().getExecutor(), "GetYunDanList", WebserviceUtils
             // .SF_SERVER);
-            t.executeOnExecutor(TaskManager.getInstance().getExecutor(), "GetYunDanListNew", WebserviceUtils.SF_SERVER);
+            t.executeOnExecutor(TaskManager.getInstance().getExecutor(), "GetYunDanListNew", WebserviceUtils.SF_Server);
         } catch (RejectedExecutionException e) {
             e.printStackTrace();
             MyToast.showToast(SFActivity.this, "查询太过频繁，请稍后再试。。");

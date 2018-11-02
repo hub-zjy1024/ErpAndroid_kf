@@ -66,7 +66,7 @@ public class MartStock{
 
 	public static String GetCaiGouBuInfo()throws IOException, XmlPullParserException {
 		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-		 String res=WebserviceUtils.getWcfResult(properties, "GetCaiGouBuInfo", WebserviceUtils.MartStock);
+		 String res=WebserviceUtils.getWcfResult(properties, "GetCaiGouBuInfo",serverName);
 		return res;
 	}
 

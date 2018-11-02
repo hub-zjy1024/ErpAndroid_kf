@@ -38,6 +38,8 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     private final String tag_Admin ="特殊";
     private final String tag_Setting = "设置";
     private final String tag_shangjia = "货物上架";
+    private final String tag_SHQD = "SH清单";
+
 
     private GridView gv;
 
@@ -74,6 +76,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Chukudan, "查看出库单和出库通知单"));
         if (CheckUtils.isAdmin()) {
             data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Admin, "101"));
+            data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_SHQD, "清单"));
         }
         data.add(new MyMenuItem(R.mipmap.menu_preprint, tag_ChukudanPrint, "出库单单据信息打印"));
         data.add(new MyMenuItem(R.mipmap.menu_check, tag_ChukuCheck, "出库审核功能和审核完成的拍照功能"));
@@ -110,6 +113,11 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         String value = data.content;
         Intent intent = new Intent();
         switch (value) {
+            case tag_SHQD:
+                intent.setClass(MenuActivity.this, QdListActivity.class);
+                startActivity(intent);
+                MyApp.myLogger.writeInfo("<page> QdListActivity");
+                break;
             case tag_Chukudan:
                 intent.setClass(MenuActivity.this, ChuKuActivity.class);
                 startActivity(intent);

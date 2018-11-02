@@ -197,7 +197,7 @@ public class MartService{
 
 	public static String GetClientIP()throws IOException, XmlPullParserException {
 		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-		 String res=WebserviceUtils.getWcfResult(properties, "GetClientIP", WebserviceUtils.MartService);
+		 String res=WebserviceUtils.getWcfResult(properties, "GetClientIP", serverName);
 		return res;
 	}
 
@@ -482,21 +482,21 @@ public class MartService{
 
 	public static String GetBHBMDataInfo()throws IOException, XmlPullParserException {
 		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-		 String res=WebserviceUtils.getWcfResult(properties, "GetBHBMDataInfo", WebserviceUtils.MartService);
+		 String res=WebserviceUtils.getWcfResult(properties, "GetBHBMDataInfo", serverName);
 		return res;
 	}
 
 
 	public static String GetInseorageBalanceInfoToSender()throws IOException, XmlPullParserException {
 		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-		 String res=WebserviceUtils.getWcfResult(properties, "GetInseorageBalanceInfoToSender", WebserviceUtils.MartService);
+		 String res=WebserviceUtils.getWcfResult(properties, "GetInseorageBalanceInfoToSender", serverName);
 		return res;
 	}
 
 
 	public static String GetInseorageBalanceInfoToCount()throws IOException, XmlPullParserException {
 		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-		 String res=WebserviceUtils.getWcfResult(properties, "GetInseorageBalanceInfoToCount", WebserviceUtils.MartService);
+		 String res=WebserviceUtils.getWcfResult(properties, "GetInseorageBalanceInfoToCount", serverName);
 		return res;
 	}
 
@@ -544,5 +544,30 @@ public class MartService{
 		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
 		properties.put("pid", pid);
 		return WebserviceUtils.getWcfResult(properties, "GetHYTypeInfo", serverName);
+	}
+	public static String getSellListDetails(String rq,String ghs,String kpgs)throws IOException, XmlPullParserException {
+		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+		properties.put("rq", rq);
+		properties.put("ghs", ghs);
+		properties.put("kpgs", kpgs);
+		return WebserviceUtils.getWcfResult(properties, "getSellListDetails", serverName);
+	}
+
+	public static String getSellList(String rq,String gys,String kpgs,String currentKP)throws IOException, XmlPullParserException {
+		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+		properties.put("rq", rq);
+		properties.put("gys", gys);
+		properties.put("kpgs", kpgs);
+		properties.put("currentKP", currentKP);
+		return WebserviceUtils.getWcfResult(properties, "getSellList", serverName);
+	}
+
+	public static String InsertPicInfo(String userId,String picName,String picUrl,String note)throws IOException, XmlPullParserException {
+		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+		properties.put("userId", userId);
+		properties.put("picName", picName);
+		properties.put("picUrl", picUrl);
+		properties.put("note", note);
+		return WebserviceUtils.getWcfResult(properties, "InsertPicInfo", serverName);
 	}
 }

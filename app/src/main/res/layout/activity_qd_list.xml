@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".QdListActivity">
+
+    <include layout="@layout/title_normal_toobar"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content">
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/qd_ed_pid"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="输入单据号"
+                android:inputType="number"
+                app:met_clearButton="true"/>
+
+            <Button
+                android:id="@+id/qd_btn_search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="搜索"/>
+
+            <Button
+                android:id="@+id/qd_btn_scan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="扫码"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/qd_ed_dataview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/qd_btn_takepic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="拍照"/>
+    </LinearLayout>
+
+</LinearLayout>

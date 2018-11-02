@@ -108,7 +108,7 @@ public class Login{
 
 	public static String GetUserInfoByAllInfo()throws IOException, XmlPullParserException {
 		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-		 String res=WebserviceUtils.getWcfResult(properties, "GetUserInfoByAllInfo", WebserviceUtils.Login);
+		 String res=WebserviceUtils.getWcfResult(properties, "GetUserInfoByAllInfo", serverName);
 		return res;
 	}
 
@@ -153,7 +153,7 @@ public class Login{
 
 	public static String GetCCInfoAll()throws IOException, XmlPullParserException {
 		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-		 String res=WebserviceUtils.getWcfResult(properties, "GetCCInfoAll", WebserviceUtils.Login);
+		 String res=WebserviceUtils.getWcfResult(properties, "GetCCInfoAll", serverName);
 		return res;
 	}
 
@@ -180,14 +180,14 @@ public class Login{
 
 	public static String GetUserMenuInfoAll()throws IOException, XmlPullParserException {
 		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-		 String res=WebserviceUtils.getWcfResult(properties, "GetUserMenuInfoAll", WebserviceUtils.Login);
+		 String res=WebserviceUtils.getWcfResult(properties, "GetUserMenuInfoAll", serverName);
 		return res;
 	}
 
 
 	public static String GetUserTreeInfo()throws IOException, XmlPullParserException {
 		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
-		 String res=WebserviceUtils.getWcfResult(properties, "GetUserTreeInfo", WebserviceUtils.Login);
+		 String res=WebserviceUtils.getWcfResult(properties, "GetUserTreeInfo", serverName);
 		return res;
 	}
 

@@ -66,7 +66,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
     protected Button btn_takepic;
     private SurfaceHolder mHolder;
     protected LinearLayout toolbar;
-    private Camera.Parameters parameters;
+    protected Camera.Parameters parameters;
     protected Camera mCamera;
     protected boolean isPreview = false;
     private List<Camera.Size> picSizes;
@@ -519,6 +519,17 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                 break;
             //提交
             case R.id.main_commit:
+                if (tempBytes == null) {
+                    MyToast.showToast(mContext, "拍照数据为空,请重新进入页面");
+                    if (mCamera != null) {
+                        mCamera.startPreview();
+                        auto.start();
+                        isPreview = true;
+                    }
+                    btn_takepic.setEnabled(true);
+                    toolbar.setVisibility(View.GONE);
+                    return;
+                }
                 final byte[] picData = Arrays.copyOf(tempBytes, tempBytes.length);
                 final int cRotate = tempRotate;
                 upLoadPic(cRotate, picData);

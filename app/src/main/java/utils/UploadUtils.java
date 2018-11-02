@@ -134,4 +134,13 @@ public class UploadUtils {
         return builder.toString();
     }
 
+    public static String createSHQD_Rm(String pid) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("SQHD_a_");
+        builder.append(pid);
+        builder.append("_");
+        builder.append(getRandomNumber(4));
+        return builder.toString();
+    }
+
 }

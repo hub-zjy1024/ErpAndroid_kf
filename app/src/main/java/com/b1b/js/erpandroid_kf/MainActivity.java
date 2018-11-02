@@ -46,7 +46,7 @@ import utils.handler.NoLeakHandler;
 import utils.wsdelegate.Login;
 import utils.wsdelegate.MartService;
 
-public class MainActivity extends BaseScanActivity  {
+public class MainActivity extends BaseScanActivity {
 
     private EditText edUserName;
     private EditText edPwd;
@@ -69,6 +69,7 @@ public class MainActivity extends BaseScanActivity  {
     TaskManager taskManger = TaskManager.getInstance(5, 9);
     private AlertDialog permissionDialog;
     private Handler zHandler = new NoLeakHandler(this);
+
     public void handleMessage(final Message msg) {
         super.handleMessage(msg);
         switch (msg.what) {
@@ -149,7 +150,8 @@ public class MainActivity extends BaseScanActivity  {
                                     if (scanDialog != null && scanDialog.isShowing()) {
                                         scanDialog.cancel();
                                     }
-                                    Intent intentScan = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf.MenuActivity
+                                    Intent intentScan = new Intent(MainActivity.this, com.b1b.js
+                                            .erpandroid_kf.MenuActivity
                                             .class);
                                     startActivity(intentScan);
                                     finish();
@@ -183,7 +185,8 @@ public class MainActivity extends BaseScanActivity  {
                 if (pd != null && pd.isShowing()) {
                     pd.cancel();
                 }
-                Intent intentScan = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf.MenuActivity.class);
+                Intent intentScan = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf.MenuActivity
+                        .class);
                 startActivity(intentScan);
                 finish();
                 break;
@@ -207,8 +210,9 @@ public class MainActivity extends BaseScanActivity  {
                 break;
         }
     }
+
     /**
-     @param savedInstanceState
+     * @param savedInstanceState
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -242,8 +246,10 @@ public class MainActivity extends BaseScanActivity  {
         btnPrintCode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity.class);
-                intent.putExtra(com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity.extraMode, com.b1b.js.erpandroid_kf
+                Intent intent = new Intent(MainActivity.this, com.b1b.js.erpandroid_kf
+                        .RukuTagPrintAcitivity.class);
+                intent.putExtra(com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity.extraMode, com.b1b.js
+                        .erpandroid_kf
                         .RukuTagPrintAcitivity.MODE_OFFLINE);
                 startActivity(intent);
             }
@@ -255,7 +261,7 @@ public class MainActivity extends BaseScanActivity  {
         int code = 0;
         try {
             PackageManager pm = getPackageManager();
-            PackageInfo info=  pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
+            PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
             code = info.versionCode;
             versionName = info.versionName;
             tvVersion.setText("当前版本为：" + versionName);
@@ -309,7 +315,8 @@ public class MainActivity extends BaseScanActivity  {
             public void onClick(View v) {
                 String debugPwd = sp.getString("debugPwd", "");
                 Log.e("zjy", "MainActivity->onClick(): password==" + tempPassword);
-                if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590") || phoneCode.endsWith
+                if (phoneCode.endsWith("868930027847564") || phoneCode.endsWith("358403032322590") ||
+                        phoneCode.endsWith
                         ("864394010742122") || phoneCode.endsWith("A0000043F41515")
                         || phoneCode.endsWith("866462026203849") || phoneCode.endsWith("869552022575930")) {
                     login("101", debugPwd);
@@ -336,9 +343,11 @@ public class MainActivity extends BaseScanActivity  {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[]
+            grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 100 && permissions.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == 100 && permissions.length > 0 && grantResults[0] == PackageManager
+                .PERMISSION_GRANTED) {
             Log.e("zjy", "MenuActivity.java->onRequestPermissionsResult(): ok==");
         } else {
             if (permissionDialog == null) {
@@ -408,7 +417,8 @@ public class MainActivity extends BaseScanActivity  {
                 while (!success) {
                     try {
                         Map<String, Object> result = getUserInfo(uid);
-                        sp.edit().putInt("cid", (int) result.get("cid")).putInt("did", (int) result.get("did")).
+                        sp.edit().putInt("cid", (int) result.get("cid")).putInt("did", (int) result.get
+                                ("did")).
                                 putString("oprName", (String) result.get("oprName")).apply();
                         success = true;
                     } catch (IOException e) {
@@ -433,11 +443,8 @@ public class MainActivity extends BaseScanActivity  {
         }.start();
     }
 
-    private Map<String, Object> getUserInfo(String uid) throws IOException, XmlPullParserException, JSONException {
-//        LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
-//        map.put("checker", "1");
-//        map.put("uid", uid);
-//        String soapResult = WebserviceUtils.getWcfResult(map, "GetUserInfoByUID", WebserviceUtils.Login);
+    private Map<String, Object> getUserInfo(String uid) throws IOException, XmlPullParserException,
+            JSONException {
         String soapResult = Login.GetUserInfoByUID("1", uid);
         Log.e("zjy", "MainActivity.java->run(): info==" + MyApp.id + "\t" + soapResult);
         JSONObject object = new JSONObject(soapResult);
@@ -467,8 +474,9 @@ public class MainActivity extends BaseScanActivity  {
     }
 
     /**
-     读取条码信息
-     @param code onActivtyResult()回调的data
+     * 读取条码信息
+     *
+     * @param code onActivtyResult()回调的data
      */
     private void readCode(final String code) {
         scanDialog = new ProgressDialog(MainActivity.this);
@@ -511,7 +519,7 @@ public class MainActivity extends BaseScanActivity  {
     }
 
     /**
-     登录
+     * 登录
      */
     private void login(final String name, final String pwd) {
         pd = new ProgressDialog(MainActivity.this);
@@ -524,7 +532,8 @@ public class MainActivity extends BaseScanActivity  {
                 try {
                     String deviceID = WebserviceUtils.DeviceID + "," + WebserviceUtils.DeviceNo;
                     version = versionName;
-                    String soapResult = MartService.AndroidLogin("sdr454fgtre6e655t5rt4",name,pwd,deviceID,version);
+                    String soapResult = MartService.AndroidLogin("sdr454fgtre6e655t5rt4", name, pwd,
+                            deviceID, version);
                     String[] resArray = soapResult.split("-");
                     if (resArray[0].equals("SUCCESS")) {
                         Message msg1 = zHandler.obtainMessage();
@@ -536,7 +545,7 @@ public class MainActivity extends BaseScanActivity  {
                         zHandler.sendMessage(msg1);
                     } else {
                         Message msg = zHandler.obtainMessage(0);
-                        msg.obj =soapResult;
+                        msg.obj = soapResult;
                         zHandler.sendMessage(msg);
                     }
                 } catch (IOException e) {
