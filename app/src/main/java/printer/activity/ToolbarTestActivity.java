@@ -318,9 +318,7 @@ public class ToolbarTestActivity extends AppCompatActivity {
                 return true;
             }
         } else if (type.equals("pdf")) {
-            if (f.getName().endsWith(".pdf")) {
-                return true;
-            }
+            return f.getName().endsWith(".pdf");
         }
         return false;
     }

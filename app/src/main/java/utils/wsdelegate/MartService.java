@@ -553,12 +553,11 @@ public class MartService{
 		return WebserviceUtils.getWcfResult(properties, "getSellListDetails", serverName);
 	}
 
-	public static String getSellList(String rq,String gys,String kpgs,String currentKP)throws IOException, XmlPullParserException {
+	public static String getSellList(String rq,String gys,String kpgs)throws IOException, XmlPullParserException {
 		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
 		properties.put("rq", rq);
 		properties.put("gys", gys);
 		properties.put("kpgs", kpgs);
-		properties.put("currentKP", currentKP);
 		return WebserviceUtils.getWcfResult(properties, "getSellList", serverName);
 	}
 
@@ -569,5 +568,11 @@ public class MartService{
 		properties.put("picUrl", picUrl);
 		properties.put("note", note);
 		return WebserviceUtils.getWcfResult(properties, "InsertPicInfo", serverName);
+	}
+
+	public static String GetInvoiceCorp(int typeID)throws IOException, XmlPullParserException {
+		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+		properties.put("typeID", typeID);
+		return WebserviceUtils.getWcfResult(properties, "GetInvoiceCorp", serverName);
 	}
 }

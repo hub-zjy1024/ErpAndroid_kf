@@ -38,7 +38,6 @@ import utils.MyFileUtils;
 import utils.MyImageUtls;
 import utils.MyToast;
 import utils.UploadUtils;
-import utils.WebserviceUtils;
 import utils.handler.NoLeakHandler;
 import utils.wsdelegate.MartService;
 
@@ -52,8 +51,7 @@ public class QdTakePicActivity extends TakePicActivity {
 
     public String getUploadRemotePath() {
         String remoteName = UploadUtils.createSHQD_Rm(pid);
-        String remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
-        return remotePath;
+        return  "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
     }
 
     private NoLeakHandler mHandler = new NoLeakHandler(this);
@@ -92,7 +90,7 @@ public class QdTakePicActivity extends TakePicActivity {
     }
 
     @Override
-    public void upLoadPic(final int cRotate, byte[] picData) {
+    public void upLoadPic(final int cRotate, final byte[] picData) {
         final long first = System.currentTimeMillis();
         final File sFile = MyFileUtils.getFileParent();
         if (sFile == null) {
@@ -136,6 +134,7 @@ public class QdTakePicActivity extends TakePicActivity {
         Runnable tempThread = new Runnable() {
             @Override
             public void run() {
+
                 long time2 = System.currentTimeMillis();
                 Bitmap bmp = BitmapFactory.decodeByteArray(nDatas, 0, nDatas.length);
                 Matrix matrixs = new Matrix();
@@ -201,7 +200,7 @@ public class QdTakePicActivity extends TakePicActivity {
                             if (upSuccess) {
                                 while (true) {
                                     //更新服务器信息
-                                    if (CheckUtils.isAdmin()) {
+                                    if (!CheckUtils.isAdmin()) {
                                         isStop = true;
                                         notificationManager.cancel(finalId);
                                         map.remove(finalId);
@@ -212,10 +211,10 @@ public class QdTakePicActivity extends TakePicActivity {
                                     }
                                     try {
                                         String res = setInsertPicInfo("", cid, did,
-                                                Integer.parseInt(loginID), pid, remoteName + ".jpg"
-                                                , insertPath, "CKTZ");
+                                                Integer.parseInt(loginID), pid, remoteName
+                                                , insertPath, "SHQD");
                                         Log.e("zjy", "QdTakePicActivity.java-> setInsertPicInfo==" + res);
-                                        if (res.equals("操作成功")) {
+                                        if (res.equals("1")) {
                                             double totalTime = (double) (System.currentTimeMillis() -
                                                     first) / 1000;
                                             double runTime = (double) (System.currentTimeMillis() - time2)
@@ -329,14 +328,14 @@ public class QdTakePicActivity extends TakePicActivity {
     @Override
     public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String
             fileName, String filePath, String stypeID) throws IOException, XmlPullParserException {
-        return MartService.InsertPicInfo(String.valueOf(uid), fileName, filePath, "");
+        return MartService.InsertPicInfo(String.valueOf(uid), fileName, filePath, stypeID);
     }
 
     @Override
     public boolean getInsertResultMain(String remoteName, String insertPath) throws IOException,
             XmlPullParserException {
-        String result = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
-                .parseInt(loginID), pid, remoteName, insertPath, "CKTZ");
+        String result = setInsertPicInfo("", cid, did, Integer
+                .parseInt(loginID), pid, remoteName, insertPath, "SHQD");
         MyApp.myLogger.writeInfo("takepic QD insert:" + remoteName + "=" + result);
         return "操作成功".equals(result);
     }

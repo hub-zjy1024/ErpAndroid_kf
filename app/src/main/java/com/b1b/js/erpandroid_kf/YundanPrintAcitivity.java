@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -197,10 +196,10 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
         final String[] serverTypes = new String[]{"省内次日-省内","省内即日-省内" ,
                 "同城次日-同城", "同城即日-同城","陆运件-货多(慢)", "隔日达-快（空）", "次日达-很快（空）",
                 "当天达-极快（空）"};
-        spiType.setAdapter(new ArrayAdapter<String>(mContext, R.layout.item_province, R.id
+        spiType.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_province, R.id
                 .item_province_tv, serverTypes));
         final String[] payTypes = new String[]{"寄付月结", "到付", "转第三方付款"};
-        spiPayType.setAdapter(new ArrayAdapter<String>(mContext, R.layout.item_province, R.id.item_province_tv, payTypes));
+        spiPayType.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_province, R.id.item_province_tv, payTypes));
         final List<String> printerItems = new ArrayList<>();
         printerItems.add("请选择打印机");
         reIntent = getIntent();
@@ -353,7 +352,7 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
             public void run() {
                 try {
                     String dhAddresss = getDHAddresss();
-                    List<String> titles = new ArrayList<String>();
+                    List<String> titles = new ArrayList<>();
                     JSONObject addJObj = new JSONObject(dhAddresss);
                     JSONArray addTable = addJObj.getJSONArray("表");
                     titles.add("请-->选择调货方向");
@@ -363,7 +362,7 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
                         String to = obj.getString("ToStotageID");
                         if (kfName.equals("")) {
                             titles.add(from + "-->" + to);
-                            HashMap<String, String> map = new HashMap<String, String>();
+                            HashMap<String, String> map = new HashMap<>();
                             map.put("key1", from);
                             map.put("name1", obj.getString("FromName"));
                             map.put("phone1", obj.getString("FromPhone"));
@@ -777,7 +776,6 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
         printerAddress = spKF.getString(SettingActivity.PRINTERSERVER, "");
     }
 
-    @NonNull
     private boolean printKyYundan(String serverIP, String orderID, String goodInfos, String cardID, String
             payType, String counts, String printName, String destcode, String yundanType)
             throws IOException {
@@ -837,11 +835,7 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
                 .toString());
         double len = (double) (System.currentTimeMillis() - time1) / 1000;
         MyApp.myLogger.writeInfo("KY yundan" + orderID + "\ttime:" + len);
-        if (res.equals("ok")) {
-            return true;
-        } else {
-            return false;
-        }
+        return res.equals("ok");
     }
 
     @Override

@@ -19,7 +19,6 @@ public class CompareInterface implements Comparator<String> {
             if (c1 > c2) {
                 return 1;
             } else if (c1 == c2) {
-                continue;
             } else {
                 return -1;
             }

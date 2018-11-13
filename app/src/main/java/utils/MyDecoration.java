@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
@@ -22,8 +23,11 @@ public class MyDecoration extends RecyclerView.ItemDecoration {
     private int mOrientation;
 
     public MyDecoration(Context context, int orientation) {
-        //        super(context, orientation);
-        mDivider = context.getResources().getDrawable(R.drawable.recyclerview_divider);
+        if (Build.VERSION.SDK_INT >= 21) {
+            mDivider = context.getDrawable(R.drawable.recyclerview_divider);
+        } else {
+            mDivider = context.getResources().getDrawable(R.drawable.recyclerview_divider);
+        }
         setOrientation(orientation);
     }
 

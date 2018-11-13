@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -33,6 +34,7 @@ import utils.DialogUtils;
 import utils.FTPUtils;
 import utils.MyFileUtils;
 import utils.MyToast;
+import utils.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.wsdelegate.ChuKuServer;
 
@@ -129,7 +131,7 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                                                  return;
                                              }
                                              adapter.notifyDataSetChanged();
-                                             File imgFile = MyFileUtils.getFileParent();
+                                             File imgFile = Environment.getExternalStorageDirectory();
                                              if (imgFile == null) {
                                                  MyToast.showToast(mContext, "当前无可用的存储设备");
                                                  return;
@@ -177,7 +179,7 @@ public class ViewPicByPidActivity extends BaseScanActivity{
         String pid = getIntent().getStringExtra("pid");
         if (pid != null) {
             edPid.setText(pid);
-            File imgFile = MyFileUtils.getFileParent();
+            File imgFile = Environment.getExternalStorageDirectory();
             if (imgFile == null) {
                 MyToast.showToast(mContext, "当前无可用的存储设备");
                 return;
@@ -193,6 +195,7 @@ public class ViewPicByPidActivity extends BaseScanActivity{
 
     private void startSearch(final String pid) {
         showProgressDialog();
+        SoftKeyboardUtils.closeInputMethod(edPid, mContext);
         new Thread() {
             @Override
             public void run() {
@@ -210,8 +213,14 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                 }
                 try {
                     JSONObject root = new JSONObject(result);
-                    JSONArray array = root.getJSONArray("表");
+                    final JSONArray array = root.getJSONArray("表");
                     Log.e("zjy", "ViewPicByPidActivity.java->run():search pic count=" + array.length());
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            pd.setMessage("查找到" + array.length() + "张图片，开始下载");
+                        }
+                    });
                     List<FTPImgInfo> list = new ArrayList<>();
                     int searchSize = array.length();
                     FTPUtils mFtpClient=null;

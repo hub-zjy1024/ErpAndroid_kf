@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
-ext.appReleaseDir = "D:/dyj/";
+ext.appReleaseDir = "D:/dyj/"
 
-def getDate() {
+def static getDate() {
     def date = new Date()
     def formattedDate = date.format('MMddHHmmss')
     return formattedDate

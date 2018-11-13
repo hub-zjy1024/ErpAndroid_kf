@@ -18,9 +18,8 @@ import java.util.Locale;
 
 public class MyFileUtils {
     public static File getFileParent() {
-        return fileParent;
+        return Environment.getExternalStorageDirectory();
     }
-
     private static File fileParent;
 
     /**

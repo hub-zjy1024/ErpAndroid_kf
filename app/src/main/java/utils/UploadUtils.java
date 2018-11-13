@@ -58,7 +58,6 @@ public class UploadUtils {
     }
 
     public static String getDD(Date date) {
-        SimpleDateFormat.getTimeInstance(1);
         SimpleDateFormat sdf = new SimpleDateFormat("dd");
         String str = sdf.format(date);
         return str;
@@ -136,11 +135,17 @@ public class UploadUtils {
 
     public static String createSHQD_Rm(String pid) {
         StringBuilder builder = new StringBuilder();
-        builder.append("SQHD_a_");
+        builder.append("SHQD_");
         builder.append(pid);
-        builder.append("_");
+        builder.append("_a_");
         builder.append(getRandomNumber(4));
         return builder.toString();
+    }
+
+    public static String getSQDate(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
+        String str = sdf.format(date);
+        return str;
     }
 
 }

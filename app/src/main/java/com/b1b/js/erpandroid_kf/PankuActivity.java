@@ -34,9 +34,10 @@ import java.util.List;
 
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
+import utils.handler.NoLeakHandler;
 import utils.wsdelegate.ChuKuServer;
 
-public class PankuActivity extends SavedLoginInfoWithScanActivity {
+public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback {
 
     private EditText edID;
     private EditText edPartNo;
@@ -61,97 +62,98 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity {
     private View nowViwe;
     SharedPreferences pfInfo;
     AlertDialog choiceMethodDialog;
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case GET_DATA:
-                    MyToast.showToast(PankuActivity.this, "获取到" + pkData.size() + "条数据");
-                    mAdapter.notifyDataSetChanged();
-                    break;
-                case GET_FAIL:
-                    MyToast.showToast(PankuActivity.this, "网络质量较差，请检查网络");
-                    mAdapter.notifyDataSetChanged();
-                    break;
-                case GET_NUll:
-                    MyToast.showToast(PankuActivity.this, "条件有误");
-                    mAdapter.notifyDataSetChanged();
-                    break;
-                case INSERT_SUCCESS:
-                    Toast.makeText(PankuActivity.this, "插入成功", Toast.LENGTH_SHORT).show();
-                    btnPk.setVisibility(View.INVISIBLE);
-                    btnReset.setVisibility(View.VISIBLE);
-                    pkData.clear();
-                    mAdapter.notifyDataSetChanged();
-                    final String id = msg.obj.toString();
-                    Runnable getResultRun = new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                List<PankuInfo> pankuList = getPankuList(id, "");
-                                pkData.addAll(pankuList);
-                                mHandler.sendEmptyMessage(GET_DATA);
-                            } catch (IOException e) {
-                                mHandler.sendEmptyMessage(GET_FAIL);
-                                e.printStackTrace();
-                            } catch (XmlPullParserException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                mHandler.sendEmptyMessage(GET_NUll);
-                                e.printStackTrace();
-                            }
-                        }
-                    };
-                    TaskManager.getInstance().execute(getResultRun);
-                    mAdapter.notifyDataSetChanged();
-                    break;
-                case INSERT_FAIL:
-                    MyToast.showToast(PankuActivity.this, "插入盘库信息失败");
-                    mAdapter.notifyDataSetChanged();
-                    break;
-                case CHANGEFLAG_SUCCESS:
-                    Toast.makeText(PankuActivity.this, "解锁成功", Toast.LENGTH_SHORT).show();
-                    final String did = msg.obj.toString();
-                    btnPk.setVisibility(View.VISIBLE);
-                    btnReset.setVisibility(View.INVISIBLE);
-                    pkData.clear();
-                    mAdapter.notifyDataSetChanged();
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            super.run();
-                            try {
-                                List<PankuInfo> pankuList = getPankuList(did, "");
-                                pkData.addAll(pankuList);
-                                mHandler.sendEmptyMessage(GET_DATA);
-                            } catch (IOException e) {
-                                mHandler.sendEmptyMessage(GET_FAIL);
-                                e.printStackTrace();
-                            } catch (XmlPullParserException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                mHandler.sendEmptyMessage(GET_NUll);
-                                e.printStackTrace();
-                            }
-                        }
-                    }.start();
 
-                    break;
-                case CHANGEFLAG_ERROR:
-                    MyToast.showToast(PankuActivity.this, "解锁失败");
-                    mAdapter.notifyDataSetChanged();
-                    break;
-                case GET_PANKUINFO:
-                    showEditDialog((PankuInfo) msg.obj);
-                    mAdapter.notifyDataSetChanged();
-                    break;
-            }
-            if (pdDialog != null && pdDialog.isShowing()) {
-                pdDialog.cancel();
-            }
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case GET_DATA:
+                MyToast.showToast(PankuActivity.this, "获取到" + pkData.size() + "条数据");
+                mAdapter.notifyDataSetChanged();
+                break;
+            case GET_FAIL:
+                MyToast.showToast(PankuActivity.this, "网络质量较差，请检查网络");
+                mAdapter.notifyDataSetChanged();
+                break;
+            case GET_NUll:
+                MyToast.showToast(PankuActivity.this, "条件有误");
+                mAdapter.notifyDataSetChanged();
+                break;
+            case INSERT_SUCCESS:
+                Toast.makeText(PankuActivity.this, "插入成功", Toast.LENGTH_SHORT).show();
+                btnPk.setVisibility(View.INVISIBLE);
+                btnReset.setVisibility(View.VISIBLE);
+                pkData.clear();
+                mAdapter.notifyDataSetChanged();
+                final String id = msg.obj.toString();
+                Runnable getResultRun = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            List<PankuInfo> pankuList = getPankuList(id, "");
+                            pkData.addAll(pankuList);
+                            mHandler.sendEmptyMessage(GET_DATA);
+                        } catch (IOException e) {
+                            mHandler.sendEmptyMessage(GET_FAIL);
+                            e.printStackTrace();
+                        } catch (XmlPullParserException e) {
+                            e.printStackTrace();
+                        } catch (JSONException e) {
+                            mHandler.sendEmptyMessage(GET_NUll);
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                TaskManager.getInstance().execute(getResultRun);
+                mAdapter.notifyDataSetChanged();
+                break;
+            case INSERT_FAIL:
+                MyToast.showToast(PankuActivity.this, "插入盘库信息失败");
+                mAdapter.notifyDataSetChanged();
+                break;
+            case CHANGEFLAG_SUCCESS:
+                Toast.makeText(PankuActivity.this, "解锁成功", Toast.LENGTH_SHORT).show();
+                final String did = msg.obj.toString();
+                btnPk.setVisibility(View.VISIBLE);
+                btnReset.setVisibility(View.INVISIBLE);
+                pkData.clear();
+                mAdapter.notifyDataSetChanged();
+                new Thread() {
+                    @Override
+                    public void run() {
+                        super.run();
+                        try {
+                            List<PankuInfo> pankuList = getPankuList(did, "");
+                            pkData.addAll(pankuList);
+                            mHandler.sendEmptyMessage(GET_DATA);
+                        } catch (IOException e) {
+                            mHandler.sendEmptyMessage(GET_FAIL);
+                            e.printStackTrace();
+                        } catch (XmlPullParserException e) {
+                            e.printStackTrace();
+                        } catch (JSONException e) {
+                            mHandler.sendEmptyMessage(GET_NUll);
+                            e.printStackTrace();
+                        }
+                    }
+                }.start();
+
+                break;
+            case CHANGEFLAG_ERROR:
+                MyToast.showToast(PankuActivity.this, "解锁失败");
+                mAdapter.notifyDataSetChanged();
+                break;
+            case GET_PANKUINFO:
+                showEditDialog((PankuInfo) msg.obj);
+                mAdapter.notifyDataSetChanged();
+                break;
         }
-    };
+        if (pdDialog != null && pdDialog.isShowing()) {
+            pdDialog.cancel();
+        }
+        getResources();
+    }
+
+    private Handler mHandler = new NoLeakHandler(this);
     private int reqScan = 500;
 
     @Override
@@ -205,12 +207,11 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity {
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Intent intent = new Intent(PankuActivity.this, CaptureActivity.class);
-//                startActivityForResult(intent, CaptureActivity.REQ_CODE);
                 startScanActivity(REQ_CODE);
             }
         });
     }
+
     private void getData() {
         SoftKeyboardUtils.closeInputMethod(edID, PankuActivity.this);
         final String id = edID.getText().toString().trim();
@@ -251,10 +252,6 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity {
         }
     }
 
-    @Override
-    public void getCameraScanResult(String result) {
-        super.getCameraScanResult(result);
-    }
 
     @Override
     public void getCameraScanResult(String result, int code) {
@@ -366,34 +363,12 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity {
         }
     }
 
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        if (resultCode == RESULT_OK) {
-//            if (requestCode == CaptureActivity.REQ_CODE) {
-//                String result = data.getStringExtra("result");
-//                edID.setText(result);
-//                try {
-//                    Integer.parseInt(result);
-//                    getData();
-//                } catch (NumberFormatException e) {
-//                    MyToast.showToast(this, "扫码结果有误");
-//                    e.printStackTrace();
-//                }
-//            } else if (requestCode == reqScan) {
-//                String result = data.getStringExtra("result");
-//
-//            }
-//        }
-//    }
 
     //    string GetDataListForPanKu(string id, string part);
     //
-    public List<PankuInfo> getPankuList(String detailId, String partno) throws IOException, XmlPullParserException,
+    public List<PankuInfo> getPankuList(String detailId, String partno) throws IOException,
+            XmlPullParserException,
             JSONException {
-//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-//        map.put("id", detailId);
-//        map.put("part", partno);
-//        String soapRes = WebserviceUtils.getWcfResult(map, "GetDataListForPanKu", WebserviceUtils.ChuKuServer);
         String soapRes = ChuKuServer.GetDataListForPanKu(detailId, partno);
         List<PankuInfo> tempList = new ArrayList<>();
         JSONObject jObj = new JSONObject(soapRes);
@@ -412,7 +387,8 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity {
             String rkDate = tempJobj.getString("入库日期");
             String storageName = tempJobj.getString("仓库");
             String pkFlag = tempJobj.getString("PanKuFlag");
-            PankuInfo pkInfo = new PankuInfo(pid, mxId, sPartno, leftCounts, factory, description, fengzhuang, pihao, placeId,
+            PankuInfo pkInfo = new PankuInfo(pid, mxId, sPartno, leftCounts, factory, description,
+                    fengzhuang, pihao, placeId,
                     rkDate, storageName, pkFlag);
             tempList.add(pkInfo);
         }
@@ -439,14 +415,15 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity {
             @Override
             public void onClick(View v) {
                 startScanActivity(reqScan);
-//                startActivityForResult(new Intent(PankuActivity.this, CaptureActivity.class),reqScan);
+                //                startActivityForResult(new Intent(PankuActivity.this, CaptureActivity
+                // .class),reqScan);
             }
         });
         dialogTakePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final String detailID = info.getDetailId();
-                if (choiceMethodDialog != null&&!choiceMethodDialog.isShowing()) {
+                if (choiceMethodDialog != null && !choiceMethodDialog.isShowing()) {
                     choiceMethodDialog.show();
                     return;
                 }
@@ -543,8 +520,10 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity {
                         String Note = dialogMark.getText().toString().trim();
                         String PKPlace = dialogPlace.getText().toString().trim();
                         try {
-                            int result = insertPankuInfo(Integer.parseInt(info.getDetailId()), info.getPartNo(), Integer
-                                            .parseInt(info.getLeftCounts()), pkPartNo, PKQuantity, PKmfc, PKDescription, PKPack,
+                            int result = insertPankuInfo(Integer.parseInt(info.getDetailId()), info
+                                            .getPartNo(), Integer
+                                            .parseInt(info.getLeftCounts()), pkPartNo, PKQuantity, PKmfc,
+                                    PKDescription, PKPack,
                                     PKBatchNo, MinPack, OperID, OperName, DiskID, Note, PKPlace);
                             if (result == 0) {
                                 mHandler.sendEmptyMessage(INSERT_FAIL);
@@ -594,46 +573,31 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity {
     }
 
     /**
-     @param InstorageDetailID 明细号
-     @param OldPartNo         原始型号
-     @param OldQuantity       原始数量
-     @param PKPartNo          盘库型号
-     @param PKQuantity        盘库数量
-     @param PKmfc             厂家
-     @param PKDescription     描述
-     @param PKPack            封装
-     @param PKBatchNo         批号
-     @param MinPack           最小包装
-     @param OperID            盘库人ID
-     @param OperName          盘库人
-     @param DiskID            电脑地址
-     @param Note              盘库备注
-     @param PKPlace           盘库位置
-     @return
-     @throws IOException
-     @throws XmlPullParserException
+     * @param InstorageDetailID 明细号
+     * @param OldPartNo         原始型号
+     * @param OldQuantity       原始数量
+     * @param PKPartNo          盘库型号
+     * @param PKQuantity        盘库数量
+     * @param PKmfc             厂家
+     * @param PKDescription     描述
+     * @param PKPack            封装
+     * @param PKBatchNo         批号
+     * @param MinPack           最小包装
+     * @param OperID            盘库人ID
+     * @param OperName          盘库人
+     * @param DiskID            电脑地址
+     * @param Note              盘库备注
+     * @param PKPlace           盘库位置
+     * @return
+     * @throws IOException
+     * @throws XmlPullParserException
      */
-    public int insertPankuInfo(int InstorageDetailID, String OldPartNo, int OldQuantity, String PKPartNo, String PKQuantity,
+    public int insertPankuInfo(int InstorageDetailID, String OldPartNo, int OldQuantity, String PKPartNo,
+                               String PKQuantity,
                                String PKmfc, String PKDescription, String PKPack
-            , String PKBatchNo, int MinPack, int OperID, String OperName, String DiskID, String Note, String PKPlace) throws
+            , String PKBatchNo, int MinPack, int OperID, String OperName, String DiskID, String Note,
+                               String PKPlace) throws
             IOException, XmlPullParserException {
-//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-//        map.put("InstorageDetailID", InstorageDetailID);
-//        map.put("OldPartNo", OldPartNo);
-//        map.put("OldQuantity", OldQuantity);
-//        map.put("PKPartNo", PKPartNo);
-//        map.put("PKQuantity", PKQuantity);
-//        map.put("PKmfc", PKmfc);
-//        map.put("PKDescription", PKDescription);
-//        map.put("PKPack", PKPack);
-//        map.put("PKBatchNo", PKBatchNo);
-//        map.put("MinPack", MinPack);
-//        map.put("OperID", OperID);
-//        map.put("OperName", OperName);
-//        map.put("DiskID", DiskID);
-//        map.put("Note", Note);
-//        map.put("PKPlace", PKPlace);
-//        String soapRes = WebserviceUtils.getWcfResult(map, "PanKu", WebserviceUtils.ChuKuServer);
         String soapRes = ChuKuServer.PanKu(InstorageDetailID, OldPartNo, OldQuantity, PKPartNo, PKQuantity,
                 PKmfc, PKDescription, PKPack, PKBatchNo, MinPack, OperID, OperName, DiskID, Note, PKPlace);
         int result = Integer.parseInt(soapRes);
@@ -651,6 +615,7 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity {
     public String getUpdateInfo(String detailId) throws IOException, XmlPullParserException {
         return ChuKuServer.GetPauKuDataInfoByID(detailId);
     }
+
     class DetailThread extends Thread {
         PankuInfo item;
 
@@ -677,7 +642,8 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity {
                     String Mark = tempJ.getString("Note");
                     String PKPlace = tempJ.getString("PKPlace");
                     String flag = tempJ.getString("ID");
-                    PankuInfo info = new PankuInfo("", detailId, PKPartNo, PKQuantity, PKmfc, PKDescription, PKPack, PKBatchNo,
+                    PankuInfo info = new PankuInfo("", detailId, PKPartNo, PKQuantity, PKmfc,
+                            PKDescription, PKPack, PKBatchNo,
                             PKPlace, "", "", flag);
                     info.setMinBz(MinPack);
                     info.setMark(Mark);

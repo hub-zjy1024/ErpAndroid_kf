@@ -239,32 +239,36 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                         int sw = metrics.widthPixels;
                         float density = metrics.density;
                         int sh = metrics.heightPixels;
-                        MyApp.myLogger.writeInfo("screenSize w-h:" + sw + "\t" + sh);
-                        MyApp.myLogger.writeInfo("defPreviewSize w-h:" + width1 + "\t" + height1);
-                        Log.e("zjy", "TakePicActivity->surfaceCreated(): mCamera.preview==" + width1 + "\t" + height1);
-                        Log.e("zjy", "TakePicActivity->surfaceCreated(): Screen==" + sw + "\t" + sh + "xx" + density);
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(String.format("screenSize w-h:%d - %d", sw, sh));
+                        sb.append("\n");
+                        sb.append(String.format("mCamera.defpreview w-h:%d - %d", width1, height1));
+                        sb.append("\n");
                         Point finalSize = getSuitablePreviewSize(parameters, sw, sh);
                         if (finalSize != null) {
-                            Log.e("zjy", "TakePicActivity->surfaceCreated():final.preview==" + finalSize.x + "\t" + finalSize.y);
-                            MyApp.myLogger.writeInfo("setPreviewSize w-h:" + finalSize.x + "\t" + finalSize.y);
+                            sb.append(String.format("finalPreSize:%d,%d", finalSize.x, finalSize.y));
+                            sb.append("\n");
                             parameters.setPreviewSize(finalSize.x, finalSize.y);
                         }
                         //初始化操作在开始预览之前完成
                         if (cameraSp.getInt("width", -1) != -1) {
                             int width = cameraSp.getInt("width", -1);
                             int height = cameraSp.getInt("height", -1);
-                            MyApp.myLogger.writeInfo("setPicSize w-h:" + width + "\t" + height);
-                            Log.e("zjy", "TakePicActivity.java->surfaceCreated(): ==readCacheSize width" + width + "\t" + height);
+                            sb.append(String.format("readCacheSize w-h:%d - %d", width, height));
+                            sb.append("\n");
                             parameters.setPictureSize(width, height);
                             try {
                                 mCamera.setParameters(parameters);
                             } catch (RuntimeException e) {
-                                MyApp.myLogger.writeError(e, "TakePicActivity--setParameters");
+                                sb.append(String.format("TakePicActivity setParameters error,%d %d", width1, height1));
+                                sb.append("\n");
                                 e.printStackTrace();
                             }
                         } else {
                             showSizeChoiceDialog(parameters);
                         }
+                        MyApp.myLogger.writeInfo(sb.toString());
+                        Log.e("zjy", "TakePicActivity->surfaceCreated()init: ==" + sb.toString());
                         mCamera.startPreview();
                         isPreview = true;
                         container.setOnClickListener(new View.OnClickListener() {
@@ -291,7 +295,6 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
 
                 @Override
                 public void surfaceDestroyed(SurfaceHolder holder) {
-                    Log.e("zjy", "TakePicActivity->surfaceDestroyed(): surface destroyed==");
                     auto.stop();
                     releaseCamera();
                 }
@@ -409,7 +412,6 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                 public void onClick(DialogInterface dialog, int which) {
                     int width = picSizes.get(itemPosition).width;
                     int height = picSizes.get(itemPosition).height;
-                    Log.e("zjy", "TakePicActivity.java->selectSize: width==" + width + "\t" + height);
                     parameters.setPictureSize(width, height);
                     mCamera.setParameters(parameters);
                 }
@@ -418,7 +420,6 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
             dialog.setPositiveButton("设为默认尺寸", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    Log.e("zjy", "TakePicActivity.java->onClick(): default size pos==" + itemPosition);
                     SharedPreferences.Editor editor = cameraSp.edit();
                     int width = picSizes.get(itemPosition).width;
                     int height = picSizes.get(itemPosition).height;

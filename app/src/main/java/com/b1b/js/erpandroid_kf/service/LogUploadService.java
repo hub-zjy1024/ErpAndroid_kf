@@ -59,10 +59,7 @@ public class LogUploadService extends Service {
     public boolean checkDate() {
         Date d = new Date();
         int h = d.getHours();
-        if (h < startTime || h > endTime) {
-            return false;
-        }
-        return true;
+        return h < startTime || h > endTime;
     }
 
     @Override

@@ -207,6 +207,7 @@ public class ImageLoader {
             if (mPoolThreadHander == null)
                 mSemaphore.acquire();
         } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         mTasks.add(runnable);
         mPoolThreadHander.sendEmptyMessage(0x110);
@@ -232,7 +233,9 @@ public class ImageLoader {
     public static ImageLoader getInstance(int threadCount, Type type) {
         if (mInstance == null) {
             synchronized (ImageLoader.class) {
-                mInstance = new ImageLoader(threadCount, type);
+                if (mInstance == null) {
+                    mInstance = new ImageLoader(threadCount, type);
+                }
             }
         }
         return mInstance;
@@ -370,6 +373,7 @@ public class ImageLoader {
                 Log.e("TAG", value + "");
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
         return value;
     }

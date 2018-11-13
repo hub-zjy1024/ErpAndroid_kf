@@ -95,10 +95,8 @@ public class PickPicActivity extends AppCompatActivity implements ListImageDirPo
         mImgs = Arrays.asList(mImgDir.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String filename) {
-                if (filename.endsWith(".jpg") || filename.endsWith(".png")
-                        || filename.endsWith(".jpeg"))
-                    return true;
-                return false;
+                return filename.endsWith(".jpg") || filename.endsWith(".png")
+                        || filename.endsWith(".jpeg");
             }
         }));
         tempImgs.clear();
