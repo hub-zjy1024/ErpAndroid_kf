@@ -1,7 +1,7 @@
 package com.b1b.js.erpandroid_kf;
 
 
-import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -12,20 +12,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.ChuKuDanAdapter;
+import com.b1b.js.erpandroid_kf.contract.CkdContract;
 import com.b1b.js.erpandroid_kf.entity.ChuKuDanInfo;
 
 import org.json.JSONException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -41,7 +40,7 @@ import utils.wsdelegate.ChuKuServer;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler.NoLeakCallback{
+public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler.NoLeakCallback,CkdContract.ICkdView{
     private ListView lv;
     private List<ChuKuDanInfo> data = new ArrayList<>();
     private ChuKuDanAdapter adapter;
@@ -57,7 +56,8 @@ public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler
     private RadioGroup radioGroup;
     private Calendar calendar;// 用来装日期的
     private String loginID;
-
+    private ProgressDialog pd;
+    private CkdContract.Presenter mPresenter;
     public ChuKudanFragment() {
 
     }
@@ -97,7 +97,7 @@ public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler
         lv = (ListView) view.findViewById(R.id.frag_chukudan_lv);
         edPartNo = (EditText) view.findViewById(R.id.frag_chukudan_GoodNo);
         edPid = (EditText) view.findViewById(R.id.frag_chukudan_pid);
-        adapter = new ChuKuDanAdapter(data, getActivity());
+        adapter = new ChuKuDanAdapter(data, getActivity(), R.layout.chukudanlist_items);
         btnSearch = (Button) view.findViewById(R.id.frag_chukudan_search);
         tvStime = (TextView) view.findViewById(R.id.chukudan_stime);
         tvEtime = (TextView) view.findViewById(R.id.chukudan_etime);
@@ -130,6 +130,8 @@ public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler
             }
 
         });
+        pd = new ProgressDialog(getActivity());
+        pd.setMessage("加载中");
         //默认半年内，查询结果最多100条
         //        getData("2309", "", "", getStringDateBefore(180), getFormatDate(new Date()));
         return view;
@@ -211,12 +213,43 @@ public class ChuKudanFragment extends ChukuBaseFragment implements NoLeakHandler
                         sttime = tvStime.getText().toString();
                         endtime = tvStime.getText().toString();
                     }
-                    getData(loginID, partNo, pid, sttime, endtime);
+                    mPresenter.getData(loginID, partNo, pid, sttime, endtime);
+              //      getData(loginID, partNo, pid, sttime, endtime);
                 } else {
                     MyToast.showToast(getActivity(), "请稍后，上次查询还未完成");
                 }
                 break;
 
         }
+    }
+
+    @Override
+    public void finishSearch(String msg) {
+        MyToast.showToast(getActivity(), msg);
+
+    }
+
+    @Override
+    public void searchBefore() {
+        pd.setMessage("正在查询");
+        pd.show();
+    }
+
+    @Override
+    public void setPresenter(CkdContract.Presenter presenter) {
+        mPresenter = presenter;
+    }
+
+    @Override
+    public void updateList(List<ChuKuDanInfo> list, String msg) {
+        if (list != null) {
+            data.clear();
+            data.addAll(list);
+            adapter.notifyDataSetChanged();
+            finishSearch("查询到" + data.size() + "条数据");
+        } else {
+            finishSearch("查询不到相关信息");
+        }
+        pd.cancel();
     }
 }

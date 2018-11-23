@@ -53,7 +53,7 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
         pd = new ProgressDialog(this);
         pd.setTitle("提示");
         pd.setMessage("正在搜索");
-        mAdapter = new YanhuoAdapter(yanhuoInfos, CaigouYanhuoActivity.this, R.layout
+        mAdapter = new YanhuoAdapter(CaigouYanhuoActivity.this,yanhuoInfos,  R.layout
                 .activity_caigouyanhuo_item);
         lv.setAdapter(mAdapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {

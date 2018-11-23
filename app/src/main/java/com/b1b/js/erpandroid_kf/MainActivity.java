@@ -268,9 +268,14 @@ public class MainActivity extends BaseScanActivity  {
         final String current = UploadUtils.getCurrentDate();
         if (MyApp.myLogger != null) {
             if (!saveDate.equals(current)) {
-                MyApp.myLogger.writeInfo("phonecode:" + phoneCode);
-                MyApp.myLogger.writeInfo("ApiVersion:" + Build.VERSION.SDK_INT);
-                MyApp.myLogger.writeInfo("dyj-version:" + code);
+                StringBuilder sbInfo = new StringBuilder();
+                sbInfo.append(String.format("phonecode:%s", phoneCode) );
+                sbInfo.append("\n");
+                sbInfo.append(String.format("ApiVersion:%d", Build.VERSION.SDK_INT) );
+                sbInfo.append("\n");
+                sbInfo.append(String.format("dyj-version:%d", code) );
+                sbInfo.append("\n");
+                MyApp.myLogger.writeInfo(sbInfo.toString());
                 logSp.edit().putString("codeDate", current).apply();
             } else if (code != lastCode && lastCode != -1) {
                 MyApp.myLogger.writeInfo("dyj-dated-version:" + code);

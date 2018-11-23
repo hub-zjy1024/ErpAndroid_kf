@@ -1,5 +1,7 @@
 package com.b1b.js.erpandroid_kf.contract;
 
-public interface BaseDataCallBack {
-    void dataResult(String result);
+import java.util.List;
+
+public interface BaseDataCallBack<T> {
+    void dataResult(List<T> result);
 }

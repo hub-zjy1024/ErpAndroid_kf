@@ -60,7 +60,8 @@ public class MainActivityMvp extends MvpBaseAc<IMainTaskPresenter> implements Ma
         btnLogin.setOnClickListener(this);
         btnScancode.setOnClickListener(this);
         btnPrintCode.setOnClickListener(this);
-        mPresenter = new MainPresenter(this, new MainSourceImpl(this));
+        pd = new ProgressDialog(mContext);
+        initPresenter();
         try {
             PackageManager pm = getPackageManager();
             PackageInfo info=  pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
@@ -174,7 +175,6 @@ public class MainActivityMvp extends MvpBaseAc<IMainTaskPresenter> implements Ma
 
     @Override
     public void showProgressDialog(String msg) {
-        pd = new ProgressDialog(mContext);
         pd.setMessage(msg);
         pd.show();
     }

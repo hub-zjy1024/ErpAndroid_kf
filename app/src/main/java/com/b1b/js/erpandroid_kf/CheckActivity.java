@@ -16,23 +16,17 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
+import com.b1b.js.erpandroid_kf.contract.ChukuCheckContract;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
-import com.b1b.js.erpandroid_kf.task.TaskManager;
 
-import org.json.JSONException;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import utils.MyJsonUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.wsdelegate.ChuKuServer;
 
-public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
+public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener,ChukuCheckContract.ChukuCheckView {
     private ListView lv;
     private EditText edPid;
     private EditText edPartno;
@@ -47,6 +41,7 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
     private boolean isFirst = true;
     private RadioButton rdb_checkFirst;
     private Handler mHandler = new NoLeakHandler(this);
+    private ChukuCheckContract.ChukuCheckPresenter mPresenter;
     @Override
     public void handleMessage(Message msg) {
         super.handleMessage(msg);
@@ -119,104 +114,55 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
         pd = new ProgressDialog(this);
         pd.setTitle("提示");
         pd.setMessage("正在查询。。。");
+        mPresenter = new ChukuCheckContract.ChukuCheckPresenter(this);
     }
 
-    @Override
-    public void resultBack(String result) {
-        edPid.setText(result);
+    public boolean validScanResult(String result) {
         try {
             Integer.parseInt(result);
         } catch (NumberFormatException e) {
             e.printStackTrace();
             MyToast.showToast(CheckActivity.this, getString(R.string.error_numberformate));
+            return false;
+        }
+        return true;
+    }
+    @Override
+    public void resultBack(String result) {
+        if (!validScanResult(result)) {
             return;
         }
+        edPid.setText(result);
         pid = result;
         partNo = edPartno.getText().toString().trim();
-        data.clear();
-        mAdapter.notifyDataSetChanged();
+      /*   data.clear();
+       mAdapter.notifyDataSetChanged();
         if (pd != null && !pd.isShowing()) {
             pd.show();
         }
-        getData(2, pid, partNo, cboStart.isChecked());
-    }
-
-    public void getData(final int typeId, final String pid, final String partNo, boolean auto) {
-        final boolean tempAuto = Boolean.valueOf(auto);
-
-        Runnable searchThread = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String json = getChuKuCheckInfoByTypeID(typeId, pid, partNo, loginID);
-                    List<CheckInfo> list = MyJsonUtils.getCheckInfo(json);
-                    if (list != null && list.size() > 0) {
-                        data.addAll(list);
-                        final Intent intent = new Intent(CheckActivity.this, SetCheckInfoActivity.class);
-                        CheckInfo fInfo = list.get(0);
-                        intent.putExtra("pid", fInfo.getPid());
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                SoftKeyboardUtils.closeInputMethod(edPartno, CheckActivity.this);
-                                mAdapter.notifyDataSetChanged();
-                                if (pd != null && pd.isShowing()) {
-                                    pd.cancel();
-                                }
-                                MyToast.showToast(CheckActivity.this, "查询到" + data.size() + "条数据");
-                                if (tempAuto) {
-                                    startActivity(intent);
-                                }
-                            }
-                        });
-                    }
-                } catch (IOException e) {
-                    mHandler.sendEmptyMessage(2);
-                    e.printStackTrace();
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    mHandler.sendEmptyMessage(1);
-                    e.printStackTrace();
-                }
-            }
-        };
-        TaskManager.getInstance().execute(searchThread);
-    }
-
-    private String getChuKuCheckInfoByTypeID(int typeId, String pid, String partNo, String uid) throws IOException,
-            XmlPullParserException {
-//        LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
-//        properties.put("checkWord", "");
-//        properties.put("typeid", typeId);
-//        properties.put("pid", pid);
-//        properties.put("partNo", partNo);
-//        properties.put("uid", uid);
-//        SoapObject request = WebserviceUtils.getRequest(properties, "GetChuKuCheckInfoByTypeID");
-//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
-//        return response.toString()
-        return ChuKuServer.GetChuKuCheckInfoByTypeID("",typeId, pid, partNo, uid);
+        getData(2, pid, partNo, cboStart.isChecked());*/
+        mPresenter.searchData(2, pid, partNo, loginID);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.check_btn_search:
+                SoftKeyboardUtils.closeInputMethod(edPid, CheckActivity.this);
                 pid = edPid.getText().toString().trim();
                 partNo = edPartno.getText().toString().trim();
-                if (data.size() > 0) {
+               /* if (data.size() > 0) {
                     data.clear();
                     mAdapter.notifyDataSetChanged();
                 }
                 if (pd != null && !pd.isShowing()) {
                     pd.show();
                 }
-                SoftKeyboardUtils.closeInputMethod(edPid, CheckActivity.this);
-                getData(2, pid, partNo, false);
+
+                getData(2, pid, partNo, false);*/
+                mPresenter.searchData(2, pid, partNo, loginID);
                 break;
             case R.id.check_btn_scancode:
-                //                Intent intent = new Intent(CheckActivity.this, CaptureActivity.class);
-                //                startActivityForResult(intent, 100);
                 startScanActivity();
                 break;
 
@@ -226,7 +172,7 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
     @Override
     protected void onResume() {
         super.onResume();
-        if (!isFirst) {
+      /*  if (!isFirst) {
             if (this.data.size() > 0) {
                 this.data.clear();
                 mAdapter.notifyDataSetChanged();
@@ -240,6 +186,18 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
                 getData(2, pid, partNo, false);
             }
         }
+        isFirst = false;*/
+        if (!isFirst) {
+            pid = edPid.getText().toString().trim();
+            partNo = edPartno.getText().toString().trim();
+            if (isScan) {
+                if (!validScanResult(pid)) {
+                    return;
+                }
+                isScan = false;
+            }
+            mPresenter.searchData(2, pid, partNo, loginID);
+        }
         isFirst = false;
     }
 
@@ -248,5 +206,34 @@ public class CheckActivity extends SavedLoginInfoWithScanActivity implements NoL
         pid = result;
         edPid.setText(pid);
         isScan = true;
+    }
+
+    @Override
+    public void onSearchFinish(int code, List<CheckInfo> dataList, String msg) {
+        pd.cancel();
+        if (code == 1) {
+            data.clear();
+            data.addAll(dataList);
+            mAdapter.notifyDataSetChanged();
+            MyToast.showToast(CheckActivity.this, "查询到" + data.size() + "条数据");
+            if (isScan) {
+                if (cboStart.isChecked()) {
+                    final Intent intent = new Intent(CheckActivity.this, SetCheckInfoActivity.class);
+                    CheckInfo fInfo = data.get(0);
+                    intent.putExtra("pid", fInfo.getPid());
+                    startActivity(intent);
+                }
+            }
+        }else{
+            MyToast.showToast(this, "查询不到相关信息！！");
+        }
+        SoftKeyboardUtils.closeInputMethod(edPartno, CheckActivity.this);
+
+    }
+
+    @Override
+    public void showProgress(String msg) {
+        pd.setMessage(msg);
+        pd.show();
     }
 }

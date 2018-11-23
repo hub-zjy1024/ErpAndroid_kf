@@ -29,4 +29,13 @@ public class SavedLoginInfoWithScanActivity extends BaseScanActivity {
         }
         Log.e("zjy", "SavedLoginInfoWithScanActivity->onCreate(): nowID==" + loginID);
     }
+
+    @Override
+    public void resultBack(String result) {
+    }
+
+    @Override
+    public void getCameraScanResult(String result) {
+
+    }
 }

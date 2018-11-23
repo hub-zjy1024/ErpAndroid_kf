@@ -117,28 +117,13 @@ public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements 
     }
 
     public String getList(String beginDate, String endDate, String partNo, int pid, int uid) throws IOException, XmlPullParserException {
-        //        GetOutStorageNotifyPrintViewList
-//        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-//        map.put("beginDate", beginDate);
-//        map.put("endDate", endDate);
-//        map.put("partNo", partNo);
-//        map.put("pid", pid);
-//        map.put("uid", uid);
-//        SoapObject request = WebserviceUtils.getRequest(map, "GetOutStorageNotifyPrintViewList");
-//        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, WebserviceUtils.ChuKuServer);
-//        String result = response.toString();
-//        if (result.equals("")) {
-//            MyApp.myLogger.writeError(PreChukuActivity.class, getResources().getString(R.string.error_soapobject) + pid + "\t" + uid);
-//        }
         String result = ChuKuServer.GetOutStorageNotifyPrintViewList(beginDate, endDate, partNo, pid, uid);
         Log.e("zjy", "PreChukuActivity->getList(): result==" + result);
         return result;
-//        return response.toString();
     }
 
     @Override
     public void getCameraScanResult(String result) {
-        super.getCameraScanResult(result);
         edPid.setText(result);
         data.clear();
         adapter.notifyDataSetChanged();
@@ -149,23 +134,6 @@ public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements 
             MyToast.showToast(PreChukuActivity.this, "扫码结果不是数字");
         }
     }
-
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == 300 && resultCode == RESULT_OK) {
-//            final String pid = data.getStringExtra("result");
-//                edPid.setText(pid);
-//            this.data.clear();
-//            adapter.notifyDataSetChanged();
-//            try {
-//                getPreChukuList("", "", Integer.parseInt(pid));
-//            } catch (NumberFormatException e) {
-//                e.printStackTrace();
-//                MyToast.showToast(PreChukuActivity.this, "扫码结果不是数字");
-//            }
-//        }
-//    }
 
     @Override
     public void onClick(View v) {

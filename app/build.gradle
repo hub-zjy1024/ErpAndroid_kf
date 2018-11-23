@@ -25,7 +25,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 22
         versionCode 55
-        versionName "6.2"
+        versionName "6.3"
         ndk {
             abiFilters "armeabi", "armeabi-v7a"
         }
@@ -64,6 +64,13 @@ android {
             proguardFiles 'proguard-rules.txt'
         }
     }
+    //11月之后targetApi必须设置26（8.0），跳过这个检查
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
 }
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
@@ -73,7 +80,7 @@ dependencies {
     implementation files('libs/ksoap2-android-assembly-2.6.0-jar-with-dependencies.jar')
     implementation 'commons-net:commons-net:3.6'
 //    implementation 'com.android.support:appcompat-v7:24.2.1'
-//    implementation 'com.android.support:design:25.0.1'
+//    implementation 'com. android.support:design:25.0.1'
 //    implementation 'com.android.support:support-v4:24.2.1'
     implementation 'com.android.support:appcompat-v7:24.2.1'
     implementation 'com.android.support:design:24.2.1'

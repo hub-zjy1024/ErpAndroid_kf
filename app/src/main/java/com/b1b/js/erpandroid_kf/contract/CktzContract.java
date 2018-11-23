@@ -1,5 +1,6 @@
 package com.b1b.js.erpandroid_kf.contract;
 
+import android.os.Handler;
 import android.os.Looper;
 
 import com.b1b.js.erpandroid_kf.entity.ChukuTongZhiInfo;
@@ -26,6 +27,7 @@ public class CktzContract {
 
     public interface IcktzView extends CkBaseInterface<ChukuTongZhiInfo>{
         void finishSearch(String msg);
+
         void searchBefore();
 
         void setPresenter(IcktzPresenter presenter);
@@ -67,7 +69,7 @@ public class CktzContract {
     public static class CktzPresent implements IcktzPresenter{
         private CktzDataSource mDatasource;
         private IcktzView iview;
-
+        private Handler mHandler = new Handler();
         public CktzPresent(CktzDataSource mDatasource, IcktzView iview) {
             this.mDatasource = mDatasource;
             this.iview = iview;
@@ -86,10 +88,11 @@ public class CktzContract {
 
         @Override
         public void getData(String uid, String partNo, String pid, String stime, String etime) {
+            iview.searchBefore();
             mDatasource.getData(new IcktzDataProvider() {
                 @Override
-                public void back(List<ChukuTongZhiInfo> list) {
-
+                public void back(final List<ChukuTongZhiInfo> list) {
+                    iview.updateList(list, "ok");
                 }
             },uid,partNo,pid,stime,etime);
         }

@@ -5,9 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.PersistableBundle;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
@@ -17,14 +14,14 @@ import com.android.dev.BarcodeAPI;
 import utils.CameraScanInterface;
 import utils.handler.NoLeakHandler;
 
-public abstract class BaseScanActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback,CameraScanInterface{
+public abstract class BaseScanActivity extends CamScanActivity implements NoLeakHandler.NoLeakCallback,CameraScanInterface{
     private Handler scanHandler = new NoLeakHandler(this);
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
             case BarcodeAPI.BARCODE_READ:
                 if (msg.obj != null) {
-                    Log.e("zjy", "BaseScanActivity->handleMessage(): code==" + msg.obj.toString());
+                    Log.e("zjy", "BaseScanActivity-> code==" + msg.obj.toString());
                     resultBack(msg.obj.toString());
                 }
                 break;
@@ -41,14 +38,8 @@ public abstract class BaseScanActivity extends AppCompatActivity implements NoLe
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
-    public  void resultBack(String result){
+    public abstract void resultBack(String result);
 
-    }
-
-    @Override
-    public void getCameraScanResult(String result) {
-
-    }
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
@@ -67,11 +58,7 @@ public abstract class BaseScanActivity extends AppCompatActivity implements NoLe
         }
         return super.onKeyDown(keyCode, event);
     }
-    public static final int REQ_CODE = 400;
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
-        super.onCreate(savedInstanceState, persistentState);
-    }
+  /*  public static final int REQ_CODE = 400;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -96,12 +83,20 @@ public abstract class BaseScanActivity extends AppCompatActivity implements NoLe
     public void getCameraScanResult(String result, int code) {
 
     }
+       @Override
+    public void getCameraScanResult(String result) {
+
+    }
+    */
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (scanTool != null) {
             scanTool.close();
         }
+    }
+    public void  getCameraScanResult(String result, int code) {
+
     }
     public final void disbleScanService(Context mContext) {
         if (mContext == null)

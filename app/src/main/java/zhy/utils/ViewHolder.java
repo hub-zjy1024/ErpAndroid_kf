@@ -50,10 +50,12 @@ public class ViewHolder {
     }
 
     /**
-     通过控件的Id获取对于的控件，如果没有则加入views
-     @param viewId
-     @return
+     * 通过控件的Id获取对于的控件，如果没有则加入views
+     *
+     * @param viewId
+     * @return
      */
+    @SuppressWarnings("unchecked")
     public <T extends View> T getView(int viewId) {
         View view = mViews.get(viewId);
         if (view == null) {

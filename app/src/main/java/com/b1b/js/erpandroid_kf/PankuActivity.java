@@ -253,7 +253,6 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity {
 
     @Override
     public void getCameraScanResult(String result) {
-        super.getCameraScanResult(result);
     }
 
     @Override

@@ -19,6 +19,7 @@ import com.b1b.js.erpandroid_kf.adapter.ChuKuTongZhiAdapter;
 import com.b1b.js.erpandroid_kf.contract.CktzContract;
 import com.b1b.js.erpandroid_kf.entity.ChukuTongZhiInfo;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -56,6 +57,7 @@ public class CktzFragment extends ChukuBaseFragment implements CktzContract.Ickt
         radioGroup = (RadioGroup) view.findViewById(R.id.chukutongzhi_rgroup);
         //初始化listView并填充
         lv = (ListView) view.findViewById(R.id.frag_chukutongzhidan_lv);
+        data = new ArrayList<>();
         adapter = new ChuKuTongZhiAdapter(data, getActivity());
         lv.setAdapter(adapter);
 
@@ -135,7 +137,6 @@ public class CktzFragment extends ChukuBaseFragment implements CktzContract.Ickt
                     sttime = tvStime.getText().toString();
                     endtime = tvStime.getText().toString();
                 }
-                searchBefore();
                 mPresenter.getData(loginID,partNo,pid,sttime,endtime);
                 break;
 

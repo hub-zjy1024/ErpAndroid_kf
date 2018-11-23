@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.b1b.js.erpandroid_kf.acview.CktzFragment;
+import com.b1b.js.erpandroid_kf.contract.CkdContract;
 import com.b1b.js.erpandroid_kf.contract.CktzContract;
 
 import java.util.ArrayList;
@@ -36,7 +37,8 @@ public class ChuKuActivity extends SavedLoginInfoWithScanActivity {
         viewPager = (ViewPager) findViewById(R.id.ck_viewpager);
         fm = getSupportFragmentManager();
         tabLayout.setupWithViewPager(viewPager);
-        ChukuBaseFragment fragChuku = new ChuKudanFragment();
+        ChuKudanFragment fragChuku = new ChuKudanFragment();
+        CkdContract.Presenter ckdP = new CkdContract.Presenter(fragChuku);
         fragChuku.addArgLoginId(loginID);
         //ChukuBaseFragment fragChukuTongzhi = new ChuKuTongZhiFragment();
         CktzFragment fragChukuTongzhi = new CktzFragment();
@@ -50,7 +52,6 @@ public class ChuKuActivity extends SavedLoginInfoWithScanActivity {
 
     @Override
     public void resultBack(String result) {
-        super.resultBack(result);
         int currentItem = viewPager.getCurrentItem();
         ChukuBaseFragment fragMent = frags.get(currentItem);
         Button btnSearch = fragMent.getBtnSearch();
@@ -61,7 +62,6 @@ public class ChuKuActivity extends SavedLoginInfoWithScanActivity {
 
     @Override
     public void getCameraScanResult(String result) {
-        super.getCameraScanResult(result);
         int currentItem = viewPager.getCurrentItem();
         ChukuBaseFragment fragMent = frags.get(currentItem);
         Button btnSearch = fragMent.getBtnSearch();
