@@ -36,13 +36,13 @@ import utils.MySSLProtocolSocketFactory;
 
 public class KyExpressUtils {
     private static String kye = "10127";
-    //    public static String orderURL = "http://testapi.ky-express.com/kyeopenapi/CustomerWaybillPrint";
-    private static String rootUrl = "http://testapi.ky-express.com/kyeopenapi";
+    //private static String rootUrl = "http://testapi.ky-express.com/kyeopenapi";
+    private static String rootUrl = "https://openapi.ky-express.com/kyeopenapi";
     private static String orderURL = rootUrl + "/CustomerWaybillPrint";
     private static String searchURL =rootUrl+ "/Find_WEB_LogisticsYD_Tracking_V2";
     private static String accesskey = "5BB18CC3DFB4D254A862DA066DE2DE43";
     private static String charSet = "utf-8";
-    private static boolean DEBUG = false;
+    private static boolean DEBUG = true;
 
 //    /**
 //     客户编码(必)

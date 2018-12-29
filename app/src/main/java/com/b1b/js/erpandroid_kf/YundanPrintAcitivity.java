@@ -98,6 +98,8 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
     private final int ShengWaiIndex = 6;
     private final int TongchengIndex = 2;
     private final int ShengNei = 0;
+    private CheckBox cboSign;
+
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
@@ -191,6 +193,7 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
         setContentView(R.layout.activity_yundan_print_acitivity);
         spiType = (Spinner) findViewById(R.id.yundanprint_spi_type);
         spiPayType = (Spinner) findViewById(R.id.yundanprint_spi_paytype);
+        cboSign = (CheckBox) findViewById(R.id.yundanprint_cbo_sign);
         spiDiaohuo = (Spinner) findViewById(R.id.yundanprint_spi_printer);
         LinearLayout llDiaohuo = (LinearLayout) findViewById(R.id.yundanprint_ll_diaohuo);
         final String[] serverTypes = new String[]{"省内次日-省内","省内即日-省内" ,
@@ -560,9 +563,10 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
                     @Override
                     public void run() {
                         try {
+                            String isSigned = cboSign.isChecked() ? "1" : "0";
                             boolean ok = printKyYundan(printerAddress, yundanID, dgoodInfos, dcardID, dpayType, bags,
                                     dprintName, ddestcode
-                                    , dserverType);
+                                    , dserverType,isSigned);
                             if (ok) {
                                 showAlert("打印成功");
                             } else {
@@ -777,7 +781,7 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
     }
 
     private boolean printKyYundan(String serverIP, String orderID, String goodInfos, String cardID, String
-            payType, String counts, String printName, String destcode, String yundanType)
+            payType, String counts, String printName, String destcode, String yundanType, String ifSign)
             throws IOException {
         long time1 = System.currentTimeMillis();
         String ip = "http://" + serverIP + ":8080";
@@ -817,6 +821,8 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
                 urlCoding);
         strURL += "&pid=" + URLEncoder.encode(pid,
                 urlCoding);
+        strURL += "&signreturn=" + URLEncoder.encode(ifSign,
+                urlCoding);
         Log.e("zjy", "SetYundanActivity->printKyYundan(): StrUrl==" + strURL);
         URL url = new URL(strURL);
         HttpURLConnection conn = (HttpURLConnection) url
@@ -850,7 +856,11 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
     public void startOrder(final String goodInfos, final String cardID, final String
             payType, final String serverType, final String counts,
                            final String printName) {
-
+        String ifSing = "0";
+        if (cboSign.isChecked()) {
+            ifSing = "1";
+        }
+        final String finalIfSing = ifSing;
         Runnable orderRun = new Runnable() {
             @Override
             public void run() {
@@ -874,7 +884,7 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
                 info.col_037 = cardID;
                 info.col_013 = payType;
                 info.col_019 = "托寄";
-                info.col_028 = "0";
+                info.col_028 = finalIfSing;
                 info.col_021 = counts;
                 //                info.col_033 = "";
                 info.col_027 = "";
@@ -920,10 +930,11 @@ public class YundanPrintAcitivity extends SavedLoginInfoActivity implements NoLe
                         String insertResult = insertYundanInfo(pid, receiveID, destcode, expressName);
                         Log.e("zjy", "YundanPrintAcitivity->insertYundanInfo(): result==" + insertResult);
                         changeInsertState(insertResult, pid);
-                        boolean printOk = printKyYundan(printerAddress, yundanID, dgoodInfos, dcardID, dpayType, counts,
+                        boolean printOk = printKyYundan(printerAddress, yundanID, dgoodInfos, dcardID,
+                                dpayType, counts,
                                 dprintName,
                                 ddestcode
-                                , dserverType);
+                                , dserverType, finalIfSing);
                         if (printOk) {
                             showAlert("打印成功");
                             if (isDiaohuo) {
