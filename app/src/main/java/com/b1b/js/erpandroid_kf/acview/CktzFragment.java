@@ -76,6 +76,7 @@ public class CktzFragment extends ChukuBaseFragment implements CktzContract.Ickt
                 return true;
             }
         });
+        mPresenter = new CktzContract.CktzPresent(this);
         return view;
 
     }
