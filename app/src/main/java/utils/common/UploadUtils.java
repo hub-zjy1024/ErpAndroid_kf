@@ -23,6 +23,10 @@ public class UploadUtils {
     public static String getChukuRemoteName(String id) {
         return "and_" + id + "_" + getTimeYmdhms() + "_" + getRandomNumber(4);
     }
+    public static String getChukuRemoteNameNew(String id) {
+        return "a_ck_" + id + "_" + getTimeYmdhms() + "_" + getRandomNumber(4);
+    }
+
     public static String getTimeYmdhms() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
         return sdf.format(new Date());

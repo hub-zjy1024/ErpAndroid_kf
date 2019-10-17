@@ -1,5 +1,6 @@
 package utils.common;
 
+import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
 
@@ -21,7 +22,7 @@ import java.util.Date;
 public class LogRecoder {
     private String filepath;
     private OutputStreamWriter writer;
-
+    private Context mContext;
 
     public LogRecoder(String logPath) {
         this.filepath = logPath;
@@ -201,6 +202,8 @@ public class LogRecoder {
                 if (!file.exists()) {
                     file.getParentFile().mkdirs();
                 }
+//                Uri fileUri = Uri.fromFile(file);
+//                mContext.getContentResolver().openOutputStream(Uri.fromFile(file), "rw");
                 FileOutputStream stream = new FileOutputStream(file, overWrite);
                 try {
                     writer = new OutputStreamWriter(stream, "UTF-8");

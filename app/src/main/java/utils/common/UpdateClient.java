@@ -1,5 +1,7 @@
 package utils.common;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,9 +10,14 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.annotation.MainThread;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.MyApp;
@@ -62,7 +69,7 @@ public class UpdateClient {
     //版本控制配置文件
     private String checkAvailableVersion = WebserviceUtils.ROOT_URL + downPath + "versionControl.txt";
     //apk文件名
-    private static final String downUrl = WebserviceUtils.ROOT_URL + downPath + "dyjkfapp.apk";
+    public static final String downUrl = WebserviceUtils.ROOT_URL + downPath + "dyjkfapp.apk";
 
     private String saveName = "dyjkfapp.apk";
     File updateFile = new File(Environment.getExternalStorageDirectory(), saveName);
@@ -115,7 +122,7 @@ public class UpdateClient {
                                             DialogInterface.OnClickListener() {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
-                                                    installApk(updateFile);
+                                                    setInstallPermission();
                                                 }
                                             }, "是", null, "否").show();
                                 }
@@ -180,14 +187,13 @@ public class UpdateClient {
                 errMsg = "检查更新失败，其他错误：" + exMsg;
             }
             e.printStackTrace();
-            MyApp.myLogger.writeError(e, "自动更新出现问题，" + errMsg);
         } catch (SAXException e) {
             String exMsg = e.getMessage();
             errMsg = "检查更新失败，文件格式异常," + exMsg;
             e.printStackTrace();
-            MyApp.myLogger.writeError("自动更新出现问题，" + errMsg);
         }
         if (!"".equals(errMsg)) {
+            MyApp.myLogger.writeError("自动更新出现问题，" + errMsg);
             final String finalErrMsg = errMsg;
             handler.post(new Runnable() {
                 @Override
@@ -279,7 +285,7 @@ public class UpdateClient {
             is.close();
             fos.close();
             MyApp.myLogger.writeInfo("update download");
-            installApk(updateFile);
+            setInstallPermission();
         } else {
             InputStream errorStream = conn.getErrorStream();
             int len = 0;
@@ -302,12 +308,108 @@ public class UpdateClient {
         }
     }
 
+    /**
+     * 8.0以上系统设置安装未知来源权限
+     */
+    public void installApp28(File apkFile) {
+        boolean haveInstallPermission;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //先判断是否有安装未知来源应用的权限
+            haveInstallPermission = mContext.getPackageManager().canRequestPackageInstalls();
+            Log.e("zjy", getClass() + "->setInstallPermission(): ==" + haveInstallPermission );
+            if (!haveInstallPermission) {
+                requestPermission();
+            } else {
+                installApk(apkFile);
+            }
+        } else {
+            Log.e("zjy", getClass() + "->setInstallPermission(): no need==");
+            installApk(apkFile);
+        }
+    }
+    /**
+     * 8.0以上系统设置安装未知来源权限
+     */
+    public void setInstallPermission(){
+        boolean haveInstallPermission;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //先判断是否有安装未知来源应用的权限
+            haveInstallPermission = mContext.getPackageManager().canRequestPackageInstalls();
+            Log.e("zjy", getClass() + "->setInstallPermission(): ==" + haveInstallPermission );
+            if (!haveInstallPermission) {
+                requestPermission();
+            } else {
+                installApk(updateFile);
+            }
+        } else {
+            Log.e("zjy", getClass() + "->setInstallPermission(): no need==");
+            installApk(updateFile);
+        }
+    }
+
+    private void requestPermission() {
+                        ActivityCompat.requestPermissions((Activity) mContext,
+                                new String[]{Manifest.permission.REQUEST_INSTALL_PACKAGES},
+                                INSTALL_PERMISS_CODE);
+    }
+
+    public static int INSTALL_PERMISS_CODE = 211;
+
+    /**
+     * 开启安装未知来源权限
+     */
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void realToSetting() {
+        Log.e("zjy", getClass() + "->realToSetting(): ==open unknow source");
+        Uri packageURI = Uri.parse("package:" + mContext.getPackageName());
+        Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,packageURI);
+        ( (Activity)(mContext)).startActivityForResult(intent, INSTALL_PERMISS_CODE);
+    }
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void toInstallPermissionSettingIntent() {
+        DialogUtils.getDialog(mContext).setMsg("需要打开允许安装来自此来源的程序，是否前往设置开启").setBtn1("前往").setBtn1L(new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                realToSetting();
+            }
+        }).create();
+    }
+
+    public void installApk() {
+        installApk(updateFile);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     private void installApk(File file) {
         if (file.exists()) {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(Uri.fromFile(file), "application/vnd.android" +
+            Log.e("zjy", getClass() + "->installApk(): ==start install");
+//            Intent intent = new Intent(Intent.ACTION_VIEW);
+            Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+            Uri apkUri = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                //判断版本是否在7.0以上
+                apkUri =
+                        FileProvider.getUriForFile(mContext,
+                                mContext.getPackageName() + ".fileprovider",
+                                file);
+                //添加这一句表示对目标应用临时授权该Uri所代表的文件
+//                intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                Log.e("zjy", getClass() + "->installApk():7.0 ==" + apkUri);
+            } else {
+                apkUri = Uri.fromFile(file);
+            }
+            intent.setDataAndType(apkUri, "application/vnd.android" +
                     ".package-archive");
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//                List<ResolveInfo> resolveLists = mContext.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+//                // 然后全部授权
+//                for (ResolveInfo resolveInfo : resolveLists){
+//                    String packageName = resolveInfo.activityInfo.packageName;
+//                    mContext.grantUriPermission(packageName, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+//                }
+//            }
             mContext.startActivity(intent);
         }
     }

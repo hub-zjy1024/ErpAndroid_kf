@@ -25,37 +25,60 @@ import java.io.OutputStream;
 
 public class MyImageUtls {
     /**
-     压缩从文件加载的Bitmap
-     @param filePath
-     @param targetWidth
-     @param targetHeight
-     @return
+     * 压缩从文件加载的Bitmap
+     *
+     * @param filePath
+     * @param targetWidth
+     * @param targetHeight
+     * @return
      */
-    public static Bitmap getSmallBitmap(String filePath, int targetWidth, int targetHeight) {
+    public static long getMemoSize(String filePath, int targetWidth, int targetHeight) {
         Options opt = new Options();
         opt.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(filePath, opt);
         int sampleSize = getSimpleSize(opt, targetWidth, targetHeight);
-        opt.inSampleSize = sampleSize;
-        opt.inJustDecodeBounds = false;
-        Bitmap newBitmap = BitmapFactory.decodeFile(filePath, opt);
-        if (newBitmap == null) {
-            return null;
+        int outWidth = opt.outWidth;
+        int outHeight = opt.outHeight;
+        Log.e("zjy", filePath + ",ImgUtil->picSize(): ==" + outWidth + "\t" + outHeight);
+        long realSize = (long) (outWidth * outHeight * 4 / 1f / sampleSize / sampleSize);
+        long l = Runtime.getRuntime().freeMemory();
+        float rate = 1024f * 1024;
+        Log.e("zjy", filePath + ",ImgUtil->getMemoSize(): ==" + l / rate + "\t freeSize=" + realSize / rate);
+        return realSize;
+    }
+    public static Bitmap getSmallBitmap(String filePath, int targetWidth, int targetHeight) {
+        File file = new File(filePath);
+        Bitmap newBitmap = null;
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            Bitmap smallBitmap = getSmallBitmap(fis, targetWidth, targetHeight);
+            newBitmap = smallBitmap;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
-        int degree = readBitmapDegreeByExif(filePath);
-        Bitmap bm = rotateBitmap(newBitmap, degree);
         return newBitmap;
     }
     public static Bitmap getSmallBitmap(InputStream inputStream, int targetWidth, int targetHeight) {
         Options opt = new Options();
         opt.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(inputStream,null,opt);
-        int sampleSize = getSimpleSize(opt, targetWidth, targetHeight);
-        opt.inSampleSize = sampleSize;
-        opt.inJustDecodeBounds = false;
-        Bitmap newBitmap = BitmapFactory.decodeStream(inputStream,null, opt);
-        if (newBitmap == null) {
-            return null;
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        byte[] dataArr = null;
+        int len = 0;
+        Bitmap newBitmap = null;
+        try {
+            while ((len = inputStream.read(buffer)) != -1) {
+                bao.write(buffer, 0, len);
+            }
+            dataArr = bao.toByteArray();
+            inputStream.close();
+            BitmapFactory.decodeByteArray(dataArr, 0, dataArr.length, opt);
+            int sampleSize = getSimpleSize(opt, targetWidth, targetHeight);
+            opt.inSampleSize = sampleSize;
+            opt.inJustDecodeBounds = false;
+            newBitmap = BitmapFactory.decodeByteArray(dataArr, 0, dataArr.length, opt);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return newBitmap;
     }
@@ -68,9 +91,6 @@ public class MyImageUtls {
         opt.inSampleSize = sampleSize;
         opt.inJustDecodeBounds = false;
         Bitmap newBitmap = BitmapFactory.decodeFile(filePath, opt);
-        if (newBitmap == null) {
-            return null;
-        }
         return newBitmap;
     }
 
