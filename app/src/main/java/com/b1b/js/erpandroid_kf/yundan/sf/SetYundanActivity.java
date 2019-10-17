@@ -39,7 +39,6 @@ import com.b1b.js.erpandroid_kf.yundan.sf.entity.Cargo;
 import com.b1b.js.erpandroid_kf.yundan.sf.entity.Province;
 import com.b1b.js.erpandroid_kf.yundan.sf.entity.SFSender;
 import com.b1b.js.erpandroid_kf.yundan.sf.sfutils.SFWsUtils;
-import com.b1b.js.erpandroid_kf.yundan.sf.sfutils.XmlDomUtils;
 import com.b1b.js.erpandroid_kf.yundan.utils.DHInfo;
 import com.b1b.js.erpandroid_kf.yundan.utils.SavedYundanInfo;
 import com.b1b.js.erpandroid_kf.yundan.utils.YunInfoTool;
@@ -123,6 +122,12 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
     private String pid;
     private List<Map<String, String>> addrList = new ArrayList<>();
     private final int MSG_GETINFO = 0;
+    private static final int MSG_Print_STATE = 3;
+    private static final int MSG_ERROR_ACCOUNT = 4;
+    private static final int MSG_PRINT_OK = 5;
+    private static final int MSG_RL_ERROR=6;
+    private static final int MSG_RL_OK = 9;
+    private static final int MSG_Print_ERROR = 10;
     private Spinner spiServerType;
     private final int ShengWaiIndex = 1;
     private final int TongchengIndex = 0;
@@ -232,29 +237,22 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
 //                    e.printStackTrace();
 //                }
                 break;
-            case 1:
-                DialogUtils.dismissDialog(pd);
-                AlertDialog.Builder builder = new AlertDialog.Builder
-                        (mContext);
-                builder.setTitle("提示");
-                builder.setMessage("下单失败:" + msg.obj.toString());
-                DialogUtils.safeShowDialog(mContext, builder.create());
-                break;
-            case 3:
-                DialogUtils.dismissDialog(pd);
+            case MSG_Print_STATE:
+                dismissDialog(pd);
                 AlertDialog.Builder builder2 = new AlertDialog.Builder
                         (mContext);
                 builder2.setTitle("提示");
                 int arg1 = msg.arg1;
+                String alertmsg = "";
                 if (arg1 == 0) {
-                    builder2.setMessage("网络连接错误，下单失败！！！");
-                    builder2.show();
+                    alertmsg = "网络连接错误，下单失败！！！";
+                    showMsgDialog(alertmsg);
                 } else if (arg1 == 1) {
-                    builder2.setMessage("打印出现错误，请重新打印！！！");
-                    builder2.show();
+                    alertmsg ="打印出现错误，请重新打印！！！";
+                    showMsgDialog(alertmsg);
                 } else if (arg1 == 2) {
-                    builder2.setMessage("插入单号信息失败，是否重试");
-                    builder2.setPositiveButton("是", new DialogInterface.OnClickListener() {
+                    alertmsg = "插入单号信息失败，是否重试";
+                    DialogUtils.getDialog(mContext).setMsg(alertmsg).setBtn1("是").setBtn1L(new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             pd.setMessage("正在插入单号信息");
@@ -262,63 +260,57 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                             Runnable reInsertRunnable = new Runnable() {
                                 @Override
                                 public void run() {
-                                    try {
-                                        String result = updatePrintCount(tvPid.getText().toString(), desOrderid);
-                                        result = insertYundanInfo(tvPid.getText().toString(), desOrderid, ddestcode);
-                                        if (result.equals("成功")) {
-                                            mhandler.sendEmptyMessage(9);
-                                        } else {
-                                            mhandler.sendEmptyMessage(6);
-                                        }
-                                    } catch (IOException e) {
-                                        mhandler.sendEmptyMessage(6);
-                                        e.printStackTrace();
-                                    } catch (XmlPullParserException e) {
-                                        e.printStackTrace();
-                                    }
+                                    reLatePidNew();
                                 }
                             };
                             TaskManager.getInstance().execute(reInsertRunnable);
                         }
-                    });
-                    builder2.setNegativeButton("否", null);
-                    DialogUtils.safeShowDialog(mContext, builder2.create());
+                    }).setBtn2("否").setBtn2L(null).create();
+//                    builder2.setMessage("插入单号信息失败，是否重试");
+//                    builder2.setPositiveButton("是", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            pd.setMessage("正在插入单号信息");
+//                            pd.show();
+//                            Runnable reInsertRunnable = new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    reLatePidNew();
+//                                }
+//                            };
+//                            TaskManager.getInstance().execute(reInsertRunnable);
+//                        }
+//                    });
+//                    builder2.setNegativeButton("否", null);
+//                    DialogUtils.safeShowDialog(mContext, builder2.create());
                 }
                 break;
-            case 4:
-                DialogUtils.dismissDialog(pd);
-                AlertDialog.Builder builder3 = new AlertDialog.Builder
-                        (mContext);
-                builder3.setTitle("提示");
-                builder3.setMessage("月结账号获取失败，当前不可用寄付月结！！！");
-                DialogUtils.safeShowDialog(mContext, builder3.create());
+            case MSG_Print_ERROR:
+                dismissDialog(pd);
+                String errMsg = msg.obj.toString();
+                showMsgDialog(errMsg);
                 break;
-            case 5:
-                DialogUtils.dismissDialog(pd);
+            case MSG_ERROR_ACCOUNT:
+                dismissDialog(pd);
+                String ecMsg = "月结账号获取失败，当前不可用寄付月结！！！";
+                showMsgDialog(ecMsg);
+                break;
+            case MSG_PRINT_OK:
+                dismissDialog(pd);
                 Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
                         "操作成功", "提示");
                 DialogUtils.safeShowDialog(mContext, spAlert1);
                 break;
-            case 6:
-                DialogUtils.dismissDialog(pd);
+            case MSG_RL_ERROR:
+                dismissDialog(pd);
                 Dialog spAlert = DialogUtils.getSpAlert(mContext,
                         "插入单号信息失败,请重新插入！！！", "提示");
                 tvState.setText("关联运单号失败！！！");
                 tvState.setTextColor(Color.RED);
                 DialogUtils.safeShowDialog(mContext, spAlert);
                 break;
-            case 7:
-                DialogUtils.dismissDialog(pd);
-                DialogUtils.safeShowDialog(mContext, DialogUtils.getSpAlert(mContext,
-                        "网络质量较差，请重新尝试！！！", "提示"));
-                break;
-            case 8:
-                DialogUtils.dismissDialog(pd);
-                DialogUtils.safeShowDialog(mContext, DialogUtils.getSpAlert(mContext,
-                        "连接打印服务器失败，请重新尝试！！！", "提示"));
-                break;
-            case 9:
-                DialogUtils.dismissDialog(pd);
+            case MSG_RL_OK:
+                dismissDialog(pd);
                 btnReInsert.setBackgroundColor(Color.GRAY);
                 tvState.setText("关联运单号成功：" + desOrderid);
                 tvState.setTextColor(Color.GREEN);
@@ -348,6 +340,11 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
     private String note;
     private TextView tvNote;
 
+    public void dismissDialog(Dialog mDiaog) {
+        if (mDiaog != null) {
+            mDiaog.dismiss();
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -466,43 +463,37 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                     Runnable insertMoreRunnable=new Runnable() {
                         @Override
                         public void run() {
+                            String msg = "";
                             try {
                                 String ok = insertYundanInfo(targetPid, desOrderid, ddestcode);
                                 if ("成功".equals(ok)) {
-                                    mhandler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            DialogUtils.dismissDialog(pd);
-                                            Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
-                                                    "关联其他单号成功", "提示");
-                                            DialogUtils.safeShowDialog(mContext, spAlert1);
-                                        }
-                                    });
+                                    msg = "关联单号到 " +
+                                            "" + targetPid +
+                                            "成功";
                                 } else {
-                                    mhandler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            DialogUtils.dismissDialog(pd);
-                                            Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
-                                                    "关联其他单号失败！！！", "提示");
-                                            DialogUtils.safeShowDialog(mContext, spAlert1);
-                                        }
-                                    });
+                                    throw new Exception("关联其他单号失败,返回="+ok);
                                 }
                             } catch (IOException e) {
-                                mhandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        DialogUtils.dismissDialog(pd);
-                                        Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
-                                                "连接服务器超时", "提示");
-                                        DialogUtils.safeShowDialog(mContext, spAlert1);
-                                    }
-                                });
+                                final String message = e.getMessage();
+                                msg = "io异常，" + message;
                                 e.printStackTrace();
                             } catch (XmlPullParserException e) {
+                                msg = "xml异常，" + e.getMessage();
+                                e.printStackTrace();
+                            } catch (Exception e) {
+                                msg = "其他异常，" + e.getMessage();
                                 e.printStackTrace();
                             }
+                            final String finalMsg = msg;
+                            mhandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (pd != null) {
+                                        pd.cancel();
+                                    }
+                                    showMsgDialog(finalMsg);
+                                }
+                            });
                         }
                     };
                     TaskManager.getInstance().execute(insertMoreRunnable);
@@ -526,7 +517,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
             }
         });
         final Intent intent = getIntent();
-        pid = intent.getStringExtra("pid");
+        pid = intent.getStringExtra(SettingActivity.extra_PID );
         tvPid.setText(pid);
         String sendFlag = intent.getStringExtra("type");
         if ("2".equals(sendFlag)) {
@@ -618,20 +609,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                 Runnable reInsertRunnable=new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            String result = updatePrintCount(tvPid.getText().toString(), desOrderid);
-                            result = insertYundanInfo(tvPid.getText().toString(), desOrderid, ddestcode);
-                            if (result.equals("成功")) {
-                                mhandler.sendEmptyMessage(9);
-                            } else {
-                                mhandler.sendEmptyMessage(6);
-                            }
-                        } catch (IOException e) {
-                            mhandler.sendEmptyMessage(6);
-                            e.printStackTrace();
-                        } catch (XmlPullParserException e) {
-                            e.printStackTrace();
-                        }
+                        reLatePidNew();
                     }
                 };
                 TaskManager.getInstance().execute(reInsertRunnable);
@@ -699,6 +677,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
 //                Log.e("zjy", "SetYundanActivity->run(): Times_getSFClientInfo==" + (time2 - time1) / 1000f);
 
                 String pid = tvPid.getText().toString();
+                String msg = "";
                 try {
                     SavedYundanInfo onlineSavedYdInfo = YunInfoTool.getSaveYundanInfo(pid);
                     if (onlineSavedYdInfo == null) {
@@ -707,13 +686,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                     ddestcode = onlineSavedYdInfo.getDestcode();
                     desOrderid = onlineSavedYdInfo.getOrderID();
                     final String  exName = onlineSavedYdInfo.getExName();
-                    mhandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            tvOrderID.setText("当前单据已有单号：" +exName+ desOrderid);
-                            btnRePrint.setEnabled(true);
-                        }
-                    });
+                    msg = "当前单据已有单号：" +exName+ desOrderid;
                     //                    String result = YunInfoTool.getOnlineSavedYdInfo(pid);
                     //                    Log.e("zjy", "SetYundanActivity->run(): onlineYundan==" + result);
                     //                    //                    "objid":"613","parentid":"0","objname":"1176338","objvalue":"616606640489",
@@ -736,23 +709,22 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                     //                        });
                     //                    }
                 } catch (IOException e) {
-                    mhandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            tvOrderID.setText("查询关联单号失败，请重新进入");
-                        }
-                    });
+                    msg = "查询关联单号失败，请重新进入";
                     e.printStackTrace();
                 } catch (JSONException e) {
-                    mhandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            tvOrderID.setText("还未下单，请下单");
-                        }
-                    });
+                    msg = "还未下单，请下单";
                     e.printStackTrace();
                 }
-
+                final String finalMsg = msg;
+                mhandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (desOrderid != null && !desOrderid.equals("")) {
+                            btnRePrint.setEnabled(true);
+                        }
+                        tvOrderID.setText(finalMsg);
+                    }
+                });
                 long time3= System.currentTimeMillis();
 //                Log.e("zjy", "SetYundanActivity->run(): Times_getSaveYundanInfo==" + (time3 - time2) / 1000f);
 
@@ -894,7 +866,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                     mhandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            DialogUtils.dismissDialog(pd);
+                            dismissDialog(pd);
                             Dialog spAlert1 = DialogUtils.getSpAlert(mContext,
                                     "打印机地址有误，请重新配置", "提示");
                             DialogUtils.safeShowDialog(mContext, spAlert1);
@@ -1002,7 +974,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                     }
                     if (payType.equals("寄付月结")) {
                         if (account == null || "".equals(account)) {
-                            mhandler.sendEmptyMessage(4);
+                            mhandler.sendEmptyMessage(MSG_ERROR_ACCOUNT);
                             return;
                         }
                         if (!storageID.equals("102")) {
@@ -1029,21 +1001,22 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                 Runnable rePrintThread=new Runnable() {
                     @Override
                     public void run() {
+                        Message message = mhandler.obtainMessage(MSG_Print_ERROR);
                         try {
                             boolean ok = startPrint(desOrderid, dgoodInfos, dcardID, dpayPart, dpayType, dserverType,
                                     dbaojia, dprintName,
                                     dhasE, ddestcode, dyundanType);
                             if (!ok) {
-                                Message message = mhandler.obtainMessage(3);
-                                message.arg1 = 1;
-                                mhandler.sendMessage(message);
+                                throw new IOException("打印返回异常false");
                             } else {
-                                mhandler.obtainMessage(5).sendToTarget();
+                                message.what = MSG_PRINT_OK;
+                                message.sendToTarget();
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
                             MyApp.myLogger.writeError(e, "SF_StartPrint Error:" + e.getMessage());
-                            mhandler.obtainMessage(8).sendToTarget();
+                            message.obj = e.getMessage();
+                            mhandler.sendMessage(message);
                         }
                     }
                 };
@@ -1359,7 +1332,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                 } else {
                     baojia = Double.valueOf(strBaojia);
                 }
-                try {
+
 
                     SFSender order = new SFSender();
                     order.orderID = tvPid.getText().toString() + Myuuid.create2(5);
@@ -1384,7 +1357,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                     order.bagCounts = bags;
                     if (payType.equals("寄付月结")) {
                         if (account == null || "".equals(account)) {
-                            mhandler.sendEmptyMessage(4);
+                            mhandler.sendEmptyMessage(MSG_ERROR_ACCOUNT);
                             return;
                         }
                         order.payType = "1";
@@ -1413,105 +1386,105 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                             cargos.add(cargo);
                         }
                     }
-                    String xml = SFWsUtils.createOrderXml(SFWsUtils.ORDER_SERVICE,
-                            order, cargos, null);
-                    String destcode = "110";
-                    boolean test = cboTest.isChecked();
-                    if (!test) {
-                        Map<String, String> resMap = getOrderResponse(xml);
-                        String head = resMap.get("head");
-                        if (head.equals("ERR")) {
-                            Message msg = mhandler.obtainMessage(1);
-                            msg.obj = resMap.get("error");
-                            MyApp.myLogger.writeError(SetYundanActivity.class, resMap.get("errorCode") + "\t" + msg.obj + "\t" +
-                                    dProvince + "\t" + dCity + "\t" + dCounty +
-                                    "\t" + dAddress + "\t" + tvPid.getText().toString());
-                            mhandler.sendMessage(msg);
-                            return;
-                        }
-                        destcode = resMap.get("destcode");
-                        orderID = resMap.get("orderID");
-                    }
-                    final String finalOrderID = orderID;
-                    desOrderid = orderID;
-                    dgoodInfos = goodInfos;
-                    dcardID = cardID;
-                    dpayPart = payPart;
-                    dpayType = payType;
-                    dserverType = serverType;
-                    dbaojia = baojia;
-                    dprintName = printName;
-                    dyundanType = yundanType;
-                    dhasE = hasE;
-                    ddestcode = destcode;
-                    mhandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            tvOrderID.setText("下单成功，返回单号：" + finalOrderID);
-                            btnRePrint.setEnabled(true);
-                        }
-                    });
+
                     //                    InsertBD_YunDanInfo
                     //                    manger.insertYundan(tvPid.getText().toString(), orderID, destcode, goodInfos, cardID,
                     // payPart, payType,
                     //                            serverType, baojia, printName, hasE, yundanType);
                     //                    startPostPrint(orderID, goodInfos, cardID, payPart, payType, serverType, baojia,
                     //                            printName, hasE, destcode, yundanType);
+                boolean test = cboTest.isChecked();
+                String destcode = "110";
+                Message message = mhandler.obtainMessage(MSG_Print_STATE);
                     try {
-                        String result = "";
-                        if (test) {
-                            result = "成功";
-                        } else {
-                            String pid = tvPid.getText().toString();
-                            result = updatePrintCount(pid, desOrderid);
-                            result = insertYundanInfo(pid, orderID, destcode);
+                        try{
+                            if (!test) {
+//                                String xml = SFWsUtils.createOrderXml(SFWsUtils.ORDER_SERVICE,
+//                                        order, cargos, null);
+//                                Map<String, String> resMap = getOrderResponse(xml);
+//                                String head = resMap.get("head");
+//                                if (head.equals("ERR")) {
+//                                    String errmsg = resMap.get("error");
+//                                    Message msg = mhandler.obtainMessage(1);
+//                                    msg.obj = errmsg;
+//                                    MyApp.myLogger.writeError(SetYundanActivity.class, resMap.get("errorCode") + "\t" + msg.obj + "\t" +
+//                                            dProvince + "\t" + dCity + "\t" + dCounty +
+//                                            "\t" + dAddress + "\t" + tvPid.getText().toString());
+////                                    mhandler.sendMessage(msg);
+//                                    throw new Exception("下单失败," + errmsg);
+//                                }
+//                                destcode = resMap.get("destcode");
+//                                orderID = resMap.get("orderID");
+                                SFWsUtils.OrderResponse orderResponse = SFWsUtils.getOrderResponse(order,
+                                        cargos, null);
+                                destcode = orderResponse.destcode;
+                                orderID = orderResponse.yundanId;
+                            }
+                            final String finalOrderID = orderID;
+                            desOrderid = orderID;
+                            dgoodInfos = goodInfos;
+                            dcardID = cardID;
+                            dpayPart = payPart;
+                            dpayType = payType;
+                            dserverType = serverType;
+                            dbaojia = baojia;
+                            dprintName = printName;
+                            dyundanType = yundanType;
+                            dhasE = hasE;
+                            ddestcode = destcode;
+                            mhandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tvOrderID.setText("下单成功，返回单号：" + finalOrderID);
+                                    btnRePrint.setEnabled(true);
+                                }
+                            });
+                        }catch (IOException e){
+                            throw new Exception("下单失败IO," + e.getMessage());
                         }
-                        if (isDiaohuo) {
-                            MyApp.myLogger.writeInfo("SF diaohuo result" + result + ",pid=" + pid);
+                        try {
+                            String result = "";
+                            if (test) {
+                                result = "成功";
+                            } else {
+                                String pid = tvPid.getText().toString();
+                                result = updatePrintCount(pid, desOrderid);
+                                result = insertYundanInfo(pid, orderID, destcode);
+                            }
+                            if (isDiaohuo) {
+                                MyApp.myLogger.writeInfo("SF diaohuo result" + result + ",pid=" + pid);
+                            }
+                            if (!result.equals("成功")) {
+                                throw new Exception("关联失败," + result);
+                            } else {
+                                mhandler.sendEmptyMessage(MSG_RL_OK);
+                            }
+                        } catch (IOException e) {
+                            throw new Exception("关联失败，re_io," + e.getMessage());
+                        } catch (XmlPullParserException e) {
+                            e.printStackTrace();
                         }
-                        if (!result.equals("成功")) {
-                            mhandler.sendEmptyMessage(6);
-                        } else {
-                            mhandler.sendEmptyMessage(9);
+                        try {
+                            boolean printOk = startPrint(orderID, goodInfos, cardID, payPart, payType, serverType, baojia,
+                                    printName, hasE, destcode, yundanType);
+                            if (!printOk) {
+                                MyApp.myLogger.writeError("print error" + tvPid.getText().toString());
+                                throw new Exception("打印失败,ret=false");
+                            } else {
+                                message.what = MSG_PRINT_OK;
+                                mhandler.sendMessage(message);
+                            }
+                        } catch (IOException e) {
+                            String exMsg = e.getMessage();
+                            MyApp.myLogger.writeError(e, "SF_StartPrint Error:");
+                            throw new Exception("打印失败io," +exMsg);
                         }
-                    } catch (IOException e) {
-                        Message upMsg = mhandler.obtainMessage(3);
-                        upMsg.arg1 = 2;
-                        mhandler.sendMessage(upMsg);
+                    } catch (Exception e) {
                         e.printStackTrace();
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
+                        message.what = MSG_Print_ERROR;
+                        message.obj = "错误," + e.getMessage();
+                        mhandler.sendMessage(message);
                     }
-                    try {
-                        boolean printOk = startPrint(orderID, goodInfos, cardID, payPart, payType, serverType, baojia,
-                                printName, hasE, destcode, yundanType);
-                        if (!printOk) {
-                            Message message = mhandler.obtainMessage(3);
-                            message.arg1 = 1;
-                            mhandler.sendMessage(message);
-                            throw new IOException("print error");
-                        } else {
-                            mhandler.sendEmptyMessage(5);
-                        }
-                    } catch (IOException e) {
-                        String exMsg = e.getMessage();
-                        MyApp.myLogger.writeError(e, "SF_StartPrint Error:");
-                        if ("print error".equals(exMsg)) {
-                            MyApp.myLogger.writeError("print error" + tvPid.getText().toString());
-                        } else {
-                            mhandler.obtainMessage(8).sendToTarget();
-                        }
-                    }
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    Message msg = mhandler.obtainMessage(3);
-                    msg.arg1 = 0;
-                    mhandler.sendMessage(msg);
-                    e.printStackTrace();
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                }
             }
         };
         TaskManager.getInstance().execute(orderRunnable);
@@ -1669,15 +1642,6 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
         return builder;
     }
 
-    private Map<String, String> getOrderResponse(String xml) throws IOException,
-            XmlPullParserException {
-        String result = SFWsUtils.getNewOrder(xml);
-        Log.e("zjy",
-                "SFActivity->getOrderResponse(): result==" +
-                        result);
-        XmlDomUtils xmlUtils = new XmlDomUtils();
-        return xmlUtils.readXML(result);
-    }
 
     public String getSFClientInfo(String clientID) throws IOException,
             XmlPullParserException {
@@ -1686,6 +1650,23 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
         return detail;
     }
 
+    public void reLatePidNew() {
+        try {
+            String pid = tvPid.getText().toString();
+            String result = updatePrintCount(pid, desOrderid);
+            result = insertYundanInfo(pid, desOrderid, ddestcode);
+            if (result.equals("成功")) {
+                mhandler.sendEmptyMessage(MSG_RL_OK);
+            } else {
+                throw new IOException("更新关联信息失败，" + result);
+            }
+        } catch (IOException e) {
+            mhandler.sendEmptyMessage(MSG_RL_ERROR);
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+    }
     public String updatePrintCount(String pid, String orderID) throws IOException,
             XmlPullParserException {
         if (isDiaohuo) {
@@ -1694,7 +1675,6 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
         }
         String newOrder = orderID.replace(",", "/");
         String result = SF_Server.UpdateYunDanInfoByPrintCount(pid, newOrder);
-        Log.e("zjy", "SFActivity->updatePrintCount(): updateCount==" +result);
         if ("成功".equals(result)) {
             MyApp.myLogger.writeInfo("SFprint--updatePrintCount:OK" + pid);
         }

@@ -1,7 +1,6 @@
 package com.b1b.js.erpandroid_kf.activity.base;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.R;
@@ -26,7 +25,7 @@ public class SavedLoginInfoActivity extends BaseMActivity {
             MyApp.id = loginID;
             MyApp.ftpUrl = savedInstanceState.getString("ftpUrl");
         }
-        Log.e("zjy", getClass().getName() + "->supper->onCreate(): nowID==" + loginID);
+//        Log.e("zjy", getClass().getName() + "->supper->onCreate(): nowID==" + loginID);
     }
 
     @Override

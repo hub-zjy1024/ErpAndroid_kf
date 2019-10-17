@@ -2,15 +2,24 @@ package com.b1b.js.erpandroid_kf.activity.base;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
 import com.b1b.js.erpandroid_kf.MyApp;
+import com.b1b.js.erpandroid_kf.mvcontract.callback.IBoolCallback;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import utils.framwork.DialogUtils;
 import utils.framwork.MyToast;
@@ -20,12 +29,14 @@ import utils.framwork.MyToast;
  */
 public abstract class BaseMActivity extends AppCompatActivity {
     protected Context mContext;
-
     ProgressDialog proDialog;
+    DialogUtils mdialog;
+    public static final int reqPermissions = 321;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
+        mdialog = new DialogUtils(mContext);
         MyApp.myLogger.writeInfo("create" + getClass());
     }
 
@@ -34,6 +45,53 @@ public abstract class BaseMActivity extends AppCompatActivity {
         super.setContentView(layoutResID);
         init();
         setListeners();
+    }
+
+    IBoolCallback mCallback;
+
+    public void usePermission(String[] permissions, IBoolCallback tempCallback) {
+        List<String> notGranted = new ArrayList<>();
+        for (int i = 0; i < permissions.length; i++) {
+            String pm = permissions[i];
+            int isGranted = ContextCompat.checkSelfPermission(this, pm);
+            if (isGranted == PackageManager.PERMISSION_DENIED) {
+                notGranted.add(pm);
+            }
+        }
+        if (notGranted.size() > 0) {
+            mCallback = tempCallback;
+            String[] objects = new String[notGranted.size()];
+            notGranted.toArray(objects);
+            ActivityCompat.requestPermissions(this, objects, reqPermissions);
+        } else {
+            mCallback = tempCallback;
+            mCallback.callback(true);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == reqPermissions) {
+            List<String> notGranted = new ArrayList<>();
+            for (int i = 0; i < grantResults.length; i++) {
+                int grantResult = grantResults[i];
+                Log.e("zjy", getClass() + "->onRequestPermissionsResult():state=" +
+                        "" + grantResult +
+                        ",name=" + permissions[i]);
+                if (grantResult == PackageManager.PERMISSION_DENIED) {
+                    notGranted.add(permissions[i]);
+                }
+            }
+            if (notGranted.size() > 0) {
+                showMsgDialog("还有权限未被授予，请重启程序并授权");
+            } else {
+                if (mCallback != null) {
+                    mCallback.callback(true);
+                }
+            }
+        }
     }
 
     public <T extends View> T getViewInContent(@IdRes int resId) {
@@ -55,8 +113,15 @@ public abstract class BaseMActivity extends AppCompatActivity {
         v.setOnClickListener(listener);
     }
 
-    public void showMsgDialog(String msg) {
-        showMsgDialog(msg, "提示");
+    public void showMsgDialog(final String msg) {
+        if (mdialog != null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mdialog.showAlertWithId(msg);
+                }
+            });
+        }
     }
 
     public void showMsgToast(String msg) {
@@ -80,11 +145,32 @@ public abstract class BaseMActivity extends AppCompatActivity {
         });
     }
 
+    public int showProgressWithID(String msg) {
+        if (mdialog == null) {
+            return -1;
+        }
+        return mdialog.showProgressWithID(msg);
+    }
+
+    public void cancelAllDialog() {
+        if (mdialog == null) {
+            return ;
+        }
+        mdialog.cancelAll();
+    }
+
+    public void cancelDialogById(int pdId) {
+        if (mdialog == null) {
+            return ;
+        }
+        mdialog.cancelDialogById(pdId);
+    }
+
     public void showProgress(String msg) {
-        proDialog = new ProgressDialog(this);
-        proDialog.setTitle("请稍后");
-        proDialog.setMessage(msg);
-        proDialog.show();
+        if (mdialog == null) {
+            return;
+        }
+        mdialog.showProgressWithID(msg);
     }
 
     public void showProgress(String msg, int progress) {
@@ -94,6 +180,7 @@ public abstract class BaseMActivity extends AppCompatActivity {
         proDialog.setMessage(msg);
         proDialog.show();
     }
+
     public void cancelProgress() {
         if (proDialog != null) {
             proDialog.cancel();

@@ -9,6 +9,11 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+<!--        <item name="buttonStyle">@style/zjy_button_light</item>-->
+        <item name="android:windowAnimationStyle">@style/AnimFade</item>
+        <!--<item name="dialogTheme">@style/dialog_matieral</item>-->
+    </style>
+    <style name="dialog_matieral">
     </style>
     <style name="ZjyTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
@@ -135,5 +140,15 @@
     </declare-styleable>
     <style name="zjy_button_nomarl_ky" parent="zjy_button_nomarl_alpha100">
         <item name="android:elevation">10dp</item>
+    </style>
+    <style name="new_ck_btn_color">
+        <item name="android:textColor">@drawable/bg_button_newchuku</item>
+    </style>
+
+    <style name="AnimFade" parent="@android:style/Animation.Activity"> 
+         <item name="android:activityOpenEnterAnimation">@anim/anim_activity_slide_in</item>
+<!--         <item name="android:activityOpenExitAnimation">@anim/anim_activity_slide_out</item>-->
+          <item name="android:activityCloseExitAnimation">@anim/anim_activity_slide_out</item>
+<!--         <item name="android:activityCloseEnterAnimation">@anim/anim_activity_slide_in</item>-->
     </style>
 </resources>

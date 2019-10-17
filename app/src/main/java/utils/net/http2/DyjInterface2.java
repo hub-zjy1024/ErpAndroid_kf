@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.security.PrivilegedActionException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -19,7 +20,8 @@ import utils.net.HttpUtils;
  */
 public class DyjInterface2 {
     public static final String iKey = "10162105300";
-    public static final String HOST = "http://210.51.190.36:810";
+        public static final String HOST = "http://210.51.190.36:810";
+//    public static final String HOST = "http://192.168.10.117:8090/";
 
     public static class DyjException extends Exception {
         /**
@@ -115,8 +117,9 @@ public class DyjInterface2 {
         try {
             bodyString = HttpUtils.create(url).getBodyString();
             JSONObject mobj = JSONObject.parseObject(bodyString);
-//            Log.e("zjy", DyjInterface2.class.getClass() + "->GetChKuTongZhiDetailInfoToString(): ==" +
-//                    bodyString);
+            //            Log.e("zjy", DyjInterface2.class.getClass() + "->GetChKuTongZhiDetailInfoToString
+            //            (): ==" +
+            //                    bodyString);
 
             boolean isSuccess = mobj.getBoolean("isSuccess");
             if (isSuccess) {
@@ -162,7 +165,8 @@ public class DyjInterface2 {
         try {
             bodyString = HttpUtils.create(url).getBodyString();
             JSONObject mobj = JSONObject.parseObject(bodyString);
-//            Log.e("zjy", DyjInterface2.class.getClass() + "->GetChuKuTongZhiInfoByPIDToString(): ==" + bodyString);
+            //            Log.e("zjy", DyjInterface2.class.getClass() + "->GetChuKuTongZhiInfoByPIDToString
+            //            (): ==" + bodyString);
 
             boolean isSuccess = mobj.getBoolean("isSuccess");
             if (isSuccess) {
@@ -246,6 +250,180 @@ public class DyjInterface2 {
         }
     }
 
+    /**
+     * StateNow=1等待调拨
+     * StateNow=2等待预出库
+     * StateNow=3 一次复核
+     * StateNow=4 二次复核
+     * StateNow=5 等待特殊审批
+     * StateNow=6 等待打印
+     *
+     * @param pid
+     * @return
+     * @throws DyjException
+     * @throws IOException
+     */
+    public static String GetChuKuTongZhiInfoToString2ByIP(String pid, String ip) throws DyjException,
+            IOException {
+        String url = HOST + "/YuChuKu/GetChuKuTongZhiInfoByPIDToStrings?pid=%s&ip=%s&key=%s";
+        String mName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
+        url = String.format(url, pid, URLEncoder.encode(ip, "utf-8"), iKey);
+        String bodyString = "";
+        try {
+            bodyString = HttpUtils.create(url).getBodyString();
+            JSONObject mobj = JSONObject.parseObject(bodyString);
+            Log.e("zjy",
+                    DyjInterface2.class.getClass() + "->GetChuKuTongZhiInfoByPIDToStrings(): ==" + bodyString);
+
+            boolean isSuccess = mobj.getBoolean("isSuccess");
+            if (isSuccess) {
+                JSONArray mobjJSONArray = mobj.getJSONArray("list");
+                String list = mobjJSONArray.toJSONString();
+                return bodyString;
+            } else {
+                String errrMsg = mobj.getString("message");
+                throw new DyjException(mName + ",接口异常," + errrMsg + ",url=" + url);
+            }
+            //            {
+            //                "status":"400", "message":"Key参数为空", "isSuccess":false, "isPage":false,
+            // "pageInfo":{
+            //                "counts":0, "pagesize":50, "pages":1, "currentpage":1
+            //            },"list":null
+            //            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IOException("网络异常," + e.getMessage());
+        } catch (JSONException e) {
+            throw new IOException("数据格式异常,json=" + bodyString);
+        }
+    }
+
+    /**
+     * StateNow=1等待调拨
+     * StateNow=2等待预出库
+     * StateNow=3 一次复核
+     * StateNow=4 二次复核
+     * StateNow=5 等待特殊审批
+     * StateNow=6 等待打印
+     *
+     * @param pid
+     * @return
+     * @throws DyjException
+     * @throws IOException
+     */
+    public static String GetChuKuTongZhiInfoToString2(String pid) throws DyjException,
+            IOException {
+        String url = HOST + "/YuChuKu/GetChuKuTongZhiInfoByPIDToStrings?pid=%s&ip=%s&key=%s";
+        String mName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
+        url = String.format(url, pid, iKey);
+        String bodyString = "";
+        try {
+            bodyString = HttpUtils.create(url).getBodyString();
+            JSONObject mobj = JSONObject.parseObject(bodyString);
+            Log.e("zjy",
+                    DyjInterface2.class.getClass() + "->GetChuKuTongZhiInfoByPIDToStrings(): ==" + bodyString);
+
+            boolean isSuccess = mobj.getBoolean("isSuccess");
+            if (isSuccess) {
+                JSONArray mobjJSONArray = mobj.getJSONArray("list");
+                String list = mobjJSONArray.toJSONString();
+                return bodyString;
+            } else {
+                String errrMsg = mobj.getString("message");
+                throw new DyjException(mName + ",接口异常," + errrMsg + ",url=" + url);
+            }
+            //            {
+            //                "status":"400", "message":"Key参数为空", "isSuccess":false, "isPage":false,
+            // "pageInfo":{
+            //                "counts":0, "pagesize":50, "pages":1, "currentpage":1
+            //            },"list":null
+            //            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IOException("网络异常," + e.getMessage());
+        } catch (JSONException e) {
+            throw new IOException("数据格式异常,json=" + bodyString);
+        }
+    }
+
+    /**
+     * 拍照上传图片
+     *
+     * @param pid
+     * @param folder
+     * @param flag
+     * @param uid
+     * @return
+     * @throws DyjException
+     * @throws IOException
+     */
+    public static boolean UpdateCKPhoto(String pid, String folder, String flag, String picname, String uid,
+                                        String insertPath) throws DyjException,
+            IOException {
+        //        http://172.16.6.160:810/YuChuKu/UpdateCKPhoto?cktzID=&folder=&processID=&picName=&makerID
+        //        =&key=
+        //        http://172.16.6.160:810/YuChuKu/UpdateCKPhotos?cktzID=&folder=&processID=&picName
+        //        =&makerID=&picUrl=&key=
+        String url = HOST + "/YuChuKu/UpdateCKPhotos?cktzID=%s&folder=%s&processID=%s&picName=%s&makerID=%s" +
+                "&picUrl=%s" +
+                "&key=%s";
+        Log.e("zjy", DyjInterface2.class + "->UpdateCKPhoto():insertPath ==" + insertPath);
+        String mName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
+        url = String.format(url, pid, folder, flag, picname, uid, URLEncoder.encode(insertPath, "utf-8"),
+                iKey);
+        String bodyString = "";
+        try {
+            bodyString = HttpUtils.create(url).getBodyString();
+            JSONObject mobj = JSONObject.parseObject(bodyString);
+            Log.e("zjy", DyjInterface2.class.getClass() + "->UpdateCKPhoto(): ==" + bodyString);
+            boolean isSuccess = mobj.getBoolean("isSuccess");
+            if (isSuccess) {
+                //                JSONArray mobjJSONArray = mobj.getJSONArray("list");
+                //                String list = mobjJSONArray.toJSONString();
+                return true;
+            } else {
+                String errrMsg = mobj.getString("message");
+                Log.e("zjy", DyjInterface2.class.getClass() + "->UpdateCKPhoto():false ==" + url);
+
+                throw new DyjException(mName + ",接口异常," + errrMsg);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IOException("网络异常," + e.getMessage());
+        } catch (JSONException e) {
+            throw new IOException("数据格式异常,json=" + bodyString);
+        }
+    }
+
+    public static boolean UpdateStoreChekerInfo(String pid, String uid, String uname, String flag) throws DyjException,
+            IOException {
+        //        /UpdateStoreChekerInfo?pid=&flag=&checker=&checkerName&key=
+        String url = HOST + "/YuChuKu/UpdateStoreChekerInfo?pid=%s&checker=%s&checkerName=%s&flag=%s&key=%s";
+        String mName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
+        url = String.format(url, pid, uid, URLEncoder.encode(uname, "utf-8"), flag, iKey);
+        String bodyString = "";
+        try {
+            bodyString = HttpUtils.create(url).getBodyString();
+            JSONObject mobj = JSONObject.parseObject(bodyString);
+            Log.e("zjy", DyjInterface2.class.getClass() + "->UpdateStoreChekerInfo(): ==" + bodyString);
+            boolean isSuccess = mobj.getBoolean("isSuccess");
+            if (isSuccess) {
+                JSONArray mobjJSONArray = mobj.getJSONArray("list");
+                return true;
+            } else {
+                String errrMsg = mobj.getString("message");
+                Log.e("zjy", DyjInterface2.class + "->UpdateStoreChekerInfo(): url==" + url);
+
+                throw new DyjException(mName + ",接口异常," + errrMsg);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IOException("网络异常," + e.getMessage() + "," + url);
+        } catch (JSONException e) {
+            throw new IOException("数据格式异常,json=" + bodyString);
+        }
+    }
+
     public static String SpCheckInfo(String pid, String userID) throws DyjException,
             IOException {
         String url = HOST + "/YuChuKu/SpCheckInfo?pid=%s&userID=%s&key=%s";
@@ -259,8 +437,7 @@ public class DyjInterface2 {
             boolean isSuccess = mobj.getBoolean("isSuccess");
             if (isSuccess) {
                 JSONArray mobjJSONArray = mobj.getJSONArray("list");
-                String list = mobjJSONArray.toJSONString();
-                return list;
+                return "1";
             } else {
                 String errrMsg = mobj.getString("message");
                 throw new DyjException(mName + ",接口异常," + errrMsg);
@@ -272,4 +449,129 @@ public class DyjInterface2 {
             throw new IOException("数据格式异常,json=" + bodyString);
         }
     }
+
+    public static String GetphotosByCKTZIDToString(String pid) throws DyjException,
+            IOException {
+        String url = HOST + "/YuChuKu/GetphotosByCKTZIDToString?id=%s&key=%s";
+        String mName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
+        url = String.format(url, pid, iKey);
+        Log.e("zjy", DyjInterface2.class + "->GetphotosByCKTZIDToString(): url==" + url);
+
+        String bodyString = "";
+        try {
+            bodyString = HttpUtils.create(url).getBodyString();
+            JSONObject mobj = JSONObject.parseObject(bodyString);
+            Log.e("zjy", DyjInterface2.class.getClass() + "->GetphotosByCKTZIDToString(): ==" + bodyString);
+            boolean isSuccess = mobj.getBoolean("isSuccess");
+            if (isSuccess) {
+                JSONArray mobjJSONArray = mobj.getJSONArray("list");
+                return mobjJSONArray.toJSONString();
+            } else {
+                String errrMsg = mobj.getString("message");
+                throw new DyjException(mName + ",接口异常," + errrMsg);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IOException("网络异常," + e.getMessage());
+        } catch (JSONException e) {
+            throw new IOException("数据格式异常,json=" + bodyString);
+        }
+
+    }
+
+    public static String GetBILL_ResourcePic(String pid) throws DyjException,
+            IOException {
+        String pics = GetBILL_PictureRelatenfoByIDToString(pid);
+
+        com.alibaba.fastjson.JSONArray mArray = com.alibaba.fastjson.JSONArray.parseArray
+                (pics);
+        com.alibaba.fastjson.JSONArray picArray = new JSONArray();
+        for (int i = 0; i < mArray.size(); i++) {
+            JSONObject tObj = mArray.getJSONObject(i);
+            String imgName = tObj.getString("PicName");
+            if (imgName.endsWith(".jpg") || imgName.endsWith(".png")) {
+                picArray.add(tObj);
+            }
+        }
+        return picArray.toJSONString();
+    }
+
+    public static String GetBILL_Pictures(String pid) throws DyjException,
+            IOException {
+        String pics = GetphotosByCKTZIDToString(pid);
+        //        com.alibaba.fastjson.JSONArray mArray = JSONObject.parseObject(pics).getJSONArray("list");
+        com.alibaba.fastjson.JSONArray mArray = com.alibaba.fastjson.JSONArray.parseArray
+                (pics);
+        com.alibaba.fastjson.JSONArray picArray = new JSONArray();
+        for (int i = 0; i < mArray.size(); i++) {
+            JSONObject tObj = mArray.getJSONObject(i);
+            String imgName = tObj.getString("PicName");
+            String dir = tObj.getString("Folder");
+            String PicUrl = tObj.getString("PicUrl");
+            JSONObject nObj = new JSONObject();
+            nObj.put("pictureName", imgName);
+            nObj.put("dir", dir);
+            nObj.put("PicUrl", PicUrl);
+            picArray.add(nObj);
+        }
+        return picArray.toJSONString();
+    }
+
+    public static String GetBILL_PictureRelatenfoByIDToString(String pid) throws DyjException,
+            IOException {
+        String url = HOST + "/YuChuKu/GetBILL_PictureRelatenfoByIDToString?pid=%s&key=%s";
+        String mName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
+        url = String.format(url, pid, iKey);
+        String bodyString = "";
+        try {
+            bodyString = HttpUtils.create(url).getBodyString();
+            JSONObject mobj = JSONObject.parseObject(bodyString);
+            Log.e("zjy",
+                    DyjInterface2.class.getClass() + "->GetBILL_PictureRelatenfoByIDToString(): ==" + bodyString);
+            boolean isSuccess = mobj.getBoolean("isSuccess");
+            if (isSuccess) {
+                //                pictureName: "and_1387526_20190718102615_3366.jpg",
+                //                        pictureURL: "ftp://192.168.9
+                //                        .244/2019_7_18/and_1387526_20190718102615_3366.jpg"
+                JSONArray mobjJSONArray = mobj.getJSONArray("list");
+                return mobjJSONArray.toJSONString();
+            } else {
+                String errrMsg = mobj.getString("message");
+                throw new DyjException(mName + ",接口异常," + errrMsg);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IOException("网络异常," + e.getMessage());
+        } catch (JSONException e) {
+            throw new IOException("数据格式异常,json=" + bodyString);
+        }
+    }
+
+    public static boolean SetChuKuTongZhiChuKu(String pid, String uid, String uname, String flag) throws IOException, DyjException {
+        //        SetChuKuTongZhiChuKu?pid=&userid=&userName&key=
+        String url = HOST + "/YuChuKu/SetChuKuTongZhiChuKu?pid=%s&userid=%s&userName=%s&key=%s";
+        String mName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
+        url = String.format(url, pid, uid, URLEncoder.encode(uname, "utf-8"), iKey);
+        String bodyString = "";
+        try {
+            bodyString = HttpUtils.create(url).getBodyString();
+            JSONObject mobj = JSONObject.parseObject(bodyString);
+            Log.e("zjy", DyjInterface2.class.getClass() + "->UpdateStoreChekerInfo(): ==" + bodyString);
+            boolean isSuccess = mobj.getBoolean("isSuccess");
+            if (isSuccess) {
+                JSONArray mobjJSONArray = mobj.getJSONArray("list");
+                return true;
+            } else {
+                String errrMsg = mobj.getString("message");
+                Log.e("zjy", DyjInterface2.class + "->UpdateStoreChekerInfo(): url==" + url);
+                throw new DyjException(mName + ",接口异常," + errrMsg);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IOException("网络异常," + e.getMessage() + "," + url);
+        } catch (JSONException e) {
+            throw new IOException("数据格式异常,json=" + bodyString);
+        }
+    }
+    //    GetBILL_PictureRelatenfoByIDToString
 }

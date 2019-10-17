@@ -4,7 +4,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.android.dev.BarcodeAPI;
 import com.sunmi.scanner.ScanController;
 
 /**
@@ -20,7 +19,6 @@ public class SunmiScanActivity extends SavedLoginInfoWithScanActivity implements
     @Override
     public void init() {
         String brand = Build.BRAND;
-        scanTool = BarcodeAPI.getInstance();
         if (brand.contains("SUNMI")) {
 //            hasScanBtn = true;
         }

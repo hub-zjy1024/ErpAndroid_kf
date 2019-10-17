@@ -78,7 +78,8 @@ public class SPrinter extends MyPrinterParent {
         return printer;
     }
     public synchronized static SPrinter getPrinter() {
-        return printer;
+//        return printer;
+        return SPrinter2.getPrinter();
     }
 
     public static class PBarcodeType {
@@ -436,6 +437,22 @@ public class SPrinter extends MyPrinterParent {
         helper.close();
     }
 
+    public void closeConnect() {
+        helper.closeConnect();
+        if (dataOut != null) {
+            try {
+                dataOut.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            dataOut = null;
+        }
+    }
+
+    public void closeBt() {
+        helper.closeBt();
+    }
+
     public synchronized void closeSocket() {
         try {
             if (dataOut != null) {
@@ -465,6 +482,12 @@ public class SPrinter extends MyPrinterParent {
     public void registeBroadCast() {
         synchronized (this) {
             helper.register();
+        }
+    }
+
+    public void registeBroadCast(Context mContext) {
+        synchronized (this) {
+            helper.register(mContext);
         }
     }
 
@@ -548,7 +571,7 @@ public class SPrinter extends MyPrinterParent {
 
     public void unRegisterReceiver(Context mContext) {
         synchronized (this) {
-            helper.unRegister();
+            helper.unRegister(mContext);
         }
     }
 

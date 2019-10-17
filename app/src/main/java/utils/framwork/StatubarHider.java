@@ -1,16 +1,20 @@
 package utils.framwork;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Rect;
 import android.os.Build;
 import android.support.v4.view.ViewCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+
+import java.lang.reflect.Method;
 
 /**
  * Created by 张建宇 on 2018/11/6.
@@ -83,6 +87,56 @@ public class StatubarHider {
                 mChildView.setLayoutParams(lp);
             }
         }
+    }
+
+
+    /**
+     * 标题栏高度
+     * @return
+     */
+    public static int getTitleHeight(Activity activity){
+        View contentView = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT);
+        Log.e("zjy", "->getTitleHeight(): ==" + contentView.getTop());
+        Log.e("zjy", "->getContentBottom(): ==" + contentView.getBottom());
+        return  contentView.getTop();
+    }
+    //获取屏幕原始尺寸高度，包括虚拟功能键高度
+    public static int getRealHeight(Context context) {
+        int dpi = 0;
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display display = windowManager.getDefaultDisplay();
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            display.getRealMetrics(displayMetrics);
+        } else {
+            @SuppressWarnings("rawtypes")
+            Class c;
+            try {
+                c = Class.forName("android.view.Display");
+                @SuppressWarnings("unchecked")
+                Method method = c.getMethod("getRealMetrics", DisplayMetrics.class);
+                method.invoke(display, displayMetrics);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        dpi = displayMetrics.heightPixels;
+        return dpi;
+    }
+
+    public static int getStatusBarHeightReflect(Activity activity) {
+        int statusHeight = 0;
+        try {
+            Class<?> clazz = Class.forName("com.android.internal.R$dimen");
+            Object object = clazz.newInstance();
+            int height = Integer.parseInt(clazz.getField("status_bar_height")
+                    .get(object).toString());
+            statusHeight = activity.getResources().getDimensionPixelSize(height);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return statusHeight;
     }
 
     public static int getStatusBarHeight(Activity activity) {

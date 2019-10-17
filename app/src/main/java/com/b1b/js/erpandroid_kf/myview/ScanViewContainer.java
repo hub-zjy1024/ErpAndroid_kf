@@ -3,6 +3,7 @@ package com.b1b.js.erpandroid_kf.myview;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.ImageFormat;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
@@ -14,6 +15,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+
+import com.b1b.js.erpandroid_kf.MyApp;
 
 import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
@@ -59,7 +62,6 @@ public abstract class ScanViewContainer extends FrameLayout implements Camera.Pr
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        Log.e("zjy", getClass() + "->onInterceptTouchEvent(): mTouch==");
         scanView.foucs();
         return super.onInterceptTouchEvent(ev);
     }
@@ -78,10 +80,9 @@ public abstract class ScanViewContainer extends FrameLayout implements Camera.Pr
             if (scanView.isStoped()) {
                 return;
             }
-            Camera.Parameters parameters = camera.getParameters();
-            Camera.Size size = parameters.getPreviewSize();
-            int width = size.width;
-            int height = size.height;
+            Point preSize = scanView.getPreSize();
+            int width = preSize.x;
+            int height = preSize.y;
             int rotationCount = scanView.getRotationCount();
             int flag = rotationCount / 90;
             if (flag == 1 || flag == 3) {
@@ -89,19 +90,21 @@ public abstract class ScanViewContainer extends FrameLayout implements Camera.Pr
                 width = height;
                 height = temp;
             }
-            data = scanView.getRotatedData(data, camera);
+            data = scanView.getRotatedData(data);
+
             Rect rect = getFramingRectInPreview(width, height);
-            if (!debugFlag) {
-                int previewFormat = camera.getParameters().getPreviewFormat();
-                Log.e("zjy", getClass() + "->onPreviewFrame():" + String.format("datasize=%d,pw-ph=%d-%d," +
-                        "preFormat=%d,Thread=%s", data.length, width, height, previewFormat,
-                        Thread.currentThread().getName()));
-                debugFlag = true;
-            }
+//            if (!debugFlag) {
+//                int previewFormat = camera.getParameters().getPreviewFormat();
+//                Log.e("zjy", getClass() + "->onPreviewFrame():" + String.format("datasize=%d,pw-ph=%d-%d," +
+//                        "preFormat=%d,Thread=%s", data.length, width, height, previewFormat,
+//                        Thread.currentThread().getName()));
+//                debugFlag = true;
+//            }
             DecodeTask task = new DecodeTask(data, width, height, rect, this);
             task.execute();
 
         } catch (RuntimeException e) {
+            MyApp.myLogger.writeError(e, "扫码复核异常");
             Log.e("zjy", getClass() + "->onPreviewFrame(): error==", e);
         }
     }
@@ -125,7 +128,7 @@ public abstract class ScanViewContainer extends FrameLayout implements Camera.Pr
 
 
     private void onDecodeFinished(String result) {
-        Log.e("zjy", getClass() + "->onDecodeFinished(): ==" + result);
+        Log.d("zjy", getClass() + "->onDecodeFinished(): ==" + result);
         if (listener != null) {
             listener.getCodeStr(result);
         }
@@ -193,6 +196,14 @@ public abstract class ScanViewContainer extends FrameLayout implements Camera.Pr
 
     boolean debugFlag = false;
 
+    /**
+     * 解码方法，在单独线程调用，无需考虑主线程超时问题
+     * @param data
+     * @param rect
+     * @param width
+     * @param height
+     * @return
+     */
     protected abstract String startDecode(byte[] data, Rect rect, int width, int height);
 
     ResultListener listener;

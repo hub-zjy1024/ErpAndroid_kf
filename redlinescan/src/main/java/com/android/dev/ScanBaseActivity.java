@@ -1,16 +1,16 @@
 package com.android.dev;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 
 import com.android.dev.handler.NoLeakHandler;
 
-public abstract class ScanBaseActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback {
+public abstract class ScanBaseActivity extends Activity implements NoLeakHandler.NoLeakCallback {
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {

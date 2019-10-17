@@ -18,7 +18,8 @@
 -keepclasseswithmembernames public class * {
     native <methods>;  #保持 native 的方法不去混淆
 }
--keepattributes Signature  #过滤泛型（不写可能会出现类型转换错误，一般情况把这个加上就是了）
+-keepattributes InnerClasses
+-keepattributes Signature*  #过滤泛型（不写可能会出现类型转换错误，一般情况把这个加上就是了,需要-keepattributes InnerClasses配合）
 
 -keepattributes *Annotation*  #假如项目中有用到注解，应加入这行配置
 
@@ -98,6 +99,7 @@
 #zbar混淆
 -keep class me.dm7.barcodescanner.core.**{*;}
 -keep class me.dm7.barcodescanner.zbar.**{*;}
+-keep class net.sourceforge.zbar.** { *; }
 -keep class com.b1b.js.erpandroid_kf.scancode.zxing.view.**{*;}
 -keep class com.google.zxing.**{*;}
 #mail混淆
@@ -125,10 +127,10 @@
 -keep class com.shockwave.**
 #其他配置
 #混淆前后名称对照
--dump class_files.txt
+-dump D:\dyj\app\dyj_app\dyj_kf\mapping\class_files.txt
 #未混淆的类和成员
--printseeds seeds.txt
+-printseeds D:\dyj\app\dyj_app\dyj_kf\mapping\seeds.txt
 #列出从 apk 中删除的代码
--printusage unused.txt
+-printusage D:\dyj\app\dyj_app\dyj_kf\mapping\unused.txt
 #混淆前后的映射
--printmapping mapping.txt
+-printmapping D:\dyj\app\dyj_app\dyj_kf\mapping\mapping.txt

@@ -1,130 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.b1b.js.erpandroid_kf">
+    package="com.b1b.js.erpandroid_kf">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.FLASHLIGHT"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-feature android:name="android.hardware.Camera.AutoFocusCallback" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <uses-feature android:name="android.hardware.Camera.AutoFocusCallback"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!--添加安装权限8.0-->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <application
         android:name=".MyApp"
         android:allowBackup="true"
         android:icon="@mipmap/launcher_ic_kf"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
+        <activity android:name=".ChukuTakePicActivity"></activity>
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/ex_files" />
+        </provider>
         <activity
             android:name=".MainActivity"
             android:theme="@style/AppSplash">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MenuActivity"/>
-        <activity android:name=".KaoQinActivity"/>
-        <activity android:name=".TakePicActivity"/>
-        <activity android:name=".TakePic2Activity"/>
-        <activity android:name=".imagepicker.PickPicActivity"/>
-        <activity android:name=".dtr.zxing.activity.CaptureActivity"/>
-        <activity android:name=".dtr.zxing.activity.ResultActivity"/>
-        <activity android:name=".ChuKuActivity"/>
-        <activity android:name=".ObtainPicFromPhone"/>
-        <activity android:name=".CheckActivity"/>
-        <activity android:name=".SetCheckInfoActivity"/>
-        <activity android:name=".ViewPicByPidActivity">
-        </activity>
-        <activity android:name=".PicDetailActivity">
-        </activity>
-
-        <service
-            android:name=".service.PushService"
-            android:enabled="true"
-            android:exported="false">
-        </service>
+        <activity android:name=".MenuActivity" />
+        <activity android:name=".KaoQinActivity" />
+        <activity android:name=".TakePicActivity" />
+        <activity android:name=".TakePic2Activity" />
+        <activity android:name=".imagepicker.PickPicActivity" />
+        <activity android:name=".dtr.zxing.activity.CaptureActivity" />
+        <activity android:name=".dtr.zxing.activity.ResultActivity" />
+        <activity android:name=".ChuKuActivity" />
+        <activity android:name=".ObtainPicFromPhone" />
+        <activity android:name=".CheckActivity" />
+        <activity android:name=".SetCheckInfoActivity" />
+        <activity android:name=".ViewPicByPidActivity"/>
+        <activity android:name=".PicDetailActivity"/>
 
         <activity android:name=".UploadActivity">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:host="www.example.com"
                     android:pathPrefix="/gizmos"
-                    android:scheme="http"/>
+                    android:scheme="http" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".PankuActivity" />
+
+        <activity android:name=".ObtainPicPanku" />
+
+        <activity android:name=".PreChukuActivity" />
+        <activity android:name=".PreChukuDetailActivity" />
+        <activity android:name=".SettingActivity" />
+        <activity android:name=".KucunFBActivity" />
+        <activity android:name=".CaigouActivity" />
+        <activity android:name=".CaigouTakePic2Activity" />
+        <activity android:name=".HetongActivity" />
+        <activity android:name=".CaigouDetailActivity" />
+        <activity android:name=".printer.activity.PickPicPrintingActivity" />
+        <activity android:name=".printer.activity.ToolbarTestActivity" />
+        <activity android:name=".yundan.sf.SetYundanActivity" />
+        <activity android:name=".yundan.SFActivity" />
+        <activity android:name=".yundan.kyeexpress.KyPrintAcitivity" />
+        <activity android:name=".CaigouYanhuoActivity" />
+        <activity android:name=".YanhuoCheckActivity" />
+        <activity android:name=".AboutActivity" />
+        <activity android:name=".KyExpressAcitivity" />
+        <activity android:name=".PrintSettingActivity" />
+
+        <activity android:name=".RukuTagPrintAcitivity" />
+        <activity android:name=".TakePicBaseActivity" />
+
+        <activity android:name=".TakePicChildPanku" />
+        <activity android:name=".ReUploadActivity" />
+        <activity android:name=".ShangjiaActivity"></activity>
+        <activity android:name=".activity.base.SavedLoginInfoActivity"></activity>
+        <activity android:name=".activity.base.SavedLoginInfoWithScanActivity" />
+        <activity android:name=".QdListActivity"></activity>
+        <activity android:name=".QdTakePicActivity" />
+        <activity android:name=".scancode.zbar.ZbarScanActivity" />
+        <activity android:name=".scancode.zxing.ZxingScanActivcity" />
+        <activity
+            android:name=".activity.base.SlideBackActivity"
+            android:theme="@style/Theme.zjy.activity.slideback" />
+        <activity android:name=".ReUpLoadPicActivity"></activity>
+        <activity android:name=".HongkongChukuTakpic" />
+        <activity android:name=".HonkongChukuCheck" />
+        <activity android:name=".Check2_scan_activity"></activity>
+        <activity android:name=".ParentChukuActivity" />
+        <activity android:name=".YundanPicActivity" />
+        <activity android:name=".ViewPicByPid2Activity" />
+        <activity android:name=".PicDetailActivity2" />
 
         <receiver
             android:name=".TakePic2Activity$NotificationDeleteBroadcast"
             android:exported="false">
             <intent-filter android:priority="1000">
-                <action android:name="deleteNotification"/>
+                <action android:name="deleteNotification" />
             </intent-filter>
         </receiver>
-
-        <activity android:name=".PankuActivity"/>
-        <activity android:name=".ObtainPicPanku"/>
-        <activity android:name=".PreChukuActivity"/>
-        <activity android:name=".PreChukuDetailActivity"/>
-        <activity android:name=".SettingActivity"/>
-        <activity android:name=".KucunFBActivity"/>
-        <activity android:name=".CaigouActivity"/>
-        <activity android:name=".CaigouTakePic2Activity"/>
-        <activity android:name=".HetongActivity"/>
-        <activity android:name=".CaigouDetailActivity"/>
-        <activity android:name=".printer.activity.PickPicPrintingActivity"/>
-        <activity android:name=".printer.activity.ToolbarTestActivity"/>
-        <activity android:name=".yundan.sf.SetYundanActivity"/>
-        <activity android:name=".yundan.SFActivity"/>
-        <activity android:name=".yundan.kyeexpress.KyPrintAcitivity"/>
-        <activity android:name=".CaigouYanhuoActivity"/>
-        <activity android:name=".YanhuoCheckActivity"/>
-        <activity android:name=".AboutActivity"/>
-
-        <service android:name=".service.LogUploadService"/>
-        <service android:name=".service.ReUploadService"/>
-
-        <activity android:name=".KyExpressAcitivity"/>
-        <activity android:name=".PrintSettingActivity"/>
-        <activity android:name=".RukuTagPrintAcitivity"/>
-        <activity android:name=".TakePicBaseActivity"/>
-        <activity android:name=".TakePicChildPanku"/>
-        <activity android:name=".ReUploadActivity"/>
-        <activity android:name=".ShangjiaActivity">
-        </activity>
-        <activity android:name=".activity.base.SavedLoginInfoActivity">
-        </activity>
-        <activity android:name=".activity.base.SavedLoginInfoWithScanActivity"/>
-        <activity android:name=".QdListActivity">
-        </activity>
-        <activity android:name=".QdTakePicActivity"/>
-        <activity android:name=".scancode.zbar.ZbarScanActivity"/>
-        <activity android:name=".scancode.zxing.ZxingScanActivcity"/>
-        <activity
-            android:name=".activity.base.SlideBackActivity"
-            android:theme="@style/Theme.zjy.activity.slideback"/>
-        <activity android:name=".ReUpLoadPicActivity">
-        </activity>
-        <activity android:name=".HongkongChukuTakpic"/>
-        <activity android:name=".HonkongChukuCheck"/>
-        <activity android:name=".Check2_scan_activity">
-        </activity>
+        <service
+            android:name=".service.PushService"
+            android:enabled="true"
+            android:exported="false"></service>
+        <service android:name=".service.LogUploadService" />
+        <service android:name=".service.ReUploadService" />
     </application>
 
 </manifest>

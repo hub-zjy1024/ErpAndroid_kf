@@ -8,7 +8,28 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <!--<item name="buttonStyle">@style/zjy_button_light</item>-->
+        <item name="android:windowAnimationStyle">@style/AnimFade</item>
     </style>
+
+    <style name="AnimFade" parent="@android:style/Animation.Activity"> 
+         <item name="android:activityOpenEnterAnimation">@anim/anim_activity_slide_in</item>
+          <item name="android:activityCloseExitAnimation">@anim/anim_activity_slide_out</item>
+    </style>
+   <!-- <style name="ZjyTheme.material"></style>
+    <style name="ZjyTheme.material.button">
+    </style>
+    <style name="ZjyTheme.material.button.zjy_button_light" parent="AppTheme">
+        <item name="background">?attr/btn_default_material</item>
+        <item name="textAppearance">?attr/textAppearanceButton</item>
+        <item name="minHeight">48dip</item>
+        <item name="minWidth">88dip</item>
+        <item name="stateListAnimator">@anim/button_state_list_anim_material</item>
+        <item name="focusable">true</item>
+        <item name="clickable">true</item>
+        <item name="gravity">center_vertical|center_horizontal</item>
+    </style>-->
+
     <style name="Theme.zjy.activity.slideback" parent="AppTheme">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
@@ -139,4 +160,12 @@
         <attr name="vertical_Space" format="dimension"/>
         <attr name="isFull" format="boolean"/>
     </declare-styleable>
+    <style name="new_ck_btn_color">
+        <item name="android:textColor">@drawable/bg_button_newchuku</item>
+    </style>
+    <style name="dialog_button" parent="AppTheme">
+    <!--    <item name="android:borderlessButtonStyle">?android:borderlessButtonStyle</item>-->
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textColor">@color/bijia_title_background</item>
+    </style>
 </resources>

@@ -22,6 +22,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
 public class AutoFoucusMgr implements Camera.AutoFocusCallback {
@@ -50,8 +51,19 @@ public class AutoFoucusMgr implements Camera.AutoFocusCallback {
 
     public AutoFoucusMgr(Camera camera) {
         this.camera = camera;
-        String currentFocusMode = camera.getParameters().getFocusMode();
+        Camera.Parameters parameters = camera.getParameters();
+        String currentFocusMode = parameters.getFocusMode();
         useAutoFocus = FOCUS_MODES_CALLING_AF.contains(currentFocusMode);
+        String focusMode = parameters.getFocusMode();
+        //不是自动对焦，首先切换到自动对焦
+        String targetFMode = Camera.Parameters.FOCUS_MODE_AUTO;
+        if (!targetFMode.equals(focusMode)) {
+            Log.e("zjy", getClass() + "->AutoFoucusMgr(): ==def focusMode" + focusMode);
+            List<String> supportedFocusModes = parameters.getSupportedFocusModes();
+            if (supportedFocusModes != null && supportedFocusModes.contains(targetFMode)) {
+                parameters.setFocusMode(targetFMode);
+            }
+        }
         //        setAutoFoucs(camera);
         Log.e(TAG, "Current focus mode '" + currentFocusMode + "'; use auto focus? " + useAutoFocus);
         start();
@@ -62,7 +74,6 @@ public class AutoFoucusMgr implements Camera.AutoFocusCallback {
         if (success) {
 //            theCamera.cancelAutoFocus();
         }
-        Log.e("zjy", getClass() + "->onAutoFocus(): ==result=" + success);
         autoFocusAgainLater();
     }
 

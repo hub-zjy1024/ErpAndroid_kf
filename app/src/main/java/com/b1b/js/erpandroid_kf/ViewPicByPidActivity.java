@@ -2,7 +2,6 @@ package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
@@ -15,8 +14,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.ViewPicAdapter;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
 import com.b1b.js.erpandroid_kf.picupload.FtpUploader;
 
@@ -35,10 +34,9 @@ import utils.common.MyFileUtils;
 import utils.framwork.DialogUtils;
 import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
-import utils.net.ftp.FTPUtils;
 import utils.net.wsdelegate.ChuKuServer;
 
-public class ViewPicByPidActivity extends BaseScanActivity{
+public class ViewPicByPidActivity extends ToolbarHasSunmiActivity {
 
     private EditText edPid;
     private GridView gv;
@@ -51,47 +49,35 @@ public class ViewPicByPidActivity extends BaseScanActivity{
     int downCounts = 0;
     private AlertDialog alertDialog;
     private String downloadResult = "";
-    private Context mContext=ViewPicByPidActivity.this;
+    protected String dyjFTP = MyApp.ftpUrl;
+
+    public static final int MSG_Error = 8;
+    public static final int MSG_OK = 0;
+    public static final int MSG_LIMIT = 300;
+
     private Handler mHandler = new NoLeakHandler(this);
     @Override
     public void handleMessage(Message msg) {
         super.handleMessage(msg);
         switch (msg.what) {
-            case 0:
+            case MSG_Error:
+                String errmsg = msg.obj.toString();
+                showMsgToast(errmsg);
+                dismissDialog();
+                break;
+            case MSG_OK:
+                List<FTPImgInfo> list = (List<FTPImgInfo>) msg.obj;
+                Log.e("zjy", getClass() + "->handleMessage(): listSize==" + list.size());
+                imgsData.clear();
+                imgsData.addAll(list);
                 adapter.notifyDataSetChanged();
                 dismissDialog();
-                if (downloadResult.length() > 100) {
-                    downloadResult = downloadResult.substring(0, 100);
+                if (downloadResult.length() > MSG_LIMIT) {
+                    downloadResult = downloadResult.substring(0, MSG_LIMIT);
                     downloadResult += "....";
                 }
-                if (!downloadResult.equals("")) {
-                    downloadResult += "总共找到" + imgsData.size() + "张图片";
-                    alertDialog.setMessage(downloadResult);
-                } else {
-                    alertDialog.setMessage("没有数据");
-                }
+                alertDialog.setMessage(downloadResult);
                 alertDialog.show();
-                break;
-            case 1:
-                dismissDialog();
-               showMsgToast( "当前单据没有对应的图片");
-                break;
-            case 2:
-                dismissDialog();
-               showMsgToast( "当前网络质量较差，请重试");
-                break;
-            case 3:
-                dismissDialog();
-               showMsgToast( "图片上传地址不在本地服务器，无法访问");
-                break;
-            case 4:
-                int totalSize = msg.arg1;
-                int current = msg.arg2 + 1;
-                pd.setMessage("正在下载图片" + current + "/" + totalSize);
-                break;
-            case 5:
-                dismissDialog();
-               showMsgToast( "图片上传地址不在本地服务器，无法访问");
                 break;
         }
     }
@@ -100,6 +86,17 @@ public class ViewPicByPidActivity extends BaseScanActivity{
         if (pd != null && pd.isShowing()) {
             pd.dismiss();
         }
+    }
+
+    @Override
+    public String setTitle() {
+        return "图片查看";
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        adapter.relaseCache();
     }
 
     @Override
@@ -125,12 +122,12 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                                          @Override
                                          public void onClick(View v) {
                                              final String pid = edPid.getText().toString().trim();
-                                             imgsData.clear();
+
                                              if (pid.equals("")) {
                                                 showMsgToast( "请输入单据号");
                                                  return;
                                              }
-                                             adapter.notifyDataSetChanged();
+
                                              File imgFile = Environment.getExternalStorageDirectory();
                                              if (imgFile == null) {
                                                 showMsgToast( "当前无可用的存储设备");
@@ -138,6 +135,8 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                                              }
                                              final File file = new File(imgFile, "dyj_img/");
                                              MyFileUtils.checkImgFileSize(file, 300, mContext);
+                                             imgsData.clear();
+                                             adapter.notifyDataSetChanged();
                                              startSearch(pid);
                                          }
                                      }
@@ -148,12 +147,12 @@ public class ViewPicByPidActivity extends BaseScanActivity{
                 FTPImgInfo item = (FTPImgInfo) parent.getItemAtPosition(position);
                 if (item != null) {
                     Intent mIntent = new Intent(mContext, PicDetailActivity.class);
-                    mIntent.putExtra("path", item.getImgPath());
+                    mIntent.putExtra(PicDetailActivity.ex_Path, item.getImgPath());
                     ArrayList<String> paths = new ArrayList<>();
                     for (int i = 0; i < imgsData.size(); i++) {
                         paths.add(imgsData.get(i).getImgPath());
                     }
-                    mIntent.putStringArrayListExtra("paths", paths);
+                    mIntent.putStringArrayListExtra(PicDetailActivity.ex_Paths, paths);
                     mIntent.putExtra("pos", position);
                     startActivity(mIntent);
                 }
@@ -161,7 +160,7 @@ public class ViewPicByPidActivity extends BaseScanActivity{
         });
         alertDialog = (AlertDialog) DialogUtils.getSpAlert(this, "", "结果");
 
-        String pid = getIntent().getStringExtra("pid");
+        String pid = getIntent().getStringExtra(SettingActivity.extra_PID);
         if (pid != null) {
             edPid.setText(pid);
             File imgFile = Environment.getExternalStorageDirectory();
@@ -179,7 +178,7 @@ public class ViewPicByPidActivity extends BaseScanActivity{
 
     @Override
     public void init() {
-
+        super.init();
     }
 
     @Override
@@ -223,6 +222,48 @@ public class ViewPicByPidActivity extends BaseScanActivity{
         FtpUploader mUploader = new FtpUploader(finalHost);
         mUploader.download(url, local);
     }
+
+    public List<FTPImgInfo> getPicList(String pid) throws IOException, JSONException {
+        String errMsg = "";
+        String result = "";
+        try {
+             result = getRelativePicInfoByPid("", pid);
+            JSONObject root = new JSONObject(result);
+            final JSONArray array = root.getJSONArray("表");
+            List<FTPImgInfo> list = new ArrayList<>();
+            int searchSize = array.length();
+            for (int i = 0; i < searchSize; i++) {
+                JSONObject tObj = array.getJSONObject(i);
+                String imgName = tObj.getString("pictureName");
+                String imgUrl = tObj.getString("pictureURL");
+                File fileParent = MyFileUtils.getFileParent();
+                File file = new File(fileParent, "dyj_img/" + imgName);
+                String localPath = file.getAbsolutePath();
+                FTPImgInfo fti = new FTPImgInfo();
+                fti.setFtp(imgUrl);
+                fti.setImgPath(localPath);
+                list.add(fti);
+            }
+            if (list.size() == 0) {
+                throw new IOException("图片数量为0");
+            }
+            return list;
+        } catch (IOException e) {
+            errMsg = "查询图片异常," + e.getMessage();
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+            errMsg = "xml异常," + e.getMessage();
+        } catch (JSONException e) {
+            if ("{\"表\":] }".equals(result)) {
+                throw new IOException("图片数量为0");
+            }
+            errMsg = "json异常," + e.getMessage();
+            e.printStackTrace();
+        }
+        throw new IOException(errMsg + ",res=" + result);
+    }
+
     private void startSearch(final String pid) {
         showProgressDialog();
         SoftKeyboardUtils.closeInputMethod(edPid, mContext);
@@ -231,120 +272,53 @@ public class ViewPicByPidActivity extends BaseScanActivity{
             public void run() {
                 super.run();
                 downCounts = 0;
-                String result = "";
+                List<FTPImgInfo> list = new ArrayList<>();
+
+                String errmsg = "";
                 try {
-                    result = getRelativePicInfoByPid("", pid);
-                } catch (IOException e) {
-                    mHandler.sendEmptyMessage(2);
-                    e.printStackTrace();
-                    return;
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    JSONObject root = new JSONObject(result);
-                    final JSONArray array = root.getJSONArray("表");
-                    Log.e("zjy", "ViewPicByPidActivity.java->run():search pic count=" + array.length());
+                    list = getPicList(pid);
+                    final List<FTPImgInfo> finalList = list;
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            pd.setMessage("查找到" + array.length() + "张图片，开始下载");
+                            pd.setMessage("查找到" + finalList.size() + "张图片，开始下载");
                         }
                     });
-                    List<FTPImgInfo> list = new ArrayList<>();
-                    int searchSize = array.length();
-                    FTPUtils mFtpClient=null;
-                    String tempUrl = "";
-                    downloadResult = "总共查询到" + searchSize + "张图片\r\n";
-                    for (int i = 0; i < searchSize; i++) {
-                        JSONObject tObj = array.getJSONObject(i);
-                        String imgName = tObj.getString("pictureName");
-                        String imgUrl = tObj.getString("pictureURL");
-                        String urlNoShema = imgUrl.substring("ftp://".length());
-                        int endIndex = urlNoShema.indexOf("/");
-                        String remoteAbsolutePath = urlNoShema.substring(endIndex);
-                        File fileParent = MyFileUtils.getFileParent();
-                        File file = new File(fileParent, "dyj_img/" + imgName);
-                        String localPath = file.getAbsolutePath();
-                        try {
-//                            remoteAbsolutePath = new String(remoteAbsolutePath.getBytes("utf-8"), "iso-8859-1");
-//                            String imgFtp = urlNoShema.substring(0, endIndex);
-//                            int index = imgFtp.indexOf(":");
-//                            String finalHost = imgFtp;
-//                            int port = 21;
-//                            if (index != -1) {
-//                                String tp = imgFtp.substring(index + 1);
-//                                finalHost = imgFtp.substring(0, index);
-//                                try {
-//                                    port = Integer.parseInt(tp);
-//                                } catch (NumberFormatException e) {
-//                                    e.printStackTrace();
-//                                }
-//                            }
-//                            FTPImgInfo fti = new FTPImgInfo();
-//
-//                            //图片未下载的需要下载
-//                            if (!file.exists()) {
-//                                if (!tempUrl.equals(imgFtp)) {
-//                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
-//                                    if (finalHost.equals(FTPUtils.DB_HOST)) {
-//                                        mFtpClient = FTPUtils.getGlobalFTP();
-//                                    }
-//                                }
-//                                if (mFtpClient == null) {
-//                                    MyApp.myLogger.writeBug(String.format("ViewPic bug at '%s',host='%s'," +
-//                                            "last='%s'", pid, imgFtp, tempUrl));
-//                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
-//                                }
-//                                if (!mFtpClient.serverIsOpen()) {
-//                                    mFtpClient.login();
-//                                }
-//                                boolean exitsFIle = mFtpClient.fileExists(remoteAbsolutePath);
-//                                Log.e("zjy", "ViewPicByPidActivity->run(): file exist==" + exitsFIle);
-//                                if (exitsFIle) {
-//                                    mFtpClient.download(localPath, remoteAbsolutePath);
-//                                    downCounts++;
-//                                    fti.setImgPath(localPath);
-//                                    list.add(fti);
-//                                    downloadResult += "第" + (i + 1) + "张,下载成功\r\n";
-//                                    mHandler.obtainMessage(4, searchSize, i).sendToTarget();
-//                                } else {
-//                                    downloadResult += "服务器上不存在该文件";
-//                                }
-//                            } else {
-//                                if (mFtpClient == null) {
-//                                    mFtpClient = FTPUtils.getLocalFTP(finalHost);
-//                                }
-//                                downloadResult += "第" + (i + 1) + "张,已从手机找到\r\n";
-//                                fti.setImgPath(localPath);
-//                                list.add(fti);
-//                            }
-//                            tempUrl = imgFtp;
-                            FTPImgInfo fti = new FTPImgInfo();
-                            if (!file.exists()) {
-                                startDownLoad(imgUrl, localPath);
-                            }else{
-                                downloadResult += "第" + (i + 1) + "张,已从手机找到\r\n";
-                            }
-                            fti.setImgPath(localPath);
-                            list.add(fti);
-                        } catch (UnsupportedEncodingException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            downloadResult += "第" + (i + 1) + "张,下载失败，原因：连接服务器失败\r\n" + e.getMessage();
-                        }
-                    }
-                    if (mFtpClient != null) {
-                        mFtpClient.exitServer();
-                    }
-                    imgsData.addAll(list);
-                    Message msg = mHandler.obtainMessage(0, downloadResult);
-                    mHandler.sendMessage(msg);
-                } catch (JSONException e) {
-                    mHandler.sendEmptyMessage(1);
+                    downloadResult = "总共查询到" + list.size() + "张图片\r\n";
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    errmsg = e.getMessage();
+
+                } catch (Exception e) {
+                    errmsg = "其他," + e.getMessage();
                     e.printStackTrace();
                 }
+                List<FTPImgInfo> foundPics = new ArrayList<>();
+                for (int i = 0; i < list.size(); i++) {
+                    try {
+                        FTPImgInfo fti = list.get(i);
+                        String localPath = fti.getImgPath();
+                        String imgUrl = fti.getFtp();
+                        File file = new File(localPath);
+                        if (!file.exists()) {
+                            startDownLoad(imgUrl, localPath);
+                        } else {
+                            downloadResult += "第" + (i + 1) + "张,已从手机找到\r\n";
+                        }
+                        foundPics.add(fti);
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        downloadResult += "第" + (i + 1) + "张,下载失败，" + e.getMessage() + "\r\n";
+                    }
+                }
+                if (!"".equals(errmsg)) {
+                    mHandler.obtainMessage(MSG_Error, errmsg).sendToTarget();
+                    return;
+                }
+                Message msg = mHandler.obtainMessage(MSG_OK, foundPics);
+                mHandler.sendMessage(msg);
             }
         }.start();
     }

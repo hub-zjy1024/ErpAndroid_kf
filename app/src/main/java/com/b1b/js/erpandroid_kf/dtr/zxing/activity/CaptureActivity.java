@@ -19,6 +19,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
@@ -260,8 +261,9 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
      初始化截取的矩形区域
      */
     private void initCrop() {
-        int cameraWidth = cameraManager.getCameraResolution().y;
-        int cameraHeight = cameraManager.getCameraResolution().x;
+        Point cameraResolution = cameraManager.getCameraResolution();
+        int cameraWidth = cameraResolution.y;
+        int cameraHeight = cameraResolution.x;
 
         /** 获取布局中扫描框的位置信息 */
         int[] location = new int[2];

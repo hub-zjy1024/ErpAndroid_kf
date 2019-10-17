@@ -25,6 +25,7 @@ public class SpSettings {
     public static final String PREF_CAMERA_INFO = "cameraInfo";
     public static final String PREF_LOGUPLOAD = "uploadlog";
     public static final String PREF_EXPRESS = "prefExpress";
+    public static final String PREF_FIRSTUSE = "prefFirstUse";
 
     public static final String Ruku_storageKey = "storageID";
     public static final String storageKey = "storageID";

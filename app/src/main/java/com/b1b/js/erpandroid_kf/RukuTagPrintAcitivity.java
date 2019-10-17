@@ -40,6 +40,7 @@ import me.drakeet.materialdialog.MaterialDialog;
 import utils.btprint.BtHelper;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.SPrinter;
+import utils.btprint.SPrinter2;
 import utils.framwork.DialogUtils;
 import utils.framwork.MyToast;
 import utils.framwork.SoftKeyboardUtils;
@@ -261,7 +262,8 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                 }
             }, "是", null, "否").show();
         } else {
-            printer2 = SPrinter.getPrinter(mContext, new SPrinter.MListener() {
+//            printer2 = SPrinter.getPrinter(mContext, new SPrinter.MListener() {
+                printer2 = SPrinter2.getPrinter(this, new SPrinter.MListener() {
                 @Override
                 public void sendMsg(int what) {
                     mHandler.sendEmptyMessage(what);
@@ -476,6 +478,9 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         super.onDestroy();
         if (printer != null) {
             printer.close();
+        }
+        if (printer2 != null) {
+            printer2.closeConnect();
         }
     }
 

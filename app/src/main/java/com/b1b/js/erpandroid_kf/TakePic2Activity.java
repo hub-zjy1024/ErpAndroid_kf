@@ -18,7 +18,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.NotificationCompat;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
@@ -81,7 +81,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
     private final static int FTP_CONNECT_FAIL = 3;
     private final static int PICUPLOAD_SUCCESS = 0;
     private final static int PICUPLOAD_ERROR = 1;
-    private String kfFTP = MyApp.ftpUrl;
+    private String kfFTP ="";
     private int tempRotate = 0;
     int cid;
     int did;
@@ -89,6 +89,8 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
     private Handler mHandler = new NoLeakHandler(this);
     private NetBroadcastReceiver netWorkChecker;
     PicUploadDB picDb;
+    private static long waitNextDelay = 2000;
+    private static long waitDisappear = 15 * 1000;
 
     @Override
     public void handleMessage(Message msg) {
@@ -189,6 +191,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
         SharedPreferences userInfoSp = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
         cid = userInfoSp.getInt("cid", -1);
         did = userInfoSp.getInt("did", -1);
+        kfFTP = MyApp.ftpUrl;
         //获取surfaceholder
         mHolder = surfaceView.getHolder();
         //添加SurfaceHolder回调
@@ -241,7 +244,14 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                             public void onClick(View v) {
                                 //                                auto.stop();
                                 if (camera != null && isPreview) {
-                                    camera.autoFocus(null);
+//                                    try {
+//                                        camera.autoFocus(null);
+//                                    } catch (Exception e) {
+//                                        e.printStackTrace();
+//                                        MyApp.myLogger.writeError(e);
+//                                    }
+//                                    KeyEvent
+                                    auto.start();
                                 }
                             }
                         });
@@ -426,9 +436,16 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                 if (kfFTP == null || "".equals(kfFTP)) {
 
                     if (!CheckUtils.isAdmin()) {
-                        showMsgToast( "读取上传地址失败，请重启程序");
-                        return;
+                        if ("101".equals(MyApp.id)) {
+                            kfFTP = FTPUtils.TEST_FTP_ULR;
+                        } else {
+                            showMsgToast("读取上传地址失败，请重启程序");
+                            return;
+                        }
+                    } else {
+                        kfFTP = FTPUtils.TEST_FTP_ULR;
                     }
+
                 }
                 camera.startPreview();
                 auto.start();
@@ -436,20 +453,8 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                 isPreview = true;
                 toolbar.setVisibility(View.GONE);
                 btn_takepic.setEnabled(true);
-                int id = (int) (Math.random() * 1000000);
-                while (true) {
-                    if (map.get(id) != null) {
-                        id = (int) (Math.random() * 1000000);
-                    } else {
-                        map.put(id, String.valueOf(id));
-                        break;
-                    }
-                }
-                final int finalId = id;
-                final NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
-                Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.notify_icon_large);
-                builder.setContentTitle("上传" + pid + "的图片").setSmallIcon(R.mipmap.notify_icon)
-                        .setContentText("图片正在上传").setProgress(100, 0, false).setLargeIcon(largeIcon);
+                final TakePic2Ac.NotifyMgr notifyer = new TakePic2Ac.NotifyMgr(mContext, pid);
+                final TakePic2Ac.UpLoadeLogger uploadLogger = new TakePic2Ac.UpLoadeLogger();
                 //载入水印图
                 final Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.waterpic);
                 final int cRotate = tempRotate;
@@ -469,6 +474,9 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                 Runnable tempThread = new Runnable() {
                     @Override
                     public void run() {
+                        notifyer.sendNotify();
+                        uploadLogger.setStartTime();
+                        final int finalId = notifyer.getFinalId();
                         long time2 = System.currentTimeMillis();
                         Bitmap bmp = BitmapFactory.decodeByteArray(nDatas, 0, nDatas.length);
                         Matrix matrixs = new Matrix();
@@ -545,7 +553,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                     insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
                                     Log.e("zjy", "TakePic2Activity->run(): InsertPath==" + insertPath);
 
-                                    ftpUtil.login(15);
+                                    ftpUtil.login();
                                     upSuccess = ftpUtil.upload(fis, remotePath);
                                     if (upSuccess) {
                                         okCount ++;
@@ -553,8 +561,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                             //更新服务器信息
                                             if (CheckUtils.isAdmin()) {
                                                 isStop = true;
-                                                notificationManager.cancel(finalId);
-                                                map.remove(finalId);
+                                                notifyer.cancelNotify();
                                                 Message message = Message.obtain(mHandler, PICUPLOAD_SUCCESS);
                                                 message.obj = textView;
                                                 message.sendToTarget();
@@ -567,41 +574,8 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                                 Log.e("zjy", "TakePic2Activity.java-> setInsertPicInfo==" +
                                                         res);
                                                 if (res.equals("操作成功")) {
-                                                    notificationManager.cancel(finalId);
-                                                    map.remove(finalId);
-                                                    okCount++;
-
-                                                    double totalTime = (double) (System.currentTimeMillis()
-                                                            - first) / 1000;
-                                                    double runTime = (double) (System.currentTimeMillis() -
-                                                            time2) / 1000;
                                                     isStop = true;
-
-                                                    if (totalTime - runTime > 1) {
-                                                        MyApp.myLogger.writeBug("Task Wait SoLong");
-                                                    }
-                                                    String strCounts = ",counts=";
-                                                    if (counts > 0) {
-                                                        strCounts += counts;
-                                                    } else {
-                                                        strCounts = "";
-                                                    }
-                                                    double checkRate = 1.6;
-                                                    if (runTime > checkRate) {
-                                                        MyApp.myLogger.writeInfo("chuku takepic2 finish：" +
-                                                                remoteName + "\ttime=" + runTime + "/" +
-                                                                totalTime + strCounts);
-                                                    } else {
-                                                        MyApp.myLogger.writeInfo("chuku takepic2 finish：" +
-                                                                remoteName + " time<" + checkRate);
-                                                    }
-                                                    Log.e("zjy", "TakePic2Activity->run(): upload " +
-                                                            "succes time=="
-                                                            + runTime + "/" + totalTime + strCounts);
-                                                    Message message = Message.obtain(mHandler,
-                                                            PICUPLOAD_SUCCESS);
-                                                    message.obj = textView;
-                                                    message.sendToTarget();
+                                                    upLoadSuccess(notifyer, remoteName, uploadLogger, textView);
                                                     break;
                                                 } else {
                                                     msg = "插入图片信息失败,多次出现请联系后台";
@@ -609,9 +583,8 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                             } catch (IOException e) {
                                                 msg = "连接服务器失败,正在重试";
                                                 String ioMsg = e.getMessage();
-                                                MyApp.myLogger.writeError("takepic2 upload Exception:" +
-                                                        pid + "\t" +
-                                                        remoteName + "-" + ioMsg);
+                                                msg = "io," + e.getMessage();
+
                                                 if (ioMsg.contains("EHOSTUNREACH")) {
                                                     msg = "网络连接有误，正在重试";
                                                 }
@@ -627,23 +600,19 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                                     textView.setText("图片:" + tag + "重新关联中....");
                                                 }
                                             });
-                                            changeNotificationMsg(builder, finalId, notifyName + msg, 0,
-                                                    pIntent);
-                                            try {
-                                                Thread.sleep(2000);
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
-                                            }
+                                            String notifyMsg = notifyName + msg;
+                                            upLoadFailed(notifyer, notifyMsg, textView);
                                         }
                                     } else {
-                                        MyApp.myLogger.writeError("takepic2 upload false:" + remoteName);
+                                        msg = remoteName + ",upload false";
+                                        MyApp.myLogger.writeError("takepic2 exception" + msg);
                                     }
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                    MyApp.myLogger.writeError("takepic2 upload Exception:" + remoteName +
-                                            "-" + e.getMessage());
-                                    changeNotificationMsg(builder, finalId, notifyName + "上传失败，正在重新上传", 0,
-                                            pIntent);
+                                    msg = e.getMessage() + "," + remoteName;
+                                    MyApp.myLogger.writeError("takepic2 upload Exception:" + msg);
+                                    String errmsg = notifyName + "上传失败，正在重新上传";
+                                    notifyer.chageMsg(errmsg, 0);
                                 }
                                 if (ftpUtil != null) {
                                     ftpUtil.exitServer();
@@ -674,21 +643,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                     if (res != 1) {
                                         MyApp.myLogger.writeError("reupload insert=" + res);
                                     }
-                                    notificationManager.cancel(finalId);
-                                    map.remove(finalId);
-                                    mHandler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            String nowTag = textView.getTag().toString();
-                                            textView.setText("图片:" + nowTag + ",多次上传失败，请检查网络后，在菜单-图片重传中再次上传");
-                                            mHandler.postDelayed(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    llResult.removeView(textView);
-                                                }
-                                            }, 8000);
-                                        }
-                                    });
+                                    finalFailed(notifyer, textView);
                                     Log.e("zjy", "TakePic2Activity->run(): insertLocal==" + res);
                                     break;
                                 }
@@ -728,6 +683,71 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                     }
                 }
         }
+    }
+
+    void finalFailed(TakePic2Ac.NotifyMgr notifyMgr, final TextView textView) {
+        notifyMgr.cancelNotify();
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                String nowTag = textView.getTag().toString();
+                textView.setText("图片:" + nowTag + ",多次上传失败，请检查网络后，在菜单-图片重传中再次上传");
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        llResult.removeView(textView);
+                    }
+                }, waitDisappear);
+            }
+        });
+    }
+
+    void upLoadFailed(TakePic2Ac.NotifyMgr notifyer, String errmsg, final TextView textView) {
+        final String tag = textView.getTag().toString();
+        notifyer.chageMsg(errmsg, 0);
+        MyApp.myLogger.writeError("takepic2 upLoadFailed Exception:" +
+                pid + "-" + errmsg);
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                textView.setText("图片:" + tag + "重新上传中....");
+            }
+        });
+        try {
+            Thread.sleep(waitNextDelay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void upLoadSuccess(TakePic2Ac.NotifyMgr notifyer, String remoteName, TakePic2Ac.UpLoadeLogger mLogger, TextView textView) {
+        double totalTime = mLogger.getTotalTime();
+        double runTime = mLogger.getRunTime();
+        int counts = mLogger.tryTime;
+        int watiTime = (int) (totalTime - runTime);
+        if (watiTime > 1) {
+            MyApp.myLogger.writeBug(remoteName + ",Task Wait SoLong");
+        }
+        String strCounts = ",counts=";
+        if (counts > 0) {
+            strCounts += counts;
+        } else {
+            strCounts = "";
+        }
+        double checkRate = TakePic2Ac.UpLoadeLogger.limitTime;
+        String msg = "";
+        if (runTime > checkRate) {
+            msg = String.format("takepic2 finish %s,time=%f/%f wait=%d %s", remoteName, runTime, totalTime,
+                    watiTime, strCounts);
+        } else {
+            msg = String.format("takepic2 finish %s, time<%f,", remoteName, checkRate);
+        }
+        MyApp.myLogger.writeInfo(msg);
+        Log.e("zjy", "TakePic2Activity->run(): uploadLog=" + msg);
+        Message message = Message.obtain(mHandler, PICUPLOAD_SUCCESS);
+        message.obj = textView;
+        message.sendToTarget();
+        notifyer.cancelNotify();
     }
 
     private void changeNotificationMsg(NotificationCompat.Builder builder, int finalId, String msg, int

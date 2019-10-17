@@ -153,7 +153,8 @@ public class BarcodeCreater {
             Canvas cv = new Canvas(newBitmap);
             cv.drawBitmap(first, 0.0F, 0.0F, (Paint) null);
             cv.drawBitmap(second, fromPoint.x, fromPoint.y, (Paint) null);
-            cv.save(Canvas.ALL_SAVE_FLAG);
+//            cv.save(Canvas.ALL_SAVE_FLAG);api-28被删除
+            cv.save();
             cv.restore();
             return newBitmap;
         } else {

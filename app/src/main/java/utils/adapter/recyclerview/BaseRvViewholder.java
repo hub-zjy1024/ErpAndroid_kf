@@ -1,12 +1,15 @@
 package utils.adapter.recyclerview;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IdRes;
 import android.support.annotation.StringRes;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseArray;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,6 +22,22 @@ public  class BaseRvViewholder extends RecyclerView.ViewHolder implements IHolde
     private SparseArray<View> mItemViews = new SparseArray<>();
     //子布局
     private View itemView;
+
+    ViewGroup parent;
+    int viewType;
+    Context mContext;
+    int layoutId;
+
+    public static BaseRvViewholder getViewHolder(ViewGroup parent, int viewType, int layoutId,
+                                                 Context mContext) {
+        View itemView = LayoutInflater.from(mContext).inflate(layoutId, null, false);
+        BaseRvViewholder baseRvViewholder = new BaseRvViewholder(itemView);
+        baseRvViewholder.parent = parent;
+        baseRvViewholder.viewType = viewType;
+        baseRvViewholder.mContext = mContext;
+        baseRvViewholder.layoutId = layoutId;
+        return baseRvViewholder;
+    }
 
     public BaseRvViewholder(View itemView) {
         super(itemView);

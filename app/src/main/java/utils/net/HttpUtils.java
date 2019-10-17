@@ -9,9 +9,18 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
 
 /**
  Created by 张建宇 on 2018/3/28. */
@@ -109,7 +118,26 @@ public class HttpUtils {
 
         private HttpURLConnection getConnection() throws IOException {
             URL url1 = new URL(reqUrl);
-            HttpURLConnection conn = (HttpURLConnection) url1.openConnection();
+            HttpURLConnection conn =null;
+            if (reqUrl.startsWith("https")) {
+                try {
+                    SSLContext  sc = SSLContext.getInstance("TLS");
+                    sc.init(null, new TrustManager[]{new MySSLProtocolSocketFactory.TrustAnyTrustManager()}, new SecureRandom());
+                    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+                    HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+                        @Override
+                        public boolean verify(String hostname, SSLSession session) {
+                            return true;
+                        }
+                    });
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                } catch (KeyManagementException e) {
+                    e.printStackTrace();
+                }
+            }
+            conn = (HttpURLConnection) url1.openConnection();
             conn.setConnectTimeout(connTimeout);
             conn.setReadTimeout(readTimeout);
             conn.setRequestMethod(reqMethod);
@@ -142,7 +170,8 @@ public class HttpUtils {
                 }
                 return inputStream2String(in, cs);
             }else{
-                throw new IOException("网络请求失败,reqCode=" + responseCode);
+                String msg = ",content=" + inputStream2String(conn.getErrorStream(), cs);
+                throw new IOException("网络请求失败,respCode=" + responseCode);
             }
         }
 

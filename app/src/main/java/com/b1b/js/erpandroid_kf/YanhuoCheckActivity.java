@@ -150,21 +150,16 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                             }
                         });
                     } else {
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                DialogUtils.getSpAlert(mContext,
-                                        "验货失败！！！", "提示").show();
-                                DialogUtils.dismissDialog(pd);
-                            }
-                        });
+                        throw new IOException("验货失败," + result);
                     }
+
                 } catch (IOException e) {
+                    final String message = e.getMessage();
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            DialogUtils.getSpAlert(mContext,
-                                    "连接服务器失败！！！", "提示").show();
+                            String msg = "连接服务器失败！！！," +message;
+                            showMsgDialog(msg);
                             DialogUtils.dismissDialog(pd);
                         }
                     });

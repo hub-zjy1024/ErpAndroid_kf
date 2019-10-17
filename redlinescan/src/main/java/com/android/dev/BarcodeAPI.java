@@ -59,6 +59,7 @@ public class BarcodeAPI {
     }
 
     static {
+        Log.e("zjy", "Barcode()->static initializer(): ==");
         System.loadLibrary("Barcode");
     }
 }

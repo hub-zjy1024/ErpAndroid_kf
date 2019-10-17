@@ -58,9 +58,14 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
     private String path;
     private ProgressDialog reviewDialog;
 
+    private static final int MSG_CANCEL_DIALOG = 2;
+    private static final int MSG_OK = 6;
+    private static final int MSG_ERROR1 = 7;
+    private static final int MSG_GET_PDF = 5;
+    private static final int FILE_PDF_MAX = 300;
+
     @Override
     public void handleMessage(Message msg) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(CaigouDetailActivity.this);
         switch (msg.what) {
             case 0:
                 btnCommit.setEnabled(true);
@@ -69,23 +74,10 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                 //                    btnCommit.setEnabled(true);
                 showMsgToast("本单据已存在合同文件");
                 break;
-            case 2:
+            case MSG_CANCEL_DIALOG:
                 DialogUtils.dismissDialog(dialog);
                 break;
-
-            case 3:
-                builder.setTitle("提示");
-                builder.setMessage("生成合同成功");
-                builder.show();
-                DialogUtils.dismissDialog(dialog);
-                break;
-            case 4:
-                builder.setTitle("提示");
-                builder.setMessage("生成合同失败：" + msg.obj.toString());
-                builder.show();
-                DialogUtils.dismissDialog(dialog);
-                break;
-            case 5:
+            case MSG_GET_PDF:
                 File file = new File(msg.obj.toString());
                 pdfView.fromFile(file) //设置pdf文件地址
                         //设置翻页监听
@@ -101,48 +93,40 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                             }
                         })//是否允许翻页，默认是允许翻页
                         .load();
-                DialogUtils.dismissDialog(dialog);
+                mHandler.sendEmptyMessage(MSG_CANCEL_DIALOG);
                 String path = filePath.substring(filePath.indexOf("dyj") - 1);
                 Log.e("zjy", "CaigouDetailActivity->handleMessage(): path==" + path);
                 tvPath.setText("文件存储路径为：" + path);
                 break;
-            case 6:
-                builder.setTitle("提示");
-                builder.setMessage("生成合同成功");
-                builder.show();
-                DialogUtils.dismissDialog(dialog);
+            case MSG_OK:
+                String okMsg = msg.obj.toString();
+                showMsgDialog(okMsg);
+                mHandler.sendEmptyMessage(MSG_CANCEL_DIALOG);
                 break;
-            case 7:
-                builder.setTitle("提示");
+            case MSG_ERROR1:
                 String message = "网络质量较差";
                 if (msg.obj != null) {
                     message = msg.obj.toString();
                 }
-                builder.setMessage("生成合同失败：" + message);
-                builder.show();
-                DialogUtils.dismissDialog(dialog);
+                String finalMsg = "生成合同失败" + message;
+                showMsgDialog(finalMsg);
+                mHandler.sendEmptyMessage(MSG_CANCEL_DIALOG);
                 break;
             case 8:
-                builder.setTitle("提示");
-                builder.setMessage("当前单据未生成合同");
-                builder.show();
-                DialogUtils.dismissDialog(dialog);
+                String msg8 = "当前单据未生成合同";
+                mHandler.obtainMessage(MSG_ERROR1, msg8).sendToTarget();
                 break;
             case 9:
-                builder.setTitle("提示");
-                builder.setMessage("连接服务器失败，请重试");
-                builder.show();
-                DialogUtils.dismissDialog(dialog);
+                String msg9 ="连接服务器失败，请重试";
+                mHandler.obtainMessage(MSG_ERROR1, msg9).sendToTarget();
                 break;
             case 10:
-                builder.setTitle("提示");
-                builder.setMessage("下载合同文件失败");
-                builder.show();
-                DialogUtils.dismissDialog(dialog);
+                String msg10 ="下载合同文件失败";
+                mHandler.obtainMessage(MSG_ERROR1, msg10).sendToTarget();
                 break;
             case 11:
                 Dialog alertDialog = DialogUtils.getSpAlert(CaigouDetailActivity.this, "FTP地址有误，请重启程序", "提示");
-                DialogUtils.dismissDialog(dialog);
+                mHandler.sendEmptyMessage(MSG_CANCEL_DIALOG);
                 break;
 
         }
@@ -189,15 +173,15 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0:
-                                uploadIntent.setClass(CaigouDetailActivity.this, TakePicActivity.class);
+                                uploadIntent.setClass(mContext, TakePicActivity.class);
                                 MyApp.myLogger.writeInfo("takepic-caigou");
                                 break;
                             case 1:
-                                uploadIntent.setClass(CaigouDetailActivity.this, ObtainPicFromPhone.class);
+                                uploadIntent.setClass(mContext, ObtainPicFromPhone.class);
                                 MyApp.myLogger.writeInfo("obtain-caigou");
                                 break;
                             case 2:
-                                uploadIntent.setClass(CaigouDetailActivity.this, CaigouTakePic2Activity
+                                uploadIntent.setClass(mContext, CaigouTakePic2Activity
                                         .class);
                                 MyApp.myLogger.writeInfo("takepic2-caigou");
                                 break;
@@ -240,6 +224,7 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                         //                  String url =
                         // "http://175.16.6.160:8009/2017/Manage/FileInfo/CreatMarkStockFile.aspx?";
                         BufferedReader reader = null;
+                        String msg = "";
                         try {
                             url += "printType=" + URLEncoder.encode("1", "utf-8");
                             url += "&id=" + URLEncoder.encode(pid, "utf-8");
@@ -251,9 +236,11 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                             String result = reader.readLine();
                             Log.e("zjy", "CaigouDetailActivity->run(): result==" + result);
                             if (result.contains("OK")) {
-                                mHandler.sendEmptyMessage(6);
+                                msg = "生成合同成功";
+                                Message message = mHandler.obtainMessage(MSG_OK, msg);
+                                mHandler.sendMessage(message);
                             } else {
-                                mHandler.obtainMessage(7, result).sendToTarget();
+                                throw new Exception("返回异常" + result);
                             }
                             conn.disconnect();
                         } catch (UnsupportedEncodingException e) {
@@ -261,8 +248,11 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                         } catch (MalformedURLException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
-                            mHandler.obtainMessage(7).sendToTarget();
+                            msg = "io," + e.getMessage();
                             e.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            msg = "其他," + e.getMessage();
                         } finally {
                             if (reader != null) {
                                 try {
@@ -272,7 +262,7 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                                 }
                             }
                         }
-
+                        mHandler.obtainMessage(MSG_ERROR1, msg).sendToTarget();
                     }
                 }.start();
             }
@@ -293,23 +283,17 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                     file.getParentFile().mkdirs();
                 }
                 final File[] listFiles = file.getParentFile().listFiles();
-                if (listFiles.length > 300) {
-                    AlertDialog alertDilog = (AlertDialog) DialogUtils.getSpAlert(CaigouDetailActivity.this,
-                            "缓存的pdf文件达到40M，是否清理", "提示", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    for (int i = 0; i < listFiles.length; i++) {
-                                        listFiles[i].delete();
-                                    }
-                                    showMsgToast("删除成功");
-                                }
-                            }, "是", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                }
-                            }, "否");
-                    alertDilog.show();
+                if (listFiles.length > FILE_PDF_MAX) {
+                    DialogUtils.getDialog(mContext).setMsg("缓存的pdf文件达到" + FILE_PDF_MAX + "，是否清理").setBtn1(
+                            "是").setBtn1L(new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            for (int i = 0; i < listFiles.length; i++) {
+                                listFiles[i].delete();
+                            }
+                            showMsgToast("删除成功");
+                        }
+                    }).setBtn2("否").create();
                 }
 
                 if (file.exists()) {
@@ -339,6 +323,7 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                     new Thread() {
                         @Override
                         public void run() {
+                            String msg10 ="下载合同文件失败";
                             String result = null;
                             try {
                                 result = getHetongInfo(pid);
@@ -348,9 +333,9 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                                 e.printStackTrace();
                             }
                             if (result == null) {
-                                mHandler.sendEmptyMessage(9);
+                                msg10 =    "连接服务器失败，请重试" ;
                             } else if (result.equals("")) {
-                                mHandler.sendEmptyMessage(8);
+                                msg10 = "当前单据未生成合同" ;
                             } else if (result.contains("ftp")) {
                                 FTPUtils ftpUtil = FTPUtils.getGlobalFTP();
                                 try {
@@ -374,14 +359,16 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                                     ftpUtil.download(fio, remotePath);
                                     filePath = file.getAbsolutePath();
                                     fio.close();
-                                    mHandler.obtainMessage(5, file.getAbsolutePath()).sendToTarget();
+                                    mHandler.obtainMessage(MSG_GET_PDF, file.getAbsolutePath()).sendToTarget();
+                                    return;
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                    mHandler.sendEmptyMessage(10);
+                                    msg10 = "下载合同文件失败," + e.getMessage();
                                 }
                             } else {
-                                mHandler.sendEmptyMessage(8);
+                                msg10 = "当前单据未生成合同" ;
                             }
+                            mHandler.obtainMessage(MSG_ERROR1, msg10).sendToTarget();
                         }
                     }.start();
                 }
@@ -411,25 +398,27 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                 }
                 try {
                     getData(corpID, proID);
-                    String infos = getData2(pid);
-                    try {
-                        JSONObject object = new JSONObject(infos);
-                        JSONArray array = object.getJSONArray("表");
-                        goodInfos = array.toString();
-                        mHandler.sendEmptyMessage(2);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        goodInfos = "";
-                    }
                 } catch (IOException e) {
-                    mHandler.sendEmptyMessage(2);
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
-                    mHandler.sendEmptyMessage(2);
                     e.printStackTrace();
                 }
+                try {
+                    String infos = getData2(pid);
+                    JSONObject object = new JSONObject(infos);
+                    JSONArray array = object.getJSONArray("表");
+                    goodInfos = array.toString();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    goodInfos = "";
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                mHandler.sendEmptyMessage(MSG_CANCEL_DIALOG);
             }
         };
         TaskManager.getInstance().execute(getFileRun);
@@ -457,6 +446,8 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
         String fileID = corpID;
         String host = "http://192.168.10.65:8080/";
         String strUrl = host + "PrinterServer/HetongServlet?";
+        String errMsg = "";
+        BufferedReader reader = null;
         try {
             strUrl += "proFullName=" + URLEncoder.encode(fullName, "UTF-8");
             strUrl += "&proShortName=" + URLEncoder.encode(proShortName, "UTF-8");
@@ -471,24 +462,37 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(15 * 1000);
             InputStream lin = conn.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(lin, "UTF-8"));
+             reader = new BufferedReader(new InputStreamReader(lin, "UTF-8"));
             String htRes = reader.readLine();
-            if (htRes.startsWith("ok")) {
-                mHandler.sendEmptyMessage(3);
-            } else {
-                Message msg = mHandler.obtainMessage(4);
-                msg.obj = htRes.substring(htRes.indexOf(":") + 1);
-                msg.sendToTarget();
-            }
             Log.e("zjy", "CaigouDetailActivity->run(): hetong_response==" + htRes);
-            reader.close();
+            if (htRes.startsWith("ok")) {
+                mHandler.obtainMessage(MSG_OK, "生成合同成功").sendToTarget();
+                return;
+            } else {
+                errMsg = "返回异常," + htRes.substring(htRes.indexOf(":") + 1);
+                throw new Exception(errMsg);
+            }
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            errMsg = "io," + e.getMessage();
             e.printStackTrace();
+        } catch (Exception e) {
+            errMsg = "其他," + e.getMessage();
+        }finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+        Message msg = mHandler.obtainMessage(MSG_ERROR1);
+        msg.obj = errMsg;
+        msg.sendToTarget();
     }
 
     public String getHetongInfo(String pid) throws IOException, XmlPullParserException {

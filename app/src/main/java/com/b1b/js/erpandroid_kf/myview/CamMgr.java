@@ -1,11 +1,11 @@
 package com.b1b.js.erpandroid_kf.myview;
 
 import android.content.Context;
+import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
 import android.view.Display;
@@ -18,7 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import utils.camera.AutoFoucusMgr;
 
 
 /**
@@ -28,17 +31,23 @@ public class CamMgr implements Camera.AutoFocusCallback {
     private Camera mCam;
     boolean isStoped = false;
     private Context mContext;
-    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private int cacheRotate = -1;
+    private int cachePw = -1;
+    private int cachePh = -1;
+    private int preFormat = ImageFormat.NV21;
+    private Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    private BackTask bgHandler;
+    private BackTask2 bgHandler;
     private static Semaphore mCamLock = new Semaphore(1);
     private static AtomicInteger mCounter = new AtomicInteger();
-
+    private static final long AUTO_FOCUS_INTERVAL_MS = 700;
     public CamMgr(Context mContext) {
         this.mContext = mContext;
-        bgHandler = new BackTask("camera_bg_task_" + mCounter.getAndIncrement());
+        bgHandler =new BackTask2("camera_bg_task_" + mCounter.getAndIncrement());
         bgHandler.start();
     }
+
+    AutoFoucusMgr autoFocusMgr;
 
     private int mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
     public static final int camera_Front = Camera.CameraInfo.CAMERA_FACING_FRONT;
@@ -61,11 +70,10 @@ public class CamMgr implements Camera.AutoFocusCallback {
                 if (mCam == null) {
                     throw new IOException("打开摄像头失败，openError,ID=" + mCameraId);
                 }
-                setCamRotation();
-                mCam.startPreview();
-                safeAutoFocus();
                 isStoped = false;
                 mCam.setPreviewDisplay(holder);
+                setCamRotation();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (Exception e) {
@@ -80,50 +88,38 @@ public class CamMgr implements Camera.AutoFocusCallback {
         openCamera(holder, mCameraId);
     }
 
-    public void testLeak() {
-        new Thread(){
-            @Override
-            public void run() {
-                super.run();
-                String name = bgHandler.getName();
-                while  (bgHandler.isAlive()) {
-                    Log.e("zjy", getClass() + "->run():alive ==" +name);
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                Log.e("zjy", getClass() + "->run():deaded ==" + name);
-            }
-        }.start();
-    }
 
-    static class BackTask extends HandlerThread {
-        private Handler mHandler;
-        LinkedBlockingQueue<Runnable> mq = new LinkedBlockingQueue<>(10);
+    static class BackTask2 extends Thread {
+        LinkedBlockingQueue<Runnable> mq = new LinkedBlockingQueue<>(100);
+        boolean isStoped = false;
 
-        public BackTask(String name) {
+        public BackTask2(String name) {
             super(name);
         }
 
         @Override
-        protected void onLooperPrepared() {
-            mHandler = new Handler(getLooper());
-
-            Runnable mRun;
-            while ((mRun = mq.poll()) != null) {
-                Log.e("zjy", getClass() + "->onLooperPrepared(): ==run" + mRun.toString());
-                mRun.run();
+        public void run() {
+            for (; true; ) {
+                try {
+                    Runnable take = mq.poll(20, TimeUnit.MILLISECONDS);
+                    if (take != null) {
+                        take.run();
+                    }
+                    if (isStoped && mq.size() == 0) {
+                        break;
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
+            Log.e("zjy", getClass() + "->run(): Thread exit==" + getName());
+        }
+        public void exitSafe() {
+            isStoped = true;
         }
 
         void runTask(Runnable mRun) {
-            if (mHandler == null) {
-                mq.offer(mRun);
-            } else {
-                mHandler.post(mRun);
-            }
+            mq.offer(mRun);
         }
     }
 
@@ -135,15 +131,11 @@ public class CamMgr implements Camera.AutoFocusCallback {
                 while (mCam != null) {
                     try {
                         Thread.sleep(200);
-                        Log.e("zjy", getClass() + "->run() try toStop: ==");
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
-                Log.e("zjy", getClass() + "->run():startToQuit" +
-                        " ==");
-                mHandler.removeCallbacksAndMessages(null);
-                bgHandler.quit();
+                bgHandler.exitSafe();
             }
         }.start();
     }
@@ -164,6 +156,10 @@ public class CamMgr implements Camera.AutoFocusCallback {
         asycnOpen(holder, mPreCb, width, height);
     }
 
+    public int getPreviewFormat() {
+        return preFormat;
+    }
+
     public void asycnOpen(final SurfaceHolder holder, final Camera.PreviewCallback mPreCb, final int width,
                           final int height) {
         bgHandler.runTask(new Runnable() {
@@ -171,34 +167,21 @@ public class CamMgr implements Camera.AutoFocusCallback {
             public void run() {
                 while (true) {
                     try {
-                        Log.e("zjy",
-                                getClass() + "->run(): ==get Camera,permits=" + mCamLock.availablePermits());
-//                        mCamLock.acquire();
                         openCamera(holder, mCameraId);
                         break;
                     } catch (IOException e) {
                         e.printStackTrace();
                         try {
-                            openCamera(holder, mCameraId);
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-
-                        try {
                             Thread.sleep(20);
                         } catch (InterruptedException ex) {
                             ex.printStackTrace();
                         }
-//                        mCamLock.release();
                     }
-//                    catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                        mCamLock.release();
-//                    }
                 }
 
                 initParams(width, height);
                 setOneShotPreviewCallback(mPreCb);
+
             }
         });
     }
@@ -261,7 +244,7 @@ public class CamMgr implements Camera.AutoFocusCallback {
     }
 
     void scheduleAutoFocus() {
-        mHandler.postDelayed(new Runnable() {
+        mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 if (mCam != null) {
@@ -270,12 +253,12 @@ public class CamMgr implements Camera.AutoFocusCallback {
                     }
                 }
             }
-        }, 1500);
+        }, AUTO_FOCUS_INTERVAL_MS);
     }
 
     public void safeAutoFocus() {
         try {
-            mCam.autoFocus(this);
+            mCam.autoFocus(CamMgr.this);
         } catch (RuntimeException re) {
             re.printStackTrace();
             Log.e("zjy", getClass() + "->safeAutoFocus(): FocusError==" + re.getMessage());
@@ -286,6 +269,9 @@ public class CamMgr implements Camera.AutoFocusCallback {
     }
 
     public int getRotationCount() {
+        if (cacheRotate != -1) {
+            return cacheRotate;
+        }
         Camera.CameraInfo info = new Camera.CameraInfo();
         if (mCameraId == -1) {
             Camera.getCameraInfo(Camera.CameraInfo.CAMERA_FACING_BACK, info);
@@ -321,6 +307,7 @@ public class CamMgr implements Camera.AutoFocusCallback {
         } else {  // back-facing
             result = (camOrientation - degrees + 360) % 360;
         }
+        cacheRotate = result;
         return result;
 
     }
@@ -331,7 +318,7 @@ public class CamMgr implements Camera.AutoFocusCallback {
 
     public void initParams(int cWidth, int cHeight) {
         if (isStoped) {
-            Log.e("zjy", getClass() + "->initParams(): 已停止==");
+            Log.d("zjy", getClass() + "->initParams(): 已停止==");
             return;
         }
         if (mCam != null) {
@@ -340,28 +327,40 @@ public class CamMgr implements Camera.AutoFocusCallback {
                 if (cWidth == -1 || cHeight == -1) {
                     Log.e("zjy", getClass() + "->initParams(): ==不合法宽高");
                 } else {
-                    //                parameters.setFocusMode(Camera.Parameters
-                    //                .FOCUS_MODE_CONTINUOUS_PICTURE);
-                    parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
-
-                    Log.e("zjy", getClass() + "->initParams():containner w-h ==" + cWidth + "-" + cHeight);
+                    String focusMode = parameters.getFocusMode();
+                    String targetFMode = Camera.Parameters.FOCUS_MODE_AUTO;
+                    //不是自动对焦，首先切换到自动对焦
+                    if (!targetFMode.equals(focusMode)) {
+                        Log.e("zjy", getClass() + "->initParams(): def FocusMode==" + focusMode);
+                        List<String> supportedFocusModes = parameters.getSupportedFocusModes();
+                        if (supportedFocusModes != null &&supportedFocusModes.contains(targetFMode)) {
+                            parameters.setFocusMode(targetFMode);
+                        }
+                    }
                     Point suitablePreviewSize = getSuitablePreviewSize(parameters, cWidth, cHeight);
                     if ("SUNMI".equals(Build.BRAND) || "L2".equals(Build.MODEL)) {
                         suitablePreviewSize = new Point(960, 720);
                     }
-                    Log.e("zjy", getClass() + "->initParams(): suit_w-h==" + suitablePreviewSize.x + "\t" +
-                            suitablePreviewSize.y);
                     parameters.setPreviewSize(suitablePreviewSize.x, suitablePreviewSize.y);
                 }
-                //            mCam.stopPreview();
+                Camera.Size previewSize = parameters.getPreviewSize();
+                Log.d("zjy", getClass() + "->initParams(): ==size" +
+                        "" + previewSize.width + " -" + previewSize.height);
+                cachePw=previewSize.width;
+                cachePh = previewSize.height;
+                preFormat = parameters.getPreviewFormat();
                 mCam.setParameters(parameters);
             } catch (RuntimeException e) {
                 e.printStackTrace();
             }
-            //            mCam.setParameters(parameters);
+            mCam.startPreview();
+            scheduleAutoFocus();
         }
     }
 
+    public Point getPreSize(){
+        return new Point(cachePw, cachePh);
+    }
     /**
      * 默认使用最大的预览尺寸，以便于获取最清晰的预览画面(测试发现有些不兼容)
      *
@@ -453,18 +452,20 @@ public class CamMgr implements Camera.AutoFocusCallback {
      *
      */
     public void close() {
-        long time = System.currentTimeMillis();
         Log.w("zjy", getClass() + "->close():关闭摄像头 ==" + mCameraId);
+        isStoped = true;
         if (mCam != null) {
-            mCam.setOneShotPreviewCallback(null);
-            mCam.stopPreview();
-            mCam.release();
-//            mCamLock.release();
-            mCam = null;
-            isStoped = true;
-
+            try {
+                mCam.setOneShotPreviewCallback(null);
+                mCam.cancelAutoFocus();
+                mCam.stopPreview();
+                mCam.release();
+                mCam = null;
+                isStoped = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        //        Log.e("zjy", getClass() + "->close(): ==" + (System.currentTimeMillis() - time) / 1000f);
     }
 
 
@@ -484,7 +485,6 @@ public class CamMgr implements Camera.AutoFocusCallback {
      */
     @Override
     public void onAutoFocus(boolean success, Camera camera) {
-        Log.e("zjy", getClass() + "->onAutoFocus(): result==" + success);
         scheduleAutoFocus();
     }
 }

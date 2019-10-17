@@ -1,13 +1,17 @@
 package com.b1b.js.erpandroid_kf;
 
+import android.app.NotificationChannel;
+import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Message;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
@@ -22,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 
 import utils.common.MyFileUtils;
@@ -157,9 +162,7 @@ public class TakePic2Ac extends TakePicBaseActivity {
                         inSrc = new FileInputStream(upFile);
                         remotePath = getUploadRemotePath();
                         insertPath = getInsertPath(remotePath);
-
-                        Log.e("zjy", "TakePic2Activity->run(): InsertPath==" +
-                         insertPath);
+                        Log.e("zjy", getClass() + "->run(): insertPath==" + insertPath);
 
                         mUploader.upload(pid, transformedImg, remotePath, loginID, cid + "", did + "",
                                 remoteName,
@@ -237,7 +240,7 @@ public class TakePic2Ac extends TakePicBaseActivity {
                     public void run() {
                         llResult.removeView(textView);
                     }
-                }, 8000);
+                }, 15 * 1000);
             }
         });
     }
@@ -332,6 +335,7 @@ public class TakePic2Ac extends TakePicBaseActivity {
         long createTime;
         long startTime;
 
+        static float limitTime = 1.6f;
         int tryTime;
 
         public UpLoadeLogger() {
@@ -364,6 +368,37 @@ public class TakePic2Ac extends TakePicBaseActivity {
         public NotifyMgr(Context mContext, String pid) {
             builder = new NotificationCompat.Builder(mContext);
             mgr = (NotificationManager) mContext.getSystemService(NOTIFICATION_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String channelId = "图片上传";
+                String channelName = "图片上传";
+                NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
+                // 开启指示灯，如果设备有的话
+                channel.enableLights(true);
+                // 设置指示灯颜色
+                channel.setLightColor(ContextCompat.getColor(mContext, R.color.colorPrimary));
+                // 是否在久按桌面图标时显示此渠道的通知
+                channel.setShowBadge(true);
+                // 设置是否应在锁定屏幕上显示此频道的通知
+                channel.setLockscreenVisibility(NotificationCompat.VISIBILITY_PRIVATE);
+                // 设置绕过免打扰模式
+                channel.setBypassDnd(true);
+                channel.setImportance(NotificationManager.IMPORTANCE_DEFAULT);
+
+                ArrayList<NotificationChannelGroup> groups = new ArrayList<>();
+                String groupId = "上传消息";
+                String groupName = "上传消息";
+                NotificationChannelGroup group = new NotificationChannelGroup(groupId, groupName);
+                channel.setGroup(groupId);
+                groups.add(group);
+                String groupDownloadId = "其他消息";
+                CharSequence groupDownloadName = "其他消息";
+                NotificationChannelGroup group_download = new NotificationChannelGroup(groupDownloadId, groupDownloadName);
+                groups.add(group_download);
+                mgr.createNotificationChannelGroups(groups);
+                mgr.createNotificationChannel(channel);
+                builder.setChannelId(channelId);
+                builder.setGroup(groupId);
+            }
             Bitmap largeIcon = BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.app_logo);
             builder.setContentTitle("上传" + pid + "的图片").setSmallIcon(R.mipmap.app_logo)
                     .setContentText("图片正在上传").setProgress(100, 0, false).setLargeIcon(largeIcon);
@@ -373,6 +408,7 @@ public class TakePic2Ac extends TakePicBaseActivity {
                 progress) {
             builder.setProgress(100, progress, false)
                     .setSubText(msg);
+            mgr.notify(finalId, builder.build());
         }
 
         public void cancelNotify() {
@@ -393,6 +429,10 @@ public class TakePic2Ac extends TakePicBaseActivity {
             }
             finalId = id;
             mgr.notify(finalId, builder.build());
+        }
+
+        public int getFinalId() {
+            return finalId;
         }
     }
 }

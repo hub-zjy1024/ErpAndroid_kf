@@ -72,7 +72,7 @@ public class KucunFBActivity extends BaseMActivity implements NoLeakHandler.NoLe
                 showMsgToast("连接服务器失败，请检查网络");
                 break;
             case ERROR_OPTION:
-                showMsgToast("查询条件有误，请更改");
+                showMsgToast("查询不到相关信息");
                 break;
             case SUCCESS_PRICE:
                 AlertDialog.Builder builder = new AlertDialog.Builder(KucunFBActivity.this);
@@ -87,12 +87,10 @@ public class KucunFBActivity extends BaseMActivity implements NoLeakHandler.NoLe
                 builder2.setTitle("失败");
                 builder2.setMessage("发布库存价格失败");
                 builder2.show();
+
                 break;
             case ERROR_CHANGE:
-                AlertDialog.Builder builder3 = new AlertDialog.Builder(KucunFBActivity.this);
-                builder3.setTitle("失败");
-                builder3.setMessage("更改失败");
-                builder3.show();
+                showMsgDialog("更改失败", "失败");
                 break;
             case SUCCESS_CHANGE:
                 tableAdapter.notifyDataSetChanged();

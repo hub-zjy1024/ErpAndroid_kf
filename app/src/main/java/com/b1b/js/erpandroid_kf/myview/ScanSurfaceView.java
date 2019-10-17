@@ -2,9 +2,9 @@ package com.b1b.js.erpandroid_kf.myview;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
@@ -34,9 +34,12 @@ public class ScanSurfaceView extends SurfaceView {
 
 
     public void foucs() {
-        mgr.safeAutoFocus();
+        mgr.focus();
     }
 
+    public Point getPreSize() {
+        return mgr.getPreSize();
+    }
     public int getRotationCount() {
         return mgr.getRotationCount();
     }
@@ -58,9 +61,7 @@ public class ScanSurfaceView extends SurfaceView {
                 }
                 final int finalSWidth = sWidth;
                 final int finalSHeight = sHeight;
-                long time = System.currentTimeMillis();
                 mgr.asycnOpen(holder, parentContainer, finalSWidth, finalSHeight);
-                Log.e("zjy", getClass() + "->testTime(): useTime ==" + (System.currentTimeMillis() - time) / 1000);
             }
 
             @Override
@@ -71,7 +72,6 @@ public class ScanSurfaceView extends SurfaceView {
 
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
-                Log.e("zjy", getClass() + "->surfaceDestroyed(): ==");
                 mgr.asyncClose();
             }
         });
@@ -79,18 +79,16 @@ public class ScanSurfaceView extends SurfaceView {
 
     public void closeCamera() {
         mgr.releaseAll();
-        mgr.testLeak();
-//        mgr.asyncClose();
     }
 
-    byte[] getRotatedData(byte[] data, Camera camera) {
-        Camera.Parameters parameters = camera.getParameters();
-        Camera.Size size = parameters.getPreviewSize();
-        int width = size.width;
-        int height = size.height;
+    byte[] getRotatedData(byte[] data) {
+        Point preSize = getPreSize();
+        int width = preSize.x;
+        int height = preSize.y;
         int rotationCount = getRotationCount();
         int flag = rotationCount / 90;
-        int previewFormat = parameters.getPreviewFormat();
+        int previewFormat = mgr.getPreviewFormat();
+
         if (previewFormat == ImageFormat.YV12) {
             data = dataConverter.YV12toNV21(data, width, height);
         }

@@ -88,7 +88,7 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
                 goodInfos = goodInfos.substring(0, goodInfos.lastIndexOf("$"));
                 intent.putExtra("goodInfos", goodInfos);
                 intent.putExtra("client", item.getCustomer());
-                intent.putExtra("pid", item.getPid());
+                intent.putExtra(SettingActivity.extra_PID , item.getPid());
                 intent.putExtra("times", item.getPrint());
                 intent.putExtra("type", item.getType());
             }
@@ -158,6 +158,11 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
             }
         });
 
+        String tempPid = getIntent().getStringExtra(SettingActivity.extra_PID);
+        if (tempPid != null) {
+            edPid.setText(tempPid);
+            getYundanResult();
+        }
     }
 
 
@@ -184,6 +189,7 @@ public class SFActivity extends SavedLoginInfoWithScanActivity {
         LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
         map.put("pid", pid);
         map.put("xh", parno);
+        Log.e("zjy", getClass() + "->getYundanResult(): stor==" + storageID);
         map.put("SID", storageID);
         WebServicesTask<String> t = new WebServicesTask<>(new WebCallback<String>() {
             @Override

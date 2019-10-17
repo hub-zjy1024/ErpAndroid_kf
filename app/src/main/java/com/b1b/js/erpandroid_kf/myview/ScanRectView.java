@@ -1,6 +1,5 @@
 package com.b1b.js.erpandroid_kf.myview;
 
-import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -180,17 +179,17 @@ public class ScanRectView extends View {
 
     private Rect getOuterCorner(Rect center, int borderStroke) {
         int offset = borderStroke / 2;
-        Rect tempRect = new Rect(this.center.left - offset, this.center.top - offset,
-                this.center.right + offset,
-                this.center.bottom + offset);
+        Rect tempRect = new Rect(center.left - offset, center.top - offset,
+                center.right + offset,
+                center.bottom + offset);
         return tempRect;
     }
 
     private Rect getInnerCorner(Rect center, int borderStroke) {
         int offset = borderStroke / 2;
-        Rect tempRect = new Rect(this.center.left + offset, this.center.top + offset,
-                this.center.right - offset,
-                this.center.bottom - offset);
+        Rect tempRect = new Rect(center.left + offset, center.top + offset,
+                center.right - offset,
+                center.bottom - offset);
         return tempRect;
     }
 
@@ -260,8 +259,9 @@ public class ScanRectView extends View {
         mPaint.setStrokeWidth(scanLineWitdh);
 
         mPaint.setColor(scanLineColor);
-        if (linePos >= rHeight) {
+        if (linePos >= realHeight) {
             linePos = 0;
+            resetAnim();
         }
         canvas.drawLine(left_right, lineY, right, lineY, mPaint);
         //        linePos += 3;
@@ -312,7 +312,7 @@ public class ScanRectView extends View {
         //        return preViewRect;
     }
 
-    private Animator animator;
+    private ObjectAnimator animator;
 
     public void setLinePos(int linePos) {
         this.linePos = linePos;
@@ -334,52 +334,18 @@ public class ScanRectView extends View {
         isScan = false;
     }
 
+    public void resetAnim() {
+        animator = ObjectAnimator.ofInt(this, "linePos", 0, realHeight);
+        animator.setDuration(2000);
+        animator.start();
+    }
+
     public void startScan() {
         isScan = true;
         if (animator == null) {
             animator = ObjectAnimator.ofInt(this, "linePos", 0, realHeight);
-            //            animator.setInterpolator(new LinearOutSlowInInterpolator());
             animator.setDuration(2000);
-
-            animator.addListener(new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    animator.start();
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-
-                }
-
-                @Override
-                public void onAnimationRepeat(Animator animation) {
-
-                }
-            });
             animator.start();
         }
-    }
-
-    public int getRealHeight() {
-        return realHeight;
-    }
-
-    public void setRealHeight(int realHeight) {
-        this.realHeight = realHeight;
-    }
-
-
-    public int getRealWidth() {
-        return realWidth;
-    }
-
-    public void setRealWidth(int realWidth) {
-        this.realWidth = realWidth;
     }
 }

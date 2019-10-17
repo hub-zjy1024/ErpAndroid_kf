@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -35,7 +36,7 @@ public class MySSLProtocolSocketFactory extends SSLSocketFactory {
                 return null;
             }
         };
-        sslContext.init(null, new TrustManager[]{tm}, null);
+        sslContext.init(null, new TrustManager[]{tm},  new SecureRandom());
     }
 
     @Override

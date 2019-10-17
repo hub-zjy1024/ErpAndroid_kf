@@ -31,4 +31,8 @@
     <color name="listview_item_press">#D9D9D9</color>
     <color name="color_lv_divider_end">#303F9F</color>
     <color name="color_lv_divider_start">#FF4081</color>
+    <color name="controlTextSelectedColor">@color/black_de</color>
+    <color name="controlTextDisabledColor">#969696</color>
+    <color name="dialog_divider">#4D969696</color>
+    <color name="toast_bg"></color>
 </resources>

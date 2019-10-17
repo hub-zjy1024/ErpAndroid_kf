@@ -1,6 +1,7 @@
 package com.b1b.js.erpandroid_kf.mvcontract;
 
 import com.b1b.js.erpandroid_kf.entity.QdInfo;
+import com.b1b.js.erpandroid_kf.mvcontract.callback.IDataListCallback;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
@@ -51,9 +52,9 @@ public class QdContract {
         @Override
         public void startSearch2(String pid, final String pro_id) {
             mView.startSearch(pid);
-            dataSrc.getData(pid, new QdDataProvider.CallBack() {
+            dataSrc.getData(pid, new  IDataListCallback<QdInfo>() {
                 @Override
-                public void callBack(final List<QdInfo> infos) {
+                public void callback(final List<QdInfo> infos) {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -76,6 +77,11 @@ public class QdContract {
                         }
                     });
                 }
+
+                @Override
+                public void onError(String msg) {
+
+                }
             });
         }
 
@@ -85,9 +91,13 @@ public class QdContract {
 
         public void startSearch(String pid) {
             mView.startSearch(pid);
-            dataSrc.getData(pid, new QdDataProvider.CallBack() {
+            dataSrc.getData(pid, new  IDataListCallback<QdInfo>() {
                 @Override
-                public void callBack(final List<QdInfo> infos) {
+                public void onError(String msg) {
+                }
+
+                @Override
+                public void callback(final List<QdInfo> infos) {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -109,11 +119,8 @@ public class QdContract {
     }
 
     static class QdDataProvider {
-        public interface CallBack {
-             void callBack(List<QdInfo> infos);
-        }
 
-        void getData(final String pid, final CallBack callBack) {
+        void getData(final String pid, final  IDataListCallback<QdInfo> callBack) {
 
             Runnable runnable = new Runnable() {
                 @Override
@@ -138,7 +145,7 @@ public class QdContract {
                                     , notes);
                             infos.add(qdInfo);
                         }
-                        callBack.callBack(infos);
+                        callBack.callback(infos);
                     } catch (IOException e) {
                         error = e.getMessage();
                         e.printStackTrace();
@@ -150,7 +157,8 @@ public class QdContract {
                         error = e.getMessage();
                     }
                     if (!"".equals(error)) {
-                        callBack.callBack(null);
+//                        callBack.onError(error);
+                        callBack.callback(null);
                     }
                 }
             };

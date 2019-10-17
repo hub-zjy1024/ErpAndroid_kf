@@ -2,19 +2,18 @@ package com.b1b.js.erpandroid_kf;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
-import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -37,7 +36,6 @@ import org.xml.sax.SAXException;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +43,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 
@@ -53,6 +52,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import utils.common.MyFileUtils;
+import utils.common.UpdateClient;
 import utils.common.UploadUtils;
 import utils.common.log.LogUploader;
 import utils.net.wsdelegate.WebserviceUtils;
@@ -77,8 +77,11 @@ public class AboutActivity extends BaseMActivity {
     };
     private ProgressDialog downPd;
     private TextView tvNewVersion;
-    final String updateUrl = WebserviceUtils.ROOT_URL+"DownLoad/dyj_kf/dyjkfapp.apk";
+    final String updateUrl = UpdateClient.downUrl;
     private ImageView updateIv;
+    UpdateClient mClient;
+    File targetDir = MyFileUtils.getFileParent();
+    final File file1 = new File(targetDir, "dyjkfapp.apk");
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,18 +91,19 @@ public class AboutActivity extends BaseMActivity {
         Button btnDonloadNew = (Button) findViewById(R.id.activity_about_btn_downloadnew);
          updateIv = (ImageView) findViewById(R.id.iv_about_update_qr);
 
+        mClient = new UpdateClient(mContext);
         Button btnCheck = (Button) findViewById(R.id.activity_about_btn_check);
         btnCheck.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 downPd.show();
-                new Thread() {
+                Runnable checkRun=new Runnable() {
                     @Override
                     public void run() {
-                        super.run();
                         getNewVersion();
                     }
-                }.start();
+                };
+                TaskManager.getInstance().execute(checkRun);
             }
         });
         downPd = new ProgressDialog(this);
@@ -109,32 +113,29 @@ public class AboutActivity extends BaseMActivity {
         downPd.setMessage("下载中");
         downPd.setProgress(0);
         downPd.show();
-        new Thread() {
+        Runnable getUpdateInfo = new Runnable() {
             @Override
             public void run() {
-                super.run();
                 getNewVersion();
-             /*   PushManager mgr = new PushManager();
-                mgr.testPush();
-                mgr.testPushWx();*/
             }
-        }.start();
+        };
+        TaskManager.getInstance().execute(getUpdateInfo);
         btnDonloadNew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //必须设定进图条样式
                 downPd.show();
-                new Thread() {
+                Runnable downloadRun = new Runnable() {
                     @Override
                     public void run() {
-                        super.run();
                         try {
                             updateAPK(mContext, mHandler, updateUrl);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
-                }.start();
+                };
+                TaskManager.getInstance().execute(downloadRun);
             }
         });
         PackageManager pm = getPackageManager();
@@ -263,8 +264,6 @@ public class AboutActivity extends BaseMActivity {
         if (conn.getResponseCode() == 200) {
             InputStream is = conn.getInputStream();
             int size = conn.getContentLength();
-            File targetDir = MyFileUtils.getFileParent();
-            File file1 = new File(targetDir, "dyjkfapp.apk");
             if(!file1.getParentFile().exists()){
                 file1.getParentFile().mkdirs();
             }
@@ -300,14 +299,29 @@ public class AboutActivity extends BaseMActivity {
             is.close();
             fos.close();
             MyApp.myLogger.writeInfo("update download");
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            if (file1.exists()) {
-                String mimeTypeFromExtension = MimeTypeMap.getSingleton().getMimeTypeFromExtension(".apk");
-                intent.setDataAndType(Uri.fromFile(file1), "application/vnd.android.package-archive");
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
+            logHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mClient.installApp28(file1);
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == UpdateClient.INSTALL_PERMISS_CODE) {
+            Log.e("zjy",
+                    getClass() + "->onRequestPermissionsResult(): onInstall callback==,grantResults=" + Arrays.toString(grantResults));
+            if (grantResults.length > 0 && grantResults[0] == PackageManager
+                    .PERMISSION_GRANTED) {
+                mClient.installApp28(file1);
             } else {
-                throw new FileNotFoundException();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    mClient.toInstallPermissionSettingIntent();
+                }
             }
         }
     }

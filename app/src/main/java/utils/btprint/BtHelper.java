@@ -17,6 +17,7 @@ import java.util.Set;
 public class BtHelper {
     public static final int STATE_CONNECTED = 1;
     public static final int STATE_DISCONNECTED = 2;
+    public static final int STATE_ERROR = 5;
     public final static int STATE_SCAN_FINISHED = 3;
     public final static int STATE_OPENED = 4;
     private List<BluetoothDevice> devices;
@@ -31,7 +32,7 @@ public class BtHelper {
         devices = new ArrayList<>();
     }
 
-    private MyBtReceive listener = new MyBtReceive(this);
+    private MyBtReceive listener;
 
     public void startScan() {
         cancelScan();
@@ -42,6 +43,10 @@ public class BtHelper {
         if (adapter.isDiscovering()) {
             adapter.cancelDiscovery();
         }
+    }
+
+    public boolean write(byte[] var1) {
+        return false;
     }
 
     static class MyBtReceive extends BroadcastReceiver {
@@ -91,6 +96,13 @@ public class BtHelper {
         mContext.startActivity(intent);
     }
 
+    public void closeBt() {
+        adapter.disable();
+    }
+
+    public void closeConnect() {
+    }
+
     public void close() {
         adapter.disable();
         unRegister();
@@ -106,18 +118,41 @@ public class BtHelper {
     }
 
     public void unRegister() {
-        if (!isRegisted) {
-            return;
+        if (listener != null) {
+            mContext.unregisterReceiver(listener);
+            listener = null;
         }
-        mContext.unregisterReceiver(listener);
         Log.e("zjy", "BtHelper->unRegister(): unRegist==" + toString());
         isRegisted = false;
     }
 
     public void register() {
-        if (isRegisted) {
+        if (listener != null) {
             return;
         }
+        listener = new MyBtReceive(this);
+        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        filter.addAction(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        mContext.registerReceiver(listener, filter);
+        Log.e("zjy", "BtHelper->register(): register==" + toString());
+        isRegisted = true;
+    }
+
+    public void unRegister(Context mContext) {
+        if (listener != null) {
+            mContext.unregisterReceiver(listener);
+            listener = null;
+        }
+        Log.e("zjy", "BtHelper->unRegister(): unRegist==" + toString());
+        isRegisted = false;
+    }
+
+    public void register(Context mContext) {
+        if (listener != null) {
+            return;
+        }
+        listener = new MyBtReceive(this);
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);

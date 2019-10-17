@@ -46,7 +46,7 @@ public class FTPUtils {
     public static final int ADMIN_PORT = DEFAULT_PORT;
     public static final String ADMIN_NAME = mainName;
     public static final String ADMIN_PWD = mainPwd;
-    public static final String TEST_FTP_ULR = "192.168.10.66";
+    public static final String TEST_FTP_ULR = "192.168.10.60";
     public static FTPUtils getGlobalFTP() {
         return new FTPUtils(mainAddress, mainName, mainPwd);
     }
@@ -98,7 +98,14 @@ public class FTPUtils {
     }
 
     public static FTPUtils getLocalFTP(String localHost, int port) {
-        return new FTPUtils(localHost, port, LOCAL_NAME, LOCAL_PWD);
+        String name = LOCAL_NAME;
+        String pwd = LOCAL_PWD;
+        if (mainAddress.equals(localHost)) {
+            Log.w("zjy", FTPUtils.class + "->getLocalFTP():use MainAddress ==");
+            name = mainName;
+            pwd = mainPwd;
+        }
+        return new FTPUtils(localHost, port, name, pwd);
     }
 
     public interface UploadListner {
@@ -202,7 +209,7 @@ public class FTPUtils {
         //                mClient.setControlEncoding("UTF-8");
         //        mClient.setControlKeepAliveTimeout(2);
         if (!mClient.login(username, password))
-            throw new IOException("FTP登陆失败，请检测登陆用户名和密码是否正确!");
+            throw new IOException(hostname + ",FTP登陆失败，请检测登陆用户名和密码是否正确!");
         //只能在登陆成功后设置下面的才有效果
         //根据服务器的设置更改
         mClient.setFileType(FTPClient.BINARY_FILE_TYPE);

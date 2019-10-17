@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -140,6 +141,46 @@ public class SFWsUtils {
         return getEnvelope(request, SoapEnvelope.VER11, null, ROOT_URL, false);
     }
 
+    public static class OrderResponse {
+        public String destcode;
+        public String yundanId;
+    }
+
+    public static OrderResponse getOrderResponse(SFSender info, List<Cargo>cargos,
+                                                 List<ExtraService> services) throws Exception {
+        String orderXml = SFWsUtils.createOrderXml(SFWsUtils.ORDER_SERVICE,
+                info, cargos, null);
+        OrderResponse orderResponse = getOrderResponse(orderXml);
+        return orderResponse;
+    }
+
+    private static OrderResponse getOrderResponse(String xml) throws Exception {
+        String result = null;
+        try {
+            result = SFWsUtils.getNewOrder(xml);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new Exception("下单失败io," + e.getMessage());
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+            throw new Exception("下单失败xml," + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("下单失败ex," + e.getMessage());
+        }
+        XmlDomUtils xmlUtils = new XmlDomUtils();
+        Map<String, String> resMap = xmlUtils.readXML(result);
+        String head = resMap.get("head");
+        if (head.equals("ERR")) {
+            String errmsg = resMap.get("error");
+            throw new Exception("下单ret=ERROR," + errmsg);
+        }
+        OrderResponse resp = new OrderResponse();
+        resp.destcode = resMap.get("destcode");
+        resp.yundanId = resMap.get("orderID");
+        return resp;
+    }
+
     /**
      * @return
      * @throws IOException
@@ -156,6 +197,7 @@ public class SFWsUtils {
         object.addProperty("arg1", verifyCode);
         SoapSerializationEnvelope envelope =getEnvelope(object);
         SoapPrimitive soapPrimitive = (SoapPrimitive) envelope.getResponse();
+//        Log.e("zjy", SFWsUtils.class + "->getNewOrder(): ==" + soapPrimitive.toString());
         return soapPrimitive.toString();
     }
 
@@ -267,8 +309,8 @@ public class SFWsUtils {
             transformer.setOutputProperty("encoding", "UTF-8");
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(xmlDoc), new StreamResult(writer));
-            Log.e("zjy", "sfWs->sendRequest(): xmlResult==" + writer.toString
-                    ());
+//            Log.d("zjy", "sfWs->sendRequest(): xmlResult==" + writer.toString
+//                    ());
             return writer.toString();
         } catch (TransformerConfigurationException e) {
             e.printStackTrace();

@@ -1,18 +1,16 @@
 package com.b1b.js.erpandroid_kf;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
@@ -22,7 +20,7 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.SpSettings;
-import com.b1b.js.erpandroid_kf.entity.UserInfoPref;
+import com.b1b.js.erpandroid_kf.mvcontract.callback.IBoolCallback;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -36,6 +34,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,14 +58,11 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
     private ProgressDialog downPd;
     private ProgressDialog scanDialog;
     private TextView tvVersion;
-    private final int SCANCODE_LOGIN_SUCCESS = 4;
     private final int MSG_SCAN_OK = 7;
     private final int NEWWORK_ERROR = 2;
     private final int FTPCONNECTION_ERROR = 5;
     private final int MSG_LOGIN_FAILED = 0;
     private  final int MSG_LOGIN_SUCCESS = 1;
-    private final int MSG_FTPcheck_OK = 6;
-    private final int MSG_SCAN_INIT = 8;
 
     public final String key_debugkey = "debugPwd";
 
@@ -78,137 +74,36 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
     private Handler zHandler = new NoLeakHandler(this);
     private String phoneCode;
     private String storID;
-    UserInfoPref pref;
-
+    private UpdateClient client;
     boolean isLogin = false;
+    private static String[] perMissions = new String[]{
+            Manifest.permission.READ_PHONE_STATE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.ACCESS_COARSE_LOCATION
+            ,Manifest.permission.CAMERA
+    };
+
     public void handleMessage(final Message msg) {
         super.handleMessage(msg);
         switch (msg.what) {
             //失败
             case MSG_LOGIN_FAILED:
-                pd.cancel();
+                if (pd != null) {
+                    pd.cancel();
+                }
+                if (scanDialog != null) {
+                    scanDialog.cancel();
+                }
                 showMsgToast( msg.obj.toString());
                 break;
             case MSG_LOGIN_SUCCESS:
-                //成功
-                HashMap<String, String> infoMap = (HashMap<String, String>) msg.obj;
-                //每次登录检查userInfo是否有变动，以免数据库更新（流量允许）
-                String uid = infoMap.get("name");
-                com.b1b.js.erpandroid_kf.MyApp.id = uid;
-                //登陆用户名改变，清除缓存
-                if (!sp.getString("name", "").equals(com.b1b.js.erpandroid_kf.MyApp.id)) {
-                    sp.edit().clear().apply();
-                    //登录成功之后调用，获取相关信息
-                    SharedPreferences.Editor edit = sp.edit();
-                    edit.putString("name", infoMap.get("name"));
-                    edit.putString("pwd", infoMap.get("pwd"));
-                    edit.apply();
-                    getUserInfoDetail(uid);
-                } else {
-                    //                        MyApp.ftpUrl = sp.getString("ftp", "");
-                }
-                //是否记住密码
-                //                    ifSavePwd(true, "101", "62105300");
                 pd.cancel();
                 zHandler.removeMessages(MSG_LOGIN_SUCCESS);
                 gotoMenu();
                 break;
-            case NEWWORK_ERROR:
-                Object mobj = msg.obj;
-                String errMsg = "网络状态不佳,请检查网络状态";
-                if (mobj != null) {
-                    errMsg = mobj.toString();
-                }
-                com.b1b.js.erpandroid_kf.MyApp.myLogger.writeError("bad network");
-                showMsgToast(errMsg);
-                if (pd != null) {
-                    pd.cancel();
-                }
-                if (scanDialog != null && scanDialog.isShowing()) {
-                    scanDialog.cancel();
-                }
-                break;
-            //扫码登录处理
-            case SCANCODE_LOGIN_SUCCESS:
-                try {
-                    JSONObject object1 = new JSONObject(msg.obj.toString());
-                    JSONArray main = object1.getJSONArray("表");
-                    JSONObject obj = main.getJSONObject(0);
-                    String url = obj.getString("PhotoFtpIP");
-                    com.b1b.js.erpandroid_kf.MyApp.myLogger.writeInfo(MainActivity.class, "FTP:" + url);
-                    String uid2 = obj.getString("UserID");
-                    com.b1b.js.erpandroid_kf.MyApp.id = uid2;
-                    String defUid = sp.getString("name", "");
-                    //换用户则清除缓冲
-                    final String[] urls = url.split("\\|");
-                    String localUrl = sp.getString("ftp", "");
-                    if (localUrl.equals("")) {
-                        if (!ftpCheckNeed()) {
-                            return;
-                        }
-                        checkSaveFTP(url);
-                    }else if (!defUid.equals(uid2)) {
-                        //第一次登录或者更换手机
-                        sp.edit().clear().commit();
-                        getUserInfoDetail(com.b1b.js.erpandroid_kf.MyApp.id);
-                        SharedPreferences.Editor editor = sp.edit();
-                        editor.putString("name", uid2).apply();
-                        //"|"为特殊字符，需要用"\\"转义
-                        if (!ftpCheckNeed()) {
-                            return;
-                        }
-                        checkSaveFTP(url);
-                    } else {
-                        if (!ftpCheckNeed()) {
-                            return;
-                        }
-                        for (int i = 0; i < urls.length; i++) {
-                            if (urls[i].equals(localUrl)) {
-                                com.b1b.js.erpandroid_kf.MyApp.ftpUrl = localUrl;
-                                if (scanDialog != null && scanDialog.isShowing()) {
-                                    scanDialog.cancel();
-                                }
-                                gotoMenu();
-                                break;
-                            } else {
-                                if (i == urls.length - 1) {
-                                    checkSaveFTP(url);
-                                }
-                            }
-                        }
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    showMsgToast("扫描结果有误");
-                    if (scanDialog != null && scanDialog.isShowing()) {
-                        scanDialog.cancel();
-                    }
-                } catch (IOException e) {
-                    showMsgToast(e.getMessage());
-                        if (scanDialog != null && scanDialog.isShowing()) {
-                            scanDialog.cancel();
-
-                        }
-                } finally {
-//                    if (scanDialog != null && scanDialog.isShowing()) {
-//                        scanDialog.cancel();
-//                    }
-                }
-                break;
             //获取ftp地址
             case FTPCONNECTION_ERROR:
                 //连接ftp失败
-                showMsgToast( "连接不到ftp服务器:" + msg.obj.toString());
-                break;
-            case MSG_FTPcheck_OK:
-                showMsgToast( "获取ftp地址成功:" + com.b1b.js.erpandroid_kf.MyApp.ftpUrl);
-                if (pd != null && pd.isShowing()) {
-                    pd.cancel();
-                }
-                gotoMenu();
-                break;
-            case 10:
-                showMsgToast( "部门号或公司号为空");
+                String errMsg2 = msg.obj.toString();
+                showMsgToast( errMsg2 );
                 break;
             case MSG_SCAN_OK:
                 if (scanDialog != null) {
@@ -244,99 +139,117 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
     }
 
     @Override
     public void init() {
-        edUserName = (EditText) findViewById(R.id.login_username);
-        edPwd = (EditText) findViewById(R.id.login_pwd);
-        cboRemp = (CheckBox) findViewById(R.id.login_rpwd);
-        cboAutol = (CheckBox) findViewById(R.id.login_autol);
-        tvVersion = (TextView) findViewById(R.id.main_version);
-        sp = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
-//        long time1 = System.currentTimeMillis();
-//        Log.e("zjy", getClass() + "->init(): userTime==" + (System.currentTimeMillis() - time1) / 1000f);
-//        time1 = System.currentTimeMillis();
-        pref = new UserInfoPref(sp);
-//        pref.cid = sp.getInt("cid", -1);
-//        pref.did = sp.getInt("did", -1);
-//        pref.ftp = sp.getString("ftp", "");
-//        pref.uname = sp.getString("name", "");
-//        pref.debugPwd = sp.getString("pwdDebug", "");
-
-        phoneCode = UploadUtils.getPhoneCode(mContext);
-        Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
-        MyFileUtils.obtainFileDir(mContext);
-        int code = 0;
-        try {
-            PackageManager pm = getPackageManager();
-            PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
-            code = info.versionCode;
-            versionName = info.versionName;
-            String devId = UploadUtils.getDeviceID(mContext);
-
-            tvVersion.setText("当前版本为：" + versionName + "\t设备ID=" + devId);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        final SharedPreferences spLog = getSharedPreferences(SpSettings.PREF_LOGUPLOAD, MODE_PRIVATE);
-        String saveDate = spLog.getString("codeDate", "");
-        int lastCode = spLog.getInt("lastCode", -1);
-        final String current = UploadUtils.getCurrentDate();
-        if (MyApp.myLogger != null) {
-            SharedPreferences.Editor edit = spLog.edit();
-            if (!saveDate.equals(current)) {
-                MyApp.myLogger.writeInfo("phonecode:" + phoneCode);
-                MyApp.myLogger.writeInfo("ApiVersion:" + Build.VERSION.SDK_INT);
-                MyApp.myLogger.writeInfo("dyj-version:" + code);
-                edit.putString("codeDate", current).apply();
-            } else if (code != lastCode && lastCode != -1) {
-                MyApp.myLogger.writeInfo("dyj-dated-version:" + code);
-                edit.putInt("lastCode", code).apply();
-            }
-        }
-        //检查更新
-        final UpdateClient client = new UpdateClient(this) {
+        usePermission(perMissions, new IBoolCallback() {
             @Override
-            public void getUpdateInfo(HashMap<String, String> map) {
-                String sCode = map.get("code");
-                final String sContent = map.get("content");
-                final String sDate = map.get("date");
-                zHandler.post(new Runnable() {
+            public void callback(Boolean msg) {
+                edUserName = (EditText) findViewById(R.id.login_username);
+                edPwd = (EditText) findViewById(R.id.login_pwd);
+                cboRemp = (CheckBox) findViewById(R.id.login_rpwd);
+                cboAutol = (CheckBox) findViewById(R.id.login_autol);
+                tvVersion = (TextView) findViewById(R.id.main_version);
+                sp = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
+                //        long time1 = System.currentTimeMillis();
+                //        Log.e("zjy", getClass() + "->init(): userTime==" + (System.currentTimeMillis() - time1) / 1000f);
+                //        time1 = System.currentTimeMillis();
+                phoneCode = UploadUtils.getPhoneCode(mContext);
+                Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
+                MyFileUtils.obtainFileDir(mContext);
+                int code = 0;
+                try {
+                    PackageManager pm = getPackageManager();
+                    PackageInfo info = pm.getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
+                    code = info.versionCode;
+                    versionName = info.versionName;
+                    String devId = UploadUtils.getDeviceID(mContext);
+
+                    tvVersion.setText("当前版本为：" + versionName + "\t设备ID=" + devId);
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+                final SharedPreferences spLog = getSharedPreferences(SpSettings.PREF_LOGUPLOAD, MODE_PRIVATE);
+                String saveDate = spLog.getString("codeDate", "");
+                int lastCode = spLog.getInt("lastCode", -1);
+                final String current = UploadUtils.getCurrentDate();
+                if (MyApp.myLogger != null) {
+                    SharedPreferences.Editor edit = spLog.edit();
+                    if (!saveDate.equals(current)) {
+                        MyApp.myLogger.writeInfo("phonecode:" + phoneCode);
+                        MyApp.myLogger.writeInfo("ApiVersion:" + Build.VERSION.SDK_INT);
+                        MyApp.myLogger.writeInfo("dyj-version:" + code);
+                        edit.putString("codeDate", current).apply();
+                    } else if (code != lastCode && lastCode != -1) {
+                        MyApp.myLogger.writeInfo("dyj-dated-version:" + code);
+                        edit.putInt("lastCode", code).apply();
+                    }
+                }
+                //检查更新
+                client = new UpdateClient(mContext) {
+                    @Override
+                    public void getUpdateInfo(HashMap<String, String> map) {
+                        String sCode = map.get("code");
+                        final String sContent = map.get("content");
+                        final String sDate = map.get("date");
+                        zHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                String info = tvVersion.getText().toString().trim();
+                                info = info + "，更新说明:\n";
+                                info += "更新时间:" + sDate + "\n";
+                                info += "更新内容:" + sContent;
+                                tvVersion.setText(info);
+                            }
+                        });
+                    }
+                };
+                Runnable updateRun = new Runnable() {
                     @Override
                     public void run() {
-                        String info = tvVersion.getText().toString().trim();
-                        info = info + "，更新说明:\n";
-                        info += "更新时间:" + sDate + "\n";
-                        info += "更新内容:" + sContent;
-                        tvVersion.setText(info);
+                        try {
+                            SharedPreferences spKf = getSharedPreferences(SpSettings.PREF_KF, MODE_PRIVATE);
+                            String storageInfo = spKf.getString(SpSettings.storageKey, "");
+                            if ("".equals(storageInfo)) {
+                                storageInfo = StorageUtils.getStorageByIp();
+                                spKf.edit().putString(SpSettings.storageKey, storageInfo).apply();
+                            }
+                            storID = StorageUtils.getStorageIDFromJson(storageInfo);
+                            MyApp.myLogger.writeInfo("nowStorInfo=" + storageInfo);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            showMsgDialog("获取库房信息失败," + e.getMessage());
+                        }
+                        client.startUpdate();
                     }
-                });
-            }
-        };
-        Runnable updateRun = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SharedPreferences spKf = getSharedPreferences(SpSettings.PREF_KF, MODE_PRIVATE);
-                    String storageInfo = spKf.getString(SpSettings.storageKey, "");
-                    if ("".equals(storageInfo)) {
-                        storageInfo = StorageUtils.getStorageByIp();
-                    }
-                    storID = StorageUtils.getStorageIDFromJson(storageInfo);
-                    MyApp.myLogger.writeInfo("nowStorInfo=" + storageInfo);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    showMsgDialog("获取库房信息失败," + e.getMessage());
+                };
+                TaskManager.getInstance().execute(updateRun);
+                //登录
+                tempPassword = sp.getString(key_debugkey, "");
+                if ("".equals(tempPassword)) {
+                    tempPassword = "62105300";
                 }
-                client.startUpdate();
             }
-        };
-        TaskManager.getInstance().execute(updateRun);
-        //登录
-        tempPassword = sp.getString(key_debugkey, "");
-        if ("".equals(tempPassword)) {
-            tempPassword = "62105300";
+
+            @Override
+            public void onError(String msg) {
+
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == UpdateClient.INSTALL_PERMISS_CODE ) {
+            Log.e("zjy",
+                    getClass() + "->onActivityResult(): ==installSetting=" + requestCode + ",resp=" + resultCode);
+            client.installApk();
+//            if(resultCode == RESULT_OK){
+//                client.installApk();
+//            }
         }
     }
 
@@ -374,14 +287,17 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
             case R.id.login_btnlogin:
                 String tempPhone = phoneCode;
                 Log.e("zjy", "MainActivity->onClick(): password==" + tempPassword);
-                if (tempPhone.endsWith("868930027847564") || tempPhone.endsWith("358403032322590") ||
-                        tempPhone.endsWith
-                                ("864394010742122") || tempPhone.endsWith("A0000043F41515")
-                        || tempPhone.endsWith("866462026203849") || tempPhone.endsWith("869552022575930")
-                        || tempPhone.endsWith("460011060601459")   || tempPhone.endsWith("868591030284169") ) {
+//                if (tempPhone.endsWith("868930027847564") || tempPhone.endsWith("358403032322590") ||
+//                        tempPhone.endsWith
+//                                ("864394010742122") || tempPhone.endsWith("A0000043F41515")
+//                        || tempPhone.endsWith("866462026203849") || tempPhone.endsWith("869552022575930")
+//                        || tempPhone.endsWith("460011060601459")   || tempPhone.endsWith("868591030284169") ) {
+//                    login("101", tempPassword);
+//                } else {
+//                    showMsgToast( "请使用扫码登录");
+//                }
+                if (time == 5) {
                     login("101", tempPassword);
-                } else {
-                    showMsgToast( "请使用扫码登录");
                 }
                 break;
             case R.id.login_scancode:
@@ -419,65 +335,21 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
         if (requestCode == 100 && permissions.length > 0 && grantResults[0] == PackageManager
                 .PERMISSION_GRANTED) {
             Log.e("zjy", "MenuActivity.java->onRequestPermissionsResult(): ok==");
-        } else {
-            if (permissionDialog == null) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle("建议");
-                builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent();
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        intent.setData(Uri.fromParts("package", getPackageName(), null));
-                        mContext.startActivity(intent);
-                    }
-                });
-                builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                });
-                builder.setMessage("缺少相机权限，是否跳转到权限管理页面开启权限");
-                permissionDialog = builder.create();
-                permissionDialog.show();
+        } else if (requestCode == UpdateClient.INSTALL_PERMISS_CODE) {
+            Log.e("zjy",
+                    getClass() + "->onRequestPermissionsResult(): onInstall callback==,grantResults=" + Arrays.toString(grantResults));
+            if (grantResults.length > 0 && grantResults[0] == PackageManager
+                    .PERMISSION_GRANTED) {
+                client.installApk();
             } else {
-                permissionDialog.show();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    client.toInstallPermissionSettingIntent();
+                }
             }
+        } else {
         }
     }
 
-
-    private void checkSaveFTP(final String url) {
-        final String[] urls = url.split("\\|");
-        new Thread() {
-            @Override
-            public void run() {
-                int counts = urls.length;
-                int times = 0;
-                for (String url1 : urls) {
-                    try {
-                        Socket socket = new Socket();
-                        SocketAddress remoteAddr = new InetSocketAddress(url1, 21);
-                        socket.connect(remoteAddr, 10 * 1000);
-                        com.b1b.js.erpandroid_kf.MyApp.ftpUrl = url1;
-                        sp.edit().putString("ftp", com.b1b.js.erpandroid_kf.MyApp.ftpUrl).apply();
-                        zHandler.sendEmptyMessage(MSG_FTPcheck_OK);
-                        break;
-                    } catch (IOException e) {
-                        times++;
-                        if (counts == times) {
-                            Message msg = zHandler.obtainMessage(FTPCONNECTION_ERROR);
-                            msg.obj = url;
-                            zHandler.sendMessage(msg);
-                        }
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }.start();
-    }
 
     void checkSaveFTP2(String url) {
         try {
@@ -503,7 +375,8 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                 times++;
                 if (counts == times) {
                     Message msg = zHandler.obtainMessage(FTPCONNECTION_ERROR);
-                    msg.obj = url;
+                    String errmsg = "连接不到ftp服务器:" + url;
+                    msg.obj = errmsg;
                     zHandler.sendMessage(msg);
                 }
                 e.printStackTrace();
@@ -549,30 +422,32 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
         new Thread() {
             @Override
             public void run() {
-                boolean success = false;
-                while (!success) {
+                while (true) {
+                    String errmsg = "获取用户信息异常";
                     try {
                         Map<String, Object> result = getUserInfo(uid);
                         sp.edit().putInt("cid", (int) result.get("cid")).putInt("did", (int) result.get
                                 ("did")).
                                 putString("oprName", (String) result.get("oprName")).apply();
-                        success = true;
+                        break;
                     } catch (IOException e) {
+                        errmsg = "io异常," + e.getMessage();
                         e.printStackTrace();
                     } catch (XmlPullParserException e) {
                         e.printStackTrace();
+                        errmsg = "接口异常," + e.getMessage();
                     } catch (JSONException e) {
                         e.printStackTrace();
+                        errmsg = "json异常";
                     } catch (NumberFormatException e) {
-                        zHandler.sendEmptyMessage(10);
                         e.printStackTrace();
+                        errmsg = "部门号或公司号为空";
                     }
-                    if (!success) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                    zHandler.obtainMessage(FTPCONNECTION_ERROR, errmsg).sendToTarget();
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -617,6 +492,7 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
     private void readCode(final String code) {
         scanDialog = new ProgressDialog(mContext);
         scanDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        scanDialog.setTitle("扫码登录");
         scanDialog.setMessage("登录中");
         scanDialog.setCancelable(false);
         scanDialog.show();
@@ -637,6 +513,9 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                     com.b1b.js.erpandroid_kf.MyApp.id = uid;
                     //换用户则清除缓冲
                     final String[] urls = url.split("\\|");
+                    if (urls.length > 0) {
+                        MyApp.ftpUrl = urls[0];
+                    }
                     if (!ftpCheckNeed()) {
                         MyApp.ftpUrl = FTPUtils.mainAddress;
                     }
@@ -675,7 +554,8 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                     errMsg = "查询不到条码信息," + e.getMessage();
                 }
                 if (!"".equals(errMsg)) {
-                    zHandler.obtainMessage(NEWWORK_ERROR, errMsg);
+                    errMsg = "扫码登录失败," + errMsg;
+                    zHandler.obtainMessage(MSG_LOGIN_FAILED, errMsg).sendToTarget();
                 }
             }
         };
@@ -699,7 +579,8 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
      */
     private void login(final String name, final String pwd) {
         pd = new ProgressDialog(mContext);
-        pd.setMessage("登陆中");
+        pd.setTitle("普通登录");
+        pd.setMessage("登录中");
         pd.show();
         Runnable normalLoginRun = new Runnable() {
             @Override
@@ -707,9 +588,15 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                 String errMsg = "";
                 String version = "";
                 try {
-                    String deviceID = WebserviceUtils.DeviceID + "," + WebserviceUtils.DeviceNo;
+//                    String deviceID = WebserviceUtils.DeviceID + "," + WebserviceUtils.DeviceNo;
+                    String simpleCode = phoneCode.replaceAll(",", "_");
+                    String deviceID = WebserviceUtils.DeviceID + "," + simpleCode;
                     version = versionName;
-                    String soapResult = MartService.AndroidLogin("sdr454fgtre6e655t5rt4", name, pwd,
+                    if (version.endsWith("DEBUG")) {
+                        version = version.substring(0, version.indexOf("-"));
+                    }
+                    Log.e("zjy", getClass() + "->run(): name==" + name + "\t" + pwd);
+                    String soapResult = MartService.AndroidLogin(WebserviceUtils.WebServiceCheckWord , name, pwd,
                             deviceID, version);
                     String[] resArray = soapResult.split("-");
                     if (resArray[0].equals("SUCCESS")) {
@@ -717,15 +604,29 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                         HashMap<String, String> infoMap = new HashMap<>();
                         infoMap.put("name", name);
                         infoMap.put("pwd", pwd);
+                        //成功
+                        //每次登录检查userInfo是否有变动，以免数据库更新（流量允许）
+                        String uid = infoMap.get("name");
+                        com.b1b.js.erpandroid_kf.MyApp.id = uid;
+                        //登陆用户名改变，清除缓存
+                        if (!sp.getString("name", "").equals(com.b1b.js.erpandroid_kf.MyApp.id)) {
+                            sp.edit().clear().apply();
+                            //登录成功之后调用，获取相关信息
+                            SharedPreferences.Editor edit = sp.edit();
+                            edit.putString("name", infoMap.get("name"));
+                            edit.putString("pwd", infoMap.get("pwd"));
+                            edit.apply();
+                            getUserInfoDetail(uid);
+                        } else {
+                            //                        MyApp.ftpUrl = sp.getString("ftp", "");
+                        }
                         msg1.what = MSG_LOGIN_SUCCESS;
                         msg1.obj = infoMap;
                         zHandler.sendMessage(msg1);
                         sp.edit().putString(key_debugkey, tempPassword).commit();
                     } else {
                         tempPassword = getDebugPwd(tempPassword);
-                        Message msg = zHandler.obtainMessage(MSG_LOGIN_FAILED);
-                        msg.obj = soapResult;
-                        zHandler.sendMessage(msg);
+                        throw new Exception("登录失败，" + soapResult);
                     }
                 } catch (IOException e) {
                     errMsg = "网络异常," + e.getMessage();
@@ -733,9 +634,12 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                 } catch (XmlPullParserException e) {
                     errMsg = "接口解析异常," + e.getMessage();
                     e.printStackTrace();
+                } catch (Exception e) {
+                    errMsg = "其他异常," + e.getMessage();
+                    e.printStackTrace();
                 }
                 if (!"".equals(errMsg)) {
-                    zHandler.obtainMessage(NEWWORK_ERROR, errMsg);
+                    zHandler.obtainMessage(MSG_LOGIN_FAILED, errMsg).sendToTarget();
                 }
             }
         };

@@ -11,5 +11,6 @@
     <dimen name="yundan_form_horizontal">16dp</dimen>
     <dimen name="btn_padding">8dp</dimen>
     <dimen name="view_def_margin">8dp</dimen>
+    <dimen name="dialog_view_padding">20dp</dimen>
 
 </resources>

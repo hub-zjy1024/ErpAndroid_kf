@@ -1,6 +1,8 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
@@ -14,12 +16,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
+import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
 import com.b1b.js.erpandroid_kf.entity.Scan2Info;
 import com.b1b.js.erpandroid_kf.mvcontract.ScanCheckContract;
 import com.b1b.js.erpandroid_kf.myview.ScanViewContainer;
@@ -52,7 +56,7 @@ public class Check2_scan_activity extends ToolbarHasSunmiActivity implements Sca
 
     Vibrator vibrator;
     private static final long VIBRATE_DURATION = 200L;
-
+    private String uname;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,6 +97,8 @@ public class Check2_scan_activity extends ToolbarHasSunmiActivity implements Sca
                 if (pid == null) {
                     pid = code;
                     tvPid.setText("单号:" + pid);
+                    mPresenter.getData(pid);
+                    mPresenter.getPicInfos(pid);
                 }
                 onCodeCallback(code);
             }
@@ -117,7 +123,7 @@ public class Check2_scan_activity extends ToolbarHasSunmiActivity implements Sca
         adapter = new RvAdapter(datas, R.layout.item_scan_check, this);
         recyclerView.setAdapter(adapter);
         mPresenter = new ScanCheckContract.Presenter(this, this);
-
+//        mPresent = new ParentChukuContract.Presenter(this, this);
         float screenHeight = MyDensityUtils.getScreenHeight(this);
         int mHeight = (int) (screenHeight / 3);
         recyclerView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
@@ -131,8 +137,42 @@ public class Check2_scan_activity extends ToolbarHasSunmiActivity implements Sca
         if (pid != null) {
             tvPid.setText("单号:" + pid);
             mPresenter.getData(pid);
+            mPresenter.getPicInfos(pid);
         }
         stopSunmiScan();
+        SharedPreferences mPref = getSharedPreferences(SettingActivity.PREF_USERINFO, MODE_PRIVATE);
+        uname = mPref.getString("oprName", "");
+        setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (pid == null) {
+                    showMsgToast("无单据号，请先返回上一层");
+                    return;
+                }
+                Intent mIntent = new Intent(mContext, ChukuTakePicActivity.class);
+                mIntent.putExtra(SettingActivity.extra_PID, pid);
+                startActivity(mIntent);
+            }
+        }, R.id.activity_check2_btn_takepic);
+        setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mPresenter.UpdateStoreChekerInfo(pid, loginID, "2", uname);
+            }
+        }, R.id.activity_check2_btn_check);
+        setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent minte = new Intent(mContext, ViewPicByPidActivity.class);
+                minte.putExtra(SettingActivity.extra_PID, pid);
+                startActivity(minte);
+            }
+        }, R.id.activity_check2_btn_viewpic);
+    }
+
+    @Override
+    public void onChangeSuccess(String flag) {
+        showMsgDialog("复核完成");
     }
 
     public void onCodeCallback(String code) {
@@ -195,9 +235,29 @@ public class Check2_scan_activity extends ToolbarHasSunmiActivity implements Sca
     }
 
     @Override
+    public int loading2(String msg) {
+        return showProgressWithID(msg);
+    }
+
+    @Override
+    public void cancel2(int id) {
+        cancelDialogById(id);
+    }
+
+    @Override
+    public void picInfoCallback(List<FTPImgInfo> infos) {
+        Button tv = getViewInContent(R.id.activity_check2_btn_viewpic);
+        tv.setText("查看图片(" +
+                "" + infos.size() +
+                ")");
+    }
+
+    @Override
     public void cancelLoading() {
         cancelProgress();
     }
+
+
 
     @Override
     public void fillList(List<Scan2Info> infos) {
@@ -279,6 +339,11 @@ public class Check2_scan_activity extends ToolbarHasSunmiActivity implements Sca
         super.onPause();
         Log.e("zjy", getClass() + "->onPause(): ==");
         scanView.stopCamera();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         mScan3.stopCamera();
     }
 

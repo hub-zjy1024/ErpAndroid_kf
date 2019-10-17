@@ -20,7 +20,6 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.activity.base.ToobarSaveWithScanAc;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
-import com.b1b.js.erpandroid_kf.scancode.zbar.ZbarScanActivity;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONException;
@@ -130,11 +129,11 @@ public class CheckActivity extends ToobarSaveWithScanAc implements NoLeakHandler
         intent.putExtra("pid", minfo.getPid());
         startActivity(intent);
     }
-    @Override
-    public void startScanActivity() {
-        Intent intent = new Intent(this, ZbarScanActivity.class);
-        startActivityForResult(intent,REQ_CODE);
-    }
+//    @Override
+//    public void startScanActivity() {
+//        Intent intent = new Intent(this, ZbarScanActivity.class);
+//        startActivityForResult(intent,REQ_CODE);
+//    }
 
     @Override
     public void resultBack(String result) {

@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 
 import net.sourceforge.zbar.Config;
 import net.sourceforge.zbar.Image;
@@ -66,13 +65,11 @@ public class ZbarScanContainer extends ScanViewContainer {
     @Override
     protected String startDecode(byte[] data, Rect rect, int width, int height) {
         String codeVal = null;
-//        Log.e("zjy", getClass() + "->startDecode(): ==1" );
         Image barcode = new Image(width, height, "Y800");
         barcode.setData(data);
         //指定截取范围
         barcode.setCrop(rect.left, rect.top, rect.width(), rect.height());
         int result = zbarDecoder.scanImage(barcode);
-//        Log.e("zjy", getClass() + "->startDecode(): ==2" );
         if (result != 0) {
             SymbolSet syms = zbarDecoder.getResults();
             final Result rawResult = new Result();
@@ -94,8 +91,6 @@ public class ZbarScanContainer extends ScanViewContainer {
                 }
             }
             codeVal = rawResult.getContents();
-            Log.e("zjy", getClass() + "->startDecode(): ==" + rawResult.getContents() + ",type=" +
-                    rawResult.getBarcodeFormat().getName());
         }
         return codeVal;
     }

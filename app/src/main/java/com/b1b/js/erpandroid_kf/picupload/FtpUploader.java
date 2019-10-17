@@ -2,6 +2,7 @@ package com.b1b.js.erpandroid_kf.picupload;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.NoRouteToHostException;
 
 import utils.net.ftp.FTPUtils;
 
@@ -35,6 +36,7 @@ public class FtpUploader extends PicUploader {
 
     public void download(String picUrl, String localPath) throws IOException {
         String urlNoShema = picUrl.substring("ftp://".length());
+        String tempName = urlNoShema.substring(urlNoShema.lastIndexOf("/") + 1);
         int endIndex = urlNoShema.indexOf("/");
         String remoteAbsolutePath = urlNoShema.substring(endIndex);
         String imgFtp = urlNoShema.substring(0, endIndex);
@@ -51,17 +53,27 @@ public class FtpUploader extends PicUploader {
             }
         }
 
-        FTPUtils mUitls = FTPUtils.getLocalFTP(sig);
+        FTPUtils mUitls = FTPUtils.getLocalFTP(sig, port);
         if (FTPUtils.DB_HOST.equals(sig)) {
             mUitls = FTPUtils.getGlobalFTP();
         }
         try {
             mUitls.login();
             mUitls.download(localPath, remoteAbsolutePath);
+        } catch (NoRouteToHostException e) {
+            throw new IOException(tempName + "，连接图片服务器失败");
         } catch (IOException e) {
             e.printStackTrace();
+            String message = e.getMessage();
+            if (message != null && message.indexOf("EHOSTUNREACH") > 0) {
+                throw new IOException(tempName + "，图片地址不可访问");
+            }
+            throw new IOException(tempName + ",IO错误:" + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IOException(tempName + ",未知异常:" + e.getMessage());
+        }finally {
             mUitls.exitServer();
-            throw new IOException(remoteAbsolutePath + "下载失败," + e.getMessage());
         }
     }
 }

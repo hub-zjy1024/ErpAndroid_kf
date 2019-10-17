@@ -223,7 +223,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
         printerItems.add("请选择打印机");
         reIntent = getIntent();
         addrList = new ArrayList<>();
-        pid = reIntent.getStringExtra("pid");
+        pid = reIntent.getStringExtra(SettingActivity.extra_PID );
         edJPerson = (EditText) findViewById(R.id.yundanprint_ed_j_person);
         cboAddMore = (CheckBox) findViewById(R.id.yundanprint_cbo_addmore);
         TextView tvPID = (TextView) findViewById(R.id.yundanprint_tv_pid);

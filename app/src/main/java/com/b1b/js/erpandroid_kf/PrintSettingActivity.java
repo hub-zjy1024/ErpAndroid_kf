@@ -29,6 +29,7 @@ import utils.btprint.BtHelper;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.MyPrinterParent;
 import utils.btprint.SPrinter;
+import utils.btprint.SPrinter2;
 import utils.handler.NoLeakHandler;
 
 public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler.NoLeakCallback {
@@ -172,7 +173,8 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
                 printer2.scan();
             }
         });
-        printer2 = SPrinter.getPrinter(this, new SPrinter.MListener() {
+//        printer2 = SPrinter.getPrinter(this, new SPrinter.MListener() {
+        printer2 = SPrinter2.getPrinter(this, new SPrinter.MListener() {
             @Override
             public void sendMsg(int what) {
                 bHandler.sendEmptyMessage(what);

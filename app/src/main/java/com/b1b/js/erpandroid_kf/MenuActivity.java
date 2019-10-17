@@ -38,6 +38,8 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     private final String tag_CaigouTakePic = "采购拍照";
     private final String tag_ChukuCheck = "出库拍照";
     private final String tag_Admin = "特殊";
+    private final String tag_TEST = "测试1";
+
     private final String tag_Setting = "设置";
     private final String tag_shangjia = "货物上架";
     private final String tag_SHQD = "送货清单";
@@ -50,6 +52,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     private final String tag_hetong = "hetong";
     private final String tag_HKPIC = "HK出库拍照";
     private final String tag_ScanCheck = "扫码复核";
+    private final String tag_newChuku = "新出库";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,14 +88,16 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Chukudan, "查看出库单和出库通知单"));
         if (CheckUtils.isAdmin()) {
             data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_Admin, "101"));
-            data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_ScanCheck, "101"));
+            data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_TEST, "测试1"));
 //            data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_SHQD, "清单"));
             //            data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_Zbar, "测试zbar"));
 //            data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_hetong, "测试zbar"));
             //            data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_SlideBack, "测试zbar"));
+            data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_ScanCheck, "101"));
         }
         data.add(new MyMenuItem(R.mipmap.menu_preprint, tag_ChukudanPrint, "出库单单据信息打印"));
         data.add(new MyMenuItem(R.mipmap.menu_check, tag_ChukuCheck, "出库审核功能和审核完成的拍照功能"));
+        data.add(new MyMenuItem(R.drawable.menu_new_ck, tag_newChuku, "新出库流程"));
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Print, "顺丰下单并打印功能,以及打印手机接受的文件的功能"));
         data.add(new MyMenuItem(R.mipmap.menu_pic, tag_Viewpic, "查询单据关联的照片"));
         data.add(new MyMenuItem(R.mipmap.menu_panku, tag_Panku, "货物位置管理"));
@@ -118,9 +123,9 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         super.onDestroy();
         SPrinter printer = SPrinter.getPrinter();
         if (printer != null) {
-            printer.close();
+            printer.closeBt();
+//            printer.close();
         }
-//        printer.close();
     }
 
     @Override
@@ -163,6 +168,10 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
                 break;
             case tag_Ruku:
                 intent.setClass(mContext, RukuTagPrintAcitivity.class);
+                startActivity(intent);
+                break;
+            case tag_TEST:
+                intent.setClass(mContext, Check2_scan_activity.class);
                 startActivity(intent);
                 break;
             case tag_Admin:
@@ -217,7 +226,15 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
                 startActivity(intent);
                 break;
             case tag_ScanCheck:
-                intent.setClass(mContext, Check2_scan_activity.class);
+//                intent.setClass(mContext, Check2_scan_activity.class);
+//                startActivity(intent);
+//                intent.setClass(mContext, ViewPicByPid2Activity.class);
+//                intent.putExtra(SettingActivity.extra_PID, "1234567");
+                intent.setClass(mContext, PicDetailActivity2.class);
+                startActivity(intent);
+                break;
+            case tag_newChuku:
+                intent.setClass(mContext, ParentChukuActivity.class);
                 startActivity(intent);
                 break;
         }

@@ -78,6 +78,7 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
     public static final String PREF_TKPIC = "pref_takepic_style";
     public static final String PREF_CAMERA_INFO = "cameraInfo";
     public static final String PREF_EXPRESS = "prefExpress";
+    public static final String extra_PID = "pid";
 
     private List<Map<String, Object>> mlist = new ArrayList<>();
     ArrayAdapter<String> adapter;

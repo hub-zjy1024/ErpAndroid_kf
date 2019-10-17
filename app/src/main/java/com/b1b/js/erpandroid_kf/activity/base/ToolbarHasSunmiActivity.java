@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.android.dev.BarcodeAPI;
 import com.sunmi.scanner.ScanController;
 
 /**
@@ -23,7 +22,6 @@ public class ToolbarHasSunmiActivity extends ToobarSaveWithScanAc implements Sca
     @Override
     public void init() {
         super.init();
-        scanTool = BarcodeAPI.getInstance();
         sunmiController = new ScanController(mContext, this);
         sunmiController.open();
     }
@@ -70,7 +68,9 @@ public class ToolbarHasSunmiActivity extends ToobarSaveWithScanAc implements Sca
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        sunmiController.release();
+        if (sunmiController != null) {
+            sunmiController.release();
+        }
     }
 
     /**

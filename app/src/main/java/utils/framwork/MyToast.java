@@ -20,6 +20,10 @@ public class MyToast {
     public static void showToast(Context context, String msg) {
         if (mToast == null) {
             mToast = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
+//            View view = mToast.getView();
+//            view.setBackground(context.getResources().getDrawable(R.drawable.bg_toast_def));
+//            TextView tv = (TextView)view.findViewById(android.R.id.message);
+//            tv.setTextColor(Color.WHITE);
         } else {
             mToast.setText(msg);
         }
