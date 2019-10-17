@@ -32,12 +32,14 @@ public abstract class BaseMActivity extends AppCompatActivity {
     ProgressDialog proDialog;
     DialogUtils mdialog;
     public static final int reqPermissions = 321;
+    public boolean isStoped=true;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
         mdialog = new DialogUtils(mContext);
         MyApp.myLogger.writeInfo("create" + getClass());
+        isStoped=false;
     }
 
     @Override
@@ -114,6 +116,10 @@ public abstract class BaseMActivity extends AppCompatActivity {
     }
 
     public void showMsgDialog(final String msg) {
+        if(isStoped){
+            Log.e(getClass().getName()+" ", "isStop when showMsgDialog ,msg= "+msg );
+            return;
+        }
         if (mdialog != null) {
             runOnUiThread(new Runnable() {
                 @Override
@@ -186,4 +192,17 @@ public abstract class BaseMActivity extends AppCompatActivity {
             proDialog.cancel();
         }
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isStoped=true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isStoped=false;
+    }
+
 }

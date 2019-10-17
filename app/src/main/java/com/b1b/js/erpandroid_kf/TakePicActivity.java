@@ -25,6 +25,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -46,6 +47,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import me.drakeet.materialdialog.MaterialDialog;
 import utils.camera.AutoFoucusMgr;
@@ -315,12 +317,19 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
         int colorBg = getResources().getColor(R.color.button_light_bg);
         parent.setBackgroundColor(colorBg);
         fontSize = 18;
-        TextView tv = (TextView) parent.getChildAt(0);
-        tv.setTextColor(Color.GREEN);
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
-        Button btn = (Button) parent.getChildAt(1);
-        btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
-        btn.setTextColor(Color.WHITE);
+        View childAt0 = parent.getChildAt(0);
+        if(childAt0!=null){
+            TextView tv = childAt0.findViewById(R.id.snackbar_text);
+            Button btn = childAt0.findViewById(R.id.snackbar_action);
+            if(tv!=null){
+                tv.setTextColor(Color.GREEN);
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
+            }
+            if(btn!=null){
+                btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
+                btn.setTextColor(Color.WHITE);
+            }
+        }
         finalSnackbar.setActionTextColor(Color.parseColor("#ffffff"));
         finalSnackbar.setAction("返回", new View.OnClickListener() {
             @Override
@@ -413,7 +422,12 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                     int width = picSizes.get(itemPosition).width;
                     int height = picSizes.get(itemPosition).height;
                     parameters.setPictureSize(width, height);
-                    mCamera.setParameters(parameters);
+                    try{
+                        mCamera.setParameters(parameters);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        writeSetSizeError(parameters);
+                    }
                 }
             });
 
@@ -425,9 +439,14 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                     int height = picSizes.get(itemPosition).height;
                     editor.putInt("width", width);
                     editor.putInt("height", height);
-                    editor.apply();
                     parameters.setPictureSize(width, height);
-                    mCamera.setParameters(parameters);
+                    try{
+                        mCamera.setParameters(parameters);
+                        editor.apply();
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        writeSetSizeError(parameters);
+                    }
                 }
             });
             dialog.setCancelable(false);
@@ -437,6 +456,20 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
         }
     }
 
+    public void writeSetSizeError(Camera.Parameters parameters ){
+        List<Camera.Size> supportedPictureSizes = parameters.getSupportedPictureSizes();
+        StringBuilder sb=new StringBuilder();
+        if(supportedPictureSizes!=null){
+            for(Camera.Size msize:supportedPictureSizes){
+                sb.append(String.format(Locale.SIMPLIFIED_CHINESE,"msize =%d %d",msize.width,msize.height));
+                sb.append("\n");
+            }
+        }else{
+            sb.append("supportedPictureSizes ==null");
+        }
+        String mSizes=sb.toString();
+        MyApp.myLogger.writeBug("set tempSize error,size="+mSizes);
+    }
 
     private void releaseCamera() {
         if (mCamera != null) {
