@@ -5,6 +5,7 @@ import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
@@ -88,16 +89,50 @@ public class ScanSurfaceView extends SurfaceView {
         int rotationCount = getRotationCount();
         int flag = rotationCount / 90;
         int previewFormat = mgr.getPreviewFormat();
-
+        long time1 = System.currentTimeMillis();
         if (previewFormat == ImageFormat.YV12) {
             data = dataConverter.YV12toNV21(data, width, height);
         }
-        if (flag == 2) {
-            data = dataConverter.rotateYUV420Degree180(data, width, height);
-        } else if (flag == 1) {
-            data = dataConverter.rotateYUV420Degree90(data, width, height);
-        } else if (flag == 3) {
-            data = dataConverter.YUV420spRotate270(data, width, height);
+//        if (flag == 2) {
+//            data = dataConverter.rotateYUV420Degree180(data, width, height);
+//        } else if (flag == 1) {
+//            data = dataConverter.rotateYUV420Degree90(data, width, height);
+//        } else if (flag == 3) {
+//            data = dataConverter.YUV420spRotate270(data, width, height);
+//        }
+        data = rotateBy(data, width, height, flag);
+        long time2 = System.currentTimeMillis();
+//        long time3 = System.currentTimeMillis();
+        Log.e("zjy", "ScanSurfaceView->getRotatedData(): userTime==" + String.format("flag=%d,userTime=%d ,time2="
+              ,flag
+                , time2 - time1
+//                , time3 - time2
+        )
+        );
+        return data;
+    }
+
+
+    private byte[] rotateBy(byte[] data, int width, int height, int rotationCount) {
+        if(rotationCount == 1 || rotationCount == 3) {
+            for (int i = 0; i < rotationCount; i++) {
+                byte[] rotatedData = new byte[data.length];
+                int k = 0;
+                int pos = 0;
+                for (int y = 0; y < height; y++) {
+                    int Ypos = 0;
+                    for (int x = 0; x < width; x++){
+                        rotatedData[Ypos+ height - y - 1] = data[x + pos];
+                        k++;
+                        Ypos += height;
+                    }
+                    pos += width;
+                }
+                data = rotatedData;
+                int tmp = width;
+                width = height;
+                height = tmp;
+            }
         }
         return data;
     }

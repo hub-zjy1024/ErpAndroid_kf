@@ -9,9 +9,15 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+<!--        <item name="android:statusBarColor">@android:color/transparent</item>-->
 <!--        <item name="buttonStyle">@style/zjy_button_light</item>-->
         <item name="android:windowAnimationStyle">@style/AnimFade</item>
         <!--<item name="dialogTheme">@style/dialog_matieral</item>-->
+    </style>
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+<!--        <item name="android:statusBarColor">@android:color/transparent</item>-->
     </style>
     <style name="dialog_matieral">
     </style>

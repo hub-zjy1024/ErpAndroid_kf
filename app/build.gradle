@@ -24,8 +24,8 @@ android {
         applicationId "com.b1b.js.erpandroid_kf"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 63
-        versionName "7.1"
+        versionCode 64
+        versionName "7.2"
         vectorDrawables.useSupportLibrary = true
         ndk {
             abiFilters "armeabi", "armeabi-v7a"

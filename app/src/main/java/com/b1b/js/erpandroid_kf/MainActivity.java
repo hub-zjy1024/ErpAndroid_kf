@@ -96,6 +96,13 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                 break;
             case MSG_LOGIN_SUCCESS:
                 pd.cancel();
+                if(isLogin){
+                    showMsgToast("已登录，正在跳转");
+                    Log.e("zjy",
+                            getClass() + "->handleMessage(): parent==" + getResources().getColor(android.R.color.transparent));
+                    return;
+                }
+                isLogin = true;
                 zHandler.removeMessages(MSG_LOGIN_SUCCESS);
                 gotoMenu();
                 break;
@@ -523,6 +530,7 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                     if (!defUid.equals(uid)) {
                         //切换用户或者新用户
                         edit.clear().commit();
+                        SpSettings.clearAllSp(mContext);
                         getUserInfoDetail2(uid, edit);
                         edit.putString("name", uid).apply();
                         checkSaveFTP2(url);

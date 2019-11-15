@@ -11,6 +11,10 @@
         <!--<item name="buttonStyle">@style/zjy_button_light</item>-->
         <item name="android:windowAnimationStyle">@style/AnimFade</item>
     </style>
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 
     <style name="AnimFade" parent="@android:style/Animation.Activity"> 
          <item name="android:activityOpenEnterAnimation">@anim/anim_activity_slide_in</item>

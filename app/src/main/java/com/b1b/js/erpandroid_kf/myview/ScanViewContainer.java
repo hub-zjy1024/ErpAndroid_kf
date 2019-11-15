@@ -90,7 +90,7 @@ public abstract class ScanViewContainer extends FrameLayout implements Camera.Pr
                 width = height;
                 height = temp;
             }
-            data = scanView.getRotatedData(data);
+//            data = scanView.getRotatedData(data);
 
             Rect rect = getFramingRectInPreview(width, height);
 //            if (!debugFlag) {
@@ -172,6 +172,7 @@ public abstract class ScanViewContainer extends FrameLayout implements Camera.Pr
             if (mContainer == null) {
                 return null;
             }
+            data = mContainer.scanView.getRotatedData(data);
             //            mContainer.test(data, pWidth, pHeight, decodePart);
             return mContainer.startDecode(data, decodePart, pWidth, pHeight);
         }
@@ -183,6 +184,7 @@ public abstract class ScanViewContainer extends FrameLayout implements Camera.Pr
             if (mContainer == null) {
                 return;
             }
+            Log.e("zjy", "ScanViewContainer->onPostExecute(): onDecode==" + aVoid);
             mContainer.resumeDecode();
             if (aVoid != null) {
                 mContainer.onDecodeFinished(aVoid);
