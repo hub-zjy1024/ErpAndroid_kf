@@ -27,16 +27,9 @@
         android:icon="@mipmap/launcher_ic_kf"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
-        <activity android:name=".ChukuTakePicActivity"></activity>
-        <provider
-            android:name="android.support.v4.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/ex_files" />
-        </provider>
+        <activity android:name=".KucunEditActivity"></activity>
+        <activity android:name=".ChukuTakePicActivity" />
+
         <activity
             android:name=".MainActivity"
             android:theme="@style/AppSplash">
@@ -57,25 +50,23 @@
         <activity android:name=".ObtainPicFromPhone" />
         <activity android:name=".CheckActivity" />
         <activity android:name=".SetCheckInfoActivity" />
-        <activity android:name=".ViewPicByPidActivity"/>
-        <activity android:name=".PicDetailActivity"/>
-
+        <activity android:name=".ViewPicByPidActivity" />
+        <activity android:name=".PicDetailActivity" />
         <activity android:name=".UploadActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data
                     android:host="www.example.com"
                     android:pathPrefix="/gizmos"
                     android:scheme="http" />
             </intent-filter>
         </activity>
-
         <activity android:name=".PankuActivity" />
-
         <activity android:name=".ObtainPicPanku" />
-
         <activity android:name=".PreChukuActivity" />
         <activity android:name=".PreChukuDetailActivity" />
         <activity android:name=".SettingActivity" />
@@ -94,30 +85,37 @@
         <activity android:name=".AboutActivity" />
         <activity android:name=".KyExpressAcitivity" />
         <activity android:name=".PrintSettingActivity" />
-
         <activity android:name=".RukuTagPrintAcitivity" />
         <activity android:name=".TakePicBaseActivity" />
-
         <activity android:name=".TakePicChildPanku" />
         <activity android:name=".ReUploadActivity" />
-        <activity android:name=".ShangjiaActivity"></activity>
-        <activity android:name=".activity.base.SavedLoginInfoActivity"></activity>
+        <activity android:name=".ShangjiaActivity" />
+        <activity android:name=".activity.base.SavedLoginInfoActivity" />
         <activity android:name=".activity.base.SavedLoginInfoWithScanActivity" />
-        <activity android:name=".QdListActivity"></activity>
+        <activity android:name=".QdListActivity" />
         <activity android:name=".QdTakePicActivity" />
         <activity android:name=".scancode.zbar.ZbarScanActivity" />
         <activity android:name=".scancode.zxing.ZxingScanActivcity" />
         <activity
             android:name=".activity.base.SlideBackActivity"
             android:theme="@style/Theme.zjy.activity.slideback" />
-        <activity android:name=".ReUpLoadPicActivity"></activity>
+        <activity android:name=".ReUpLoadPicActivity" />
         <activity android:name=".HongkongChukuTakpic" />
         <activity android:name=".HonkongChukuCheck" />
-        <activity android:name=".Check2_scan_activity"></activity>
+        <activity android:name=".Check2_scan_activity" />
         <activity android:name=".ParentChukuActivity" />
         <activity android:name=".YundanPicActivity" />
         <activity android:name=".ViewPicByPid2Activity" />
         <activity android:name=".PicDetailActivity2" />
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/ex_files" />
+        </provider>
 
         <receiver
             android:name=".TakePic2Activity$NotificationDeleteBroadcast"
@@ -129,7 +127,7 @@
         <service
             android:name=".service.PushService"
             android:enabled="true"
-            android:exported="false"></service>
+            android:exported="false" />
         <service android:name=".service.LogUploadService" />
         <service android:name=".service.ReUploadService" />
     </application>

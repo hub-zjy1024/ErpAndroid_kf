@@ -23,11 +23,12 @@
                     android:layout_height="wrap_content"
                     android:text="单据号" />
 
-                <EditText
+                <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
                     android:id="@+id/activity_parent_chuku_tv_pid"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:inputType="number"
+                    style="@style/zjy_metiarial_ed.common"
                     android:hint="请输入单据号" />
 
                 <Button

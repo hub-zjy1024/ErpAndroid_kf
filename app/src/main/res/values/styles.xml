@@ -11,6 +11,12 @@
         <!--<item name="buttonStyle">@style/zjy_button_light</item>-->
         <item name="android:windowAnimationStyle">@style/AnimFade</item>
     </style>
+    <style name="ItemViewPadding">
+        <item name="android:paddingLeft">@dimen/item_view_padding_horizontal</item>
+        <item name="android:paddingRight">@dimen/item_view_padding_horizontal</item>
+        <item name="android:paddingTop">@dimen/item_view_padding_vetical</item>
+        <item name="android:paddingBottom">@dimen/item_view_padding_vetical</item>
+    </style>
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
@@ -171,5 +177,15 @@
     <!--    <item name="android:borderlessButtonStyle">?android:borderlessButtonStyle</item>-->
         <item name="android:background">@android:color/transparent</item>
         <item name="android:textColor">@color/bijia_title_background</item>
+    </style>
+<!--    app:met_clearButton="true"-->
+<!--    app:met_primaryColor="@color/colorPrimary"-->
+    <style name="zjy_metiarial_ed.common">
+        <item name="met_clearButton">true</item>
+        <item name="met_primaryColor">@color/colorPrimary</item>
+    </style>
+    <style name="dialog_button.light">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textColor">@color/colorAccent</item>
     </style>
 </resources>

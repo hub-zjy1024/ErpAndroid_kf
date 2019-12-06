@@ -19,7 +19,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
-import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.mvcontract.callback.IBoolCallback;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
@@ -508,6 +508,10 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
             public void run() {
                 String errMsg = "";
                 try {
+                    boolean valid = client.checkVersionAvailable();
+                    if (!valid) {
+                        throw new IOException("当前版本不可用,请重新下载最新版本");
+                    }
                     String soapResult = MartService.BarCodeLogin("", code);
                     JSONObject object1 = new JSONObject(soapResult);
                     JSONArray main = object1.getJSONArray("表");
@@ -600,6 +604,10 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                     String simpleCode = phoneCode.replaceAll(",", "_");
                     String deviceID = WebserviceUtils.DeviceID + "," + simpleCode;
                     version = versionName;
+                    boolean valid = client.checkVersionAvailable();
+                    if (!valid) {
+                        throw new IOException("当前版本不可用,请重新下载最新版本");
+                    }
                     if (version.endsWith("DEBUG")) {
                         version = version.substring(0, version.indexOf("-"));
                     }

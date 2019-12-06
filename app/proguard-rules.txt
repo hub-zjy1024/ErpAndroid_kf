@@ -127,10 +127,10 @@
 -keep class com.shockwave.**
 #其他配置
 #混淆前后名称对照
--dump D:\dyj\app\dyj_app\dyj_kf\mapping\class_files.txt
+-dump D:/dyj/app/dyj_kf/mapping/class_files.txt
 #未混淆的类和成员
--printseeds D:\dyj\app\dyj_app\dyj_kf\mapping\seeds.txt
+-printseeds D:/dyj/app/dyj_kf/mapping/seeds.txt
 #列出从 apk 中删除的代码
--printusage D:\dyj\app\dyj_app\dyj_kf\mapping\unused.txt
+-printusage D:/dyj/app/dyj_kf/mapping/unused.txt
 #混淆前后的映射
--printmapping D:\dyj\app\dyj_app\dyj_kf\mapping\mapping.txt
+-printmapping D:/dyj/app/dyj_kf/mapping/mapping.txt

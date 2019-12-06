@@ -26,6 +26,7 @@ import java.util.Set;
 public class WebserviceUtils {
     private static final String NAMESPACE = "http://tempuri.org/";
     public static String ROOT_URL = "http://172.16.6.160:8006/";
+    public static String LOCAL_URL = "http://192.168.10.117:8089/";
     public static final String COMMON_URL = "http://210.51.190.36:7500/";
     //服务名，带后缀名的
     public static final String MartService = "MartService.svc";
@@ -182,6 +183,26 @@ public class WebserviceUtils {
         return getResNew(ht, envolopeVesion, envelope, serviceName, request);
     }
 
+    public static String getLocalWcf(LinkedHashMap<String,Object> properties,String method, String
+            serviceName) throws
+            IOException, XmlPullParserException {
+//        LinkedHashMap<String, Object> properties, String method,
+//                String serviceName
+        int envolopeVesion = VERSION_11;
+        SoapObject request = getRequest(properties, method);
+        int timeout = DEF_TIMEOUT;
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(envolopeVesion);
+        //.net开发的ws服务必须设置为true
+        envelope.dotNet = true;
+        //       envelope.bodyOut = request;
+        envelope.setOutputSoapObject(request);
+        //创建HttpTransportSE对象"
+        String url = LOCAL_URL + serviceName;
+        HttpTransportSE ht = new HttpTransportSE(url, timeout);
+        //有些不需要传入soapAction，根据wsdl文档
+        return getResNew(ht, envolopeVesion, envelope, serviceName, request);
+    }
+
     private static String getResNew(HttpTransportSE ht, int envolopeVesion, SoapSerializationEnvelope
             envelope, String serviceName, SoapObject request)
             throws IOException {
@@ -224,7 +245,11 @@ public class WebserviceUtils {
             }
             ret = sob.toString();
             if (BuildConfig.DEBUG) {
-                Log.e("zjy", "wcf,cla=" + sob.getClass() + "->getResNew(): ==" + ret );
+                Log.e("zjy", "wcf,cla=" + sob.getClass() + "->getResNew():"
+                        +
+                        "->" + serviceName +
+                        "->" + request.getName() +
+                        " ,ret==" + ret);
             }
         } catch (XmlPullParserException e) {
             e.printStackTrace();

@@ -63,12 +63,7 @@ public class ChuKuActivity extends SavedLoginInfoWithScanActivity {
     @Override
     public void resultBack(String result) {
         super.resultBack(result);
-        int currentItem = viewPager.getCurrentItem();
-        ChukuBaseFragment fragMent = frags.get(currentItem);
-        Button btnSearch = fragMent.getBtnSearch();
-        EditText edPid = fragMent.getEdPid();
-        edPid.setText(result);
-        fragMent.onClick(btnSearch);
+        getCameraScanResult(result);
     }
 
     @Override

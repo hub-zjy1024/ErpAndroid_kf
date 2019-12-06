@@ -12,5 +12,7 @@
     <dimen name="btn_padding">8dp</dimen>
     <dimen name="view_def_margin">8dp</dimen>
     <dimen name="dialog_view_padding">20dp</dimen>
+    <dimen name="item_view_padding_horizontal">10dp</dimen>
+    <dimen name="item_view_padding_vetical">8dp</dimen>
 
 </resources>

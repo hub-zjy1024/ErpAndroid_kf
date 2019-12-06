@@ -1,7 +1,6 @@
 package com.b1b.js.erpandroid_kf.activity.base;
 
 import android.os.Build;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,11 +12,6 @@ import com.sunmi.scanner.ScanController;
  */
 public class ToolbarHasSunmiActivity extends ToobarSaveWithScanAc implements ScanController.ScanListener {
     private ScanController sunmiController;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     @Override
     public void init() {
@@ -40,7 +34,7 @@ public class ToolbarHasSunmiActivity extends ToobarSaveWithScanAc implements Sca
 
     @Override
     public String setTitle() {
-        return null;
+        return "请设置title";
     }
 
     public boolean isSunmiScan() {

@@ -19,7 +19,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
-import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.picupload.TomcatTransferUploader;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.google.zxing.BarcodeFormat;

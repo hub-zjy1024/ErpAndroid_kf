@@ -173,6 +173,13 @@ public class PrinterStyle {
         printer.printBarCodeWithDifferentBelow(mContext, info.getCodeStr(), 50, info.getCodeStr() + "M");
     }
 
+    public synchronized static void printXiaopiao2Test(SPrinter printer, XiaopiaoInfo info) {
+        String msg = "这是测试," + new Date().toLocaleString();
+        printer.printText(msg);
+        String msg2 = "write:" + msg;
+        printer.write(msg.getBytes());
+
+    }
     public synchronized static void printXiaopiao2(SPrinter printer, XiaopiaoInfo info) {
         int len[] = new int[]{15, 0};
         printer.newLine();

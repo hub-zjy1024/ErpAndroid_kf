@@ -29,8 +29,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:met_clearButton="true"
-            app:met_primaryColor="@color/colorPrimary"
+            style="@style/zjy_metiarial_ed.common"
             android:hint="输入单据号"
             android:inputType="number"/>
 
@@ -39,8 +38,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            app:met_clearButton="true"
-            app:met_primaryColor="@color/colorPrimary"
+           style="@style/zjy_metiarial_ed.common"
             android:layout_weight="1"
             android:hint="输入型号"
             android:maxLines="1"

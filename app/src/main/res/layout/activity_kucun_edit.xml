@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_kucun_edit_ll_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.b1b.js.erpandroid_kf.KucunEditActivity">
+
+    <LinearLayout
+        style="@style/ItemViewPadding"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
+                android:id="@+id/activity_kucun_edit_ed_dpid"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                style="@style/zjy_metiarial_ed.common"
+                android:hint="请输入明细id" />
+            <com.b1b.js.erpandroid_kf.myview.CustMaterialEd
+                android:id="@+id/activity_kucun_edit_ed_partno"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                style="@style/zjy_metiarial_ed.common"
+                android:layout_height="wrap_content"
+                android:hint="请输入型号" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/activity_kucun_edit_btn_search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="搜索" />
+
+            <Button
+                android:id="@+id/activity_kucun_edit_btn_scan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="扫码" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/activity_kucun_container_btn_chaidan"
+                android:layout_width="wrap_content"
+                android:text="拆单"
+                android:layout_height="wrap_content"></Button>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/activity_kucun_container_line"
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_height="wrap_content">
+        </LinearLayout>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/activity_kucun_edit_dataList"
+            android:layout_width="match_parent"
+            android:scrollbars="vertical"
+            android:layout_height="match_parent">
+
+        </android.support.v7.widget.RecyclerView>
+    </LinearLayout>
+</LinearLayout>

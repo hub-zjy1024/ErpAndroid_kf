@@ -449,10 +449,14 @@ public class UpdateClient {
 
     public boolean checkVersionAvailable() {
         PackageManager pm = mContext.getPackageManager();
+        String vName = "0.0";
         try {
             PackageInfo info = pm.getPackageInfo(mContext.getPackageName(), PackageManager
                     .GET_ACTIVITIES);
-            String vName = info.versionName;
+            vName = info.versionName;
+            if (vName.endsWith("DEBUG")) {
+                vName = vName.substring(0, vName.indexOf("-"));
+            }
             HttpURLConnection conn = (HttpURLConnection) new URL(checkAvailableVersion).openConnection();
             conn.setConnectTimeout(30 * 1000);
             InputStream inputStream = conn.getInputStream();

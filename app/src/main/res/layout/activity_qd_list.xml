@@ -28,7 +28,8 @@
                 android:layout_height="wrap_content"
                 android:hint="输入单据号"
                 android:inputType="number"
-                app:met_clearButton="true"/>
+                style="@style/zjy_metiarial_ed.common"/>
+
 
             <Button
                 android:id="@+id/qd_btn_search"

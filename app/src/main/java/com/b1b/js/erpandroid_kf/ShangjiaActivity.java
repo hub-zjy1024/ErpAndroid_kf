@@ -22,7 +22,7 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.entity.ShangJiaInfo;
-import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
@@ -126,12 +126,6 @@ public class ShangjiaActivity extends SunmiScanActivity implements NoLeakHandler
         };
         TaskManager.getInstance().execute(getInfoRun);
 
-    }
-
-    @Override
-    public void onScanResult(String code) {
-//        super.onScanResult(code);
-        resultBack(code);
     }
 
     @Override
