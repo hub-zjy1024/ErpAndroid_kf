@@ -32,7 +32,7 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.entity.IntentKeys;
-import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.picupload.FtpUploader;
 import com.b1b.js.erpandroid_kf.picupload.PicUploader;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;

@@ -1,4 +1,4 @@
-package com.b1b.js.erpandroid_kf.entity;
+package com.b1b.js.erpandroid_kf.config;
 
 import android.content.Context;
 import android.content.SharedPreferences;

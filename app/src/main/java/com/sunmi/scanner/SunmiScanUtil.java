@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 
-import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.config.SpSettings;
 
 import java.lang.reflect.Method;
 

@@ -13,7 +13,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
-import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.entity.UserInfoPref;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 

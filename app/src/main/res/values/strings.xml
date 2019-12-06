@@ -41,4 +41,21 @@
     <string name="upload_fromphone">从手机选择</string>
     <string name="menu_hk_check">"HK出库拍照"</string>
     <string name="err_pic_no_ftpurl">读取上传地址失败，请重启程序</string>
+    <string name="main_menu_kf_kucun_tag_print">库存标签</string>
+    <string name="main_menu_kf_kucun_manager">库存管理</string>
+    <string name="main_menu_chukuYundan">运单打印</string>
+    <string name="main_menu_kaoqin">考勤</string>
+    <string name="main_menu_chuku_list">出库单</string>
+    <string name="main_menu_chuku_takepic">出库拍照</string>
+    <string name="main_menu_chuku_hk_takepic">HK出库拍照</string>
+    <string name="main_menu_chuku_print">出库单打印</string>
+    <string name="main_menu_chuku_new">新出库</string>
+    <string name="main_menu_viewpic">单据图片</string>
+    <string name="main_menu_kf_panku">盘库</string>
+    <string name="main_menu_kf_shangjia">货物上架</string>
+    <string name="main_menu_caigou_takepic">采购拍照</string>
+    <string name="main_menu_admin">特殊</string>
+    <string name="main_menu_test1">测试1</string>
+    <string name="main_menu_settings">设置</string>
+    <string name="main_menu_pic_reupload">图片重传</string>
 </resources>

@@ -271,7 +271,11 @@ public class BtHelper2 extends BtHelper {
 
     public void unRegister() {
         if (btReceive != null) {
-            mContext.unregisterReceiver(btReceive);
+            try {
+                mContext.unregisterReceiver(btReceive);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
             listeners.clear();
             btReceive = null;
         }

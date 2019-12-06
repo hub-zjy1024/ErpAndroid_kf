@@ -62,8 +62,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="出库小票打印机IP"
-                app:met_clearButton="true"
-                app:met_primaryColor="@color/main_ed_primaryColor"/>
+                style="@style/zjy_metiarial_ed.common"/>
 
         </LinearLayout>
 
@@ -81,8 +80,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="请输入打印服务器地址"
-                app:met_clearButton="true"
-                app:met_primaryColor="@color/main_ed_primaryColor"/>
+                style="@style/zjy_metiarial_ed.common"/>
 
         </LinearLayout>
 
@@ -101,8 +99,8 @@
                 android:layout_height="wrap_content"
                 android:hint="请输入月结账号"
                 android:inputType="number"
-                app:met_clearButton="true"
-                app:met_primaryColor="@color/main_ed_primaryColor"/>
+               style="@style/zjy_metiarial_ed.common"/>
+
 
         </LinearLayout>
 

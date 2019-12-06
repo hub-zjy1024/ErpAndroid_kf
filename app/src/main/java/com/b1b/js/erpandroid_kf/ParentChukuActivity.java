@@ -21,7 +21,7 @@ import com.b1b.js.erpandroid_kf.entity.ChukuDetail;
 import com.b1b.js.erpandroid_kf.entity.ChukuInfo;
 import com.b1b.js.erpandroid_kf.entity.ChukuInfoNew;
 import com.b1b.js.erpandroid_kf.entity.PreChukuItem;
-import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.mvcontract.ParentChukuContract;
 import com.b1b.js.erpandroid_kf.myview.ScrollInnerListview;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;

@@ -30,8 +30,7 @@
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:hint="请输入明细id"
-            app:met_clearButton="true"
-            app:met_primaryColor="@color/colorPrimary"
+            style="@style/zjy_metiarial_ed.common"
             android:inputType="number"/>
 
         <com.rengwuxian.materialedittext.MaterialEditText
@@ -39,8 +38,7 @@
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            app:met_clearButton="true"
-            app:met_primaryColor="@color/colorPrimary"
+            style="@style/zjy_metiarial_ed.common"
             android:hint="请输入型号"/>
 
 

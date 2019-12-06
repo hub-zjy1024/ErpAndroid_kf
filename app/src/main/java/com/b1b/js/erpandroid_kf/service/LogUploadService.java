@@ -9,7 +9,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.MyApp;
-import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.config.SpSettings;
 
 import java.io.BufferedReader;
 import java.io.File;

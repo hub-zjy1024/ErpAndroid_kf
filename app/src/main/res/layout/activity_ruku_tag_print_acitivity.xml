@@ -28,9 +28,7 @@
         <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/rukutag_activity_ed_pid"
             android:layout_width="150dp"
-            app:met_baseColor="@color/colorPrimary"
-            app:met_clearButton="true"
-            app:met_primaryColor="@color/colorPrimary"
+            style="@style/zjy_metiarial_ed.common"
             android:layout_height="wrap_content"
             android:inputType="number"
             android:hint="输入明细号"/>

@@ -389,4 +389,12 @@ public class ChuKuServer{
 		return res;
 	}
 
+	public static String SetPiHao(String pid,String oldph,String newph,String uid)throws IOException, XmlPullParserException {
+		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+		properties.put("pid", pid);
+		properties.put("oldph", oldph);
+		properties.put("newph", newph);
+		properties.put("uid", uid);
+		return WebserviceUtils.getWcfResult(properties, "SetPiHao", serverName);
+	}
 }

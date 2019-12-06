@@ -1,15 +1,11 @@
 package com.b1b.js.erpandroid_kf.adapter;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.widget.ImageView;
 
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
 
 import java.util.List;
 
@@ -29,25 +25,27 @@ public class MenuGvAdapter extends CommonAdapter<MyMenuItem> {
         final ImageView mv = helper.getView(R.id.item_menu_gv_img);
         final int resId = item.imgResId;
         final String nowId = resId + "";
-        mv.setTag(nowId);
-        Picasso.with(mContext).load(item.imgResId).into(new Target() {
-            @Override
-            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                String urlTag = (String) mv.getTag();
-                if (nowId.equals(urlTag)) {
-                    helper.setImageBitmap(R.id.item_menu_gv_img, bitmap);
-                }
-            }
-            @Override
-            public void onBitmapFailed(Drawable errorDrawable) {
-                Log.e("zjy", getClass() + "->onBitmapFailed(): ==" + nowId);
-            }
+//        mv.setTag(nowId);
+//        Picasso.with(mContext).load(item.imgResId).into(new Target() {
+//            @Override
+//            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+//                String urlTag = (String) mv.getTag();
+//                if (nowId.equals(urlTag)) {
+//                    helper.setImageBitmap(R.id.item_menu_gv_img, bitmap);
+//                }
+//            }
+//            @Override
+//            public void onBitmapFailed(Drawable errorDrawable) {
+//                Log.e("zjy", getClass() + "->onBitmapFailed(): ==" + nowId);
+//            }
+//
+//            @Override
+//            public void onPrepareLoad(Drawable placeHolderDrawable) {
+////                Log.e("zjy", getClass() + "->onPrepareLoad(): ==" + nowId);
+//            }
+//        });
+        Picasso.with(mContext).load(item.imgResId).into(mv);
 
-            @Override
-            public void onPrepareLoad(Drawable placeHolderDrawable) {
-//                Log.e("zjy", getClass() + "->onPrepareLoad(): ==" + nowId);
-            }
-        });
 //        Bitmap bitmap = BitmapFactory.decodeResource(mContext.getResources(), item.imgResId);
 //        helper.setImageBitmap(R.id.item_menu_gv_img,bitmap );
         helper.setText(R.id.item_menu_gv_tvtitle, item.content);

@@ -31,9 +31,8 @@
             android:layout_height="wrap_content"
             android:hint="输入明细号"
             android:inputType="number"
-            app:met_baseColor="@color/colorPrimary"
-            app:met_clearButton="true"
-            app:met_primaryColor="@color/colorPrimary"/>
+         style="@style/zjy_metiarial_ed.common"/>
+
 
         <Button
             android:id="@+id/shangjia_activity_btn_search"

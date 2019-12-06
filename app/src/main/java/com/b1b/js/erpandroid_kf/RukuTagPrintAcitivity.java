@@ -21,7 +21,7 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.XiaopiaoAdapter;
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
-import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.printer.PrinterStyle;
 import com.b1b.js.erpandroid_kf.printer.entity.XiaopiaoInfo;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;

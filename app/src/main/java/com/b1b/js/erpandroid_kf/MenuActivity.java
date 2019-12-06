@@ -53,6 +53,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     private final String tag_HKPIC = "HK出库拍照";
     private final String tag_ScanCheck = "扫码复核";
     private final String tag_newChuku = "新出库";
+    private final String tag_Modify = "库存管理";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +105,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         data.add(new MyMenuItem(R.mipmap.menu_shangjia, tag_shangjia, "上架"));
         data.add(new MyMenuItem(R.mipmap.menu_caigou_96, tag_CaigouTakePic, "采购单拍照功能"));
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Ruku, "蓝牙打印，打印入库标签"));
+        data.add(new MyMenuItem(R.mipmap.menu_kucun_edit, tag_Modify, "查看出库单和出库通知单"));
         data.add(new MyMenuItem(R.mipmap.menu_hk_outstor, tag_HKPIC, "HK拍照"));
         data.add(new MyMenuItem(R.mipmap.menu_restart, tag_TestReupload, "tag_TestReupload"));
         data.add(new MyMenuItem(R.mipmap.menu_kaoqin, tag_Kaoqin, "查询考勤状态"));
@@ -235,6 +237,10 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
                 break;
             case tag_newChuku:
                 intent.setClass(mContext, ParentChukuActivity.class);
+                startActivity(intent);
+                break;
+            case tag_Modify:
+                intent.setClass(mContext, KucunEditActivity.class);
                 startActivity(intent);
                 break;
         }

@@ -23,7 +23,7 @@
             android:id="@+id/yundan_ed_pid"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            style="material_ed_nomarl"
+            style="@style/material_ed_nomarl"
             android:layout_weight="1"
             android:hint="单据号"
             android:inputType="number"

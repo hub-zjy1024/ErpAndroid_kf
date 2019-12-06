@@ -19,7 +19,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
-import com.b1b.js.erpandroid_kf.entity.SpSettings;
+import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.mvcontract.callback.IBoolCallback;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;

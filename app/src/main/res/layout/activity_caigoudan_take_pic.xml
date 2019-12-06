@@ -30,8 +30,7 @@
                 android:id="@+id/activity_caigoudan_take_pic_ed_pid"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                app:met_clearButton="true"
-                app:met_primaryColor="@color/colorPrimary"
+              style="@style/zjy_metiarial_ed.common"
                 android:inputType="number"
                 android:layout_weight="1"
                 android:hint="单据号"/>
@@ -39,8 +38,7 @@
             <com.rengwuxian.materialedittext.MaterialEditText
                 android:id="@+id/activity_caigoudan_take_pic_ed_partno"
                 android:layout_width="0dp"
-                app:met_clearButton="true"
-                app:met_primaryColor="@color/colorPrimary"
+                style="@style/zjy_metiarial_ed.common"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="型号"/>

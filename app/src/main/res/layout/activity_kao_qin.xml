@@ -54,8 +54,7 @@
             android:layout_height="wrap_content"
             android:hint="请输入查询员工号"
             android:enabled="true"
-            app:met_clearButton="true"
-            app:met_primaryColor="@color/colorPrimary"
+           style="@style/zjy_metiarial_ed.common"
             android:inputType="number"
             />
 

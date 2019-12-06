@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ScrollViewHasMaxHeight">
+        <attr name="mh_height" format="dimension"></attr>
+    </declare-styleable>
+    <declare-styleable name="MaxHeightListView">
+        <attr name="mhLv_height" format="dimension"></attr>
+    </declare-styleable>
+  <!--  <declare-styleable name="MaxHeightListView">
+        <attr name="mhLv_height" format="dimension"></attr>
+    </declare-styleable>-->
+</resources>
