@@ -20,8 +20,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.adapter.XiaopiaoAdapter;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
+import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.printer.PrinterStyle;
 import com.b1b.js.erpandroid_kf.printer.entity.XiaopiaoInfo;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
-import utils.btprint.BtHelper;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.SPrinter;
 import utils.btprint.SPrinter2;
@@ -57,12 +56,12 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
     public void handleMessage(Message msg) {
         super.handleMessage(msg);
         switch (msg.what) {
-            case BtHelper.STATE_CONNECTED:
+            case SPrinter.STATE_CONNECTED:
                 showMsgToast( "连接成功");
                 this.tvState.setTextColor(Color.GREEN);
                 this.tvState.setText("已连接");
                 break;
-            case BtHelper.STATE_DISCONNECTED:
+            case SPrinter.STATE_DISCONNECTED:
                 showMsgToast( "连接失败");
                 this.tvState.setTextColor(Color.RED);
                 this.tvState.setText("连接失败");
@@ -91,17 +90,18 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                 }
                 this.xpAdapter.notifyDataSetChanged();
                 break;
-            case BtHelper.STATE_OPENED:
+            case SPrinter.STATE_OPENED:
                 if (!this.btAddress.equals("")) {
                     this.tvState.setText("正在连接");
-                    Runnable connectRun = new Runnable() {
-                        @Override
-                        public void run() {
-                            printer2.connect(btAddress);
-                            Log.e("zjy", "RukuTagPrintAcitivity->run(): state open==");
-                        }
-                    };
-                    TaskManager.getInstance().execute(connectRun);
+//                    Runnable connectRun = new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            printer2.connect(btAddress);
+//                            Log.e("zjy", "RukuTagPrintAcitivity->run(): state open==");
+//                        }
+//                    };
+//                    TaskManager.getInstance().execute(connectRun);
+                    connectDev(btAddress, btName);
                 }
                 break;
         }
@@ -122,6 +122,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
     private Button btnSearch;
     private ImageView ivTest;
     private String btAddress;
+    private String btName;
     private TextView tvTitle;
     private boolean isOffline = false;
     public static String extraMode = "mode";
@@ -189,8 +190,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         btnSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, PrintSettingActivity.class);
-                startActivityForResult(intent, reqCode);
+                gotoSettingPage();
             }
         });
         btnPrint.setOnClickListener(new View.OnClickListener() {
@@ -216,17 +216,17 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                             return;
                         }
                         if (oboOnlyCode.isChecked()) {
+                            printer2.initPrinter();
                             printer2.printBarCode(code, 0, 1, 80);
                             printer2.printText("M" + code);
                             printer2.newLine(3);
+                            printer2.commit();
                             MyApp.myLogger.writeInfo("start print rkTag,flag=oboOnlyCode,pid=" + edPid
                                     .getText().toString());
                             return;
                         }
                         if (isOffline) {
-                            printer2.printBarCode(code, 0, 1, 80);
-                            printer2.printText(code);
-                            printer2.newLine(3);
+                            printCodeOnly(code);
                             MyApp.myLogger.writeInfo("start print rkTag,flag=oboOnlyCode,pid=" + edPid
                                     .getText().toString());
                             return;
@@ -251,14 +251,15 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         lv.setAdapter(xpAdapter);
         SharedPreferences userInfo = getSharedPreferences(SettingActivity.PREF_USERINFO, Context.MODE_PRIVATE);
         btAddress = userInfo.getString("btPrinterMac", "");
+        final String devName = userInfo.getString("deviceName", "");
+        btName = devName;
         Log.e("zjy", "RukuTagPrintAcitivity->run(): printerAddress==" + btAddress);
 
         if (btAddress.equals("")) {
             DialogUtils.getSpAlert(mContext, "暂无连接打印机记录，是否前往配置", "提示", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    Intent intent = new Intent(mContext, PrintSettingActivity.class);
-                    startActivityForResult(intent, reqCode);
+                    gotoSettingPage();
                 }
             }, "是", null, "否").show();
         } else {
@@ -275,25 +276,38 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                 }
             });
 //            printer2.registeBroadCast();
-            Runnable connetRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    if (printer2.isOpen()) {
-                        boolean isConnect = printer2.initPrinter();
-                        if (!isConnect) {
-                            printer2.connect(btAddress);
-                        } else {
-                            mHandler.sendEmptyMessage(SPrinter.STATE_CONNECTED);
-                        }
-                    } else {
-                        printer2.open();
-                    }
-                }
-            };
-            TaskManager.getInstance().execute(connetRunnable);
+            connectDev(btAddress, devName);
         }
     }
 
+    public void gotoSettingPage() {
+        Intent intent = new Intent(mContext, PrintSettingActivity.class);
+        startActivityForResult(intent, reqCode);
+    }
+
+    public void connectDev(String mac, String name) {
+        btAddress = mac;
+        btName = name;
+        Runnable connetRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (printer2.isOpen()) {
+                    boolean isConnect = printer2.initPrinter();
+                    if (!isConnect) {
+                        SPrinter2.findPrinter(btName);
+                        printer2 = SPrinter2.getPrinter();
+                        printer2.connect(btAddress);
+                    } else {
+                        mHandler.sendEmptyMessage(SPrinter.STATE_CONNECTED);
+                    }
+                } else {
+                    printer2.open();
+                }
+            }
+        };
+        TaskManager.getInstance().execute(connetRunnable);
+
+    }
     @Override
     public void init() {
         prefKF = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
@@ -500,11 +514,17 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
                 showMsgToast( "请先连接蓝牙打印机");
                 return;
             }
-            printer2.printBarCode(result, 0, 1, 80);
-            printer2.printText(result);
-            printer2.newLine(3);
+            printCodeOnly(result);
         } else {
             getData(result);
         }
+    }
+
+    public void printCodeOnly(String code) {
+        printer2.initPrinter();
+        printer2.printBarCode(code, 0, 1, 80);
+        printer2.printText(code);
+        printer2.newLine(3);
+        printer2.commit();
     }
 }

@@ -41,7 +41,7 @@ public class BtHelper2 extends BtHelper {
     public OutputStream dataOut;
     public InputStream dataIn;
 
-    void connect(String btMac) {
+    public void connect(String btMac) {
         BluetoothDevice mDevice = null;
         try {
             if (btMac == null) {
@@ -71,41 +71,46 @@ public class BtHelper2 extends BtHelper {
             }
             btSocket = mDevice.createRfcommSocketToServiceRecord(uuid);
             btSocket.connect();
-                        dataOut = btSocket.getOutputStream();
-                        dataIn = btSocket.getInputStream();
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-//                mDevice.connectGatt(mContext, false, new BluetoothGattCallback() {
-//                    @Override
-//                    public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-//                        super.onConnectionStateChange(gatt, status, newState);
-//                        List<BluetoothGattService> services = gatt.getServices();
-//                        if (services.size() > 0) {
-//                            BluetoothGattService bluetoothGattService = services.get(0);
-//                            UUID uuid = bluetoothGattService.getUuid();
-//                        }
-//                    }
-//                    @Override
-//                    public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-//                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
-//                            final BluetoothGattService service = gatt.getService(uuid);
-//                            if (null != service) {
-//                                BluetoothGattCharacteristic read_characteristic = service.getCharacteristic(uuid);
-//                                if (null != read_characteristic) {
-//                                    int properties = read_characteristic.getProperties();
-//                                    if ((properties | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-//                                        gatt.setCharacteristicNotification(read_characteristic, true);
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                });
-//            }
+            dataOut = btSocket.getOutputStream();
+            dataIn = btSocket.getInputStream();
+            //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            //                mDevice.connectGatt(mContext, false, new BluetoothGattCallback() {
+            //                    @Override
+            //                    public void onConnectionStateChange(BluetoothGatt gatt, int status, int
+            //                    newState) {
+            //                        super.onConnectionStateChange(gatt, status, newState);
+            //                        List<BluetoothGattService> services = gatt.getServices();
+            //                        if (services.size() > 0) {
+            //                            BluetoothGattService bluetoothGattService = services.get(0);
+            //                            UUID uuid = bluetoothGattService.getUuid();
+            //                        }
+            //                    }
+            //                    @Override
+            //                    public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            //                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build
+            //                        .VERSION_CODES.JELLY_BEAN_MR2) {
+            //                            final BluetoothGattService service = gatt.getService(uuid);
+            //                            if (null != service) {
+            //                                BluetoothGattCharacteristic read_characteristic = service
+            //                                .getCharacteristic(uuid);
+            //                                if (null != read_characteristic) {
+            //                                    int properties = read_characteristic.getProperties();
+            //                                    if ((properties | BluetoothGattCharacteristic
+            //                                    .PROPERTY_NOTIFY) > 0) {
+            //                                        gatt.setCharacteristicNotification
+            //                                        (read_characteristic, true);
+            //                                    }
+            //                                }
+            //                            }
+            //                        }
+            //                    }
+            //                });
+            //            }
             nowDevMac = btMac;
             devCache.put(btMac, mDevice);
             sendMsg(BtHelper.STATE_CONNECTED);
         } catch (IOException e) {
-            Log.e("zjy", getClass() + "->connect():m1 ==" , e);
+            Log.e("zjy", getClass() + "->connect():m1 ==", e);
             BluetoothSocket mmSocket = null;
             try {
                 Method m = mDevice.getClass().getMethod("createRfcommSocket",
@@ -118,7 +123,7 @@ public class BtHelper2 extends BtHelper {
                 devCache.put(btMac, mDevice);
                 sendMsg(BtHelper.STATE_CONNECTED);
             } catch (Exception e2) {
-                Log.e("zjy", getClass() + "->connect():m2 ==" , e2);
+                Log.e("zjy", getClass() + "->connect():m2 ==", e2);
                 try {
                     mmSocket.close();
                 } catch (Exception ie) {

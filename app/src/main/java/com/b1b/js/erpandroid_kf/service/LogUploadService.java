@@ -19,11 +19,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
-import utils.net.ftp.FTPUtils;
 import utils.common.UploadUtils;
+import utils.net.ftp.FTPUtils;
 import utils.net.wsdelegate.WebserviceUtils;
 
 public class LogUploadService extends Service {
@@ -34,6 +35,10 @@ public class LogUploadService extends Service {
     private  final String tagStr = "date";
 
     private int startTime = 9;
+    /**
+     * 距离上次上传的时间间隔检测(分钟)
+     */
+    private int TIME_DUR = 120;
     private SharedPreferences sp;
 
     private int endTime = 20;
@@ -58,8 +63,8 @@ public class LogUploadService extends Service {
     }
 
     public boolean checkDate() {
-        Date d = new Date();
-        int h = d.getHours();
+        Calendar calendar = Calendar.getInstance();
+        int h = calendar.get(Calendar.HOUR_OF_DAY);
         return h < startTime || h > endTime;
     }
 
@@ -68,21 +73,21 @@ public class LogUploadService extends Service {
         new Thread() {
             @Override
             public void run() {
-                if (!checkDate()) {
+                if (checkDate()) {
                     return;
                 }
                 lastUpTime = sp.getLong("lasttime", 0);
                 double timeDur = (System.currentTimeMillis() - lastUpTime) / 1000 / 60;
                 MyApp.myLogger.writeInfo("upload dur :" + timeDur);
-                if (timeDur < 120) {
+                if (timeDur < TIME_DUR) {
                     return;
                 }
                 final File root = Environment.getExternalStorageDirectory();
                 final File log = new File(root, logFileName);
-                final String date = sp.getString(tagStr, "");
-                String remoteName = getRemoteName(date);
                 fileSize = sp.getLong("logsize", 0);
                 final String current = UploadUtils.getDD(new Date());
+                final String date = sp.getString(tagStr, current);
+                String remoteName = getRemoteName(date);
                 if (!date.equals(current)) {
                     fileSize = 0;
                 }
@@ -105,6 +110,7 @@ public class LogUploadService extends Service {
     }
 
     private boolean upload(File log, String remotePath) {
+        Log.e("zjy", "LogUploadService->upload(): start Upload log==");
         FTPUtils utils = FTPUtils.getGlobalFTP();
         boolean upOK = false;
         FileInputStream fis = null;
@@ -123,6 +129,8 @@ public class LogUploadService extends Service {
             }
         }
         utils.exitServer();
+        Log.e("zjy", "LogUploadService->upload():Upload log finish,==" + upOK);
+        MyApp.myLogger.writeInfo("upload finished at" + UploadUtils.getSampTime()+ ",ret=" +upOK) ;
         return upOK;
     }
 
@@ -207,7 +215,7 @@ public class LogUploadService extends Service {
                     final String current = UploadUtils.getCurrentDate();
                     String remoteName = service.getRemoteName(date);
                     final String remotePath = service.savedDir + remoteName;
-                    if (!service.checkDate()) {
+                    if (service.checkDate()) {
                         return;
                     }
                     if (!log.exists()) {

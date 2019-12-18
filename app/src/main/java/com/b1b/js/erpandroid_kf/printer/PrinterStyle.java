@@ -182,7 +182,8 @@ public class PrinterStyle {
     }
     public synchronized static void printXiaopiao2(SPrinter printer, XiaopiaoInfo info) {
         int len[] = new int[]{15, 0};
-        printer.newLine();
+        printer.initPrinter();
+//        printer.newLine();
         printer.printText("\t" + info.getDeptNo() + "_" + info.getTime() + "\t" + info.getStorageCode());
         printer.newLine();
         printer.printText("型号:" + info.getPartNo());
@@ -215,6 +216,7 @@ public class PrinterStyle {
         printer.newLine();
         printer.newLine();
         printer.newLine();
+        printer.commit();
     }
 
     public static String getStringAt(String src, int maxLength) {

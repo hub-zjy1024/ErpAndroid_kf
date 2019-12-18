@@ -17,6 +17,7 @@ import java.util.UUID;
  Created by 张建宇 on 2017/12/1. */
 
 public class SPrinter extends MyPrinterParent {
+    public static final int STATE_OPENED = BtHelper.STATE_OPENED;
     private String charsetName = "GBK";
     private static SPrinter printer;
     private BluetoothDevice mDevice;
@@ -604,5 +605,11 @@ public class SPrinter extends MyPrinterParent {
         arrayOfByte[2] = (byte) value;
         this.write(arrayOfByte);
     }
+    public void commit() {
 
+    }
+
+    public void cutPaper() {
+
+    }
 }

@@ -1,9 +1,11 @@
 package utils.common;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -102,6 +104,7 @@ public class UploadUtils {
         return builder.toString();
     }
 
+    @SuppressLint("MissingPermission")
     public static String getDeviceID(Context mContext) {
         TelephonyManager tm = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
         if (tm == null) {
@@ -109,6 +112,8 @@ public class UploadUtils {
         }
         return tm.getDeviceId();
     }
+
+    @SuppressLint("MissingPermission")
     public static String getPhoneCode(Context context) {
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         if (tm == null) {
@@ -161,5 +166,10 @@ public class UploadUtils {
     public static String getPkRemotePath(String pid) {
         String remotePath = "/" +getCurrentDate() + "/pk/" +getPankuRemoteName(pid) + ".jpg";
         return remotePath;
+    }
+
+    public static String getSampTime() {
+        String format = DateFormat.getDateTimeInstance().format(new Date());
+        return format;
     }
 }

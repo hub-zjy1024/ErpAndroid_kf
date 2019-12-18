@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import utils.btprint.BtHelper;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.MyPrinterParent;
 import utils.btprint.SPrinter;
@@ -38,6 +37,7 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
     private Button bt_scan;
     private TextView tv_status;
     private String macAddr;
+    Map connectMap;
     Context _context;
     SimpleAdapter simpleAdapter;
     MyBluePrinter printer;
@@ -49,26 +49,28 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
-            case BtHelper.STATE_SCAN_FINISHED:
+            case SPrinter.STATE_SCAN_FINISHED:
                 pdScanDialog.cancel();
                 showMsgToast("扫描完成");
                 tv_status.setText("搜索完成");
                 progress.setVisibility(View.INVISIBLE);
                 break;
-            case BtHelper.STATE_CONNECTED:
+            case SPrinter.STATE_CONNECTED:
                 pdDialog.cancel();
                 showMsgToast("连接成功");
+                Map connectMap = this.connectMap;
+                String title = (String) connectMap.get("title");
                 getSharedPreferences(SettingActivity.PREF_USERINFO, MODE_PRIVATE).edit().putString
-                        ("btPrinterMac", macAddr)
+                        ("btPrinterMac", macAddr).putString("deviceName", title)
                         .apply();
                 setResult(RESULT_OK);
                 finish();
                 break;
-            case BtHelper.STATE_DISCONNECTED:
+            case SPrinter.STATE_DISCONNECTED:
                 pdDialog.cancel();
                 showMsgToast("连接失败");
                 break;
-            case BtHelper.STATE_OPENED:
+            case SPrinter.STATE_OPENED:
                 Set<BluetoothDevice> bindedDevice = ((SPrinter) printer2).getBindedDevice();
                 List<Map<String, String>> listData = new ArrayList<Map<String, String>>();
                 for (BluetoothDevice d : bindedDevice) {
@@ -91,15 +93,7 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Map map = (Map) parent.getItemAtPosition(position);
-                        macAddr = map.get("deviceAddress").toString();
-                        pdDialog.show();
-                        Runnable run = new Runnable() {
-                            @Override
-                            public void run() {
-                                printer2.connect(macAddr);
-                            }
-                        };
-                        TaskManager.getInstance().execute(run);
+                        onConnect(map);
                     }
                 });
                 break;
@@ -150,16 +144,7 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Map map = (Map) parent.getItemAtPosition(position);
-                macAddr = map.get("deviceAddress").toString();
-                pdDialog.show();
-                Runnable run = new Runnable() {
-                    @Override
-                    public void run() {
-                        ((SPrinter) printer2).stopScan();
-                        printer2.connect(macAddr);
-                    }
-                };
-                TaskManager.getInstance().execute(run);
+                onConnect(map);
             }
         });
         bt_scan.setOnClickListener(new OnClickListener() {
@@ -201,13 +186,30 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
                 if (!printer2.isOpen()) {
                     printer2.open();
                 } else {
-                    bHandler.sendEmptyMessage(BtHelper.STATE_OPENED);
+                    bHandler.sendEmptyMessage(SPrinter.STATE_OPENED);
                 }
             }
         };
         TaskManager.getInstance().execute(openBtRun);
     }
 
+    void onConnect(Map map) {
+        macAddr = map.get("deviceAddress").toString();
+         connectMap = map;
+        //                        BluetoothClass.Device mdev = (BluetoothClass.Device) map.get("title");
+        String deviceName = (String) map.get("title");
+        SPrinter2.findPrinter(deviceName);
+        printer2 = SPrinter2.getPrinter();
+        pdDialog.show();
+        Runnable run = new Runnable() {
+            @Override
+            public void run() {
+                printer2.connect(macAddr);
+            }
+        };
+        TaskManager.getInstance().execute(run);
+
+    }
     @Override
     public void init() {
         
@@ -218,18 +220,6 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
 
     }
 
-    private void addBindedDevice() {
-        Set<BluetoothDevice> bindedDevice = ((SPrinter) printer2).getBindedDevice();
-        for (BluetoothDevice d : bindedDevice) {
-            Log.e("zjy", "PrintSettingActivity->onCreate(): d==" + d.getName());
-            Map<String, Object> map = new HashMap<>();
-            map.put("title", d.getName());
-            map.put("deviceAddress", d.getAddress());
-            map.put("device", d);
-            listData.add(map);
-        }
-        simpleAdapter.notifyDataSetChanged();
-    }
 
     @Override
     protected void onPause() {

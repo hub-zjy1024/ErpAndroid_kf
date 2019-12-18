@@ -7,8 +7,11 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
 import java.util.HashSet;
 import java.util.Set;
+
+import utils.btprint.suofang.SuoFangPrinter;
 
 /**
  * Created by 张建宇 on 2019/9/5.
@@ -49,6 +52,25 @@ public class SPrinter2 extends SPrinter {
             helper.setContext(mContext);
         }
         return printer;
+    }
+
+    public synchronized static void findPrinter(BluetoothDevice device) {
+        findPrinter(device.getName());
+    }
+    public synchronized static void findPrinter(String printer) {
+        if (SuoFangPrinter.isSuoFang(printer)) {
+            setPrinter(SuoFangPrinter.class);
+        }
+    }
+    public synchronized static void setPrinter(Class mCla) {
+        try {
+            Constructor constructor = mCla.getConstructor(BtHelper.class);
+            printer = (SPrinter) constructor.newInstance(helper);
+            Log.e("zjy", "SPrinter2->setPrinter(): init Printer==" + mCla.getName());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void closeBt() {
