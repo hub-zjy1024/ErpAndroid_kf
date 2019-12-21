@@ -172,4 +172,8 @@ public class UploadUtils {
         String format = DateFormat.getDateTimeInstance().format(new Date());
         return format;
     }
+
+    public static int getNowHour() {
+        return Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+    }
 }

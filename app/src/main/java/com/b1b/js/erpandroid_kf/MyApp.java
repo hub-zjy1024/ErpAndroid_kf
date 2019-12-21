@@ -10,6 +10,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import utils.common.LogRecoder;
 import utils.common.log.EmailLogger;
+import utils.common.log.LogUploader;
 
 /**
  Created by js on 2016/12/27. */
@@ -22,7 +23,7 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
     @Override
     public void onCreate() {
         super.onCreate();
-        final String logFileName = "dyj_log.txt";
+        final String logFileName = LogUploader.logFileName;
 //        final String logFileName = "dyjlog/dyj_log.txt";
         myLogger = new LogRecoder(logFileName);
         Thread.setDefaultUncaughtExceptionHandler(this);

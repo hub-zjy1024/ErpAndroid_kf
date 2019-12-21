@@ -93,12 +93,16 @@ public class BarcodeCreater {
         }
         if (belowStr != null) {
             Bitmap codeBitmap = creatCodeBitmapSize(belowStr, desiredWidth, desiredHeight, context, belowSize);
-            Log.e("zjy", "BarcodeCreater->creatBarcode(): =codeHeight=" + codeBitmap.getHeight());
-            resultBitmap = mixtureBitmap(e, codeBitmap, new PointF(0.0F, (float) desiredHeight));
-            codeBitmap.recycle();
-            codeBitmap = null;
-            e.recycle();
-            e = null;
+            if (codeBitmap != null) {
+                Log.e("zjy", "BarcodeCreater->creatBarcode(): =codeHeight=" + codeBitmap.getHeight());
+                resultBitmap = mixtureBitmap(e, codeBitmap, new PointF(0.0F, (float) desiredHeight));
+                codeBitmap.recycle();
+                codeBitmap = null;
+                e.recycle();
+                e = null;
+            } else {
+                Log.e("zjy", "BarcodeCreater->creatBarcode(): ==creatCodeBitmapSize failed");
+            }
         }
         Log.e("zjy", "BarcodeCreater->creatBarcode(): resultHeight==" + resultBitmap.getHeight());
         return resultBitmap;

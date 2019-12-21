@@ -18,13 +18,13 @@ import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.activity.base.SlideBackActivity;
 import com.b1b.js.erpandroid_kf.adapter.MenuGvAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
-import com.b1b.js.erpandroid_kf.service.LogUploadService;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.yundan.SFActivity;
 
 import java.util.ArrayList;
 
 import utils.btprint.SPrinter;
+import utils.common.log.LogUploader;
 import utils.framwork.DialogUtils;
 
 public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickListener {
@@ -117,7 +117,9 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     @Override
     protected void onResume() {
         super.onResume();
-        startService(new Intent(this, LogUploadService.class));
+//        startService(new Intent(this, LogUploadService.class));
+        LogUploader uploader = new LogUploader(this);
+        uploader.ScheduelUpload();
     }
 
     @Override

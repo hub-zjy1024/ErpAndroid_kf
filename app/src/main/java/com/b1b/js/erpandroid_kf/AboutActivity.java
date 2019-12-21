@@ -162,6 +162,8 @@ public class AboutActivity extends BaseMActivity {
             @Override
             public void onClick(View v) {
                 SpSettings.clearAllSp(mContext);
+                showMsgDialog("测试animation");
+                showMsgToast("应用数据已清空");
             }
         },R.id.activity_about_btn_clear_sp);
 

@@ -293,7 +293,6 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                 break;
             case R.id.login_btnlogin:
                 String tempPhone = phoneCode;
-                Log.e("zjy", "MainActivity->onClick(): password==" + tempPassword);
 //                if (tempPhone.endsWith("868930027847564") || tempPhone.endsWith("358403032322590") ||
 //                        tempPhone.endsWith
 //                                ("864394010742122") || tempPhone.endsWith("A0000043F41515")
@@ -332,7 +331,7 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
     @Override
     public void resultBack(String result) {
         MyApp.myLogger.writeInfo("use RedLineScan");
-        readCode(result);
+        getCameraScanResult(result);
     }
 
     @Override

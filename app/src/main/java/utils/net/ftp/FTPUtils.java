@@ -7,7 +7,6 @@ import org.apache.commons.net.ProtocolCommandListener;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
-import org.apache.commons.net.ftp.FTPFile;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,7 +45,7 @@ public class FTPUtils {
     public static final int ADMIN_PORT = DEFAULT_PORT;
     public static final String ADMIN_NAME = mainName;
     public static final String ADMIN_PWD = mainPwd;
-    public static final String TEST_FTP_ULR = "192.168.10.60";
+    public static final String TEST_FTP_ULR = "192.168.10.66";
     public static FTPUtils getGlobalFTP() {
         return new FTPUtils(mainAddress, mainName, mainPwd);
     }
@@ -394,10 +393,16 @@ public class FTPUtils {
 
     public synchronized boolean fileExists(String remoteFilePath) {
         try {
-            FTPFile[] ftpFiles = mClient.listFiles(remoteFilePath);
-            if (ftpFiles != null && ftpFiles.length > 0) {
-                return true;
+//            FTPFile[] ftpFiles = mClient.listFiles(remoteFilePath);
+//            if (ftpFiles != null && ftpFiles.length > 0) {
+//                return true;
+//            }
+            boolean isOK = mClient.changeWorkingDirectory(remoteFilePath);
+            if (isOK) {
+                mClient.changeWorkingDirectory("/");
             }
+            Log.e("zjy", "FTPUtils->fileExists(): dirExitst==" + isOK);
+            return isOK;
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -65,9 +65,7 @@ public class SuoFangPrinter extends SPrinter2 {
     @Override
     public synchronized boolean initPrinter() {
         init();
-        super.initPrinter();
-//        return super.initPrinter();
-        return true;
+        return super.initPrinter();
     }
 
 
@@ -86,8 +84,9 @@ public class SuoFangPrinter extends SPrinter2 {
             realH = realH * 2;
             bitmap = PrinterUtils2.newBarCode(helper.mContext, code, lablePlace, labelSize,realW, realH);
             canvas.drawBitmap(bitmap, x, picY, mPaint);
-        } else {
-            canvas.drawText("暂不支持宽高", x, y, mPaint);
+        } else if (height > maxHeight || width > maxWidth) {
+            printText("暂不支持此条码尺寸");
+            newLine();
         }
         if (bitmap != null) {
             y = (int) (picY + bitmap.getHeight() + picMargin);
@@ -96,8 +95,6 @@ public class SuoFangPrinter extends SPrinter2 {
 
 
     public synchronized boolean printTextByLength(String[] str, int[] len) {
-        StringBuilder builder = new StringBuilder();
-
         int tempX = x;
         int max = ( maxWidth - 2 * marginHorizontal )/ 2;
         for (int i = 0; i < str.length; i++) {
@@ -112,32 +109,16 @@ public class SuoFangPrinter extends SPrinter2 {
                     mPaint.getTextBounds(tstr, 0, k, bounds);
                     if (bounds.width() > max) {
                         tstr = tstr.substring(0, k);
-                        if (i > 0) {
-                            x = x + bounds.width();
-                        }
                         tstr += "..";
                         break;
                     }
                 }
             } else {
-
             }
             printText(tstr);
-//            int blank = max - chars.length;
-//            if (blank <= 0) {
-//                if (max != 0) {
-//                    tstr = tstr.substring(0, max);
-//                }
-//            } else {
-//                for (int j = 0; j < blank; j++) {
-//                    tstr += " ";
-//                }
-//            }
-//            builder.append(tstr);
+            x = x + max;
         }
         x = tempX;
-//        String s = builder.toString();
-//        printText(s);
         return true;
     }
 
@@ -197,7 +178,7 @@ public class SuoFangPrinter extends SPrinter2 {
     @Override
     public synchronized void  commit() {
         if (bitmap != null) {
-            PrinterUtils2.addBorder(bitmap);
+//            PrinterUtils2.addBorder(bitmap);
             List<byte[]> bytes = PrinterUtils2.PrintBitmap(bitmap, PrinterUtils2.algn_right);
             bitmap.recycle();
             bitmap = null;

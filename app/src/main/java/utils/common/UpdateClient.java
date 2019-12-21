@@ -70,6 +70,7 @@ public class UpdateClient {
     private String checkAvailableVersion = WebserviceUtils.ROOT_URL + downPath + "versionControl.txt";
     //apk文件名
     public static final String downUrl = WebserviceUtils.ROOT_URL + downPath + "dyjkfapp.apk";
+    public static String logCheckURL = WebserviceUtils.ROOT_URL + downPath + "logcheck.txt";
 
     private String saveName = "dyjkfapp.apk";
     File updateFile = new File(Environment.getExternalStorageDirectory(), saveName);
@@ -148,14 +149,15 @@ public class UpdateClient {
                     }
                     SharedPreferences speUpdate = mContext.getSharedPreferences("speUpdate", Context
                             .MODE_PRIVATE);
-                    String localCheckID = speUpdate.getString("checkid", "");
+                    String spKey_checkid = "checkid";
+                    String localCheckID = speUpdate.getString(spKey_checkid, "");
                     String deviceCode = UploadUtils.getDeviceID(mContext);
                     String onlineCode = map.get("deviceID");
                     String apkUrl = map.get("url");
                     String onlineCheckID = map.get("checkid");
                     if (apkUrl != null) {
                         if (localCheckID.equals("")) {
-                            speUpdate.edit().putString("checkid", onlineCheckID).commit();
+                            speUpdate.edit().putString(spKey_checkid, onlineCheckID).commit();
                             return false;
                         }
                         if (!localCheckID.equals(onlineCheckID)) {
@@ -173,7 +175,7 @@ public class UpdateClient {
                                     }
                                 });
                                 downloadApk(apkUrl);
-                                speUpdate.edit().putString("checkid", onlineCheckID).commit();
+                                speUpdate.edit().putString(spKey_checkid, onlineCheckID).commit();
                             }
                         }
                     }

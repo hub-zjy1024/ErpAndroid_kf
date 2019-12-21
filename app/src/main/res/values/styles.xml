@@ -188,4 +188,8 @@
         <item name="android:background">@android:color/transparent</item>
         <item name="android:textColor">@color/colorAccent</item>
     </style>
+    <style name="dialog_anim">
+        <item name="android:windowEnterAnimation">@anim/dialog_anim_in</item>
+        <item name="android:windowExitAnimation">@anim/dialog_anim_out</item>
+    </style>
 </resources>

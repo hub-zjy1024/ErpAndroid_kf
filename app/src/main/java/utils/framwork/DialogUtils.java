@@ -111,7 +111,11 @@ public class DialogUtils {
             this.mContext = mContext;
             Resources resources = mContext.getResources();
             alertDialog = new AlertDialog.Builder(mContext).create();
-            alertDialog.getWindow().setBackgroundDrawable(resources.getDrawable(R.drawable.material_dialog_bg));
+            Window window = alertDialog.getWindow();
+            if(window!=null){
+//                window.setWindowAnimations(R.style.dialog_anim);
+                window.setBackgroundDrawable(resources.getDrawable(R.drawable.material_dialog_bg));
+            }
             View mView = LayoutInflater.from(mContext).inflate(R.layout.dialog_common_contentview, null,
                     false);
             itemView = mView;

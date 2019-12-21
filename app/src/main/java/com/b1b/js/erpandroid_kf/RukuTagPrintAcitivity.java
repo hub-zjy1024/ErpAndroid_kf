@@ -19,9 +19,9 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.adapter.XiaopiaoAdapter;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.printer.PrinterStyle;
 import com.b1b.js.erpandroid_kf.printer.entity.XiaopiaoInfo;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
@@ -46,7 +46,7 @@ import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.ChuKuServer;
 
-public class RukuTagPrintAcitivity extends BaseScanActivity {
+public class RukuTagPrintAcitivity extends SunmiScanActivity {
     private Handler mHandler = new NoLeakHandler(this);
     private final static int FLAG_PRINT = 3;
     private String storageID = "";
@@ -253,7 +253,6 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         btAddress = userInfo.getString("btPrinterMac", "");
         final String devName = userInfo.getString("deviceName", "");
         btName = devName;
-        Log.e("zjy", "RukuTagPrintAcitivity->run(): printerAddress==" + btAddress);
 
         if (btAddress.equals("")) {
             DialogUtils.getSpAlert(mContext, "暂无连接打印机记录，是否前往配置", "提示", new DialogInterface.OnClickListener() {
@@ -286,6 +285,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
     }
 
     public void connectDev(String mac, String name) {
+        Log.e("zjy", "RukuTagPrintAcitivity->run(): connectTO==" + btAddress + ",name=" + name);
         btAddress = mac;
         btName = name;
         Runnable connetRunnable = new Runnable() {
@@ -310,6 +310,7 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
     }
     @Override
     public void init() {
+        super.init();
         prefKF = getSharedPreferences(SettingActivity.PREF_KF, Context.MODE_PRIVATE);
         String storageInfo = prefKF.getString(storageKey, "");
         storageID = StorageUtils.getStorageIDFromJson(storageInfo);
@@ -496,6 +497,12 @@ public class RukuTagPrintAcitivity extends BaseScanActivity {
         if (printer2 != null) {
             printer2.closeConnect();
         }
+    }
+
+    @Override
+    public void onScanResult(String code) {
+//        super.onScanResult(code);
+        getCameraScanResult(code);
     }
 
     @Override
