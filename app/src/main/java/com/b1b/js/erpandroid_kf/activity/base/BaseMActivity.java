@@ -15,12 +15,12 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.mvcontract.callback.IBoolCallback;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import utils.dbutils.ActivityRecoderDB;
 import utils.framwork.DialogUtils;
 import utils.framwork.MyToast;
 
@@ -38,7 +38,8 @@ public abstract class BaseMActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mContext = this;
         mdialog = new DialogUtils(mContext);
-        MyApp.myLogger.writeInfo("create" + getClass());
+        ActivityRecoderDB recoderDB = ActivityRecoderDB.newInstance(this);
+        recoderDB.addRecord(getClass());
         isStoped=false;
     }
 

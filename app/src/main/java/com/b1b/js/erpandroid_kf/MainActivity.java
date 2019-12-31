@@ -98,8 +98,6 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                 pd.cancel();
                 if(isLogin){
                     showMsgToast("已登录，正在跳转");
-                    Log.e("zjy",
-                            getClass() + "->handleMessage(): parent==" + getResources().getColor(android.R.color.transparent));
                     return;
                 }
                 isLogin = true;
@@ -164,7 +162,7 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                 //        Log.e("zjy", getClass() + "->init(): userTime==" + (System.currentTimeMillis() - time1) / 1000f);
                 //        time1 = System.currentTimeMillis();
                 phoneCode = UploadUtils.getPhoneCode(mContext);
-                Log.e("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
+                Log.d("zjy", "MainActivity.java->onCreate(): phoneInfo==" + phoneCode);
                 MyFileUtils.obtainFileDir(mContext);
                 int code = 0;
                 try {
@@ -610,7 +608,7 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                     if (version.endsWith("DEBUG")) {
                         version = version.substring(0, version.indexOf("-"));
                     }
-                    Log.e("zjy", getClass() + "->run(): name==" + name + "\t" + pwd);
+                    Log.d("zjy", getClass() + "->login->run(): name==" + name + "\t" + pwd);
                     String soapResult = MartService.AndroidLogin(WebserviceUtils.WebServiceCheckWord , name, pwd,
                             deviceID, version);
                     String[] resArray = soapResult.split("-");
@@ -645,13 +643,13 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                     }
                 } catch (IOException e) {
                     errMsg = "网络异常," + e.getMessage();
-                    e.printStackTrace();
+                    Log.e("zjy", "MainActivity->run(): login ERR==", e);
                 } catch (XmlPullParserException e) {
                     errMsg = "接口解析异常," + e.getMessage();
-                    e.printStackTrace();
+                    Log.e("zjy", "MainActivity->run(): login ERR==", e);
                 } catch (Exception e) {
                     errMsg = "其他异常," + e.getMessage();
-                    e.printStackTrace();
+                    Log.e("zjy", "MainActivity->run(): login ERR==", e);
                 }
                 if (!"".equals(errMsg)) {
                     zHandler.obtainMessage(MSG_LOGIN_FAILED, errMsg).sendToTarget();

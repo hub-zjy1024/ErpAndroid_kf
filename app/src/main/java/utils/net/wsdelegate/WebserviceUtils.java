@@ -245,7 +245,7 @@ public class WebserviceUtils {
             }
             ret = sob.toString();
             if (BuildConfig.DEBUG) {
-                Log.e("zjy", "wcf,cla=" + sob.getClass() + "->getResNew():"
+                Log.d("zjy", "wcf,cla=" + sob.getClass() + "->getResNew():"
                         +
                         "->" + serviceName +
                         "->" + request.getName() +

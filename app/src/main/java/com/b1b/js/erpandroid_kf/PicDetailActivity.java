@@ -12,7 +12,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,6 +21,7 @@ import android.view.ViewParent;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
 import com.b1b.js.erpandroid_kf.myview.ZoomImageView;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
@@ -36,7 +36,7 @@ import utils.common.MyImageUtls;
 import utils.framwork.BitmapLruCache;
 import utils.net.HttpUtils;
 
-public class PicDetailActivity extends AppCompatActivity {
+public class PicDetailActivity extends BaseMActivity {
 
     private ZoomImageView zoomIv;
     private ViewPager mViewPager;
@@ -77,6 +77,16 @@ public class PicDetailActivity extends AppCompatActivity {
         });
         tv.setText(("1/" + paths.size()));
         mViewPager.setCurrentItem(pos);
+    }
+
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
     }
 
     public List<String> getPaths() {

@@ -22,9 +22,11 @@ import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.yundan.SFActivity;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import utils.btprint.SPrinter;
 import utils.common.log.LogUploader;
+import utils.dbutils.ActivityRecoderDB;
 import utils.framwork.DialogUtils;
 
 public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickListener {
@@ -125,6 +127,8 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        ActivityRecoderDB mDB = ActivityRecoderDB.newInstance(this);
+        String msg = mDB.getRecorderStrByDate(new Date());
         SPrinter printer = SPrinter.getPrinter();
         if (printer != null) {
             printer.closeBt();

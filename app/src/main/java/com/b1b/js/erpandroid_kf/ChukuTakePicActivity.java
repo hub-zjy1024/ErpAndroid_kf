@@ -247,30 +247,8 @@ public class ChukuTakePicActivity extends TakePicBaseActivity {
 
     void upLoadSuccess(TakePic2Ac.NotifyMgr notifyer, String remoteName, TakePic2Ac.UpLoadeLogger mLogger, TextView textView) {
 
-        double totalTime = mLogger.getTotalTime();
-        double runTime = mLogger.getRunTime();
-        int counts = mLogger.tryTime;
-        int watiTime = (int) (totalTime - runTime);
-        if (watiTime > 1) {
-            MyApp.myLogger.writeBug(remoteName + ",Task Wait SoLong");
-        }
-        String strCounts = ",counts=";
-        if (counts > 0) {
-            strCounts += counts;
-        } else {
-            strCounts = "";
-        }
-        double checkRate = 1.6;
-        String msg = "";
-        if (runTime > checkRate) {
-            msg = String.format("takepic2 finish %s,time=%f/%f wait=%d %s", remoteName, runTime, totalTime,
-                    watiTime, strCounts);
-        } else {
-            msg = String.format("takepic2 finish %s, time<%f,", remoteName, checkRate);
-        }
-        MyApp.myLogger.writeInfo(msg);
-        Log.e("zjy", "TakePic2Activity->run(): uploadLog=" + msg);
-
+        String claName = this.getClass().getName();
+        mLogger.recorderLog(claName, remoteName);
         notifyer.cancelNotify();
 
         Message message = Message.obtain(picHandler, PICUPLOAD_SUCCESS);

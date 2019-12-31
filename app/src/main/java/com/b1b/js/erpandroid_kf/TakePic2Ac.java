@@ -246,30 +246,8 @@ public class TakePic2Ac extends TakePicBaseActivity {
     }
 
     void upLoadSuccess(NotifyMgr notifyer, String remoteName, UpLoadeLogger mLogger, TextView textView) {
-
-        double totalTime = mLogger.getTotalTime();
-        double runTime = mLogger.getRunTime();
-        int counts = mLogger.tryTime;
-        int watiTime = (int) (totalTime - runTime);
-        if (watiTime > 1) {
-            MyApp.myLogger.writeBug(remoteName + ",Task Wait SoLong");
-        }
-        String strCounts = ",counts=";
-        if (counts > 0) {
-            strCounts += counts;
-        } else {
-            strCounts = "";
-        }
-        double checkRate = 1.6;
-        String msg = "";
-        if (runTime > checkRate) {
-            msg = String.format("takepic2 finish %s,time=%f/%f wait=%d %s", remoteName, runTime, totalTime,
-                    watiTime, strCounts);
-        } else {
-            msg = String.format("takepic2 finish %s, time<%f,", remoteName, checkRate);
-        }
-        MyApp.myLogger.writeInfo(msg);
-        Log.e("zjy", "TakePic2Activity->run(): uploadLog=" + msg);
+        String claName = this.getClass().getName();
+        mLogger.recorderLog(claName, remoteName);
 
         notifyer.cancelNotify();
 
@@ -354,6 +332,33 @@ public class TakePic2Ac extends TakePicBaseActivity {
         public double getTotalTime() {
             double totalTime = (double) (System.currentTimeMillis() - createTime) / 1000;
             return totalTime;
+        }
+
+        public void recorderLog(String claName, String remoteName) {
+            double totalTime = getTotalTime();
+            double runTime = getRunTime();
+            int counts = tryTime;
+            double watiTime = totalTime - runTime;
+            if (watiTime > 1) {
+                MyApp.myLogger.writeBug(remoteName + ",Task Wait SoLong");
+            }
+            String strCounts = ",counts=";
+            if (counts > 0) {
+                strCounts += counts;
+            } else {
+                strCounts = "";
+            }
+            double checkRate = limitTime;
+            String msg = "";
+            if (runTime > checkRate) {
+                msg = String.format("%s, uploadOK %s,time=%f/%f wait=%f %s", claName, remoteName, runTime,
+                        totalTime,
+                        watiTime, strCounts);
+            } else {
+                msg = String.format("%s, uploadOK %s, time<%f,", claName, remoteName, checkRate);
+            }
+            MyApp.myLogger.writeInfo(msg);
+            Log.e("zjy", claName + "->uploadOK-> uploadLog=" + msg);
         }
     }
 

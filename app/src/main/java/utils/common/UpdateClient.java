@@ -469,7 +469,7 @@ public class UpdateClient {
                 sb.append(s);
             }
             String versions = sb.toString();
-            Log.e("zjy", "UpdateClient->checkVersionAvailable(): OnlineVersoins==" + versions);
+            Log.d("zjy", "UpdateClient->checkVersionAvailable(): OnlineVersoins==" + versions);
             JSONArray jsonArray = new JSONArray(versions);
             for (int i = 0; i < jsonArray.length(); i++) {
                 String tempV = jsonArray.getString(i);

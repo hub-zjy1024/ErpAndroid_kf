@@ -314,31 +314,19 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                         }
                     }
             );
-            dialog.setNegativeButton("完成", new DialogInterface.OnClickListener() {
+            DialogInterface.OnClickListener mListener = new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    int width = picSizes.get(itemPosition).width;
-                    int height = picSizes.get(itemPosition).height;
-                    Log.e("zjy", "TakePic2Activity.java->selectSize: width==" + width + "\t" + height);
-                    parameters.setPictureSize(width, height);
-                    camera.setParameters(parameters);
+                    if (which == DialogInterface.BUTTON_NEGATIVE) {
+                        onPicSizeSet(0);
+                    } else if (which == DialogInterface.BUTTON_POSITIVE) {
+                        onPicSizeSet(1);
+                    }
                 }
-            });
+            };
 
-            dialog.setPositiveButton("设为默认尺寸", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Log.e("zjy", "TakePic2Activity.java->onClick(): default size pos==" + itemPosition);
-                    SharedPreferences.Editor editor = sp.edit();
-                    int width = picSizes.get(itemPosition).width;
-                    int height = picSizes.get(itemPosition).height;
-                    editor.putInt("width", width);
-                    editor.putInt("height", height);
-                    editor.apply();
-                    parameters.setPictureSize(width, height);
-                    camera.setParameters(parameters);
-                }
-            });
+            dialog.setNegativeButton("完成",mListener);
+            dialog.setPositiveButton("设为默认尺寸",mListener);
             dialog.setCancelable(false);
             dialog.show();
         } else {
@@ -346,6 +334,25 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
         }
     }
 
+    protected void onPicSizeSaved(int width, int height) {
+        MyApp.myLogger.writeInfo(this.getClass(), "onPicSizeSet(): saveSize==" + width + "\t" + height);
+        Log.e("zjy", "TakePic2Activity->onPicSizeSet(): saveSize==" + width + "\t" + height);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putInt("width", width);
+        editor.putInt("height", height);
+        editor.apply();
+    }
+
+    protected void onPicSizeSet(int flag) {
+        int width = picSizes.get(itemPosition).width;
+        int height = picSizes.get(itemPosition).height;
+        Log.e("zjy", "TakePic2Activity.java->selectSize: width==" + width + "\t" + height);
+        parameters.setPictureSize(width, height);
+        camera.setParameters(parameters);
+        if (flag == 1) {
+            onPicSizeSaved(width, height);
+        }
+    }
 
 
     private void releaseCamera() {
@@ -721,29 +728,8 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
     }
 
     void upLoadSuccess(TakePic2Ac.NotifyMgr notifyer, String remoteName, TakePic2Ac.UpLoadeLogger mLogger, TextView textView) {
-        double totalTime = mLogger.getTotalTime();
-        double runTime = mLogger.getRunTime();
-        int counts = mLogger.tryTime;
-        int watiTime = (int) (totalTime - runTime);
-        if (watiTime > 1) {
-            MyApp.myLogger.writeBug(remoteName + ",Task Wait SoLong");
-        }
-        String strCounts = ",counts=";
-        if (counts > 0) {
-            strCounts += counts;
-        } else {
-            strCounts = "";
-        }
-        double checkRate = TakePic2Ac.UpLoadeLogger.limitTime;
-        String msg = "";
-        if (runTime > checkRate) {
-            msg = String.format("takepic2 finish %s,time=%f/%f wait=%d %s", remoteName, runTime, totalTime,
-                    watiTime, strCounts);
-        } else {
-            msg = String.format("takepic2 finish %s, time<%f,", remoteName, checkRate);
-        }
-        MyApp.myLogger.writeInfo(msg);
-        Log.e("zjy", "TakePic2Activity->run(): uploadLog=" + msg);
+        String claName = this.getClass().getName();
+        mLogger.recorderLog(claName, remoteName);
         Message message = Message.obtain(mHandler, PICUPLOAD_SUCCESS);
         message.obj = textView;
         message.sendToTarget();
