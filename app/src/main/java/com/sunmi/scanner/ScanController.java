@@ -118,7 +118,7 @@ public class ScanController {
                 String code = intent.getStringExtra(DATAKey);
 
                 if (code != null && !code.isEmpty()) {
-                    Log.e("zjy", "ScanController->onReceive(): SunmiScan==" + code);
+                    Log.d("zjy", "ScanController->onReceive(): SunmiScan==" + code);
                     stop();
                     if (mListener != null) {
                         mListener.onScanResult(code);
@@ -137,12 +137,12 @@ public class ScanController {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 mScanner = IScanInterface.Stub.asInterface(service);
-                Log.e("zjy", "ScanController->onServiceConnected(): SunmiScanDev==" + getScannerModel());
+                Log.d("zjy", "ScanController->onServiceConnected(): SunmiScanDev==" + getScannerModel());
             }
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
-                Log.e("zjy", "com.sunmi.scanner.ScanController->onServiceDisconnected(): ==");
+                Log.d("zjy", "com.sunmi.scanner.ScanController->onServiceDisconnected(): ==");
             }
         };
         mContext.bindService(intent, mConection, Service.BIND_AUTO_CREATE);

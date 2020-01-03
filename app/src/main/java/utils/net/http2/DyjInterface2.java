@@ -149,7 +149,7 @@ public class DyjInterface2 {
         String sDate = "2019-05-13 09:30:11.6";
         try {
             Date mdate = sdf.parse(sDate);
-            Log.e("zjy",
+            Log.d("zjy",
                     DyjInterface2.class.getClass() + "->GetChuKuTongZhiInfoByPIDToString(): data==" + mdate.toLocaleString());
         } catch (ParseException e) {
             e.printStackTrace();
@@ -225,7 +225,7 @@ public class DyjInterface2 {
         try {
             bodyString = HttpUtils.create(url).getBodyString();
             JSONObject mobj = JSONObject.parseObject(bodyString);
-            Log.e("zjy", DyjInterface2.class.getClass() + "->GetChuKuTongZhiInfoToString(): ==" + bodyString);
+            Log.d("zjy", DyjInterface2.class.getClass() + "->GetChuKuTongZhiInfoToString(): ==" + bodyString);
 
             boolean isSuccess = mobj.getBoolean("isSuccess");
             if (isSuccess) {
@@ -272,7 +272,7 @@ public class DyjInterface2 {
         try {
             bodyString = HttpUtils.create(url).getBodyString();
             JSONObject mobj = JSONObject.parseObject(bodyString);
-            Log.e("zjy",
+            Log.d("zjy",
                     DyjInterface2.class.getClass() + "->GetChuKuTongZhiInfoByPIDToStrings(): ==" + bodyString);
 
             boolean isSuccess = mobj.getBoolean("isSuccess");
@@ -320,7 +320,7 @@ public class DyjInterface2 {
         try {
             bodyString = HttpUtils.create(url).getBodyString();
             JSONObject mobj = JSONObject.parseObject(bodyString);
-            Log.e("zjy",
+            Log.d("zjy",
                     DyjInterface2.class.getClass() + "->GetChuKuTongZhiInfoByPIDToStrings(): ==" + bodyString);
 
             boolean isSuccess = mobj.getBoolean("isSuccess");
@@ -367,7 +367,7 @@ public class DyjInterface2 {
         String url = HOST + "/YuChuKu/UpdateCKPhotos?cktzID=%s&folder=%s&processID=%s&picName=%s&makerID=%s" +
                 "&picUrl=%s" +
                 "&key=%s";
-        Log.e("zjy", DyjInterface2.class + "->UpdateCKPhoto():insertPath ==" + insertPath);
+        Log.d("zjy", DyjInterface2.class + "->UpdateCKPhoto():insertPath ==" + insertPath);
         String mName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
         url = String.format(url, pid, folder, flag, picname, uid, URLEncoder.encode(insertPath, "utf-8"),
                 iKey);
@@ -375,7 +375,7 @@ public class DyjInterface2 {
         try {
             bodyString = HttpUtils.create(url).getBodyString();
             JSONObject mobj = JSONObject.parseObject(bodyString);
-            Log.e("zjy", DyjInterface2.class.getClass() + "->UpdateCKPhoto(): ==" + bodyString);
+            Log.d("zjy", DyjInterface2.class.getClass() + "->UpdateCKPhoto(): ==" + bodyString);
             boolean isSuccess = mobj.getBoolean("isSuccess");
             if (isSuccess) {
                 //                JSONArray mobjJSONArray = mobj.getJSONArray("list");
@@ -383,7 +383,7 @@ public class DyjInterface2 {
                 return true;
             } else {
                 String errrMsg = mobj.getString("message");
-                Log.e("zjy", DyjInterface2.class.getClass() + "->UpdateCKPhoto():false ==" + url);
+                Log.w("zjy", DyjInterface2.class.getClass() + "->UpdateCKPhoto():false ==" + url);
 
                 throw new DyjException(mName + ",接口异常," + errrMsg);
             }
@@ -405,14 +405,14 @@ public class DyjInterface2 {
         try {
             bodyString = HttpUtils.create(url).getBodyString();
             JSONObject mobj = JSONObject.parseObject(bodyString);
-            Log.e("zjy", DyjInterface2.class.getClass() + "->UpdateStoreChekerInfo(): ==" + bodyString);
+            Log.d("zjy", DyjInterface2.class.getClass() + "->UpdateStoreChekerInfo(): ==" + bodyString);
             boolean isSuccess = mobj.getBoolean("isSuccess");
             if (isSuccess) {
                 JSONArray mobjJSONArray = mobj.getJSONArray("list");
                 return true;
             } else {
                 String errrMsg = mobj.getString("message");
-                Log.e("zjy", DyjInterface2.class + "->UpdateStoreChekerInfo(): url==" + url);
+                Log.w("zjy", DyjInterface2.class + "->UpdateStoreChekerInfo(): url==" + url);
 
                 throw new DyjException(mName + ",接口异常," + errrMsg);
             }
@@ -433,7 +433,7 @@ public class DyjInterface2 {
         try {
             bodyString = HttpUtils.create(url).getBodyString();
             JSONObject mobj = JSONObject.parseObject(bodyString);
-            Log.e("zjy", DyjInterface2.class.getClass() + "->SpCheckInfo(): ==" + bodyString);
+            Log.d("zjy", DyjInterface2.class.getClass() + "->SpCheckInfo(): ==" + bodyString);
             boolean isSuccess = mobj.getBoolean("isSuccess");
             if (isSuccess) {
                 JSONArray mobjJSONArray = mobj.getJSONArray("list");
@@ -455,13 +455,13 @@ public class DyjInterface2 {
         String url = HOST + "/YuChuKu/GetphotosByCKTZIDToString?id=%s&key=%s";
         String mName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
         url = String.format(url, pid, iKey);
-        Log.e("zjy", DyjInterface2.class + "->GetphotosByCKTZIDToString(): url==" + url);
+        Log.d("zjy", DyjInterface2.class + "->GetphotosByCKTZIDToString(): url==" + url);
 
         String bodyString = "";
         try {
             bodyString = HttpUtils.create(url).getBodyString();
             JSONObject mobj = JSONObject.parseObject(bodyString);
-            Log.e("zjy", DyjInterface2.class.getClass() + "->GetphotosByCKTZIDToString(): ==" + bodyString);
+            Log.d("zjy", DyjInterface2.class.getClass() + "->GetphotosByCKTZIDToString(): ==" + bodyString);
             boolean isSuccess = mobj.getBoolean("isSuccess");
             if (isSuccess) {
                 JSONArray mobjJSONArray = mobj.getJSONArray("list");
@@ -526,7 +526,7 @@ public class DyjInterface2 {
         try {
             bodyString = HttpUtils.create(url).getBodyString();
             JSONObject mobj = JSONObject.parseObject(bodyString);
-            Log.e("zjy",
+            Log.d("zjy",
                     DyjInterface2.class.getClass() + "->GetBILL_PictureRelatenfoByIDToString(): ==" + bodyString);
             boolean isSuccess = mobj.getBoolean("isSuccess");
             if (isSuccess) {
@@ -556,14 +556,14 @@ public class DyjInterface2 {
         try {
             bodyString = HttpUtils.create(url).getBodyString();
             JSONObject mobj = JSONObject.parseObject(bodyString);
-            Log.e("zjy", DyjInterface2.class.getClass() + "->UpdateStoreChekerInfo(): ==" + bodyString);
+            Log.d("zjy", DyjInterface2.class.getClass() + "->UpdateStoreChekerInfo(): ==" + bodyString);
             boolean isSuccess = mobj.getBoolean("isSuccess");
             if (isSuccess) {
                 JSONArray mobjJSONArray = mobj.getJSONArray("list");
                 return true;
             } else {
                 String errrMsg = mobj.getString("message");
-                Log.e("zjy", DyjInterface2.class + "->UpdateStoreChekerInfo(): url==" + url);
+                Log.w("zjy", DyjInterface2.class + "->UpdateStoreChekerInfo(): url==" + url);
                 throw new DyjException(mName + ",接口异常," + errrMsg);
             }
         } catch (IOException e) {

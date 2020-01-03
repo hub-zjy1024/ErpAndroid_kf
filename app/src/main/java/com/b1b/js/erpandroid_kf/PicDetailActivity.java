@@ -131,7 +131,7 @@ public class PicDetailActivity extends BaseMActivity {
 //                    "PicDetailActivity->ImgFragmentAdapter(): freeSize==" + maxMemory / rate + "MB");
             // 取处内存的 1/5 用来当 缓存 大小
             int cachSize = maxMemory / 2;
-            Log.e("zjy", "PicDetailActivity->ImgFragmentAdapter(): cacheSize==" + cachSize / rate);
+            Log.d("zjy", "PicDetailActivity->ImgFragmentAdapter(): cacheSize==" + cachSize / rate);
             // 实例化 LruCache
             cacheMap = new BitmapLruCache<>(cachSize);
         }
@@ -143,11 +143,11 @@ public class PicDetailActivity extends BaseMActivity {
             ImgFragment picFrag = mFrags.get(imgUrl);
 
             if (picFrag == null) {
-                Log.e("zjy", getClass() + "->getItem():new Instatce ==" + imgUrl);
+                Log.d("zjy", getClass() + "->getItem():new Instatce ==" + imgUrl);
                 picFrag = ImgFragment.newInstance(imgUrl, cacheMap);
                 mFrags.put(imgUrl, picFrag);
             }
-            Log.e("zjy", getClass() + "->getItem(): ==" + picFrag.toString());
+            Log.d("zjy", getClass() + "->getItem(): ==" + picFrag.toString());
             return picFrag;
         }
 
@@ -232,20 +232,20 @@ public class PicDetailActivity extends BaseMActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle
                 savedInstanceState) {
-            Log.e("zjy", "->onCreateView(): ==" + tag);
+            Log.d("zjy", "->onCreateView(): ==" + tag);
             //            itemView = getView();
             if (itemView == null) {
                 itemView = inflater.inflate(R.layout.frag_pic_detail, container, false);
             } else {
-                Log.e("zjy", "initView->onCreateView():useCacheView ==" + tag);
+                Log.d("zjy", "initView->onCreateView():useCacheView ==" + tag);
             }
             ViewParent parent = itemView.getParent();
             if (parent != null) {
                 ViewGroup view = (ViewGroup) parent;
                 view.removeView(itemView);
-                Log.e("zjy", "initView->onCreateView(): ==hasView" + tag);
+                Log.d("zjy", "initView->onCreateView(): ==hasView" + tag);
             } else {
-                Log.e("zjy", "initView->onCreateView():noParent ==" + tag);
+                Log.d("zjy", "initView->onCreateView():noParent ==" + tag);
             }
             mImgView = (ImageView) itemView.findViewById(R.id.frag_pic_detail_iv);
             DisplayMetrics displayMetrics = getActivity().getResources().getDisplayMetrics();
@@ -257,7 +257,7 @@ public class PicDetailActivity extends BaseMActivity {
                 Bitmap tempBmp = cacheMap.get(imgPath);
                 if (tempBmp != null) {
                     // nBmp = tempBmp;
-                    Log.e("zjy", "PicDetailActivity->onCreateView(): getCacheBitmap==" + tempBmp);
+                    Log.d("zjy", "PicDetailActivity->onCreateView(): getCacheBitmap==" + tempBmp);
                     mImgView.setImageBitmap(tempBmp);
                 } else {
                     Runnable imgRun = new Runnable() {
@@ -266,7 +266,7 @@ public class PicDetailActivity extends BaseMActivity {
                             final Bitmap decodeBmp = loadImg(imgPath);
                             if (decodeBmp != null) {
                                 if (decodeBmp.isRecycled()) {
-                                    Log.e("zjy", "->run(): recycle img==" + imgPath);
+                                    Log.d("zjy", "->run(): recycle img==" + imgPath);
                                     return;
                                 }
                                 cacheMap.put(imgPath, decodeBmp);
@@ -277,7 +277,7 @@ public class PicDetailActivity extends BaseMActivity {
                                     }
                                 });
                             } else {
-                                Log.e("zjy", "-load bitmap Failed ,key=" + tag);
+                                Log.d("zjy", "-load bitmap Failed ,key=" + tag);
                                 MyApp.myLogger.writeBug("load bitmap Failed ,key=" + imgPath);
                             }
                         }
@@ -295,14 +295,14 @@ public class PicDetailActivity extends BaseMActivity {
             if (mFragCache != null) {
                 mFragCache.offer(this);
             }
-            Log.e("zjy", "->onDetach(): ==" + tag);
+            Log.d("zjy", "->onDetach(): ==" + tag);
         }
 
         @Override
         public void onPause() {
             super.onPause();
             itemView = getView();
-            Log.e("zjy", "->onPause(): ==" + tag);
+            Log.d("zjy", "->onPause(): ==" + tag);
         }
 
 
@@ -331,7 +331,7 @@ public class PicDetailActivity extends BaseMActivity {
                             R.drawable.ic_pic_placeholder);
                 }
                 if (mBitmap != null) {
-                    Log.e("zjy",
+                    Log.d("zjy",
                             tag + ": BitampSize==" + mBitmap.getByteCount() / 1024f / 1024);
                 }
                 return mBitmap;

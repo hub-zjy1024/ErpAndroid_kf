@@ -165,13 +165,13 @@ public class FTPUtils {
             listener = new ProtocolCommandListener() {
                 @Override
                 public void protocolCommandSent(ProtocolCommandEvent event) {
-                    Log.e("zjy", "FTPUtils->protocolCommandSent(): sendMsg==" + event.getMessage());
+                    Log.d("zjy", "FTPUtils->protocolCommandSent(): sendMsg==" + event.getMessage());
                 }
 
                 @Override
                 public void protocolReplyReceived(ProtocolCommandEvent event) {
                     int replyCode = event.getReplyCode();
-                    Log.e("zjy", "FTPUtils->protocolReplyReceived(): replyCode==" + event.getMessage());
+                    Log.d("zjy", "FTPUtils->protocolReplyReceived(): replyCode==" + event.getMessage());
                 }
             };
             mClient.addProtocolCommandListener(listener);
@@ -328,7 +328,7 @@ public class FTPUtils {
             String path = remoteFilePath.substring(0, last);
             boolean dirExists = fileExists(path);
             if (!dirExists) {
-                Log.e("zjy", "FTPUtils->upload(): makeDir==" + path);
+                Log.d("zjy", "FTPUtils->upload(): makeDir==" + path);
                 mkDirs(path);
             }
         }
@@ -352,7 +352,7 @@ public class FTPUtils {
             boolean dirExists = fileExists(path);
             if (!dirExists) {
                 mkDirs(path);
-                Log.e("zjy", "FTPUtils->upload(): makeDir==" + path);
+                Log.d("zjy", "FTPUtils->upload(): makeDir==" + path);
             }
         }
         OutputStream outputStream = mClient.storeFileStream(remoteFilePath);
@@ -401,7 +401,7 @@ public class FTPUtils {
             if (isOK) {
                 mClient.changeWorkingDirectory("/");
             }
-            Log.e("zjy", "FTPUtils->fileExists(): dirExitst==" + isOK);
+            Log.d("zjy", "FTPUtils->fileExists(): dirExitst==" + isOK + "\t,path=" + remoteFilePath);
             return isOK;
         } catch (IOException e) {
             e.printStackTrace();

@@ -65,7 +65,7 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
         //                    "MB");
         // 取处内存的 1/5 用来当 缓存 大小
         int cachSize = maxMemory / 2;
-        Log.e("zjy", "PicDetailActivity->ImgFragmentAdapter(): cacheSize==" + cachSize / rate);
+        Log.d("zjy", "PicDetailActivity->ImgFragmentAdapter(): cacheSize==" + cachSize / rate);
         // 实例化 LruCache
         cacheMap = new BitmapLruCache<>(cachSize);
     }
@@ -73,7 +73,7 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
     @Override
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         if (this.fragmentTransaction == null) {
-            Log.e("zjy", getClass() + "->destroyItem():++++++++++++ fragmentTransaction==null");
+            Log.d("zjy", getClass() + "->destroyItem():++++++++++++ fragmentTransaction==null");
             this.fragmentTransaction = this.mFragmentManagerfMgr.beginTransaction();
         }
         fragmentTransaction.remove((Fragment) object);
@@ -88,7 +88,7 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
         }
         ImgFragment o = (ImgFragment) getItem(position);
         if (o.isAdded()) {
-            Log.e("zjy", getClass() + "->instantiateItem(): ==o Added" + o.toString());
+            Log.d("zjy", getClass() + "->instantiateItem(): ==o Added" + o.toString());
         }
         fragmentTransaction.add(container.getId(), o);
         initPoi = position;
@@ -101,9 +101,9 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
             try {
                 this.fragmentTransaction.commitNowAllowingStateLoss();
             } catch (Exception e) {
-                Log.e("zjy", getClass() + "->finishUpdate():ERROR ==", e);
+                Log.d("zjy", getClass() + "->finishUpdate():ERROR ==", e);
             }
-            Log.e("zjy", getClass() + "->finishUpdate(): ==mSize" + mFragCache.size());
+            Log.d("zjy", getClass() + "->finishUpdate(): ==mSize" + mFragCache.size());
             this.fragmentTransaction = null;
         }
     }
@@ -114,7 +114,7 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
         ImgFragment picFrag = null;
         if (mFragCache.size() < 5) {
             picFrag = ImgFragment.newInstance(cacheMap, mFragCache);
-            Log.e("zjy", getClass() + "->getItem():first create ==" + imgUrl);
+            Log.d("zjy", getClass() + "->getItem():first create ==" + imgUrl);
             picFrag.setImgPath(imgUrl);
             mFragCache.offer(picFrag);
         } else {
@@ -182,13 +182,13 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
         @Override
         public void onAttach(Context context) {
             super.onAttach(context);
-            Log.e("zjy", "->onAttach(): ==" + tag);
+            Log.d("zjy", "->onAttach(): ==" + tag);
         }
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            Log.e("zjy", "->onCreate(): ==" + tag);
+            Log.d("zjy", "->onCreate(): ==" + tag);
         }
 
         @Override
@@ -200,7 +200,7 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
         @Override
         public void onStart() {
             super.onStart();
-            Log.e("zjy", "->onStart(): ==" + tag);
+            Log.d("zjy", "->onStart(): ==" + tag);
         }
 
         @Override
@@ -209,15 +209,15 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
             Rect frame = new Rect();
             getActivity().getWindow().getDecorView().getWindowVisibleDisplayFrame(frame);
             int statusBarHeight = frame.top;
-            Log.e("zjy", getClass() + "->onResume(): titleHeight==VisiablDisplay" + "\t" + frame);
-            Log.e("zjy", "->onResume(): ==" + tag);
+            Log.d("zjy", getClass() + "->onResume(): titleHeight==VisiablDisplay" + "\t" + frame);
+            Log.d("zjy", "->onResume(): ==" + tag);
         }
 
         @Nullable
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle
                 savedInstanceState) {
-            Log.e("zjy", "->onCreateView(): ==" + tag);
+            Log.d("zjy", "->onCreateView(): ==" + tag);
             String imgName = imgPath;
             if (imgPath != null) {
                 int i = imgPath.lastIndexOf("/");
@@ -226,7 +226,7 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
                             .lastIndexOf("/") + 1);
                 }
             }
-            Log.e("zjy", getClass() + "->onCreateView(): ==UsePic=" +imgName );
+            Log.d("zjy", getClass() + "->onCreateView(): ==UsePic=" +imgName );
             if (mItemView == null) {
                 mItemView = inflater.inflate(R.layout.frag_pic_detail, container, false);
             }
@@ -244,23 +244,23 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
             int realHeight2 = StatubarHider.getRealHeight(activity);
             int titleHeight = StatubarHider.getTitleHeight(activity);
 
-            Log.e("zjy", getClass() + "->onCreateView(): h1 -h2-realheight="+ statusBarHeight2 + "\t" + realHeight2 + "\t" + titleHeight);
+            Log.d("zjy", getClass() + "->onCreateView(): h1 -h2-realheight="+ statusBarHeight2 + "\t" + realHeight2 + "\t" + titleHeight);
 
-            Log.e("zjy",
+            Log.d("zjy",
                     getClass() + "->onCreateView():statusBar+height==" +( statusBarHeight + displayMetrics.heightPixels) );
             Display defaultDisplay = activity.getWindowManager().getDefaultDisplay();
             DisplayMetrics displayMetrics2 = new DisplayMetrics();
             defaultDisplay.getMetrics(displayMetrics2);
-            Log.e("zjy",
+            Log.d("zjy",
                     getClass() + "->onCreateView(): displayMetrics2==" + displayMetrics2.heightPixels + "\t" + displayMetrics2.widthPixels);
-            Log.e("zjy", getClass() + "->onCreateView(): height-width==" + heightPixels + "\t" + widthPixels);
+            Log.d("zjy", getClass() + "->onCreateView(): height-width==" + heightPixels + "\t" + widthPixels);
             if (imgPath == null) {
                 mImgView.setImageBitmap(null);
             } else {
                 Bitmap tempBmp = cacheMap.get(imgPath);
                 if (tempBmp != null) {
                     // nBmp = tempBmp;
-                    Log.e("zjy", "PicDetailActivity->onCreateView(): getCacheBitmap==" + tempBmp);
+                    Log.d("zjy", "PicDetailActivity->onCreateView(): getCacheBitmap==" + tempBmp);
                     mImgView.setImageBitmap(tempBmp);
                 } else {
                     Runnable imgRun = new Runnable() {
@@ -269,7 +269,7 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
                             final Bitmap decodeBmp = loadImg(imgPath);
                             if (decodeBmp != null) {
                                 if (decodeBmp.isRecycled()) {
-                                    Log.e("zjy", "->run(): recycle img==" + imgPath);
+                                    Log.d("zjy", "->run(): recycle img==" + imgPath);
                                     return;
                                 }
                                 cacheMap.put(imgPath, decodeBmp);
@@ -280,7 +280,7 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
                                     }
                                 });
                             } else {
-                                Log.e("zjy", "-load bitmap Failed ,key=" + tag);
+                                Log.d("zjy", "-load bitmap Failed ,key=" + tag);
                                 MyApp.myLogger.writeBug("load bitmap Failed ,key=" + imgPath);
                             }
                         }
@@ -298,19 +298,19 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
             if (mFragCache != null) {
                 mFragCache.offer(this);
             }
-            Log.e("zjy", "->onDetach(): ==" + tag);
+            Log.d("zjy", "->onDetach(): ==" + tag);
         }
 
         @Override
         public void onPause() {
             super.onPause();
-            Log.e("zjy", "->onPause(): ==" + tag);
+            Log.d("zjy", "->onPause(): ==" + tag);
         }
 
         @Override
         public void onStop() {
             super.onStop();
-            Log.e("zjy", "->onStop(): ==" + tag);
+            Log.d("zjy", "->onStop(): ==" + tag);
         }
 
         @Override
@@ -319,7 +319,7 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
             //            if (mFragCache != null) {
             //                mFragCache.offer(this);
             //            }
-            Log.e("zjy", "onDestroyView(): --" + tag);
+            Log.d("zjy", "onDestroyView(): --" + tag);
         }
 
         Bitmap loadImg(String path) {
@@ -348,7 +348,7 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
                             R.drawable.ic_pic_placeholder);
                 }
                 if (mBitmap != null) {
-                    Log.e("zjy",
+                    Log.d("zjy",
                             tag + ": BitampSize==" + mBitmap.getByteCount() / 1024f / 1024);
                 }
                 return mBitmap;
@@ -363,7 +363,7 @@ public class Img2Adapter extends FragmentStatePagerAdapter {
             } catch (Throwable e) {
                 e.printStackTrace();
             }
-            Log.e("zjy", "PicDetailActivity->onDestroy(): --" + tag);
+            Log.d("zjy", "PicDetailActivity->onDestroy(): --" + tag);
         }
 
     }

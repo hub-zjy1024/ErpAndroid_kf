@@ -65,7 +65,7 @@ public class AutoFoucusMgr implements Camera.AutoFocusCallback {
             }
         }
         //        setAutoFoucs(camera);
-        Log.e(TAG, "Current focus mode '" + currentFocusMode + "'; use auto focus? " + useAutoFocus);
+        Log.w(TAG, "Current focus mode '" + currentFocusMode + "'; use auto focus? " + useAutoFocus);
         start();
     }
 

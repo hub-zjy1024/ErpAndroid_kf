@@ -118,15 +118,15 @@ public class MyImageUtls {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;//不加载图片到内存，仅获得图片宽高
             BitmapFactory.decodeFile(imagePath, options);
-            Log.e("zjy", "MyImageUtls.java->decodeBitmapFromFile(): original height: " + options.outHeight);
-            Log.e("zjy", "MyImageUtls.java->decodeBitmapFromFile(): original width: " + options.outWidth);
+            Log.d("zjy", "MyImageUtls.java->decodeBitmapFromFile(): original height: " + options.outHeight);
+            Log.d("zjy", "MyImageUtls.java->decodeBitmapFromFile(): original width: " + options.outWidth);
             if (options.outHeight == -1 || options.outWidth == -1) {
                 try {
                     ExifInterface exifInterface = new ExifInterface(imagePath);
                     int height = exifInterface.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, ExifInterface.ORIENTATION_NORMAL);//获取图片的高度
                     int width = exifInterface.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, ExifInterface.ORIENTATION_NORMAL);//获取图片的宽度
-                    Log.e("zjy", "MyImageUtls.java->decodeBitmapFromFile(): exif height: " + options.inSampleSize);
-                    Log.e("zjy", "MyImageUtls.java->decodeBitmapFromFile(): exif width: " + options.inSampleSize);
+                    Log.d("zjy", "MyImageUtls.java->decodeBitmapFromFile(): exif height: " + options.inSampleSize);
+                    Log.d("zjy", "MyImageUtls.java->decodeBitmapFromFile(): exif width: " + options.inSampleSize);
                     options.outWidth = width;
                     options.outHeight = height;
                 } catch (IOException e) {
@@ -134,7 +134,7 @@ public class MyImageUtls {
                 }
             }
             options.inSampleSize = getSimpleSize(options, requestWidth, requestHeight); //计算获取新的采样率
-            Log.e("zjy", "MyImageUtls.java->decodeBitmapFromFile(): insamplesize==" + options.inSampleSize);
+            Log.d("zjy", "MyImageUtls.java->decodeBitmapFromFile(): insamplesize==" + options.inSampleSize);
 
             options.inJustDecodeBounds = false;
             return BitmapFactory.decodeFile(imagePath, options);
@@ -223,7 +223,7 @@ public class MyImageUtls {
                 i -= 10;
                 bitmap.compress(Bitmap.CompressFormat.JPEG, i, bao);
             }
-            Log.e("zjy", "MyImageUtls.java->compressBitmapAtsize(): rate==" + i);
+            Log.d("zjy", "MyImageUtls.java->compressBitmapAtsize(): rate==" + i);
             out.write(bao.toByteArray());
             res = true;
         }
@@ -240,7 +240,7 @@ public class MyImageUtls {
                 i -= 10;
                 bitmap.compress(Bitmap.CompressFormat.JPEG, i, bao);
             }
-            Log.e("zjy", "MyImageUtls.java->compressBitmapAtsize(): rate==" + i);
+            Log.d("zjy", "MyImageUtls.java->compressBitmapAtsize(): rate==" + i);
             return bao.toByteArray();
         }
         return null;

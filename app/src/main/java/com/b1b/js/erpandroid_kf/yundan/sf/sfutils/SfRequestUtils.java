@@ -103,7 +103,7 @@ public class SfRequestUtils {
             transformer.setOutputProperty("encoding", "UTF-8");
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(xmlDoc), new StreamResult(writer));
-            Log.e("zjy", "SfRequestUtils->sendRequest(): xmlResult==" + writer.toString
+            Log.d("zjy", "SfRequestUtils->sendRequest(): xmlResult==" + writer.toString
                     ());
 //            transformer.transform(new DOMSource(xmlDoc), new StreamResult(new File("newxml.xml")));
         } catch (ParserConfigurationException e) {
@@ -164,8 +164,8 @@ public class SfRequestUtils {
                 .NO_WRAP);
         String code = new String(verifycode,"UTF-8");
         params += "&verifyCode=" + code;
-        Log.e("zjy", "SfRequestUtils->sendRequest(): xml==" + tempXml);
-        Log.e("zjy", "SfRequestUtils->sendRequest(): code==" + code);
+        Log.d("zjy", "SfRequestUtils->sendRequest(): xml==" + tempXml);
+        Log.d("zjy", "SfRequestUtils->sendRequest(): code==" + code);
         out.write(params.getBytes("UTF-8"));
         out.flush();
         out.close();
@@ -177,6 +177,6 @@ public class SfRequestUtils {
         while ((tem = reader.readLine()) != null) {
             builder.append(tem);
         }
-        Log.e("zjy", "SfRequestUtils->sendRequest(): response==" + builder.toString());
+        Log.d("zjy", "SfRequestUtils->sendRequest(): response==" + builder.toString());
     }
 }

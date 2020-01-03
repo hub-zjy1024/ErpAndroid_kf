@@ -318,7 +318,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
         }
 
         try {
-            Log.e("zjy", "KyPrintAcitivity->onCreate(): configJson==" + configJson);
+            Log.d("zjy", "KyPrintAcitivity->onCreate(): configJson==" + configJson);
             JSONObject obj = new JSONObject(configJson);
             kfName = obj.getString(SettingActivity.NAME);
             KyExpressUtils.uuid = obj.getString(SettingActivity.KYUUID);
@@ -577,7 +577,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                         bd.append(s);
                     }
                     String result = bd.toString();
-                    Log.e("zjy", "SetYundan->run():com.b1b.js.erpandroid_kf.printer: reuslt=="
+                    Log.d("zjy", "SetYundan->run():com.b1b.js.erpandroid_kf.printer: reuslt=="
                             + result);
                     if (!result.equals("")) {
                         String[] printers = result.split(",");
@@ -781,7 +781,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                 urlCoding);
         strURL += "&signreturn=" + URLEncoder.encode(ifSign,
                 urlCoding);
-        Log.e("zjy", "SetYundanActivity->printKyYundan(): StrUrl==" + strURL);
+        Log.d("zjy", "SetYundanActivity->printKyYundan(): StrUrl==" + strURL);
         try {
             URL url = new URL(strURL);
             HttpURLConnection conn = (HttpURLConnection) url
@@ -796,7 +796,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                 builder.append(s);
             }
             String res = builder.toString();
-            Log.e("zjy", "SetYundanActivity->run(): print_result==" + builder
+            Log.d("zjy", "SetYundanActivity->run(): print_result==" + builder
                     .toString());
             double len = (double) (System.currentTimeMillis() - time1) / 1000;
             MyApp.myLogger.writeInfo("KY yundan" + orderID + "\ttime:" + len);
@@ -827,9 +827,9 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                     .alibaba.fastjson.JSONObject.toJSON
                             (orderInfo);
             String newOrderJson = mObj.toString();
-            Log.e("zjy", getClass() + "->run():newApi json ==" + newOrderJson);
+            Log.d("zjy", getClass() + "->run():newApi json ==" + newOrderJson);
             String newApiRes = SF_Server.PostDataOpenApiInfo(newOrderJson);
-            Log.e("zjy", getClass() + "->run():newApi Res ==" + newApiRes);
+            Log.d("zjy", getClass() + "->run():newApi Res ==" + newApiRes);
             com.alibaba.fastjson.JSONObject mresJobj = com.alibaba.fastjson.JSONObject.parseObject
                     (newApiRes);
             int code = mresJobj.getIntValue("code");
@@ -1160,7 +1160,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
         String result = "";
         if (CheckUtils.isAdmin()) {
             result = "成功";
-            Log.e("zjy", getClass() + "->relateYdToDB(): isAdmin res==" + result);
+            Log.d("zjy", getClass() + "->relateYdToDB(): isAdmin res==" + result);
         }else{
             try {
                 result = SF_Server.InsertBD_YunDanInfoOfType(pid, orderID, destcode, objtype);
@@ -1172,7 +1172,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                         .error_soapobject) + pid +
                         "\t" + loginID);
             }
-            Log.e("zjy", getClass() + "->relateYdToDB(): res==" + result);
+            Log.d("zjy", getClass() + "->relateYdToDB(): res==" + result);
         }
         final String finalResult = result;
         mHandler.post(new Runnable() {

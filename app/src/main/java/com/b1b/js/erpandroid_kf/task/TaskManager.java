@@ -73,6 +73,11 @@ public class TaskManager {
         return tm;
     }
 
+    public boolean executeLimitedTask(String mtag, Runnable runnable) {
+        LimitRateRunnable runnable1 = new LimitRateRunnable(mtag, runnable);
+        return execute(runnable1);
+    }
+
     public boolean execute(Runnable runnable) {
         boolean addSuccess = false;
         try {

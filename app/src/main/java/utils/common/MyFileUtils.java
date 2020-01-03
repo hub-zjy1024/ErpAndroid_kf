@@ -56,7 +56,7 @@ public class MyFileUtils {
             bitmap.recycle();
             Bitmap newBitmap = MyImageUtls.getSmallBitmap(file.getAbsolutePath(), 800, 480);
             newBitmap.compress(CompressFormat.JPEG, 100, fio);
-            Log.e("length", "" + file.length());
+            Log.d("zjy", MyFileUtils.class.getName() + "mfutils saveImg filelen=" + file.length());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

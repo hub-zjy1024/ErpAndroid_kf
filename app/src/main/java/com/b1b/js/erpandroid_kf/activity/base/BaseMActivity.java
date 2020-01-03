@@ -29,8 +29,8 @@ import utils.framwork.MyToast;
  */
 public abstract class BaseMActivity extends AppCompatActivity {
     protected Context mContext;
-    ProgressDialog proDialog;
-    DialogUtils mdialog;
+    private ProgressDialog proDialog;
+    private DialogUtils mdialog;
     public static final int reqPermissions = 321;
     public boolean isStoped=true;
     @Override
@@ -80,7 +80,7 @@ public abstract class BaseMActivity extends AppCompatActivity {
             List<String> notGranted = new ArrayList<>();
             for (int i = 0; i < grantResults.length; i++) {
                 int grantResult = grantResults[i];
-                Log.e("zjy", getClass() + "->onRequestPermissionsResult():state=" +
+                Log.d("zjy", getClass() + "->onRequestPermissionsResult():state=" +
                         "" + grantResult +
                         ",name=" + permissions[i]);
                 if (grantResult == PackageManager.PERMISSION_DENIED) {
@@ -118,7 +118,7 @@ public abstract class BaseMActivity extends AppCompatActivity {
 
     public void showMsgDialog(final String msg) {
         if(isStoped){
-            Log.e(getClass().getName()+" ", "isStop when showMsgDialog ,msg= "+msg );
+            Log.w(getClass().getName()+" ", "isStop when showMsgDialog ,msg= "+msg );
             return;
         }
         if (mdialog != null) {

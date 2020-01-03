@@ -138,10 +138,10 @@ public class KyExpressUtils {
             builder.append(s);
         }
         if (DEBUG) {
-            Log.e("zjy", "KyExpressUtils->sendPostRequest(): json2==" + json);
-            Log.e("zjy", "KyExpressUtils->sendPostRequest(): fv==" + strPV);
-            Log.e("zjy", "KyExpressUtils->sendPostRequest(): toke1==" + accessToken);
-            Log.e("zjy", "KyExpressUtils->sendPostRequest(): response==" + builder.toString());
+            Log.d("zjy", "KyExpressUtils->sendPostRequest(): json2==" + json);
+            Log.d("zjy", "KyExpressUtils->sendPostRequest(): fv==" + strPV);
+            Log.d("zjy", "KyExpressUtils->sendPostRequest(): toke1==" + accessToken);
+            Log.d("zjy", "KyExpressUtils->sendPostRequest(): response==" + builder.toString());
         }
         return builder.toString();
     }
@@ -153,9 +153,9 @@ public class KyExpressUtils {
             obj.put("key", key);
             obj.put("ydNumber", yundanID);
             String json = obj.toString();
-            Log.e("zjy", "KyExpressUtils->searchWuliuInfo(): searchJson==" + json);
+            Log.d("zjy", "KyExpressUtils->searchWuliuInfo(): searchJson==" + json);
             String strKV = "key" + key + "uuid" + uuid + "ydNumber" + yundanID;
-            Log.e("zjy", "KyExpressUtils->searchWuliuInfo(): strKV==" + strKV);
+            Log.d("zjy", "KyExpressUtils->searchWuliuInfo(): strKV==" + strKV);
             URL url = new URL(searchURL);
             try {
                 SSLContext sc  = SSLContext.getInstance("TLS");
@@ -189,7 +189,7 @@ public class KyExpressUtils {
             for (; (s = read.readLine()) != null; ) {
                 builder.append(s);
             }
-            Log.e("zjy", "KyExpressUtils->sendPostRequest(): response==" + builder.toString());
+            Log.d("zjy", "KyExpressUtils->sendPostRequest(): response==" + builder.toString());
             return builder.toString();
         } catch (JSONException e) {
             e.printStackTrace();

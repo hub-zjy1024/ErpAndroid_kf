@@ -46,7 +46,7 @@ public class PushService extends Service {
         //        GetInseorageBalanceInfoToSenderResult
         //        GetInstorageBalanceInfoNew
         //        GetInseorageBalanceInfoToCount
-        Log.e("zjy", "PushService->onCreate(): ==");
+        Log.d("zjy", "PushService->onCreate(): ==");
         notifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mWorker = new Thread() {
             @Override
@@ -70,7 +70,7 @@ public class PushService extends Service {
                         if ((hours == 10 && minute < 10) || (hours == 15 && minute < 10)) {
                             try {
                                 String soapRes = MartService.GetInseorageBalanceInfoToCount();
-                                Log.e("zjy", "PushService->run(): GetInseorange==" + soapRes);
+                                Log.d("zjy", "PushService->run(): GetInseorange==" + soapRes);
                                 sp.edit().putString("content", soapRes).commit();
                                 NotificationCompat.Builder notice = new NotificationCompat.Builder(PushService.this);
                                 notice.setContentText("当前有" + soapRes + "条库存发布消息需要进行处理");
@@ -106,7 +106,7 @@ public class PushService extends Service {
                         } else {
                             try {
                                 Thread.sleep(5 * 60 * 1000);
-                                Log.e("zjy", "PushService->run(): Thread.id==" + Thread.currentThread().getId());
+                                Log.d("zjy", "PushService->run(): Thread.id==" + Thread.currentThread().getId());
                             } catch (InterruptedException e1) {
                                 e1.printStackTrace();
                             }
@@ -129,13 +129,13 @@ public class PushService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.e("zjy", "PushService.java->onBind(): ==");
+        Log.d("zjy", "PushService.java->onBind(): ==");
         return myBinder;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.e("zjy", "PushService->onStartCommand(): on==");
+        Log.d("zjy", "PushService->onStartCommand(): on==");
         String id = intent.getStringExtra("id");
         notifyMessage(id);
         return START_REDELIVER_INTENT;
@@ -143,7 +143,7 @@ public class PushService extends Service {
 
     public class MyBinder extends Binder {
         public void upLoad() {
-            Log.e("zjy", "PushService.java->upLoad(): ==");
+            Log.d("zjy", "PushService.java->upLoad(): ==");
         }
     }
 }

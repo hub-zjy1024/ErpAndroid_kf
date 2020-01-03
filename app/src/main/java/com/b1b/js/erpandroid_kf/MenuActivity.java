@@ -3,6 +3,8 @@ package com.b1b.js.erpandroid_kf;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -16,6 +18,7 @@ import android.widget.GridView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.activity.base.SlideBackActivity;
+import com.b1b.js.erpandroid_kf.adapter.MenuActivityRvAdapter;
 import com.b1b.js.erpandroid_kf.adapter.MenuGvAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
@@ -24,6 +27,8 @@ import com.b1b.js.erpandroid_kf.yundan.SFActivity;
 import java.util.ArrayList;
 import java.util.Date;
 
+import utils.adapter.recyclerview.BaseItemClickListener;
+import utils.adapter.recyclerview.BaseRvViewholder;
 import utils.btprint.SPrinter;
 import utils.common.log.LogUploader;
 import utils.dbutils.ActivityRecoderDB;
@@ -112,6 +117,15 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         data.add(new MyMenuItem(R.mipmap.menu_restart, tag_TestReupload, "tag_TestReupload"));
         data.add(new MyMenuItem(R.mipmap.menu_kaoqin, tag_Kaoqin, "查询考勤状态"));
         data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_Setting, "设置"));
+        RecyclerView mView = getViewInContent(R.id.activity_menu_dataview);
+        MenuActivityRvAdapter adap = new MenuActivityRvAdapter(data, R.layout.item_menu_rv, mContext, new BaseItemClickListener<MyMenuItem>() {
+            public void onItemClick(BaseRvViewholder holder, MyMenuItem item) {
+                MenuActivity.this.onItemClick(item);
+            }
+        });
+        GridLayoutManager gridLayoutMgr = new GridLayoutManager(mContext, 3);
+        mView.setLayoutManager(gridLayoutMgr );
+        mView.setAdapter(adap);
         MenuGvAdapter adapter = new MenuGvAdapter(this, data, R.layout.item_menu_gv);
         gv.setAdapter(adapter);
     }
@@ -136,9 +150,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         }
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        MyMenuItem data = (MyMenuItem) parent.getItemAtPosition(position);
+    void onItemClick(MyMenuItem data) {
         String value = data.content;
         Intent intent = new Intent();
         switch (value) {
@@ -234,10 +246,10 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
                 startActivity(intent);
                 break;
             case tag_ScanCheck:
-//                intent.setClass(mContext, Check2_scan_activity.class);
-//                startActivity(intent);
-//                intent.setClass(mContext, ViewPicByPid2Activity.class);
-//                intent.putExtra(SettingActivity.extra_PID, "1234567");
+                //                intent.setClass(mContext, Check2_scan_activity.class);
+                //                startActivity(intent);
+                //                intent.setClass(mContext, ViewPicByPid2Activity.class);
+                //                intent.putExtra(SettingActivity.extra_PID, "1234567");
                 intent.setClass(mContext, PicDetailActivity2.class);
                 startActivity(intent);
                 break;
@@ -250,5 +262,10 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
                 startActivity(intent);
                 break;
         }
+    }
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        MyMenuItem data = (MyMenuItem) parent.getItemAtPosition(position);
+        onItemClick(data);
     }
 }

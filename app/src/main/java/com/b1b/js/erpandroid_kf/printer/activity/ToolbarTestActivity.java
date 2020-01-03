@@ -159,7 +159,7 @@ public class ToolbarTestActivity extends AppCompatActivity {
             File file;
             String a[] = new String[2];
             String schema = "";
-            Log.e("zjy", "ToolbarTestActivity->onActivityResult(): uri==" + string);
+            Log.d("zjy", "ToolbarTestActivity->onActivityResult(): uri==" + string);
             //判断文件是否在sd卡中
             if (string.contains(String.valueOf(Environment.getExternalStorageDirectory()
             ))) {
@@ -167,7 +167,7 @@ public class ToolbarTestActivity extends AppCompatActivity {
                         ());
                 //对Uri进行切割
                 a = string.split(schema);
-                Log.e("zjy", "ToolbarTestActivity->onActivityResult(): sd==" + schema);
+                Log.d("zjy", "ToolbarTestActivity->onActivityResult(): sd==" + schema);
                 //获取到file
                 file = new File(Environment.getExternalStorageDirectory(), a[1]);
             } else if (string.contains(String.valueOf(Environment.getDataDirectory()))
@@ -199,7 +199,7 @@ public class ToolbarTestActivity extends AppCompatActivity {
                 printer = selectItem.toString();
             }
             pDialog.setMessage("正在打印中");
-            Log.e("zjy", "ToolbarTestActivity->onActivityResult(): startPrinterImg==");
+            Log.d("zjy", "ToolbarTestActivity->onActivityResult(): startPrinterImg==");
             for (int i = 0; i < paths.length; i++) {
                 print(new File(paths[i]), strUrl, flags[i], printer);
             }
@@ -256,7 +256,7 @@ public class ToolbarTestActivity extends AppCompatActivity {
             if (result.equals("ok")) {
                 isOk = true;
             }
-            Log.e("zjy", "ToolbarTestActivity->run(): ==write over:" + reader
+            Log.d("zjy", "ToolbarTestActivity->run(): ==write over:" + reader
                     .readLine());
             reader.close();
             return isOk;
@@ -287,7 +287,7 @@ public class ToolbarTestActivity extends AppCompatActivity {
             temp_file = dirs.removeFirst();
             File[] files = temp_file.listFiles();
             if (files != null) {
-                Log.e("zjy", "ToolbarTestActivity->getFileList(): dir==" + temp_file);
+                Log.d("zjy", "ToolbarTestActivity->getFileList(): dir==" + temp_file);
                 for (File f : files) {
                     if (f.isDirectory()) {
                         if (!f.getName().startsWith(".")) {
@@ -440,7 +440,7 @@ public class ToolbarTestActivity extends AppCompatActivity {
                     while ((s = bis.readLine()) != null) {
                         result += s;
                     }
-                    Log.e("zjy", "ToolbarTestActivity->run():com.b1b.js.erpandroid_kf.printer: reuslt=="
+                    Log.d("zjy", "ToolbarTestActivity->run():com.b1b.js.erpandroid_kf.printer: reuslt=="
                             + result);
                     if (!result.equals("")) {
                         String[] printers = result.split(",");

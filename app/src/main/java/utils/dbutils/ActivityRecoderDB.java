@@ -9,7 +9,9 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by 张建宇 on 2019/12/31.
@@ -61,28 +63,17 @@ public class ActivityRecoderDB extends MyDbManger {
     }
 
     public static class RecordInfo {
+        int id;
         String name;
         long time;
 
         @NonNull
         @Override
         public String toString() {
-            return String.format("name=%s,time=%s", name, new Date(time).toString());
+            return String.format("id=%d,name=%s,time=%s", id, name, new Date(time).toString());
         }
     }
 
-    public List<RecordInfo> getMsgs(long time1, long time2) {
-        SQLiteDatabase writableDatabase = getWritableDatabase();
-        //        writableDatabase.query(mTable, new String[]{"name", "time"}, "?<time<?", new
-        //        String[]{time1, time2}
-        //        , null, null
-        //                , null);
-        String sql = "select *from " +
-                "" + mTable +
-                "where time<? and time>?";
-        List<RecordInfo> msgs = new ArrayList<>();
-        return msgs;
-    }
 
     private String longToDateStr(long time) {
         return new Date(time).toString();
@@ -90,31 +81,53 @@ public class ActivityRecoderDB extends MyDbManger {
 
     public String getRecorderStrByDate(Date date) {
         List<RecordInfo> msgByDay = getMsgByDay(date);
-        StringBuilder sb = new StringBuilder();
-        if (msgByDay != null) {
-            for (int i = 0; i < msgByDay.size(); i++) {
-                RecordInfo minfo = new RecordInfo();
-                sb.append(minfo.toString());
-                sb.append("\n");
-            }
-        }
-        Log.w("zjy", "ActivityRecoderDB->getRecorderStrByDate(): ==" + sb.toString());
-
-        return sb.toString();
-    }
-    public List<RecordInfo> getMsgByDay(Date date) {
         date.setHours(0);
         long time1 = date.getTime();
         date.setHours(22);
         long time2 = date.getTime();
         Log.w("zjy",
-                "ActivityRecoderDB->getMsgByDay(): time1==" + longToDateStr(time1) + "\t" + longToDateStr(time2));
-        SQLiteDatabase writableDatabase = getWritableDatabase();
+                "ActivityRecoderDB->getRecorderStrByDate(): time1==" + longToDateStr(time1) + "\t" + longToDateStr(time2));
+        StringBuilder sb = new StringBuilder();
+        StringBuilder infoSB = new StringBuilder();
+
+        HashMap<String, Integer> map = new HashMap<>();
+
+        if (msgByDay != null) {
+            for (int i = 0; i < msgByDay.size(); i++) {
+                RecordInfo minfo = msgByDay.get(i);
+                long time = minfo.time;
+                String name = minfo.name;
+                if (map.containsKey(name)) {
+                    Integer integer = map.get(name);
+                    map.put(name, integer.intValue() + 1);
+                }else {
+                    map.put(name, 1);
+                }
+                if (time > time1 && time < time2) {
+                    sb.append(minfo.toString());
+                    sb.append("\n");
+                }
+            }
+            Set<String> strings = map.keySet();
+            for (String s : strings
+            ) {
+                Integer integer = map.get(s);
+                infoSB.append(String.format("Ac %s,counts=%d", s, integer));
+                infoSB.append("\n");
+            }
+        }
+        Log.w("zjy", "ActivityRecoderDB->getRecorderStrByDate(): ==" + sb.toString());
+        Log.w("zjy", "ActivityRecoderDB->getRecorderStrByDate(): infoSB==" + infoSB.toString());
+
+        return sb.toString();
+    }
+    public List<RecordInfo> getMsgByDay(Date date) {
+      SQLiteDatabase writableDatabase = getWritableDatabase();
 //        Cursor query = writableDatabase.query(mTable, new String[]{"name", "time"}, "time between ? and ?",
 //                new String[]{time1 + "", time2 + ""}
 //                , null, null
 //                , null);
-        Cursor query = writableDatabase.query(mTable, new String[]{"name", "time"}, null,
+        Cursor query = writableDatabase.query(mTable, new String[]{"id", "name", "time"}, null,
                 null
                 , null, null
                 , null);
@@ -122,9 +135,10 @@ public class ActivityRecoderDB extends MyDbManger {
 
         if (query != null) {
             while (query.moveToNext()) {
-                String name = query.getString(query.getColumnIndex("name"));
-                long time = query.getLong(query.getColumnIndex("time"));
+                String name = getStringCol(query, "name");
+                long time = getLongCol(query, "time");
                 RecordInfo mINfo = new RecordInfo();
+                mINfo.id = getIntCol(query, "id");
                 mINfo.time = time;
                 mINfo.name = name;
                 msgs.add(mINfo);

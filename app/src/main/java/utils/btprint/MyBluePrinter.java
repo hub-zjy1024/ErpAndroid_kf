@@ -52,7 +52,7 @@ public class MyBluePrinter extends MyPrinterParent {
             Log.e("zjy", "MyBluePrinter->onReceive(): receive==" + action);
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                Log.e("zjy", "MyBluePrinter->onReceive(): deviceName==" + device.getName() + "=" + device.getAddress());
+                Log.d("zjy", "MyBluePrinter->onReceive(): deviceName==" + device.getName() + "=" + device.getAddress());
                 discoverListner.OnReceive(device);
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 sendMsg(STATE_SCAN_FINISHED);
@@ -98,7 +98,7 @@ public class MyBluePrinter extends MyPrinterParent {
         }
         mServerThread = new ServerThread();
         mServerThread.start();
-        Log.e("zjy", "MyBluePrinter->open(): Open==" + adapter.isEnabled());
+        Log.d("zjy", "MyBluePrinter->open(): Open==" + adapter.isEnabled());
     }
 
     public void initServe() throws IOException {
@@ -226,15 +226,15 @@ public class MyBluePrinter extends MyPrinterParent {
         public ServerThread() {
             try {
                 mmServerSocket = adapter.listenUsingRfcommWithServiceRecord("BTPrinter", MY_UUID);
-                Log.e("zjy", "MyBluePrinter->ServerThread():server socket==");
+                Log.d("zjy", "MyBluePrinter->ServerThread():server socket==");
             } catch (IOException var4) {
-                Log.e(TAG, "listen() failed", var4);
+                Log.d(TAG, "listen() failed", var4);
             }
         }
 
         public void run() {
             if (debug) {
-                Log.e(TAG, "BEGIN mServerThread" + this);
+                Log.d(TAG, "BEGIN mServerThread" + this);
             }
             setName("ServerThread");
             try {
@@ -248,12 +248,12 @@ public class MyBluePrinter extends MyPrinterParent {
 
         public void cancel() {
             if (debug) {
-                Log.e(TAG, "closeSocket " + this);
+                Log.d(TAG, "closeSocket " + this);
             }
             try {
                 mmServerSocket.close();
             } catch (IOException var2) {
-                Log.e(TAG, "close() of server failed", var2);
+                Log.d(TAG, "close() of server failed", var2);
             }
 
         }
@@ -277,11 +277,11 @@ public class MyBluePrinter extends MyPrinterParent {
             super.run();
             try {
                 if (mSocket == null) {
-                    Log.e("zjy", "MyBluePrinter->run(): created btclient failed==");
+                    Log.d("zjy", "MyBluePrinter->run(): created btclient failed==");
                     sendMsg(STATE_DISCONNECTED);
                     return;
                 }
-                Log.e("zjy", "MyBluePrinter->run(): hasConnected==" + mSocket.isConnected());
+                Log.d("zjy", "MyBluePrinter->run(): hasConnected==" + mSocket.isConnected());
                 if (mSocket.isConnected()) {
                     mState = STATE_CONNECTED;
                     mHandler.sendEmptyMessage(STATE_CONNECTED);
@@ -318,19 +318,19 @@ public class MyBluePrinter extends MyPrinterParent {
                     InputStream inputStream = mSocket.getInputStream();
                     int bytes = inputStream.read(buffer);
                     if (bytes <= 0) {
-                        Log.e("zjy", "MyBluePrinter->StateCheckThread: inputStream null==");
+                        Log.d("zjy", "MyBluePrinter->StateCheckThread: inputStream null==");
                     }
-                    Log.e("zjy", "MyBluePrinter->StateCheckThread: inputStream buffer[0]==" + buffer[0]);
+                    Log.d("zjy", "MyBluePrinter->StateCheckThread: inputStream buffer[0]==" + buffer[0]);
                     if (buffer[0] != 19) {
                         if (buffer[0] != 17) {
                         } else {
                             bufferFull = false;
-                            Log.e(TAG, "0x11:");
+                            Log.d(TAG, "0x11:");
                         }
                     } else {
                         //缓存区满了
                         bufferFull = true;
-                        Log.e(TAG, "0x13:");
+                        Log.d(TAG, "0x13:");
                     }
                     try {
                         Thread.sleep(3 * 1000);

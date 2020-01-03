@@ -205,7 +205,6 @@ public class KucunEditActivity extends ToolbarHasSunmiActivity implements KucunE
         editDpId.setText(result);
         String partno = "";
 
-        presenter.startSearch(result, partno, storID);
         if (stat == 1) {
             fragChaidan.startSearch(result , partno, storID);
         } else {

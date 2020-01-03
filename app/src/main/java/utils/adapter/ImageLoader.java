@@ -111,10 +111,10 @@ public class ImageLoader {
             @Override
             public void run() {
                 Looper.prepare();
-                Log.e("zjy", "ImageLoader->run(): Prepare==");
+                Log.d("zjy", "ImageLoader->run(): Prepare==");
                 mPoolThreadHander = new THandler(mThreadPool, mPoolSemaphore, ImageLoader.this);
                 // 释放一个信号量
-                Log.e("zjy", "ImageLoader->run(): new Handler==");
+                Log.d("zjy", "ImageLoader->run(): new Handler==");
                 mSemaphore.release();
                 Looper.loop();
             }
@@ -188,7 +188,7 @@ public class ImageLoader {
                     holder.path = path;
                     Message message = Message.obtain();
                     message.obj = holder;
-                    // Log.e("TAG", "mHandler.sendMessage(message);");
+                    // Log.d("TAG", "mHandler.sendMessage(message);");
                     mHandler.sendMessage(message);
                     mPoolSemaphore.release();
                 }
@@ -370,7 +370,9 @@ public class ImageLoader {
             if (fieldValue > 0 && fieldValue < Integer.MAX_VALUE) {
                 value = fieldValue;
 
-                Log.e("TAG", value + "");
+                Log.d("zjy", "ImageLoader->getImageViewFieldValue():fieldName," +
+                        "" + fieldName +
+                        ",value= " + value);
             }
         } catch (Exception e) {
             e.printStackTrace();

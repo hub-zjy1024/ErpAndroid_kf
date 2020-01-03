@@ -140,7 +140,7 @@ public class SPrinter2 extends SPrinter {
             byte[] tempReadBytes = new byte[16];
             int readLen = this.read(tempReadBytes);
             if (readLen != 0) {
-                Log.e("fdh", "read() old data this.tempReadBytes!=null!");
+                Log.d("fdh", "read() old data this.tempReadBytes!=null!");
             }
 
             for (int i = 0; i < 3; ++i) {
@@ -152,7 +152,7 @@ public class SPrinter2 extends SPrinter {
                 Thread.sleep(100L);
                 byte[] pReadBytes = new byte[16];
                 int count = (timeout - 100 - 200) / timeDiff;
-                Log.e("fdh", "read count=" + count + "次");
+                Log.d("fdh", "read count=" + count + "次");
                 int readLen0;
                 for (readLen0 = 0; count > 0; --count) {
                     readLen0 = this.read(pReadBytes);
@@ -175,7 +175,7 @@ public class SPrinter2 extends SPrinter {
                 if (readLen0 == 0) {
                     Log.d("fdh", "timeout and read pReadBytes is null!");
                     retStatus = this.getCurrentStatus();
-                    Log.e("fdh", "read failed! and getPrinterStatus is:" + retStatus);
+                    Log.d("fdh", "read failed! and getPrinterStatus is:" + retStatus);
                     if (retStatus == 0) {
                         Msg.append("未打印完成，正在打印中！");
                         return -2;
@@ -198,13 +198,13 @@ public class SPrinter2 extends SPrinter {
                 }
 
                 if (readLen0 < 7) {
-                    Log.e("fdh", "pReadBytes.length!=7 pReadBytes.length=" + pReadBytes.length);
+                    Log.d("fdh", "pReadBytes.length!=7 pReadBytes.length=" + pReadBytes.length);
                     return -7;
                 } else {
-                    Log.e("fdh", "读到7个以上数据是:");
+                    Log.d("fdh", "读到7个以上数据是:");
                     if (pReadBytes[0] == 55 && pReadBytes[1] == 34 && pReadBytes[2] == 49 && pReadBytes[3] == 50 &&
                             pReadBytes[4] == 51 && pReadBytes[5] == 52 && pReadBytes[6] == 0) {
-                        Log.e("fdh", "打印已经完成:");
+                        Log.d("fdh", "打印已经完成:");
                         Msg.append("当前打印已经完成");
                         return 0;
                     } else {
@@ -215,7 +215,7 @@ public class SPrinter2 extends SPrinter {
             }
         } catch (Exception var12) {
             var12.printStackTrace();
-            Log.e("fdh", "fdh at PrinterInstance.java getPrintingStatus() Exception! ex.getMessage()=" + var12.getMessage());
+            Log.d("fdh", "fdh at PrinterInstance.java getPrintingStatus() Exception! ex.getMessage()=" + var12.getMessage());
             Msg.append("未知异常！");
             return -1;
         }
@@ -229,7 +229,7 @@ public class SPrinter2 extends SPrinter {
         byte[] buffer = new byte[16];
         readLen = this.read(buffer);
         for (byte aBuffer : buffer) {
-            Log.e("zjy", "SPrinter->getPaperStatus(): ==byte" + aBuffer);
+            Log.d("zjy", "SPrinter->getPaperStatus(): ==byte" + aBuffer);
         }
         return -1;
     }
@@ -283,7 +283,7 @@ public class SPrinter2 extends SPrinter {
         if (readLen == 0) {
             return -1;
         } else {
-            Log.e("PrinterInstance", "retByte0：  " + retByte);
+            Log.d("PrinterInstance", "retByte0：  " + retByte);
             if ((retByte & 96) == 96) {
                 return -2;
             } else if ((retByte & 12) == 12) {
@@ -337,7 +337,7 @@ public class SPrinter2 extends SPrinter {
                 if (readLen == 0) {
                     return -1;
                 } else {
-                    Log.e("PrinterInstance", "retByte1：  " + retByte);
+                    Log.d("PrinterInstance", "retByte1：  " + retByte);
                     return (retByte & 4) == 4 ? -4 : 0;
                 }
             }
@@ -351,12 +351,12 @@ public class SPrinter2 extends SPrinter {
                 readLen = dataIn.read(buffer);
             }
         } catch (IOException var4) {
-            Log.e("zjy", "BluetoothPort read error");
+            Log.d("zjy", "BluetoothPort read error");
             var4.printStackTrace();
         } catch (Exception var5) {
             var5.printStackTrace();
         }
-        Log.w("BluetoothPort", "read length:" + readLen);
+        Log.w("zjy", "read length:" + readLen);
         return readLen;
     }
 

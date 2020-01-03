@@ -26,7 +26,6 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
@@ -842,7 +841,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                     while ((s = bis.readLine()) != null) {
                         result += s;
                     }
-                    Log.e("zjy", "SetYundan->run():com.b1b.js.erpandroid_kf.printer: reuslt=="
+                    Log.d("zjy", "SetYundan->run():com.b1b.js.erpandroid_kf.printer: reuslt=="
                             + result);
                     if (!result.equals("")) {
                         String[] printers = result.split(",");
@@ -884,16 +883,14 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
             public void onClick(View v) {
                 if (desOrderid != null && dyundanType == null) {
                     if (flag != 1) {
-                        Toast.makeText(mContext, "获取寄送信息失败，请稍等或返回重新进入", Toast
-                                .LENGTH_SHORT).show();
+                          showMsgToast("获取寄送信息失败，请稍等或返回重新进入");
                         return;
                     }
 
                     if (boxBaojia.isChecked()) {
                         String strBaojia = edBaojia.getText().toString();
                         if (strBaojia.equals("")) {
-                            Toast.makeText(mContext, "必须输入保价金额", Toast
-                                    .LENGTH_SHORT).show();
+                              showMsgToast("必须输入保价金额");
                             return;
                         }
                     }
@@ -906,38 +903,31 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                     account = edAccount.getText().toString().trim();
                     final String bags = edBags.getText().toString().trim();
                     if (bags.equals("")) {
-                        Toast.makeText(mContext, "请输入包裹数", Toast
-                                .LENGTH_SHORT).show();
+                        showMsgToast("请输入包裹数");
                         return;
                     }
                     if (jTel.equals("")) {
-                        Toast.makeText(mContext, "必须输入寄件人电话", Toast
-                                .LENGTH_SHORT).show();
+                          showMsgToast("必须输入寄件人电话");
                         return;
                     }
                     if (jAddress.equals("")) {
-                        Toast.makeText(mContext, "必须输入寄件人地址", Toast
-                                .LENGTH_SHORT).show();
+                          showMsgToast("必须输入寄件人地址");
                         return;
                     }
                     if (jName.equals("")) {
-                        Toast.makeText(mContext, "必须输入寄件人姓名", Toast
-                                .LENGTH_SHORT).show();
+                          showMsgToast("必须输入寄件人姓名");
                         return;
                     }
                     if (dTel.equals("")) {
-                        Toast.makeText(mContext, "必须输入收件人电话", Toast
-                                .LENGTH_SHORT).show();
+                          showMsgToast("必须输入收件人电话");
                         return;
                     }
                     if (dAddress.equals("")) {
-                        Toast.makeText(mContext, "必须输入收件人地址", Toast
-                                .LENGTH_SHORT).show();
+                          showMsgToast("必须输入收件人地址");
                         return;
                     }
                     if (dName.equals("")) {
-                        Toast.makeText(mContext, "必须输入收件人姓名", Toast
-                                .LENGTH_SHORT).show();
+                          showMsgToast("必须输入收件人姓名");
                         return;
                     }
                     String printType = TYPE_210;
@@ -1495,7 +1485,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
             return "成功";
         }
         String result = SF_Server.InsertBD_YunDanInfo(pid, orderID, destcode);
-        Log.e("zjy", "SetYundanActivity->run(): insert Res==" + result);
+        Log.d("zjy", "SetYundanActivity->run(): insert Res==" + result);
         if (result.equals("成功")) {
             MyApp.myLogger.writeInfo("SFprint--insertYundanInfo:OK" + pid);
         }
@@ -1551,7 +1541,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
                 urlCoding);
         strURL += "&pid=" + URLEncoder.encode(pid,
                 urlCoding);
-        Log.e("zjy", "SetYundanActivity->startPrint(): StrUrl==" + strURL);
+        Log.d("zjy", "SetYundanActivity->startPrint(): StrUrl==" + strURL);
         URL url = new URL(strURL);
         HttpURLConnection conn = (HttpURLConnection) url
                 .openConnection();
@@ -1565,7 +1555,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
             builder.append(s);
         }
         String res = builder.toString();
-        Log.e("zjy", "SetYundanActivity->run(): print_result==" + builder
+        Log.d("zjy", "SetYundanActivity->run(): print_result==" + builder
                 .toString());
         double len = (double) (System.currentTimeMillis() - time1) / 1000;
         MyApp.myLogger.writeInfo("SF yundan" + orderID + "\ttime:" + len);
@@ -1586,7 +1576,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
             serverType, double baojia, String printName, String hasE, String destcode, String yundanType) throws IOException {
         String ip = "http://" + serverIP + ":8080";
         String strURL = ip + "/PrinterServer/SFPrintServlet?";
-        Log.e("zjy", "SetYundanActivity->startPrint(): StrUrl==" + strURL);
+        Log.d("zjy", "SetYundanActivity->startPrint(): StrUrl==" + strURL);
         URL url = new URL(strURL);
         HttpURLConnection conn = (HttpURLConnection) url
                 .openConnection();
@@ -1624,7 +1614,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
             builder.append(s);
         }
         String res = builder.toString();
-        Log.e("zjy", "SetYundanActivity->run(): print_result==" + builder
+        Log.d("zjy", "SetYundanActivity->run(): print_result==" + builder
                 .toString());
         return res.equals("ok");
     }
@@ -1646,7 +1636,7 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
     public String getSFClientInfo(String clientID) throws IOException,
             XmlPullParserException {
         String detail = SF_Server.GetClientPCCInfo(clientID);
-   //     Log.e("zjy", "SFActivity->getSFClientInfo(): clientDetail==" + detail);
+   //     Log.d("zjy", "SFActivity->getSFClientInfo(): clientDetail==" + detail);
         return detail;
     }
 
@@ -1689,11 +1679,11 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
         try {
             id = Integer.parseInt(corpID);
         } catch (Exception e) {
-            Log.e("zjy", "SetYundanActivity->getAccoutByCorpID() Error-- corpId==" + corpID);
+            Log.d("zjy", "SetYundanActivity->getAccoutByCorpID() Error-- corpId==" + corpID);
             throw new IOException("corpId不为数字", e);
         }
         String result = SF_Server.GetCorpExpressAccountNo("顺丰", id);
-        //Log.e("zjy", "SetYundanActivity->getAccoutByCorpID(): account==" + result);
+        //Log.d("zjy", "SetYundanActivity->getAccoutByCorpID(): account==" + result);
         return result;
     }
 }

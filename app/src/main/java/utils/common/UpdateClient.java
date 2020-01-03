@@ -318,14 +318,14 @@ public class UpdateClient {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             //先判断是否有安装未知来源应用的权限
             haveInstallPermission = mContext.getPackageManager().canRequestPackageInstalls();
-            Log.e("zjy", getClass() + "->setInstallPermission(): ==" + haveInstallPermission );
+            Log.d("zjy", getClass() + "->setInstallPermission(): ==" + haveInstallPermission );
             if (!haveInstallPermission) {
                 requestPermission();
             } else {
                 installApk(apkFile);
             }
         } else {
-            Log.e("zjy", getClass() + "->setInstallPermission(): no need==");
+            Log.d("zjy", getClass() + "->setInstallPermission(): no need==");
             installApk(apkFile);
         }
     }
@@ -337,14 +337,14 @@ public class UpdateClient {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             //先判断是否有安装未知来源应用的权限
             haveInstallPermission = mContext.getPackageManager().canRequestPackageInstalls();
-            Log.e("zjy", getClass() + "->setInstallPermission(): ==" + haveInstallPermission );
+            Log.d("zjy", getClass() + "->setInstallPermission(): ==" + haveInstallPermission );
             if (!haveInstallPermission) {
                 requestPermission();
             } else {
                 installApk(updateFile);
             }
         } else {
-            Log.e("zjy", getClass() + "->setInstallPermission(): no need==");
+            Log.d("zjy", getClass() + "->setInstallPermission(): no need==");
             installApk(updateFile);
         }
     }
@@ -362,7 +362,7 @@ public class UpdateClient {
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void realToSetting() {
-        Log.e("zjy", getClass() + "->realToSetting(): ==open unknow source");
+        Log.d("zjy", getClass() + "->realToSetting(): ==open unknow source");
         Uri packageURI = Uri.parse("package:" + mContext.getPackageName());
         Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,packageURI);
         ( (Activity)(mContext)).startActivityForResult(intent, INSTALL_PERMISS_CODE);
@@ -384,7 +384,7 @@ public class UpdateClient {
     @RequiresApi(api = Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     private void installApk(File file) {
         if (file.exists()) {
-            Log.e("zjy", getClass() + "->installApk(): ==start install");
+            Log.d("zjy", getClass() + "->installApk(): ==start install");
 //            Intent intent = new Intent(Intent.ACTION_VIEW);
             Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
             Uri apkUri = null;
@@ -397,7 +397,7 @@ public class UpdateClient {
                 //添加这一句表示对目标应用临时授权该Uri所代表的文件
 //                intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                Log.e("zjy", getClass() + "->installApk():7.0 ==" + apkUri);
+                Log.d("zjy", getClass() + "->installApk():7.0 ==" + apkUri);
             } else {
                 apkUri = Uri.fromFile(file);
             }

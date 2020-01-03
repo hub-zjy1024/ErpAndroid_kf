@@ -118,4 +118,31 @@ public class MyDbManger extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     }
+
+    public final String getStringCol(Cursor query, String cName) {
+        return query.getString(query.getColumnIndex(cName));
+    }
+    public final int getIntCol(Cursor query, String cName) {
+        return query.getInt(query.getColumnIndex(cName));
+    }
+
+    public final long getLongCol(Cursor query, String cName) {
+        return query.getLong(query.getColumnIndex(cName));
+    }
+
+    public final byte[] getBlobCol(Cursor query, String cName) {
+        return query.getBlob(query.getColumnIndex(cName));
+    }
+
+    public final float getFloatCol(Cursor query, String cName) {
+        return query.getFloat(query.getColumnIndex(cName));
+    }
+
+    public final short getShortCol(Cursor query, String cName) {
+        return query.getShort(query.getColumnIndex(cName));
+    }
+
+    public final double getDoubleCol(Cursor query, String cName) {
+        return query.getDouble(query.getColumnIndex(cName));
+    }
 }

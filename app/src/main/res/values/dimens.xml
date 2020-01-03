@@ -15,4 +15,5 @@
     <dimen name="item_view_padding_horizontal">10dp</dimen>
     <dimen name="item_view_padding_vetical">8dp</dimen>
     <integer name="dialog_anim_time">200</integer>
+    <dimen name="dimen_menu_item_bg_padding">8dp</dimen>
 </resources>

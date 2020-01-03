@@ -17,7 +17,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
 import com.b1b.js.erpandroid_kf.adapter.PankuAdapter;
@@ -79,7 +78,7 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
                 mAdapter.notifyDataSetChanged();
                 break;
             case INSERT_SUCCESS:
-                Toast.makeText(PankuActivity.this, "插入成功", Toast.LENGTH_SHORT).show();
+                showMsgToast("插入成功");
                 btnPk.setVisibility(View.INVISIBLE);
                 btnReset.setVisibility(View.VISIBLE);
                 pkData.clear();
@@ -111,16 +110,16 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
                 mAdapter.notifyDataSetChanged();
                 break;
             case CHANGEFLAG_SUCCESS:
-                Toast.makeText(PankuActivity.this, "解锁成功", Toast.LENGTH_SHORT).show();
+                showMsgToast("解锁成功");
                 final String did = msg.obj.toString();
                 btnPk.setVisibility(View.VISIBLE);
                 btnReset.setVisibility(View.INVISIBLE);
                 pkData.clear();
                 mAdapter.notifyDataSetChanged();
-                new Thread() {
+                Runnable mRun = new Runnable() {
+
                     @Override
                     public void run() {
-                        super.run();
                         try {
                             List<PankuInfo> pankuList = getPankuList(did, "");
                             pkData.addAll(pankuList);
@@ -135,8 +134,9 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
                             e.printStackTrace();
                         }
                     }
-                }.start();
+                };
 
+                TaskManager.getInstance().execute(mRun);
                 break;
             case CHANGEFLAG_ERROR:
                 showMsgToast("解锁失败");
@@ -219,10 +219,9 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
         pkData.clear();
         mAdapter.notifyDataSetChanged();
         pdDialog.show();
-        new Thread() {
+        Runnable mRun = new Runnable() {
             @Override
             public void run() {
-                super.run();
                 try {
                     List<PankuInfo> pankuList = getPankuList(id, partno);
                     pkData.addAll(pankuList);
@@ -237,7 +236,9 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
                     e.printStackTrace();
                 }
             }
-        }.start();
+        };
+        String tag = "panku_getdata";
+        TaskManager.getInstance().executeLimitedTask(tag, mRun);
     }
 
     @Override
@@ -319,7 +320,7 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
                             mHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(PankuActivity.this, "插入成功", Toast.LENGTH_SHORT).show();
+                                    showMsgToast("插入成功");
                                     btnPk.setVisibility(View.INVISIBLE);
                                     btnReset.setVisibility(View.VISIBLE);
                                 }

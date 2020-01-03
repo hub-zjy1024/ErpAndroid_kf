@@ -304,14 +304,14 @@ public class PrinterUtils2 {
         int marginHorizontal = 72;
         int marginRight = 68;
         int veticalMargin = 50;
-        Log.e("zjy", "PrintService->getImage():t3==");
+        Log.d("zjy", "PrintService->getImage():t3==");
         Paint.FontMetrics metrics= paint.getFontMetrics();
         //        fontMetrics.bottom - fontMetrics.top + fontMetrics.leading;
         float mHeight=metrics.bottom-metrics.top+metrics.leading;
         fisrtLen = (int) (veticalMargin + mHeight);
-        Log.e("zjy", "PrintService->getImage(): firstHeight==" + fisrtLen);
+        Log.d("zjy", "PrintService->getImage(): firstHeight==" + fisrtLen);
         for(int i=0;i<5;i++){
-            Log.e(PrinterUtils2.class.getName(), "textY: " + fisrtLen);
+            Log.d(PrinterUtils2.class.getName(), "textY: " + fisrtLen);
             canvas.drawText("esc-printer" + i, marginHorizontal, fisrtLen, paint);
             fisrtLen+=mHeight+lineDur;
         }
@@ -368,7 +368,7 @@ public class PrinterUtils2 {
         int textleft = 2;
         int vMaxHeight = h - veticalMargin;
         for (int i = 0; fisrtLen < vMaxHeight; i++) {
-            Log.e(PrinterUtils2.class.getName(), "textY: " + fisrtLen);
+            Log.d(PrinterUtils2.class.getName(), "textY: " + fisrtLen);
             canvas.drawText("printer-esc" + i, textleft + marginHorizontal, fisrtLen, paint);
             fisrtLen += mHeight + lineDur;
         }
@@ -731,10 +731,10 @@ public class PrinterUtils2 {
             // 数据指令
             commandList.addAll(bmpHexList);
         }
-        Log.e("zjy", PrinterUtils2.class.getName()+"->decodeBitmapToDataList():  ==c0" + count0 + "\t" + count1);
+        Log.d("zjy", PrinterUtils2.class.getName()+"->decodeBitmapToDataList():  ==c0" + count0 + "\t" + count1);
         int finalW = (zeroCount + width) * height;
         int extraW = zeroCount * height + count0 + count1;
-        Log.e("zjy",
+        Log.d("zjy",
                 PrinterUtils2.class.getName() + "->decodeBitmapToDataList(): totoal==" + finalW + "\t" + extraW);
 
         ArrayList<byte[]> data = new ArrayList<>();
