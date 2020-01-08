@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
@@ -86,6 +87,8 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
     private AlertDialog aDialog;
     private SharedPreferences sp;
     private SharedPreferences spPicUpload;
+    Spinner spiPaperType;
+    Spinner spiUpLoad;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,9 +100,11 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
         final EditText edDiaohuoAccount = (EditText) findViewById(R.id.activity_setting_ed_diaohuo_account);
         final RadioButton rdoSF = (RadioButton) findViewById(R.id.activity_setting_rdo_SF);
         final Spinner spiKF = (Spinner) findViewById(R.id.activity_setting_spiKF);
+        spiPaperType = (Spinner) findViewById(R.id.activity_setting_spiBtPaperType);
+
         final TextView tvSavedKf = (TextView) findViewById(R.id.activity_setting_tvkf);
         final RadioButton rdoKY = (RadioButton) findViewById(R.id.activity_setting_rdo_ky);
-        final Spinner spiUpLoad = (Spinner) findViewById(R.id.activity_setting_spi_picupload_style);
+        spiUpLoad = (Spinner) findViewById(R.id.activity_setting_spi_picupload_style);
         final Button btnCheckUpdate = (Button) findViewById(R.id.activity_setting_btncheckupdate);
         btnCheckUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,6 +113,9 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
             }
         });
         String[] arrays = getResources().getStringArray(R.array.upload_type);
+        String[] btPaperTypes = getResources().getStringArray(R.array.printer_mode);
+        spiPaperType.setAdapter(new ArrayAdapter<String>(this, R.layout.item_province, R.id.item_province_tv,
+                btPaperTypes));
         String[] strs = Arrays.copyOf(arrays, arrays.length + 1);
         strs[strs.length - 1] = "手动";
         spiUpLoad.setAdapter(new ArrayAdapter<String>(this, R.layout.item_province, R.id.item_province_tv, 
@@ -172,8 +180,14 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
                     MyApp.myLogger.writeInfo("have set config:" + selectedItem.get(CONFIG_JSON));
                 }
                 Object selectedItem1 = spiUpLoad.getSelectedItem();
-                spPicUpload.edit().putString("style", selectedItem1.toString()).commit();
-                MyApp.myLogger.writeInfo(SettingActivity.class, "set takepic style :" + 
+                SharedPreferences.Editor mUploadEditor = spPicUpload.edit();
+                mUploadEditor.putString("style", selectedItem1.toString());
+                Object selectedItem2 = spiPaperType.getSelectedItem();
+                if (selectedItem2 != null) {
+                    mUploadEditor.putString("paperType", selectedItem2.toString());
+                }
+                mUploadEditor.commit();
+                MyApp.myLogger.writeInfo(SettingActivity.class, "set takepic style :" +
                         selectedItem1.toString());
                 boolean commit = editor.commit();
                 if (commit) {
@@ -240,6 +254,23 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
         edPrinterIP.setText(localPrinterIP);
         edPrinterServer.setText(serverIP);
         edDiaohuoAccount.setText(diaohuoAccount);
+        String paperType = spPicUpload.getString("paperType", "");
+        String style = spPicUpload.getString("style", "");
+        selectItemByStr(spiPaperType, paperType);
+        selectItemByStr(spiUpLoad, style);
+    }
+
+    private void selectItemByStr(Spinner mSpin, String key) {
+        SpinnerAdapter adapter = mSpin.getAdapter();
+        int count = adapter.getCount();
+        for (int i = 0; i < count; i++) {
+            Object item = adapter.getItem(i);
+            String s = item.toString();
+            if (s.equals(key)) {
+                mSpin.setSelection(i);
+                break;
+            }
+        }
     }
 
     public void getOnlineConfig() {

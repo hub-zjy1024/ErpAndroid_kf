@@ -40,6 +40,7 @@ import me.drakeet.materialdialog.MaterialDialog;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.SPrinter;
 import utils.btprint.SPrinter2;
+import utils.btprint.suofang.SuoFangPrinter;
 import utils.framwork.DialogUtils;
 import utils.framwork.MyToast;
 import utils.framwork.SoftKeyboardUtils;
@@ -294,8 +295,10 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
                 if (printer2.isOpen()) {
                     boolean isConnect = printer2.initPrinter();
                     if (!isConnect) {
+                        MyApp.myLogger.writeInfo("connectBt =" + btName + ",mac=" + btAddress);
                         SPrinter2.findPrinter(btName);
                         printer2 = SPrinter2.getPrinter();
+                        checkMode();
                         printer2.connect(btAddress);
                     } else {
                         mHandler.sendEmptyMessage(SPrinter.STATE_CONNECTED);
@@ -307,6 +310,34 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
         };
         TaskManager.getInstance().execute(connetRunnable);
 
+    }
+
+    public int getSavedPager() {
+        SharedPreferences mMode = getSharedPreferences(SettingActivity.PREF_TKPIC, 0);
+        String paperType = mMode.getString("paperType", "");
+        int realMode = SuoFangPrinter.MODE_LIANXU;
+        if (getResources().getString(R.string.p_mode_continue).equals(paperType)) {
+            realMode = SuoFangPrinter.MODE_LIANXU;
+        } else if (getResources().getString(R.string.p_mode_offset).equals(paperType)) {
+            realMode = SuoFangPrinter.MODE_Dur;
+        }
+        return realMode;
+    }
+    public void setPapaer(int realMode) {
+        if (printer2 != null && printer2 instanceof SuoFangPrinter) {
+            try {
+                SuoFangPrinter mPrinter = (SuoFangPrinter) printer2;
+                mPrinter.setMode(realMode);
+            } catch (Throwable e) {
+                MyApp.myLogger.writeError(e, "setMode error ");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    void checkMode() {
+        int savedPager = getSavedPager();
+        setPapaer(savedPager);
     }
     @Override
     public void init() {
@@ -484,6 +515,7 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
                 tvState.setTextColor(Color.GREEN);
                 tvState.setText("已连接");
                 printer2 = SPrinter.getPrinter();
+                checkMode();
             }
         }
     }

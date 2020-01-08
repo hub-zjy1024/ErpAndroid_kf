@@ -251,7 +251,7 @@ public class BtHelper2 extends BtHelper {
     public void closeConnect() {
         if (dataOut != null) {
             try {
-                dataIn.close();
+                dataOut.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -222,9 +222,13 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                                 spKf.edit().putString(SpSettings.storageKey, storageInfo).apply();
                             }
                             storID = StorageUtils.getStorageIDFromJson(storageInfo);
+                            if ("".equals(storID)) {
+                                throw new IOException("ip地址异常,storInfo=" + storageInfo);
+                            }
                             MyApp.myLogger.writeInfo("nowStorInfo=" + storageInfo);
                         } catch (IOException e) {
                             e.printStackTrace();
+                            MyApp.myLogger.writeError(e, "获取库房信息失败");
                             showMsgDialog("获取库房信息失败," + e.getMessage());
                         }
                         client.startUpdate();

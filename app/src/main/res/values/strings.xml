@@ -25,6 +25,13 @@
         <item>@string/upload_fromphone</item>
         <item>@string/upload_continue</item>
     </array>
+    <array name="printer_mode">
+        <item>@string/p_mode_continue</item>
+        <item>@string/p_mode_offset</item>
+    </array>
+    <string name="p_mode_continue">连续纸</string>
+    <string name="p_mode_offset">间隔纸</string>
+
     <string name="app_name">大赢家kf</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="str_yundan_jaddresss_tag">详细地址（寄）</string>

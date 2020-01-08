@@ -198,6 +198,7 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
          connectMap = map;
         //                        BluetoothClass.Device mdev = (BluetoothClass.Device) map.get("title");
         String deviceName = (String) map.get("title");
+        MyApp.myLogger.writeInfo("settting connectBt =" + deviceName + ",mac=" + macAddr);
         SPrinter2.findPrinter(deviceName);
         printer2 = SPrinter2.getPrinter();
         pdDialog.show();

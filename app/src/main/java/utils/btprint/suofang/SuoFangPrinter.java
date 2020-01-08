@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 
+import java.io.Serializable;
 import java.util.List;
 
 import utils.btprint.BtHelper;
@@ -16,7 +17,7 @@ import utils.btprint.utils.PrinterUtils2;
 /**
  * Created by 张建宇 on 2019/12/17.
  */
-public class SuoFangPrinter extends SPrinter2 {
+public class SuoFangPrinter extends SPrinter2 implements Serializable {
     public SuoFangPrinter(BtHelper helper) {
         super(helper);
     }
@@ -25,7 +26,7 @@ public class SuoFangPrinter extends SPrinter2 {
     private int maxHeight = 215;
 
     Bitmap bitmap;
-    Canvas canvas ;
+    Canvas canvas;
     int y = 0;
     int x = 0;
     int textSzie = 20;
@@ -37,6 +38,9 @@ public class SuoFangPrinter extends SPrinter2 {
     private int marginVetical = 5;
     private int marginHorizontal = 8;
     private int labelSize = 8;
+    public static int MODE_LIANXU = 1;
+    public static int MODE_Dur = 0;
+    private int mode = MODE_LIANXU;
 
     public static boolean isSuoFang(String devName) {
         if (devName == null) {
@@ -186,7 +190,29 @@ public class SuoFangPrinter extends SPrinter2 {
             for (byte[] temp : bytes) {
                 write(temp);
             }
-            cutPaper();
+            if (mode == MODE_LIANXU) {
+                jumpLine(3);
+                cutPaper();
+            } else if (mode == MODE_Dur) {
+                cutPaper();
+            }
+        }
+    }
+
+    public void setMode(int mode) {
+        this.mode = mode;
+    }
+
+    private void jumpLine(int lines) {
+        //ESC j n
+        if (lines > 255) {
+            lines = 255;
+        }
+//        byte[] mdata = new byte[]{27, 74, (byte) lines};
+//                write(mdata);
+        for (int i = 0; i < lines; i++) {
+            byte[] mdata = new byte[]{10};
+            write(mdata);
         }
     }
 

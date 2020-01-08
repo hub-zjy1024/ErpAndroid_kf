@@ -39,7 +39,7 @@ public class StorageUtils {
             e.printStackTrace();
         }
         if (bodyString.equals("")) {
-            throw new IOException("获取库房ID出错：" + info);
+            throw new IOException("获取库房ID出错：" + info + ",ip=" + ip);
         }
         return bodyString;
     }
