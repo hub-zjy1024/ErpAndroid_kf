@@ -42,12 +42,12 @@ public class MyFileUtils {
     public static void saveImg(String name, Bitmap bitmap, Context context) {
         File file;
         if (isMonuted()) {
-            file = new File(Environment.getDataDirectory(), name);
+            file = new File(Environment.getExternalStorageDirectory(), name);
         } else {
             file = new File(context.getCacheDir(), name);
         }
-        if (!file.exists()) {
-            file.mkdirs();
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
         }
         try {
             BufferedOutputStream fio = new BufferedOutputStream(new FileOutputStream(file));

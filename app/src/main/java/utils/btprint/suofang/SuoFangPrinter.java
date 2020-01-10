@@ -23,7 +23,8 @@ public class SuoFangPrinter extends SPrinter2 implements Serializable {
     }
 
     private int maxWidth = PrinterUtils2.width;
-    private int maxHeight = 215;
+    private int defHeight = 30 * 8;
+    private int maxHeight = defHeight;
 
     Bitmap bitmap;
     Canvas canvas;
@@ -37,10 +38,13 @@ public class SuoFangPrinter extends SPrinter2 implements Serializable {
     private Paint mPaint;
     private int marginVetical = 5;
     private int marginHorizontal = 8;
-    private int labelSize = 8;
+    private int labelSize = 22;
     public static int MODE_LIANXU = 1;
     public static int MODE_Dur = 0;
+    public static int VeticalMargin_lianxu = 15;
+    public static int VeticalMargin_continue = 5;
     private int mode = MODE_LIANXU;
+    public static final int maxOffset = 1 * 8;
 
     public static boolean isSuoFang(String devName) {
         if (devName == null) {
@@ -59,6 +63,13 @@ public class SuoFangPrinter extends SPrinter2 implements Serializable {
         Paint.FontMetrics metrics = mPaint.getFontMetrics();
         //        fontMetrics.bottom - fontMetrics.top + fontMetrics.leading;
         getLineHeight();
+        if (mode == MODE_LIANXU) {
+            marginVetical = VeticalMargin_lianxu;
+            maxHeight = defHeight + 2 * marginVetical;
+        } else {
+            marginVetical = VeticalMargin_continue;
+            maxHeight = defHeight - maxOffset;
+        }
         y = marginVetical;
         x = marginHorizontal;
         bitmap = Bitmap.createBitmap(maxWidth, maxHeight, Bitmap.Config.RGB_565);
@@ -76,17 +87,27 @@ public class SuoFangPrinter extends SPrinter2 implements Serializable {
     @Override
     public synchronized void printBarCode(String code, int lablePlace, int width, int height) {
         float rate = width / 1f / (maxWidth - 2 * marginVetical);
+//        测试条码长度
+        int samples = 7;
+        int oldWidth = (int) (312 * 0.8f);
+        int sigleWidth = (int) (312 * 0.8f / samples);
         int realW = (int) (maxWidth * 0.8);
+        if (code != null) {
+            realW = oldWidth;
+            if (realW >= maxWidth) {
+                realW = maxWidth - marginHorizontal * 2;
+            }
+        }
         int realH = 50;
         int picY = (int) (y + picMargin);
         Bitmap bitmap = null;
 
         if (width == 1 && height == 43) {
-            bitmap = PrinterUtils2.newBarCode(helper.mContext, code, lablePlace,labelSize, realW, realH);
+            bitmap = PrinterUtils2.newBarCode( code, realW, realH);
             canvas.drawBitmap(bitmap, x, picY, mPaint);
         } else  if (width == 1 && height == 80) {
             realH = realH * 2;
-            bitmap = PrinterUtils2.newBarCode(helper.mContext, code, lablePlace, labelSize,realW, realH);
+            bitmap = PrinterUtils2.newBarCode( code,realW, realH);
             canvas.drawBitmap(bitmap, x, picY, mPaint);
         } else if (height > maxHeight || width > maxWidth) {
             printText("暂不支持此条码尺寸");
@@ -191,8 +212,7 @@ public class SuoFangPrinter extends SPrinter2 implements Serializable {
                 write(temp);
             }
             if (mode == MODE_LIANXU) {
-                jumpLine(3);
-                cutPaper();
+                Log.d("zjy", SuoFangPrinter.class.getName() + "->commit(): ==use lianxu");
             } else if (mode == MODE_Dur) {
                 cutPaper();
             }
@@ -203,6 +223,18 @@ public class SuoFangPrinter extends SPrinter2 implements Serializable {
         this.mode = mode;
     }
 
+    public void flush() {
+        Log.d("zjy", "SuoFangPrinter->flush(): start flush==");
+        helper.flush();
+    }
+    private void jumpLine2(int lines) {
+        byte[] mdata = new byte[]{27, 100  , (byte) lines};
+        write(mdata);
+//        1B 61 01：表示进纸一行。
+//        byte[] mdata = new byte[]{27, 0x64  , (byte) lines};
+//        write(mdata);
+        Log.e("zjy", "SuoFangPrinter->jumpLine2(): ==");
+    }
     private void jumpLine(int lines) {
         //ESC j n
         if (lines > 255) {
@@ -220,4 +252,11 @@ public class SuoFangPrinter extends SPrinter2 implements Serializable {
     public synchronized void cutPaper() {
         write(PrinterUtils2.feedAndCut2());
     }
+
+    @Override
+    public Bitmap preView() {
+        PrinterUtils2.addBorder(bitmap);
+        return bitmap;
+    }
+
 }

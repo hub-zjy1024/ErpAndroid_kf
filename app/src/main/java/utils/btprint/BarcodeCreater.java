@@ -6,11 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -58,6 +55,16 @@ public class BarcodeCreater {
         return resultBitmap;
     }
 
+    public static Bitmap creatBarcode(String code, int width,
+                                      int height) {
+        return creatBarcode(null, code, width, height, false, 0);
+    }
+
+    public static Bitmap creatBarcode(String code, int width,
+                                      int height, int barSize) {
+        return creatBarcode(null, code, width, height, true, barSize);
+    }
+
     public static Bitmap creatBarcode(Context context, String contents, int desiredWidth, int desiredHeight, boolean
             displayCode, float belowSize) {
         Bitmap resultBitmap = null;
@@ -77,7 +84,6 @@ public class BarcodeCreater {
             e.recycle();
             e = null;
         }
-        Log.d("zjy", "BarcodeCreater->creatBarcode(): resultHeight==" + resultBitmap.getHeight());
         return resultBitmap;
     }
 
@@ -92,44 +98,65 @@ public class BarcodeCreater {
             var10.printStackTrace();
         }
         if (belowStr != null) {
-            Bitmap codeBitmap = creatCodeBitmapSize(belowStr, desiredWidth, desiredHeight, context, belowSize);
+//            Bitmap codeBitmap = creatCodeBitmapSize(belowStr, desiredWidth, desiredHeight, context, belowSize);
+            Bitmap codeBitmap = creatCodeBitmapSize(belowStr, desiredWidth, belowSize);
             if (codeBitmap != null) {
-                Log.d("zjy", "BarcodeCreater->creatBarcode(): =codeHeight=" + codeBitmap.getHeight());
                 resultBitmap = mixtureBitmap(e, codeBitmap, new PointF(0.0F, (float) desiredHeight));
                 codeBitmap.recycle();
                 codeBitmap = null;
-                e.recycle();
+                if (e != null) {
+                    e.recycle();
+                }else{
+                    Log.e("zjy", "BarcodeCreater->creatBarcode():create barcode Failed==");
+                }
                 e = null;
             } else {
-                Log.e("zjy", "BarcodeCreater->creatBarcode(): ==creatCodeBitmapSize failed");
+                Log.e("zjy", "BarcodeCreater->creatBarcode(): ==creatCodeBitmap failed");
             }
         }
-        Log.d("zjy", "BarcodeCreater->creatBarcode(): resultHeight==" + resultBitmap.getHeight());
         return resultBitmap;
     }
 
+    private static Bitmap creatCodeBitmapSize(String contents, int width, float size) {
+        Paint mpaint = new Paint();
+        mpaint.setTextSize(size);
+        mpaint.setColor(Color.BLACK);
+        Paint.FontMetrics metrics = mpaint.getFontMetrics();
+        int lineHeight = (int) (metrics.bottom - metrics.ascent + metrics.leading);
+        Rect rect = new Rect();
+        mpaint.getTextBounds(contents, 0, contents.length(), rect);
+        int mx = (int) (rect.bottom - metrics.bottom);
+        Bitmap mbitmap = Bitmap.createBitmap(width, lineHeight, Bitmap.Config.RGB_565);
+        Canvas canvas = new Canvas(mbitmap);
+        canvas.drawColor(Color.WHITE);
+        canvas.drawText(contents, 0, mx, mpaint);
+        canvas.save();
+        canvas.restore();
+        return mbitmap;
+    }
     private static Bitmap creatCodeBitmapSize(String contents, int width, int height, Context context, float size) {
-        TextView tv = new TextView(context);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-        tv.setLayoutParams(layoutParams);
-        tv.setText(contents);
-        tv.setTextSize(size);
-        tv.setGravity(Gravity.CENTER);
-        tv.setWidth(width);
-        tv.setDrawingCacheEnabled(true);
-        tv.setTextColor(Color.BLACK);
-        tv.setBackgroundColor(-1);
-        tv.measure(0, 0);
-        tv.layout(0, 0, tv.getMeasuredWidth(), tv.getMeasuredHeight());
-        tv.buildDrawingCache();
-        Bitmap bitmapCode = tv.getDrawingCache();
-        //        Bitmap bitmapCode = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-        //        Canvas c = new Canvas();
-        //        Paint p = new Paint();
-        //        p.setTextSize(size);
-        //        p.setColor(Color.BLACK);
-        //        c.drawText(contents, 0, height, p);
-        return bitmapCode;
+//        TextView tv = new TextView(context);
+//        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+//        tv.setLayoutParams(layoutParams);
+//        tv.setText(contents);
+//        tv.setTextSize(size);
+//        tv.setGravity(Gravity.CENTER);
+//        tv.setWidth(width);
+//        tv.setDrawingCacheEnabled(true);
+//        tv.setTextColor(Color.BLACK);
+//        tv.setBackgroundColor(-1);
+//        tv.measure(0, 0);
+//        tv.layout(0, 0, tv.getMeasuredWidth(), tv.getMeasuredHeight());
+//        tv.buildDrawingCache();
+//        Bitmap bitmapCode = tv.getDrawingCache();
+//        //        Bitmap bitmapCode = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+//        //        Canvas c = new Canvas();
+//        //        Paint p = new Paint();
+//        //        p.setTextSize(size);
+//        //        p.setColor(Color.BLACK);
+//        //        c.drawText(contents, 0, height, p);
+//        return bitmapCode;
+        return creatCodeBitmapSize(contents, width, size);
     }
 
     public static Bitmap encode2dAsBitmap(String contents, int desiredWidth, int desiredHeight, int barType) {

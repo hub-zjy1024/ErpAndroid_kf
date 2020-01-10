@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -37,12 +38,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
+import utils.btprint.BtHelper;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.SPrinter;
 import utils.btprint.SPrinter2;
 import utils.btprint.suofang.SuoFangPrinter;
 import utils.framwork.DialogUtils;
-import utils.framwork.MyToast;
 import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.ChuKuServer;
@@ -52,6 +53,7 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
     private final static int FLAG_PRINT = 3;
     private String storageID = "";
     public static final String storageKey = SpSettings.storageKey;
+    private Button btnPreView;
 
     @Override
     public void handleMessage(Message msg) {
@@ -72,21 +74,14 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
                     Runnable printRun = new Runnable() {
                         @Override
                         public void run() {
-                            for (int i = 0; i <infos.size(); i++) {
-                                XiaopiaoInfo tInfo = infos.get(i);
-                                PrinterStyle.printXiaopiao2(printer2, tInfo);
-                                try {
-                                    Thread.sleep(1000);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
+                            printInfos(infos);
                         }
                     };
                     TaskManager.getInstance().execute(printRun);
                 }
                 if (msg.obj != null) {
                     List<XiaopiaoInfo> tInfos = (List<XiaopiaoInfo>) msg.obj;
+                    infos.clear();
                     infos.addAll(tInfos);
                 }
                 this.xpAdapter.notifyDataSetChanged();
@@ -133,7 +128,7 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
     ProgressDialog pdDialog;
     private MaterialDialog alertDialog;
     private long time1 ;
-
+    BtHelper.MyBtReceive2 myBtReceive2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,6 +140,23 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
         tvTitle = (TextView) findViewById(R.id.rukutag_activity_title);
         btnScan = (Button) findViewById(R.id.rukutag_activity_btn_scancode);
         btnPrint = (Button) findViewById(R.id.rukutag_activity_btn_print);
+        btnPreView = (Button) findViewById(R.id.ruku_tag_btn_preview);
+        if (BuildConfig.DEBUG) {
+            btnPreView.setVisibility(View.VISIBLE);
+            btnPreView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final Bitmap mBit = PreViewprintInfos2(infos);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ImageView viewInContent = getViewInContent(R.id.test_iv);
+                            viewInContent.setImageBitmap(mBit);
+                        }
+                    });
+                }
+            });
+        }
         btnSearch = (Button) findViewById(R.id.rukutag_activity_btn_search);
         final CheckBox oboOnlyCode = (CheckBox) findViewById(R.id.ruku_cbo_offline);
         cboAuto = (CheckBox) findViewById(R.id.ruku_cbo_autoprint);
@@ -177,7 +189,6 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
                     showMsgToast("请输入明细ID号");
                     return;
                 }
-                infos.clear();
                 getData(pid);
             }
         });
@@ -232,15 +243,7 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
                                     .getText().toString());
                             return;
                         }
-                        for (int i = 0; i < infos.size(); i++) {
-                            XiaopiaoInfo tInfo = infos.get(i);
-                            PrinterStyle.printXiaopiao2(printer2, tInfo);
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
+                        printInfos(infos);
                         MyApp.myLogger.writeInfo("start print rkTag,pid=" + edPid.getText().toString());
                     }
                 };
@@ -254,7 +257,16 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
         btAddress = userInfo.getString("btPrinterMac", "");
         final String devName = userInfo.getString("deviceName", "");
         btName = devName;
+        myBtReceive2 = new BtHelper.MyBtReceive2() {
+            @Override
+            public void onMsg(int msg) {
+                mHandler.sendEmptyMessage(msg);
+            }
 
+            @Override
+            public void onDeviceReceive(BluetoothDevice d) {
+            }
+        };
         if (btAddress.equals("")) {
             DialogUtils.getSpAlert(mContext, "暂无连接打印机记录，是否前往配置", "提示", new DialogInterface.OnClickListener() {
                 @Override
@@ -264,17 +276,7 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
             }, "是", null, "否").show();
         } else {
 //            printer2 = SPrinter.getPrinter(mContext, new SPrinter.MListener() {
-                printer2 = SPrinter2.getPrinter(this, new SPrinter.MListener() {
-                @Override
-                public void sendMsg(int what) {
-                    mHandler.sendEmptyMessage(what);
-                }
-
-                @Override
-                public void onDeviceReceive(BluetoothDevice d) {
-
-                }
-            });
+            printer2 = SPrinter2.getPrinter(this);
 //            printer2.registeBroadCast();
             connectDev(btAddress, devName);
         }
@@ -285,8 +287,27 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
         startActivityForResult(intent, reqCode);
     }
 
+    private Bitmap PreViewprintInfos2(List<XiaopiaoInfo> tinfos) {
+        if (tinfos.size() > 0) {
+            XiaopiaoInfo tInfo = tinfos.get(0);
+            return PrinterStyle.preViewXiaopiao2(printer2, tInfo);
+        }
+        return null;
+    }
+
+    private void printInfos(List<XiaopiaoInfo> tinfos) {
+        for (int i = 0; i < tinfos.size(); i++) {
+            XiaopiaoInfo tInfo = tinfos.get(i);
+            PrinterStyle.printXiaopiao2(printer2, tInfo);
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     public void connectDev(String mac, String name) {
-        Log.e("zjy", "RukuTagPrintAcitivity->run(): connectTO==" + btAddress + ",name=" + name);
+        Log.d("zjy", "RukuTagPrintAcitivity->run(): connectTO==" + btAddress + ",name=" + name);
         btAddress = mac;
         btName = name;
         Runnable connetRunnable = new Runnable() {
@@ -379,10 +400,12 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
         if (printer2 != null) {
-            printer2.unRegisterReceiver();
+            //申请打开蓝牙时会调用onpause，只能在onStop解除注册
+//            printer2.unRegisterReceiver();
+            printer2.unRegisterListener(this, myBtReceive2);
         }
     }
 
@@ -390,20 +413,14 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
     protected void onResume() {
         super.onResume();
         if (printer2 != null) {
-            printer2.registeBroadCast();
+//            printer2.registeBroadCast();
+            printer2.registerListener(this, myBtReceive2);
         }
     }
 
     @Override
     public void resultBack(String result) {
-        boolean isNum = MyToast.checkNumber(result);
-        edPid.setText(result);
-        if (isNum) {
-            infos.clear();
-            getData(result);
-        } else {
-            showMsgToast( getString(R.string.error_numberformate));
-        }
+        getCameraScanResult(result);
     }
 
     public void getData(final String pid) {
@@ -540,7 +557,6 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
     @Override
     public void getCameraScanResult(String result) {
         edPid.setText(result);
-        infos.clear();
         try {
             Integer.parseInt(result);
         } catch (NumberFormatException e) {

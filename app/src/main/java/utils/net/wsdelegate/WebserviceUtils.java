@@ -245,10 +245,10 @@ public class WebserviceUtils {
             }
             ret = sob.toString();
             if (BuildConfig.DEBUG) {
-                Log.d("zjy", "wcf,cla=" + sob.getClass() + "->getResNew():"
+                Log.d("zjy", "wcf,cla=" + sob.getClass().getSimpleName() + "->getResNew():"
                         +
                         "->" + serviceName +
-                        "->" + request.getName() +
+                        "->" + request.toString() +
                         " ,ret==" + ret);
             }
         } catch (XmlPullParserException e) {

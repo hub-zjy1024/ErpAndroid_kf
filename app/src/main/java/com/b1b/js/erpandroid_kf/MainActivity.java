@@ -80,6 +80,7 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
             Manifest.permission.READ_PHONE_STATE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.ACCESS_COARSE_LOCATION
             ,Manifest.permission.CAMERA
     };
+    public boolean isActive = false;
 
     public void handleMessage(final Message msg) {
         super.handleMessage(msg);
@@ -95,7 +96,17 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                 showMsgToast( msg.obj.toString());
                 break;
             case MSG_LOGIN_SUCCESS:
-                pd.cancel();
+                try {
+                    if (!isActive) {
+                        MyApp.myLogger.writeBug("loginBug cancelAfter");
+                        Log.w("zjy", "MainActivity->run(): MSG_LOGIN_SUCCESS==not Active");
+                        return;
+                    }
+                    pd.cancel();
+                } catch (Throwable e) {
+                    MyApp.myLogger.writeError(e, "login  pdCacel error");
+                    e.printStackTrace();
+                }
                 if(isLogin){
                     showMsgToast("已登录，正在跳转");
                     return;
@@ -334,6 +345,19 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
     public void resultBack(String result) {
         MyApp.myLogger.writeInfo("use RedLineScan");
         getCameraScanResult(result);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isActive = true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        isActive = false;
+        Log.e("zjy", "MainActivity->onDestroy(): ==");
     }
 
     @Override
@@ -647,13 +671,13 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                     }
                 } catch (IOException e) {
                     errMsg = "网络异常," + e.getMessage();
-                    Log.e("zjy", "MainActivity->run(): login ERR==", e);
+                    Log.w("zjy", "MainActivity->run(): login ERR==", e);
                 } catch (XmlPullParserException e) {
                     errMsg = "接口解析异常," + e.getMessage();
-                    Log.e("zjy", "MainActivity->run(): login ERR==", e);
+                    Log.w("zjy", "MainActivity->run(): login ERR==", e);
                 } catch (Exception e) {
                     errMsg = "其他异常," + e.getMessage();
-                    Log.e("zjy", "MainActivity->run(): login ERR==", e);
+                    Log.w("zjy", "MainActivity->run(): login ERR==", e);
                 }
                 if (!"".equals(errMsg)) {
                     zHandler.obtainMessage(MSG_LOGIN_FAILED, errMsg).sendToTarget();

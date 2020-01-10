@@ -1,9 +1,10 @@
 package com.b1b.js.erpandroid_kf.printer.entity;
 
+import java.io.Serializable;
 /**
  Created by 张建宇 on 2017/10/31. */
 
-public class XiaopiaoInfo {
+public class XiaopiaoInfo implements Serializable {
     private String partNo;
     private String topID;
     private String time;

@@ -3,20 +3,17 @@ package utils.btprint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -33,15 +30,20 @@ public class BtHelper2 extends BtHelper {
     }
 
     List<SPrinter.MListener> listeners = new ArrayList<>();
+    List<MyBtReceive2> listeners2 = new ArrayList<>();
+
     HashMap<String, BluetoothDevice> devCache = new HashMap<>();
     String nowDevMac;
 
+    private static final String mName = BtHelper2.class.getName();
 
+    private MyBtReceive2 myBtReceive2;
     private UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     public OutputStream dataOut;
     public InputStream dataIn;
 
     public void connect(String btMac) {
+        cancelScan();
         BluetoothDevice mDevice = null;
         try {
             if (btMac == null) {
@@ -109,8 +111,10 @@ public class BtHelper2 extends BtHelper {
             nowDevMac = btMac;
             devCache.put(btMac, mDevice);
             sendMsg(BtHelper.STATE_CONNECTED);
+            Log.d("zjy", mName + "->connect(): connected1==");
+
         } catch (IOException e) {
-            Log.e("zjy", getClass() + "->connect():m1 ==", e);
+            Log.w("zjy", mName + "->connect():m1 ==", e);
             BluetoothSocket mmSocket = null;
             try {
                 Method m = mDevice.getClass().getMethod("createRfcommSocket",
@@ -122,23 +126,23 @@ public class BtHelper2 extends BtHelper {
                 nowDevMac = btMac;
                 devCache.put(btMac, mDevice);
                 sendMsg(BtHelper.STATE_CONNECTED);
+                Log.d("zjy", mName + "BtHelper2->connect(): connected2==");
             } catch (Exception e2) {
-                Log.e("zjy", getClass() + "->connect():m2 ==", e2);
+                Log.w("zjy", mName + "->connect():m2 ==", e2);
                 try {
                     mmSocket.close();
                 } catch (Exception ie) {
                     ie.printStackTrace();
                 }
+                sendMsg(BtHelper.STATE_DISCONNECTED);
             }
-            sendMsg(BtHelper.STATE_DISCONNECTED);
-
         } catch (Exception e) {
             sendMsg(BtHelper.STATE_DISCONNECTED);
             e.printStackTrace();
         }
     }
 
-    void sendErrorMsg( String msg) {
+    void sendErrorMsg(String msg) {
         for (int i = 0; i < listeners.size(); i++) {
             SPrinter.MListener mListener = listeners.get(i);
         }
@@ -160,61 +164,34 @@ public class BtHelper2 extends BtHelper {
     }
 
     public void addListener(SPrinter.MListener event) {
-        listeners.add(event);
+        if (!listeners.contains(event)) {
+            listeners.add(event);
+        }
     }
 
 
-    public static final int STATE_CONNECTED = 1;
-    public static final int STATE_DISCONNECTED = 2;
-    public final static int STATE_SCAN_FINISHED = 3;
-    public final static int STATE_OPENED = 4;
+    public void unRegister(Context mContext, MyBtReceive2 myBtReceive2) {
+        super.unRegister(mContext, myBtReceive2);
+        listeners2.remove(myBtReceive2);
+    }
+
+    public void register(Context mContext, MyBtReceive2 myBtReceive2) {
+        super.register(mContext, myBtReceive2);
+        if (!listeners2.contains(myBtReceive2)) {
+            listeners2.add(myBtReceive2);
+        }
+    }
+
     private List<BluetoothDevice> devices = new ArrayList<>();
     public boolean debug = false;
     private BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 
     public boolean isRegisted = false;
 
-
-    public void startScan() {
-        cancelScan();
-        adapter.startDiscovery();
-    }
-
-    public void cancelScan() {
-        if (adapter.isDiscovering()) {
-            adapter.cancelDiscovery();
-        }
-    }
-
     MyBtReceive btReceive;
 
     public void setContext(Context mContext) {
-        this.mContext = mContext;
-    }
-
-    static class MyBtReceive extends BroadcastReceiver {
-        private BtHelper2 helper;
-
-        public MyBtReceive(BtHelper2 helper) {
-            this.helper = helper;
-        }
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            Log.e("zjy", "BtHelper2->onReceive(): Receiver==" + action);
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                helper.onDeviceReceive(device);
-            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                helper.sendMsg(STATE_SCAN_FINISHED);
-            } else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-                int extras1 = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -3);
-                if (extras1 == BluetoothAdapter.STATE_ON) {
-                    helper.sendMsg(STATE_OPENED);
-                }
-            }
-        }
+        weakCtx = new WeakReference<>(mContext);
     }
 
     public void onDeviceReceive(BluetoothDevice d) {
@@ -225,27 +202,18 @@ public class BtHelper2 extends BtHelper {
         }
     }
 
-    public List<BluetoothDevice> getBindedDevices() {
-        Set<BluetoothDevice> bondedDevices = adapter.getBondedDevices();
-        devices.clear();
-        devices.addAll(bondedDevices);
-        return devices;
-    }
 
     public void sendMsg(int what) {
-        if (debug) {
-            Log.e("zjy", "BtHelper2->sendMsg(): Messaage==" + what);
-        }
-        for (int i = 0; i < listeners.size(); i++) {
-            SPrinter.MListener mListener = listeners.get(i);
-            mListener.sendMsg(what);
+        //        if (debug) {
+        //            Log.d("zjy", mName+"->sendMsg(): Messaage==" + what);
+        //        }
+        for (int i = 0; i < listeners2.size(); i++) {
+            MyBtReceive2 mListener = listeners2.get(i);
+            Log.d("zjy", "send Listener->sendMsg(): ==" + mListener.toString() + ",what=" + what);
+            mListener.onMsg(what);
         }
     }
 
-    public void openBt() {
-        Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        mContext.startActivity(intent);
-    }
 
     @Override
     public void closeConnect() {
@@ -260,46 +228,55 @@ public class BtHelper2 extends BtHelper {
 
     public void close() {
         adapter.disable();
-        unRegister();
         devCache.clear();
 
-    }
-
-
-    public boolean isOpen() {
-        return adapter.isEnabled();
-    }
-
-    public BluetoothDevice getDeviceByMac(String mac) {
-        return adapter.getRemoteDevice(mac);
     }
 
     public void unRegister() {
         if (btReceive != null) {
             try {
-                mContext.unregisterReceiver(btReceive);
+                Context temp = weakCtx.get();
+                if (temp != null) {
+                    temp.unregisterReceiver(btReceive);
+                }
+                Log.d("zjy", mName + "->unRegister(): unRegist==" + btReceive.toString());
             } catch (Throwable e) {
                 e.printStackTrace();
+                Log.w("zjy",
+                        mName + "->unRegister(): unRegist failed==" + btReceive.toString());
             }
             listeners.clear();
             btReceive = null;
         }
-        Log.e("zjy", "BtHelper2->unRegister(): unRegist==" + toString());
         isRegisted = false;
     }
 
     public void register() {
         if (btReceive != null) {
+            Log.w("zjy", mName + "->register(): has register==" + btReceive.toString());
             return;
         }
         btReceive = new MyBtReceive(this);
-        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        filter.addAction(BluetoothDevice.ACTION_FOUND);
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        mContext.registerReceiver(btReceive, filter);
-        Log.e("zjy", "BtHelper2->register(): register==" + toString());
+        Context temp = weakCtx.get();
+        if (temp != null) {
+            try {
+                temp.registerReceiver(btReceive, mFilter);
+                Log.d("zjy", mName + "->register(): register==" + btReceive.toString());
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
         isRegisted = true;
     }
-    
+
+    public void flush() {
+        if (dataOut != null) {
+            try {
+                dataOut.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
 

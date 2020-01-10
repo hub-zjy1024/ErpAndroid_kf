@@ -6,7 +6,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -25,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import utils.btprint.BtHelper;
 import utils.btprint.MyBluePrinter;
 import utils.btprint.MyPrinterParent;
 import utils.btprint.SPrinter;
@@ -53,10 +53,14 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
                 pdScanDialog.cancel();
                 showMsgToast("扫描完成");
                 tv_status.setText("搜索完成");
+                duplicateMap = new HashMap<>();
                 progress.setVisibility(View.INVISIBLE);
                 break;
             case SPrinter.STATE_CONNECTED:
                 pdDialog.cancel();
+                if (connectMap == null) {
+                    return;
+                }
                 showMsgToast("连接成功");
                 Map connectMap = this.connectMap;
                 String title = (String) connectMap.get("title");
@@ -105,6 +109,8 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
     private ProgressDialog pdScanDialog;
     private ProgressBar progress;
     private ListView lvBounded;
+    BtHelper.MyBtReceive2 myBtReceive2;
+    HashMap<String, String> duplicateMap;
 
     public static MyBluePrinter getPrint() {
         return mPrinter;
@@ -158,11 +164,12 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
                 printer2.scan();
             }
         });
+        duplicateMap = new HashMap<>();
 //        printer2 = SPrinter.getPrinter(this, new SPrinter.MListener() {
-        printer2 = SPrinter2.getPrinter(this, new SPrinter.MListener() {
+        myBtReceive2 = new BtHelper.MyBtReceive2() {
             @Override
-            public void sendMsg(int what) {
-                bHandler.sendEmptyMessage(what);
+            public void onMsg(int msg) {
+                bHandler.sendEmptyMessage(msg);
             }
 
             @Override
@@ -173,13 +180,18 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
                 } else {
                     map.put("title", "未知");
                 }
+                if (duplicateMap.containsKey(d.getAddress())) {
+                    return;
+                } else {
+                    duplicateMap.put(d.getAddress(), "1");
+                }
                 map.put("deviceAddress", d.getAddress());
                 map.put("device", d);
-                Log.e("zjy", "PrintSettingActivity->onDeviceReceive(): device==" + d.toString());
                 listData.add(map);
                 simpleAdapter.notifyDataSetChanged();
             }
-        });
+        };
+        printer2 = SPrinter2.getPrinter(this);
         Runnable openBtRun = new Runnable() {
             @Override
             public void run() {
@@ -193,7 +205,31 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
         TaskManager.getInstance().execute(openBtRun);
     }
 
+    public static long delayTime = 1000;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        try {
+            if (printer2 == null) {
+                return;
+            }
+            final SPrinter2 sp = (SPrinter2) printer2;
+            sp.registerListener(this, myBtReceive2);
+            if (!printer2.isOpen()) {
+                printer2.open();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
     void onConnect(Map map) {
+        if (map == null) {
+            showMsgToast("待连接的设备不能为空");
+            return;
+        }
         macAddr = map.get("deviceAddress").toString();
          connectMap = map;
         //                        BluetoothClass.Device mdev = (BluetoothClass.Device) map.get("title");
@@ -226,7 +262,8 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
     protected void onPause() {
         super.onPause();
         if (printer2 != null) {
-            ((SPrinter) printer2).unRegisterReceiver();
+//            ((SPrinter) printer2).unRegisterReceiver();
+            ((SPrinter) printer2).unRegisterListener(this, myBtReceive2);
         }
     }
 }

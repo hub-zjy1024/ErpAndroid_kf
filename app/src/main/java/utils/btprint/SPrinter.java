@@ -3,6 +3,7 @@ package utils.btprint;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import java.io.IOException;
@@ -46,38 +47,6 @@ public class SPrinter extends MyPrinterParent {
         void onDeviceReceive(BluetoothDevice d);
     }
 
-    public synchronized static SPrinter getPrinter(Context mContext, final MListener event) {
-        if (printer == null) {
-            printer = new SPrinter(new BtHelper(mContext) {
-                @Override
-                public void sendMsg(int what) {
-                    super.sendMsg(what);
-                    event.sendMsg(what);
-                }
-
-                @Override
-                public void onDeviceReceive(BluetoothDevice d) {
-                    super.onDeviceReceive(d);
-                    event.onDeviceReceive(d);
-                }
-            });
-            return printer;
-        }
-        printer.helper = new BtHelper(mContext) {
-            @Override
-            public void sendMsg(int what) {
-                super.sendMsg(what);
-                event.sendMsg(what);
-            }
-
-            @Override
-            public void onDeviceReceive(BluetoothDevice d) {
-                super.onDeviceReceive(d);
-                event.onDeviceReceive(d);
-            }
-        };
-        return printer;
-    }
     public synchronized static SPrinter getPrinter() {
 //        return printer;
         return SPrinter2.getPrinter();
@@ -466,7 +435,6 @@ public class SPrinter extends MyPrinterParent {
 
     @Override
     public void scan() {
-        registeBroadCast();
         helper.startScan();
     }
 
@@ -480,24 +448,13 @@ public class SPrinter extends MyPrinterParent {
         return str;
     }
 
-    public void registeBroadCast() {
-        synchronized (this) {
-            helper.register();
-        }
-    }
-
-    public void registeBroadCast(Context mContext) {
-        synchronized (this) {
-            helper.register(mContext);
-        }
-    }
-
     public void pageSetup() {
         this.printText(label_set_page(page_width, page_height, 0));
     }
 
     @Override
     public void connect(String var1) {
+        stopScan();
         mDevice = helper.getDeviceByMac(var1);
         BluetoothSocket btSocket = null;
         try {
@@ -611,5 +568,18 @@ public class SPrinter extends MyPrinterParent {
 
     public void cutPaper() {
 
+    }
+
+    public Bitmap preView() {
+        return null;
+    }
+
+
+    public void registerListener(Context mContext, BtHelper.MyBtReceive2 btReceive) {
+        helper.register(mContext, btReceive);
+    }
+
+    public void unRegisterListener(Context mContext, BtHelper.MyBtReceive2 btReceive) {
+        helper.unRegister(mContext, btReceive);
     }
 }

@@ -1,6 +1,7 @@
 package com.b1b.js.erpandroid_kf.printer;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.b1b.js.erpandroid_kf.entity.PreChukuDetailInfo;
@@ -217,6 +218,45 @@ public class PrinterStyle {
         printer.newLine();
         printer.newLine();
         printer.commit();
+    }
+
+    public synchronized static Bitmap preViewXiaopiao2(SPrinter printer, XiaopiaoInfo info) {
+        int len[] = new int[]{15, 0};
+        printer.initPrinter();
+        //        printer.newLine();
+        printer.printText("\t" + info.getDeptNo() + "_" + info.getTime() + "\t" + info.getStorageCode());
+        printer.newLine();
+        printer.printText("型号:" + info.getPartNo());
+        printer.newLine();
+        String[] str = new String[]{"数量:" + info.getCounts(), "产地:" + info.getProduceFrom()};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+        str = new String[]{"厂家:" + info.getFactory(), "批号:" + info.getPihao()};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+        str = new String[]{"封装:" + info.getFengzhuang(), "描述:" + getStringAt(info.getDescription(), 8)};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+        str = new String[]{"位置:" + info.getPlace(), "备注:" + info.getNote()};
+        //        str = new String[]{"位置:" + info.getPlace(), "备注:"};
+        printer.printTextByLength(str, len);
+        printer.newLine();
+        printer.setZiTiSize(0);
+        if (info.getFlag().equals("1")) {
+            printer.printText("z" + info.getCompany() + "z");
+        } else if (info.getFlag().equals("2")) {
+            printer.printText("p" + info.getCompany() + "p");
+        } else {
+            printer.printText("z" + info.getCompany() + "z");
+        }
+        printer.newLine();
+        printer.setZiTiSize(1);
+        printer.printBarCode(info.getCodeStr(), 0, 1, 43);
+        printer.printText("M" + info.getCodeStr());
+        printer.newLine();
+        printer.newLine();
+        printer.newLine();
+        return printer.preView();
     }
 
     public static String getStringAt(String src, int maxLength) {

@@ -26,9 +26,17 @@ import utils.btprint.BarcodeCreater;
  * Created by 张建宇 on 2019/12/16.
  */
 public class PrinterUtils2 {
-    public static int width = 312;
+    //40mm,55mm
+    //    public static int width = 312;
+    //    public static int width = 420;
+    //    public static int width = 360;
+    public static int width = 400;
     public static int algn_left = 0;
     public static int algn_center = 1;
+    /**
+     * <p>设置对齐方式 {@link PrinterUtils2#selectAlign(int)}</p>
+     * </p>
+     */
     public static int algn_right = 2;
 
     private int height =255;
@@ -105,15 +113,18 @@ public class PrinterUtils2 {
     }
 
     public static Bitmap newBarCode(Context context, String code, int lablePlace, int width, int height) {
-        Bitmap bmap = BarcodeCreater.creatBarcode(context, code,
-                width, height, code, 12);
-        return bmap;
+        return newBarCode(context, code, lablePlace, 12, width, height);
     }
 
     public static Bitmap newBarCode(Context context, String code, int lablePlace, int lableSize, int width,
                                     int height) {
         Bitmap bmap = BarcodeCreater.creatBarcode(context, code,
-                width, height, code, lablePlace);
+                width, height, code, lableSize);
+        return bmap;
+    }
+    public static Bitmap newBarCode( String code, int width,
+                                    int height) {
+        Bitmap bmap = BarcodeCreater.creatBarcode( code,width, height);
         return bmap;
     }
     public byte[] feedAndCut() throws IOException {
