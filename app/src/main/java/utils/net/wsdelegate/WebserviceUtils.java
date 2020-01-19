@@ -208,13 +208,14 @@ public class WebserviceUtils {
             throws IOException {
         String ret = "";
         try {
+            String debugMsg = String.format("wcf,server=%s,param=%s", serviceName, request.toString());
+            Log.d("zjy", "WebserviceUtils->getResNew(): debug==" + debugMsg);
             if (envolopeVesion == VERSION_12) {
                 ht.call(null, envelope);
             } else {
                 ht.call(getSoapAcction(serviceName, request.getName()), envelope);
             }
             Object sob = envelope.getResponse();
-            String debugMsg = String.format("wcf,server=%s,param=%s", serviceName, request.toString());
             if (sob == null) {
                 MyApp.myLogger.writeBug("Soap response Object null," + debugMsg);
                 throw new IOException("返回空");
@@ -247,8 +248,7 @@ public class WebserviceUtils {
             if (BuildConfig.DEBUG) {
                 Log.d("zjy", "wcf,cla=" + sob.getClass().getSimpleName() + "->getResNew():"
                         +
-                        "->" + serviceName +
-                        "->" + request.toString() +
+                        "->" + serviceName+
                         " ,ret==" + ret);
             }
         } catch (XmlPullParserException e) {

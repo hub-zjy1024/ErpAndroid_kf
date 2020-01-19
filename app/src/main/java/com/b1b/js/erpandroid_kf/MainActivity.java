@@ -357,7 +357,6 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
     protected void onDestroy() {
         super.onDestroy();
         isActive = false;
-        Log.e("zjy", "MainActivity->onDestroy(): ==");
     }
 
     @Override
@@ -636,7 +635,6 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                     if (version.endsWith("DEBUG")) {
                         version = version.substring(0, version.indexOf("-"));
                     }
-                    Log.d("zjy", getClass() + "->login->run(): name==" + name + "\t" + pwd);
                     String soapResult = MartService.AndroidLogin(WebserviceUtils.WebServiceCheckWord , name, pwd,
                             deviceID, version);
                     String[] resArray = soapResult.split("-");

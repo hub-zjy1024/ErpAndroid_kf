@@ -5,10 +5,13 @@ import android.content.Context;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 
+import com.b1b.js.erpandroid_kf.MyApp;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  Created by 张建宇 on 2017/2/21.
@@ -110,7 +113,35 @@ public class UploadUtils {
         if (tm == null) {
             return "service is unable:" + getTimeYmdhms();
         }
-        return tm.getDeviceId();
+        String deviceid=tm.getDeviceId();
+        String serial;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            serial = android.os.Build.getSerial();
+        } else {
+            serial = Build.SERIAL;
+        }
+        if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            MyApp.myLogger.writeInfo("android-10 inUse");
+            //android 10兼容id
+            String m_szDevIDShort = "35" +
+                    Build.BOARD.length() % 10 + Build.BRAND.length() % 10 +
+                    Build.CPU_ABI.length() % 10 + Build.DEVICE.length() % 10 +
+
+                    Build.DISPLAY.length() % 10 + Build.HOST.length() % 10 +
+
+                    Build.ID.length() % 10 + Build.MANUFACTURER.length() % 10 +
+
+                    Build.MODEL.length() % 10 + Build.PRODUCT.length() % 10 +
+
+                    Build.TAGS.length() % 10 + Build.TYPE.length() % 10 +
+
+                    Build.USER.length() % 10; //13 位
+            deviceid = "";
+
+            return new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
+            //            getGLESTextureLimitEqualAboveLollipop();
+        }
+        return deviceid;
     }
 
     @SuppressLint("MissingPermission")

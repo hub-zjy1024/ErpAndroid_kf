@@ -41,8 +41,8 @@ public class SuoFangPrinter extends SPrinter2 implements Serializable {
     private int labelSize = 22;
     public static int MODE_LIANXU = 1;
     public static int MODE_Dur = 0;
-    public static int VeticalMargin_lianxu = 15;
-    public static int VeticalMargin_continue = 5;
+    public static int VeticalMargin_lianxu = 25;
+    public static int VeticalMargin_Dur = 5;
     private int mode = MODE_LIANXU;
     public static final int maxOffset = 1 * 8;
 
@@ -67,7 +67,7 @@ public class SuoFangPrinter extends SPrinter2 implements Serializable {
             marginVetical = VeticalMargin_lianxu;
             maxHeight = defHeight + 2 * marginVetical;
         } else {
-            marginVetical = VeticalMargin_continue;
+            marginVetical = VeticalMargin_Dur;
             maxHeight = defHeight - maxOffset;
         }
         y = marginVetical;
