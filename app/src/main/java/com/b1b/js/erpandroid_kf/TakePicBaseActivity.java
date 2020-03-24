@@ -402,15 +402,21 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
             }
         }
         if (picSizes.size() > 0) {
+            int width = cameraSp.getInt("width", -1);
+            int height = cameraSp.getInt("height", -1);
             String[] strs = new String[picSizes.size()];
+            int savePosition=0;
             for (int i = 0; i < picSizes.size(); i++) {
                 Camera.Size size = picSizes.get(i);
                 String item = size.width + "X" + size.height;
                 strs[i] = item;
+                if (size.width == width && size.height ==height) {
+                    savePosition=i;
+                }
             }
             AlertDialog.Builder dialog = new AlertDialog.Builder(mContext);
             dialog.setTitle("选择照片大小(尽量选择大的值)");//窗口名
-            dialog.setSingleChoiceItems(strs, 0, new DialogInterface.OnClickListener() {
+            dialog.setSingleChoiceItems(strs, savePosition, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             itemPosition = which;
@@ -423,7 +429,12 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
                     int width = picSizes.get(itemPosition).width;
                     int height = picSizes.get(itemPosition).height;
                     parameters.setPictureSize(width, height);
-                    mCamera.setParameters(parameters);
+                    try {
+                        mCamera.setParameters(parameters);
+                    } catch (RuntimeException e) {
+                        MyApp.myLogger.writeError(TakePicBaseActivity.this.getClass(),String.format("TakePicActivity setParameters error,%d %d", width, height));
+                        e.printStackTrace();
+                    }
                 }
             });
 
@@ -437,7 +448,12 @@ public class TakePicBaseActivity extends SavedLoginInfoActivity implements View.
                     editor.putInt("height", height);
                     editor.apply();
                     parameters.setPictureSize(width, height);
-                    mCamera.setParameters(parameters);
+                    try {
+                        mCamera.setParameters(parameters);
+                    } catch (RuntimeException e) {
+                        MyApp.myLogger.writeError(TakePicBaseActivity.this.getClass(),String.format("TakePicActivity setParameters error,%d %d", width, height));
+                        e.printStackTrace();
+                    }
                 }
             });
             dialog.setCancelable(false);

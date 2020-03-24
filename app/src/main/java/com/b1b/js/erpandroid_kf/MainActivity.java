@@ -18,7 +18,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.mvcontract.callback.IBoolCallback;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
@@ -47,7 +47,7 @@ import utils.net.wsdelegate.Login;
 import utils.net.wsdelegate.MartService;
 import utils.net.wsdelegate.WebserviceUtils;
 
-public class MainActivity extends BaseScanActivity implements View.OnClickListener{
+public class MainActivity extends SunmiScanActivity implements View.OnClickListener{
 
     private EditText edUserName;
     private EditText edPwd;
@@ -160,6 +160,7 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
 
     @Override
     public void init() {
+        super.init();
         usePermission(perMissions, new IBoolCallback() {
             @Override
             public void callback(Boolean msg) {
@@ -628,11 +629,14 @@ public class MainActivity extends BaseScanActivity implements View.OnClickListen
                     String simpleCode = phoneCode.replaceAll(",", "_");
                     String deviceID = WebserviceUtils.DeviceID + "," + simpleCode;
                     version = versionName;
-                    boolean valid = client.checkVersionAvailable();
-                    if (!valid) {
-                        throw new IOException("当前版本不可用,请重新下载最新版本");
+                    if (!BuildConfig.DEBUG) {
+                        //非debug版本需要检测版本号
+                        boolean valid = client.checkVersionAvailable();
+                        if (!valid) {
+                            throw new IOException("当前版本不可用,请重新下载最新版本");
+                        }
                     }
-                    if (version.endsWith("DEBUG")) {
+                     if (version.endsWith("DEBUG")) {
                         version = version.substring(0, version.indexOf("-"));
                     }
                     String soapResult = MartService.AndroidLogin(WebserviceUtils.WebServiceCheckWord , name, pwd,

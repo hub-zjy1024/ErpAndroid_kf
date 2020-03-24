@@ -65,4 +65,6 @@
     <string name="main_menu_test1">测试1</string>
     <string name="main_menu_settings">设置</string>
     <string name="main_menu_pic_reupload">图片重传</string>
+    <string name="about_contact_qq">851280963</string>
+
 </resources>

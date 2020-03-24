@@ -81,6 +81,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
     private final static int FTP_CONNECT_FAIL = 3;
     private final static int PICUPLOAD_SUCCESS = 0;
     private final static int PICUPLOAD_ERROR = 1;
+    private final static int PICUPLOAD_NO_SD = 4;
     private String kfFTP ="";
     private int tempRotate = 0;
     int cid;
@@ -89,7 +90,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
     private Handler mHandler = new NoLeakHandler(this);
     private NetBroadcastReceiver netWorkChecker;
     PicUploadDB picDb;
-    private static long waitNextDelay = 2000;
+    private static long waitNextDelay = 500;
     private static long waitDisappear = 15 * 1000;
 
     @Override
@@ -116,7 +117,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
             case FTP_CONNECT_FAIL:
                 showMsgToast( "连接ftp服务器失败，请检查网络");
                 break;
-            case 4:
+            case PICUPLOAD_NO_SD:
                 showMsgToast( "sd卡不存在，不可用后台上传");
                 btn_commit.setEnabled(false);
                 break;
@@ -233,7 +234,13 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                             int height = sp.getInt("height", -1);
                             Log.e("zjy", "TakePic2Activity.java->surfaceCreated(): ==readCacheSize");
                             parameters.setPictureSize(width, height);
-                            camera.setParameters(parameters);
+                            try {
+                                camera.setParameters(parameters);
+                            } catch (Throwable e) {
+                                MyApp.myLogger.writeError(e, TakePic2Activity.this.getClass() +
+                                        "init PicSizeSet ");
+                            }
+
                         } else {
                             showSizeChoiceDialog(parameters);
                         }
@@ -299,15 +306,21 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
             }
         }
         if (picSizes.size() > 0) {
+            int width = sp.getInt("width", -1);
+            int height = sp.getInt("height", -1);
             String[] strs = new String[picSizes.size()];
+            int savePosition=0;
             for (int i = 0; i < picSizes.size(); i++) {
                 Camera.Size size = picSizes.get(i);
                 String item = size.width + "X" + size.height;
                 strs[i] = item;
+                if (size.width == width && size.height ==height) {
+                    savePosition=i;
+                }
             }
             AlertDialog.Builder dialog = new AlertDialog.Builder(mContext);
             dialog.setTitle("选择照片大小(尽量选择大的值)");//窗口名
-            dialog.setSingleChoiceItems(strs, 0, new DialogInterface.OnClickListener() {
+            dialog.setSingleChoiceItems(strs, savePosition, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             itemPosition = which;
@@ -348,7 +361,11 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
         int height = picSizes.get(itemPosition).height;
         Log.e("zjy", "TakePic2Activity.java->selectSize: width==" + width + "\t" + height);
         parameters.setPictureSize(width, height);
-        camera.setParameters(parameters);
+        try {
+            camera.setParameters(parameters);
+        } catch (Throwable e) {
+            MyApp.myLogger.writeError(e, getClass() +"onPicSizeSet ");
+        }
         if (flag == 1) {
             onPicSizeSaved(width, height);
         }
@@ -600,6 +617,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                                 e.printStackTrace();
                                             } catch (XmlPullParserException e) {
                                                 e.printStackTrace();
+                                                msg = "xmlError，"+e.getMessage();
                                             }
                                             mHandler.post(new Runnable() {
                                                 @Override
@@ -611,12 +629,12 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                             upLoadFailed(notifyer, notifyMsg, textView);
                                         }
                                     } else {
-                                        msg = remoteName + ",upload false";
-                                        MyApp.myLogger.writeError("takepic2 exception" + msg);
+                                        msg = "upload false";
+                                        throw new IOException(msg);
                                     }
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                    msg = e.getMessage() + "," + remoteName;
+                                    msg =msg+ e.getMessage() + "," + remoteName;
                                     MyApp.myLogger.writeError("takepic2 upload Exception:" + msg);
                                     String errmsg = notifyName + "上传失败，正在重新上传";
                                     notifyer.chageMsg(errmsg, 0);
@@ -634,7 +652,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                                     }
                                 });
                                 try {
-                                    Thread.sleep(2000);
+                                    Thread.sleep(waitNextDelay);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
@@ -657,10 +675,10 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
                             }
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
-                            mHandler.sendEmptyMessage(4);
+                            mHandler.sendEmptyMessage(PICUPLOAD_NO_SD);
                         } catch (IOException e) {
                             e.printStackTrace();
-                            mHandler.sendEmptyMessage(4);
+                            mHandler.sendEmptyMessage(PICUPLOAD_NO_SD);
                         }
                     }
                 };

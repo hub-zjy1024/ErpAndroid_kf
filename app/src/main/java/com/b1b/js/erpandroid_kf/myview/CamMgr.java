@@ -206,7 +206,11 @@ public class CamMgr implements Camera.AutoFocusCallback {
             Camera.Parameters parameters = mCam.getParameters();
             List<String> supportedFlashModes = parameters.getSupportedFlashModes();
             parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-            mCam.setParameters(parameters);
+            try {
+                mCam.setParameters(parameters);
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+            }
         }
     }
 

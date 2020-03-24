@@ -89,7 +89,7 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
     private SharedPreferences spPicUpload;
     Spinner spiPaperType;
     Spinner spiUpLoad;
-
+    Spinner spiKF;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,7 +99,7 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
         final EditText edPrinterServer = (EditText) findViewById(R.id.activity_setting_ed_printerserver);
         final EditText edDiaohuoAccount = (EditText) findViewById(R.id.activity_setting_ed_diaohuo_account);
         final RadioButton rdoSF = (RadioButton) findViewById(R.id.activity_setting_rdo_SF);
-        final Spinner spiKF = (Spinner) findViewById(R.id.activity_setting_spiKF);
+        spiKF = (Spinner) findViewById(R.id.activity_setting_spiKF);
         spiPaperType = (Spinner) findViewById(R.id.activity_setting_spiBtPaperType);
 
         final TextView tvSavedKf = (TextView) findViewById(R.id.activity_setting_tvkf);
@@ -224,6 +224,20 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
 
     }
 
+    public void loadSaved(Spinner tnameAdapter) {
+        int pos=1;
+        final String savedName = sp.getString(NAME, "");
+
+        for(int i=0;i<sAdapter.getCount();i++){
+            Map<String, Object> tItem = (Map<String, Object>) sAdapter.getItem(i);
+           if( savedName.equals(tItem.get(NAME  ))){
+               pos=i;
+            }
+        }
+        if (spiKF.getAdapter().getCount() > pos) {
+            spiKF.setSelection(pos);
+        }
+    }
     @Override
     public void init() {
         
@@ -307,6 +321,7 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
             zHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    loadSaved(null);
                     sAdapter.notifyDataSetChanged();
                 }
             });

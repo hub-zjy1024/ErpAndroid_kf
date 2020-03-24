@@ -292,6 +292,11 @@ public class ParentChukuActivity extends ToolbarHasSunmiActivity implements View
     }
 
     @Override
+    public void resultBack(String result) {
+        getCameraScanResult(result);
+    }
+
+    @Override
     public void getCameraScanResult(String result, int code) {
         super.getCameraScanResult(result, code);
         editTextPid.setText(result);

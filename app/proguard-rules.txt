@@ -127,7 +127,9 @@
 -keep class com.shockwave.**
 #其他配置
 #混淆前后名称对照
--dump D:/dyj/app/dyj_kf/mapping/class_files.txt
+#已失效,-dump D:/dyj/app/dyj_kf/mapping/class_files.txt
+#3.5.2-6.1
+
 #未混淆的类和成员
 -printseeds D:/dyj/app/dyj_kf/mapping/seeds.txt
 #列出从 apk 中删除的代码

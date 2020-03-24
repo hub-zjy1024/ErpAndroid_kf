@@ -18,7 +18,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.adapter.PankuAdapter;
 import com.b1b.js.erpandroid_kf.entity.PankuInfo;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -36,7 +36,7 @@ import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.ChuKuServer;
 
-public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback {
+public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.NoLeakCallback {
 
     private EditText edID;
     private EditText edPartNo;
@@ -243,6 +243,7 @@ public class PankuActivity extends SavedLoginInfoWithScanActivity implements NoL
 
     @Override
     public void resultBack(String result) {
+        super.resultBack(result);
         edID.setText(result);
         try {
             Integer.parseInt(result);

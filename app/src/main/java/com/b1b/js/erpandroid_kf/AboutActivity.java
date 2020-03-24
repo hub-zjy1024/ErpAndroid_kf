@@ -2,10 +2,12 @@ package com.b1b.js.erpandroid_kf;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -46,6 +48,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -57,7 +60,7 @@ import utils.common.UploadUtils;
 import utils.common.log.LogUploader;
 import utils.net.wsdelegate.WebserviceUtils;
 
-public class AboutActivity extends BaseMActivity {
+public class AboutActivity extends BaseMActivity implements View.OnClickListener{
 
     private Handler mHandler = new Handler();
     private Handler logHandler = new Handler(){
@@ -158,22 +161,9 @@ public class AboutActivity extends BaseMActivity {
 
     @Override
     public void setListeners() {
-        setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                SpSettings.clearAllSp(mContext);
-                showMsgDialog("测试animation");
-                showMsgToast("应用数据已清空");
-            }
-        },R.id.activity_about_btn_clear_sp);
-
-        setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                LogUploader logUploader = new LogUploader(mContext);
-                logUploader.upload(logHandler);
-            }
-        },R.id.activity_about_btn_upload);
+        setOnClickListener(this, R.id.activity_about_btn_clear_sp);
+        setOnClickListener(this, R.id.iv_about_contact);
+        setOnClickListener(this, R.id.activity_about_btn_upload);
     }
 
     @Override
@@ -399,5 +389,47 @@ public class AboutActivity extends BaseMActivity {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.activity_about_btn_clear_sp:
+                SpSettings.clearAllSp(mContext);
+                showMsgDialog("测试animation");
+                showMsgToast("应用数据已清空");
+                break;
+
+            case R.id.activity_about_btn_upload:
+                LogUploader logUploader = new LogUploader(mContext);
+                logUploader.upload(logHandler);
+                break;
+
+            case R.id.iv_about_contact:
+                if (isQQInstall(this)) {
+                    String mqq="123";
+                    final String qqUrl =
+                            "mqqwpa://im/chat?chat_type=wpa&uin=" + getResources().getString(R.string.about_contact_qq);
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(qqUrl)));
+                } else {
+                    showMsgToast("请安装QQ客户端,再进行跳转");
+                }
+                break;
+        }
+    }
+
+    public static boolean isQQInstall(Context context) {
+        final PackageManager packageManager = context.getPackageManager();
+        List<PackageInfo> pinfo = packageManager.getInstalledPackages(0);
+        if (pinfo != null) {
+            for (int i = 0; i < pinfo.size(); i++) {
+                String pn = pinfo.get(i).packageName;
+                //通过遍历应用所有包名进行判断
+                if (pn.equals("com.tencent.mobileqq")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

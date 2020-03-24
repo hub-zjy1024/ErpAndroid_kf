@@ -17,7 +17,7 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.printer.entity.Yundan;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
@@ -44,7 +44,7 @@ import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.WebserviceUtils;
 
-public class SFActivity extends SavedLoginInfoWithScanActivity {
+public class SFActivity extends SunmiScanActivity {
     private String storageID = "";
     private List<Yundan> yundanData;
     private EditText edPid;

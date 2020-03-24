@@ -31,7 +31,7 @@ import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.yundan.sf.entity.Cargo;
@@ -73,7 +73,7 @@ import utils.net.wsdelegate.SF_Server;
 /**
  * 顺丰快递下单页
  */
-public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback{
+public class SetYundanActivity extends SunmiScanActivity implements NoLeakHandler.NoLeakCallback{
     private List<Province> provinces;
     String jAddress;
     String payByWho;
@@ -1179,7 +1179,12 @@ public class SetYundanActivity extends SavedLoginInfoWithScanActivity implements
 
     @Override
     public void init() {
+        super.init();
+    }
 
+    @Override
+    public void resultBack(String result) {
+        getCameraScanResult(result);
     }
 
     @Override

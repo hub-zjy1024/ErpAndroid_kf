@@ -25,7 +25,6 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -391,25 +390,31 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
     protected void showSizeChoiceDialog(final Camera.Parameters parameters) {
         picSizes = parameters.getSupportedPictureSizes();
         //剔除出尺寸太小的，和尺寸太大的，宽度（1280-2048)
-        String sizesStr = "";
         for (int i = picSizes.size() - 1; i >= 0; i--) {
             int width = picSizes.get(i).width;
-            int height = picSizes.get(i).height;
-            sizesStr += "size w-h " + width + "x" + height + "\n";
+            Log.e("zjy", "TakePicActivity.java->showProgressDialog(): size==" + picSizes.get(i).width +
+                    "\t" + picSizes.get(i)
+                    .height);
             if (width < 1920 || width > 2592) {
                 picSizes.remove(i);
             }
         }
         if (picSizes.size() > 0) {
+            int width = cameraSp.getInt("width", -1);
+            int height = cameraSp.getInt("height", -1);
             String[] strs = new String[picSizes.size()];
+            int savePosition=0;
             for (int i = 0; i < picSizes.size(); i++) {
                 Camera.Size size = picSizes.get(i);
                 String item = size.width + "X" + size.height;
                 strs[i] = item;
+                if (size.width == width && size.height ==height) {
+                    savePosition=i;
+                }
             }
             AlertDialog.Builder dialog = new AlertDialog.Builder(mContext);
             dialog.setTitle("选择照片大小(尽量选择大的值)");//窗口名
-            dialog.setSingleChoiceItems(strs, 0, new DialogInterface.OnClickListener() {
+            dialog.setSingleChoiceItems(strs, savePosition, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             itemPosition = which;
@@ -442,11 +447,11 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                     parameters.setPictureSize(width, height);
                     try{
                         mCamera.setParameters(parameters);
-                        editor.apply();
                     }catch (Exception e){
                         e.printStackTrace();
                         writeSetSizeError(parameters);
                     }
+                    editor.apply();
                 }
             });
             dialog.setCancelable(false);

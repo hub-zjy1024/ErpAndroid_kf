@@ -57,6 +57,8 @@ public class SunmiScanActivity extends SavedLoginInfoWithScanActivity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        sunmiController.release();
+        if(sunmiController!=null){
+            sunmiController.release();
+        }
     }
 }

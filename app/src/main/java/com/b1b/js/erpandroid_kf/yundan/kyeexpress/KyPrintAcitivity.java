@@ -25,7 +25,7 @@ import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.yundan.kyeexpress.entity.BillOrder;
@@ -68,7 +68,7 @@ import utils.net.wsdelegate.SF_Server;
 /**
  * 跨越快递下单页
  */
-public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback {
+public class KyPrintAcitivity extends SunmiScanActivity implements NoLeakHandler.NoLeakCallback {
 
     private Spinner spiType;
     private String pid;
@@ -169,6 +169,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                 break;
         }
     }
+
     private List<Map<String, String>> addrList;
     private Handler mHandler = new NoLeakHandler(this);
     private EditText eddPerson;
@@ -211,9 +212,10 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
         final String[] serverTypes = new String[]{"省内次日-省内", "省内即日-省内",
                 "同城次日-同城", "同城即日-同城", "陆运件-货多(慢)", "隔日达-快（空）", "次日达-很快（空）",
                 "当天达-极快（空）"};
-//        final String[] serverTypes2 = new String[]{"省内次日-160", "同城次日-50", "同城即日-70", "陆运件-40", "隔日达-30",
-//                "次日达-20",
-//                "当天达-10", "次晨达-60", "航空件-80", "早班件-90", "中班件-100", "晚班件-110"};
+        //        final String[] serverTypes2 = new String[]{"省内次日-160", "同城次日-50", "同城即日-70", "陆运件-40",
+        //        "隔日达-30",
+        //                "次日达-20",
+        //                "当天达-10", "次晨达-60", "航空件-80", "早班件-90", "中班件-100", "晚班件-110"};
         spiType.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_province, R.id
                 .item_province_tv, serverTypes));
         final String[] payTypes = new String[]{"寄付月结", "到付", "转第三方付款"};
@@ -223,7 +225,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
         printerItems.add("请选择打印机");
         reIntent = getIntent();
         addrList = new ArrayList<>();
-        pid = reIntent.getStringExtra(SettingActivity.extra_PID );
+        pid = reIntent.getStringExtra(SettingActivity.extra_PID);
         edJPerson = (EditText) findViewById(R.id.yundanprint_ed_j_person);
         cboAddMore = (CheckBox) findViewById(R.id.yundanprint_cbo_addmore);
         TextView tvPID = (TextView) findViewById(R.id.yundanprint_tv_pid);
@@ -448,9 +450,9 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                 String serverType = spiType.getSelectedItem().toString();
                 serverType = serverType.substring(0, serverType.indexOf("-"));
                 final String bags = edBags.getText().toString().trim();
-               if(!checkNeedInfo(bags)){
-                   return;
-               }
+                if (!checkNeedInfo(bags)) {
+                    return;
+                }
                 String goodInfos = reIntent.getStringExtra("goodInfos");
                 final String tGoodInfos = goodInfos;
                 final String tpayType = payType;
@@ -459,15 +461,16 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                 if (yundanID != null) {
                     DialogUtils.getSpAlert(mContext, "当前单据已有运单:" + yundanID + "，是否继续", "提示", new
                             DialogInterface
-                            .OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            pd.setMessage("正在打印中");
-                            pd.show();
-                            //startOrder
-                            startOrderNew(tGoodInfos, account, tpayType, tserverType, tCounts, dprintName);
-                        }
-                    }, "是", null, "否").show();
+                                    .OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    pd.setMessage("正在打印中");
+                                    pd.show();
+                                    //startOrder
+                                    startOrderNew(tGoodInfos, account, tpayType, tserverType, tCounts,
+                                            dprintName);
+                                }
+                            }, "是", null, "否").show();
                 } else {
                     pd.setMessage("正在打印中");
                     pd.show();
@@ -486,7 +489,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                 dTel = eddTel.getText().toString();
                 account = edAccount.getText().toString().trim();
                 final String bags = edBags.getText().toString().trim();
-                if(!checkNeedInfo(bags)){
+                if (!checkNeedInfo(bags)) {
                     return;
                 }
                 String printer = "";
@@ -538,7 +541,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                         try {
                             relateYdToDB(pid, yundanID, ddestcode, expressName);
                         } catch (IOException e) {
-                            showAlert("关联运单号失败，网络连接失败" +e.getMessage());
+                            showAlert("关联运单号失败，网络连接失败" + e.getMessage());
                             e.printStackTrace();
                         } catch (XmlPullParserException e) {
                             e.printStackTrace();
@@ -840,13 +843,13 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                             .getJSONObject(0);
                     mInfo = com.alibaba.fastjson.JSONObject.parseObject(dataObj.toJSONString(),
                             OrderRetInfo.class);
-//                    JSONObject mob = new JSONObject.wrap(mInfo);
+                    //                    JSONObject mob = new JSONObject.wrap(mInfo);
                     return mInfo;
                 } else {
                     throw new IOException("接口错误,返回数据为空");
                 }
             } else {
-                throw new IOException("接口错误,"+msg);
+                throw new IOException("接口错误," + msg);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -974,7 +977,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                 String errMsg = "未知错误";
                 int code = 1;
                 try {
-                     retInfo = getOrderRetInfo(orderInfo);
+                    retInfo = getOrderRetInfo(orderInfo);
                 } catch (IOException e) {
                     errMsg = e.getMessage();
                     e.printStackTrace();
@@ -1098,8 +1101,9 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
                 }
                 if (!receiveID.equals("")) {
                     try {
-//                        String insertResult = insertYundanInfo(pid, receiveID, destcode, expressName);
-//                        changeInsertState(insertResult, pid);
+                        //                        String insertResult = insertYundanInfo(pid, receiveID,
+                        //                        destcode, expressName);
+                        //                        changeInsertState(insertResult, pid);
                         relateYdToDB(pid, yundanID, ddestcode, expressName);
                         boolean printOk = printKyYundan(printerAddress, yundanID, dgoodInfos, dcardID,
                                 dpayType, counts,
@@ -1161,7 +1165,7 @@ public class KyPrintAcitivity extends SavedLoginInfoWithScanActivity implements 
         if (CheckUtils.isAdmin()) {
             result = "成功";
             Log.d("zjy", getClass() + "->relateYdToDB(): isAdmin res==" + result);
-        }else{
+        } else {
             try {
                 result = SF_Server.InsertBD_YunDanInfoOfType(pid, orderID, destcode, objtype);
             } catch (IOException e) {

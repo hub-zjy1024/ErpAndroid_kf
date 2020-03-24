@@ -13,7 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.entity.Caigoudan;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
@@ -30,7 +30,7 @@ import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.MartService;
 
-public class CaigouActivity extends SavedLoginInfoWithScanActivity implements NoLeakHandler.NoLeakCallback {
+public class CaigouActivity extends SunmiScanActivity implements NoLeakHandler.NoLeakCallback {
 
     private ListView lv;
     private EditText edPid;
@@ -95,7 +95,7 @@ public class CaigouActivity extends SavedLoginInfoWithScanActivity implements No
                     return;
                 }
                 final Caigoudan item = (Caigoudan) parent.getItemAtPosition(position);
-                
+
                 Intent temp = new Intent(packageContext, com.b1b.js.erpandroid_kf.CaigouDetailActivity.class);
                 temp.putExtra("corpID", item.getCorpID());
                 temp.putExtra("providerID", item.getProviderID());

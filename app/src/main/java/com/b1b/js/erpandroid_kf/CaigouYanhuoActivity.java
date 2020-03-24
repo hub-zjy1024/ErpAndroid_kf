@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.adapter.YanhuoAdapter;
 import com.b1b.js.erpandroid_kf.entity.YanhuoInfo;
 
@@ -26,7 +26,7 @@ import java.util.List;
 import utils.framwork.SoftKeyboardUtils;
 import utils.net.wsdelegate.MartService;
 
-public class CaigouYanhuoActivity extends SavedLoginInfoWithScanActivity {
+public class CaigouYanhuoActivity extends SunmiScanActivity {
     private Handler mHandler = new Handler();
     private ListView lv;
     private EditText edpid;
@@ -165,6 +165,12 @@ public class CaigouYanhuoActivity extends SavedLoginInfoWithScanActivity {
         }.start();
     }
 
+
+    @Override
+    public void resultBack(String result) {
+        super.resultBack(result);
+        getCameraScanResult(result);
+    }
 
     @Override
     public void getCameraScanResult(String result, int code) {

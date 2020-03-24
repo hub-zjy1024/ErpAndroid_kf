@@ -17,7 +17,7 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.activity.base.ToobarSaveWithScanAc;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -34,7 +34,7 @@ import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.ChuKuServer;
 
-public class CheckActivity extends ToobarSaveWithScanAc implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
+public class CheckActivity extends ToolbarHasSunmiActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
     private ListView lv;
     private EditText edPid;
     private EditText edPartno;
