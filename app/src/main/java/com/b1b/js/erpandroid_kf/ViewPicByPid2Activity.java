@@ -14,6 +14,7 @@ import utils.common.MyFileUtils;
 import utils.net.http2.DyjInterface2;
 
 /**
+ * 新的图片上传接口对应的查看页
  * Created by 张建宇 on 2019/8/8.
  */
 public class ViewPicByPid2Activity extends ViewPicByPidActivity {

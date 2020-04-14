@@ -17,6 +17,7 @@ import android.widget.GridView;
 import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.ViewPicAdapter;
 import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.picupload.FtpUploader;
 
 import org.json.JSONArray;
@@ -160,7 +161,7 @@ public class ViewPicByPidActivity extends ToolbarHasSunmiActivity {
         });
         alertDialog = (AlertDialog) DialogUtils.getSpAlert(this, "", "结果");
 
-        String pid = getIntent().getStringExtra(SettingActivity.extra_PID);
+        String pid = getIntent().getStringExtra(IntentKeys.key_pid);
         if (pid != null) {
             edPid.setText(pid);
             File imgFile = Environment.getExternalStorageDirectory();
@@ -300,7 +301,9 @@ public class ViewPicByPidActivity extends ToolbarHasSunmiActivity {
                         String localPath = fti.getImgPath();
                         String imgUrl = fti.getFtp();
                         File file = new File(localPath);
-                        if (!file.exists()) {
+                        Log.e("zjy",
+                                "ViewPicByPidActivity->run(): mfile.Len==" + file.getName() + "," + file.length());
+                        if (!file.exists() || file.length() == 0) {
                             startDownLoad(imgUrl, localPath);
                         } else {
                             downloadResult += "第" + (i + 1) + "张,已从手机找到\r\n";

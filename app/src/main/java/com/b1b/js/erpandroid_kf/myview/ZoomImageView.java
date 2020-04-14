@@ -5,6 +5,7 @@ import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -19,8 +20,8 @@ import android.widget.ImageView;
 /**
  Created by 张建宇 on 2017/3/3. */
 
-public class ZoomImageView extends ImageView implements OnGlobalLayoutListener,
-                                                        OnScaleGestureListener, OnTouchListener {
+public class ZoomImageView extends AppCompatImageView implements OnGlobalLayoutListener,
+                                                                 OnScaleGestureListener, OnTouchListener {
     private boolean mOnce;
 
     /**

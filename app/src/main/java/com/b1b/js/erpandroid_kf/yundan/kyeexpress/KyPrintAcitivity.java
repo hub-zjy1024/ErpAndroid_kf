@@ -26,6 +26,7 @@ import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
 import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.yundan.kyeexpress.entity.BillOrder;
@@ -225,7 +226,7 @@ public class KyPrintAcitivity extends SunmiScanActivity implements NoLeakHandler
         printerItems.add("请选择打印机");
         reIntent = getIntent();
         addrList = new ArrayList<>();
-        pid = reIntent.getStringExtra(SettingActivity.extra_PID);
+        pid = reIntent.getStringExtra( IntentKeys.key_pid);
         edJPerson = (EditText) findViewById(R.id.yundanprint_ed_j_person);
         cboAddMore = (CheckBox) findViewById(R.id.yundanprint_cbo_addmore);
         TextView tvPID = (TextView) findViewById(R.id.yundanprint_tv_pid);
@@ -419,7 +420,7 @@ public class KyPrintAcitivity extends SunmiScanActivity implements NoLeakHandler
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, PreChukuDetailActivity.class);
-                intent.putExtra("pid", pid);
+                intent.putExtra(IntentKeys.key_pid, pid);
                 startActivity(intent);
             }
         });

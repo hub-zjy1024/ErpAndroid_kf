@@ -213,6 +213,33 @@ public class ChuKuServer{
 		return res;
 	}
 
+    public static String GetPanKuLog(String id) throws IOException, XmlPullParserException {
+        LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+        properties.put("mxid", id);
+        String res = WebserviceUtils.getWcfResult(properties, "GetPanKuLog", serverName);
+        return res;
+    }
+
+    public static String GetPanKuTask(String uid) throws IOException, XmlPullParserException {
+        LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+        properties.put("uid", uid);
+        String res = WebserviceUtils.getWcfResult(properties, "GetPanKuTask", serverName);
+        return res;
+        //			return GetPanKuTesk(uid);
+    }
+	public static String GetPanKuTesk(String uid)throws IOException, XmlPullParserException {
+		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+		properties.put("uid", uid);
+		String res=WebserviceUtils.getWcfResult(properties, "GetPanKuTesk", serverName);
+		return res;
+	}
+		public static String GetMFCListInfo(String mfc)throws IOException, XmlPullParserException {
+		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+			properties.put("mfc", mfc);
+		String res=WebserviceUtils.getWcfResult(properties, "GetMFCListInfo", serverName);
+		return res;
+	}
+
 //uid:xs:string
 //part:xs:string
 		public static String GetDataListForNaHuo(String uid,String part)throws IOException, XmlPullParserException {

@@ -232,6 +232,29 @@ public class XiaopiaoInfo implements Serializable {
     }
 
     int len = 35;
+
+    public String toSimpleString() {
+        return  getStringAtLength(new String[]{"单据号='" + pid + "\'","制单日期='" + time + '\'' },new int[]{len,0}) + "\n" +
+                "型号='" + partNo + '\'' + "\n" +
+                getStringAtLength(new String[]{"明细ID='" + codeStr + '\'',  "厂家='" + factory + '\''},new int[]{len,0}) + "\n" +
+                getStringAtLength(new String[]{"批号='" + pihao + "\'","数量='" + counts + '\'' },new int[]{len,0})
+              ;
+    }
+    public String toExtraString() {
+        return
+                getStringAtLength(new String[]{"部门号='" + deptNo + "\'","数量='" + counts + '\'' },new int[]{len,0}) + "\n" +
+                //                "部门号='" + deptNo + '\'' + "数量='" + counts + '\'' + "\n" +
+                "厂家='" + factory + '\'' + "\n" +
+                getStringAtLength(new String[]{"描述='" + description + '\'',"封装='" + fengzhuang + '\'' },new int[]{len,0}) + "\n" +
+                //                "批号='" + pihao + '\'' + "   封装='" + fengzhuang + '\'' + "\n" +
+                "描述='" + description + '\'' + "\n" +
+                getStringAtLength(new String[]{"开票类型='" + flag + "\'",   "库房ID='" + storageID + '\''  },new int[]{len,0}) + "\n" +
+                        "开票公司='" + company + '\'' + "\n" +
+                "产地='" + produceFrom + '\'' + "\n" +
+                "位置='" + place + '\'' + "\n" +
+                "备注='" + note + '\''
+              ;
+    }
     @Override
     public String toString() {
         return  getStringAtLength(new String[]{"单据号='" + pid + "\'","制单日期='" + time + '\'' },new int[]{len,0}) + "\n" +

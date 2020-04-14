@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -81,7 +82,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
             }
         });
         Intent intent = getIntent();
-        tvPid.setText(intent.getStringExtra("pid"));
+        tvPid.setText(intent.getStringExtra(IntentKeys.key_pid));
     }
 
     public void takePic(final String pid) {

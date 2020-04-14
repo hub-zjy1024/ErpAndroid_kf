@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.Scan2Info;
 import com.b1b.js.erpandroid_kf.mvcontract.ScanCheckContract;
 import com.b1b.js.erpandroid_kf.myview.ScanViewContainer;
@@ -130,7 +131,7 @@ public class Check2_scan_activity extends ToolbarHasSunmiActivity implements Sca
                 mHeight));
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        pid = getIntent().getStringExtra("pid");
+        pid = getIntent().getStringExtra(IntentKeys.key_pid);
         if ("debug".equals(BuildConfig.BUILD_TYPE)) {
             pid = "1387526";
         }
@@ -142,32 +143,36 @@ public class Check2_scan_activity extends ToolbarHasSunmiActivity implements Sca
         stopSunmiScan();
         SharedPreferences mPref = getSharedPreferences(SettingActivity.PREF_USERINFO, MODE_PRIVATE);
         uname = mPref.getString("oprName", "");
-        setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener allListner = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (pid == null) {
-                    showMsgToast("无单据号，请先返回上一层");
-                    return;
+                switch (v.getId()) {
+                    case R.id.activity_check2_btn_takepic:
+                        if (pid == null) {
+                            showMsgToast("无单据号，请先返回上一层");
+                            return;
+                        }
+                        Intent mIntent = new Intent(mContext, ChukuTakePicActivity.class);
+                        mIntent.putExtra( IntentKeys.key_pid, pid);
+                        startActivity(mIntent);
+                        break;
+
+                    case R.id.activity_check2_btn_check:
+                        mPresenter.UpdateStoreChekerInfo(pid, loginID, "2", uname);
+                        break;
+
+                    case R.id.activity_check2_btn_viewpic:
+                        Intent minte = new Intent(mContext, ViewPicByPidActivity.class);
+                        minte.putExtra( IntentKeys.key_pid, pid);
+                        startActivity(minte);
+                        break;
+
                 }
-                Intent mIntent = new Intent(mContext, ChukuTakePicActivity.class);
-                mIntent.putExtra(SettingActivity.extra_PID, pid);
-                startActivity(mIntent);
             }
-        }, R.id.activity_check2_btn_takepic);
-        setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPresenter.UpdateStoreChekerInfo(pid, loginID, "2", uname);
-            }
-        }, R.id.activity_check2_btn_check);
-        setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent minte = new Intent(mContext, ViewPicByPidActivity.class);
-                minte.putExtra(SettingActivity.extra_PID, pid);
-                startActivity(minte);
-            }
-        }, R.id.activity_check2_btn_viewpic);
+        };
+        setOnClickListener(allListner, R.id.activity_check2_btn_takepic);
+        setOnClickListener(allListner, R.id.activity_check2_btn_check);
+        setOnClickListener(allListner, R.id.activity_check2_btn_viewpic);
     }
 
     @Override

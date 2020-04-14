@@ -161,6 +161,7 @@ public class MainActivity extends SunmiScanActivity implements View.OnClickListe
     @Override
     public void init() {
         super.init();
+        Log.e("zjy", "MainActivity->init(): loginId==" + loginID);
         usePermission(perMissions, new IBoolCallback() {
             @Override
             public void callback(Boolean msg) {
@@ -659,10 +660,10 @@ public class MainActivity extends SunmiScanActivity implements View.OnClickListe
                             edit.putString("name", infoMap.get("name"));
                             edit.putString("pwd", infoMap.get("pwd"));
                             edit.apply();
-                            getUserInfoDetail(uid);
                         } else {
                             //                        MyApp.ftpUrl = sp.getString("ftp", "");
                         }
+                        getUserInfoDetail(uid);
                         msg1.what = MSG_LOGIN_SUCCESS;
                         msg1.obj = infoMap;
                         zHandler.sendMessage(msg1);

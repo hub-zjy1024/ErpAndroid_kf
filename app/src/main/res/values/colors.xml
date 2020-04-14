@@ -35,4 +35,5 @@
     <color name="controlTextDisabledColor">#969696</color>
     <color name="dialog_divider">#4D969696</color>
     <color name="toast_bg"></color>
+    <color name="bg_debug">#ea6969</color>
 </resources>

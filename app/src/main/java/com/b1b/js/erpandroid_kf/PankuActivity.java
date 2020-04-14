@@ -11,15 +11,18 @@ import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.PankuAdapter;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.PankuInfo;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
@@ -32,11 +35,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import utils.common.UploadUtils;
+import utils.framwork.ItemClickWrapper;
 import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.ChuKuServer;
 
-public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.NoLeakCallback {
+public class PankuActivity extends ToolbarHasSunmiActivity implements NoLeakHandler.NoLeakCallback {
 
     private EditText edID;
     private EditText edPartNo;
@@ -45,6 +50,7 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
     private PankuAdapter mAdapter;
     private ListView lv;
     private final int GET_DATA = 0;
+    private final int GET_DATA_New = 8;
     private final int GET_FAIL = 1;
     private final int GET_NUll = 2;
     private final int INSERT_SUCCESS = 3;
@@ -52,6 +58,7 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
     private final int CHANGEFLAG_SUCCESS = 5;
     private final int CHANGEFLAG_ERROR = 6;
     private final int GET_PANKUINFO = 7;
+    private final int GET_PANKUINFO_ERROR = 2;
     private ProgressDialog pdDialog;
     private AlertDialog editDialog;
     private Button btnPk;
@@ -65,6 +72,14 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
+            case GET_DATA_New:
+                Object mobj = msg.obj;
+                if (mobj != null) {
+                    List<PankuInfo> pankuList = (List<PankuInfo>) mobj;
+                    pkData.addAll(pankuList);
+                    mHandler.sendEmptyMessage(GET_DATA);
+                }
+                break;
             case GET_DATA:
                 showMsgToast("获取到" + pkData.size() + "条数据");
                 mAdapter.notifyDataSetChanged();
@@ -78,79 +93,52 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
                 mAdapter.notifyDataSetChanged();
                 break;
             case INSERT_SUCCESS:
-                showMsgToast("插入成功");
-                btnPk.setVisibility(View.INVISIBLE);
-                btnReset.setVisibility(View.VISIBLE);
+                showMsgToast("盘库成功");
+                showHide(btnPk, btnReset, false);
                 pkData.clear();
                 mAdapter.notifyDataSetChanged();
                 final String id = msg.obj.toString();
-                Runnable getResultRun = new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            List<PankuInfo> pankuList = getPankuList(id, "");
-                            pkData.addAll(pankuList);
-                            mHandler.sendEmptyMessage(GET_DATA);
-                        } catch (IOException e) {
-                            mHandler.sendEmptyMessage(GET_FAIL);
-                            e.printStackTrace();
-                        } catch (XmlPullParserException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
-                            mHandler.sendEmptyMessage(GET_NUll);
-                            e.printStackTrace();
-                        }
-                    }
-                };
-                TaskManager.getInstance().execute(getResultRun);
-                mAdapter.notifyDataSetChanged();
+                edID.setText(id);
+                if (editDialog != null) {
+                    editDialog.cancel();
+                }
+                asyncGetData(id, "");
                 break;
             case INSERT_FAIL:
                 showMsgToast("插入盘库信息失败");
                 mAdapter.notifyDataSetChanged();
                 break;
             case CHANGEFLAG_SUCCESS:
-                showMsgToast("解锁成功");
+                showMsgToast("解锁成功,可进行盘库");
                 final String did = msg.obj.toString();
-                btnPk.setVisibility(View.VISIBLE);
-                btnReset.setVisibility(View.INVISIBLE);
+                showHide(btnPk, btnReset, true);
                 pkData.clear();
                 mAdapter.notifyDataSetChanged();
-                Runnable mRun = new Runnable() {
-
-                    @Override
-                    public void run() {
-                        try {
-                            List<PankuInfo> pankuList = getPankuList(did, "");
-                            pkData.addAll(pankuList);
-                            mHandler.sendEmptyMessage(GET_DATA);
-                        } catch (IOException e) {
-                            mHandler.sendEmptyMessage(GET_FAIL);
-                            e.printStackTrace();
-                        } catch (XmlPullParserException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
-                            mHandler.sendEmptyMessage(GET_NUll);
-                            e.printStackTrace();
-                        }
-                    }
-                };
-
-                TaskManager.getInstance().execute(mRun);
+//                if (editDialog != null) {
+//                    editDialog.cancel();
+//                }
+//                asyncGetData(did, "");
                 break;
             case CHANGEFLAG_ERROR:
-                showMsgToast("解锁失败");
-                mAdapter.notifyDataSetChanged();
+                String tempMsg = "解锁失败";
+                if (msg.obj != null) {
+                    String errMsg = (String) msg.obj;
+                    tempMsg += "," + errMsg;
+                }
+                showMsgToast(tempMsg);
                 break;
             case GET_PANKUINFO:
-                showEditDialog((PankuInfo) msg.obj);
-                mAdapter.notifyDataSetChanged();
+                if (msg.arg1 == GET_PANKUINFO_ERROR) {
+                    String errmsg = (String) msg.obj;
+                    showMsgToast("获取实盘信息失败," + errmsg);
+                }else {
+                    showEditDialog((PankuInfo) msg.obj);
+                }
                 break;
         }
         if (pdDialog != null && pdDialog.isShowing()) {
             pdDialog.cancel();
         }
-        getResources();
     }
 
     private Handler mHandler = new NoLeakHandler(this);
@@ -168,8 +156,32 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
         pkData = new ArrayList<>();
         pfInfo = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
         View empty = findViewById(R.id.panku_lv_emptyview);
-        mAdapter = new PankuAdapter(pkData, PankuActivity.this);
-        pdDialog = new ProgressDialog(PankuActivity.this);
+        //        mAdapter = new PankuAdapter(pkData, PankuActivity.this);
+        mAdapter = new PankuAdapter(mContext, pkData, R.layout.item_lv_pk
+        );
+        // lv.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+        mAdapter.addListener(new PankuAdapter.ItemListener() {
+            @Override
+            public void itemClick(int id, PankuInfo mInfo) {
+                switch (id) {
+                    case R.id.item_pk_btn_rprint:
+                        if (mInfo == null) {
+                            return;
+                        }
+                        openPrintPage(mInfo.getDetailId());
+                        Log.e("zjy", "PankuActivity->itemClick() print: click==" + mInfo.toString());
+                        break;
+                    case R.id.item_pk_btn_takepic:
+                        if (mInfo == null) {
+                            return;
+                        }
+                        Log.e("zjy", "PankuActivity->itemClick() takepic: click==" + mInfo.toString());
+                        startTakePic(mInfo.getDetailId());
+                        break;
+                }
+            }
+        });
+        pdDialog = new ProgressDialog(mContext);
         pdDialog.setMessage("正在查询");
         pdDialog.setCancelable(false);
         lv.setAdapter(mAdapter);
@@ -178,14 +190,11 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final PankuInfo item = (PankuInfo) parent.getItemAtPosition(position);
-                Log.e("zjy", "PankuActivity->onItemClick(): flag==" + item.getHasFlag());
                 currentInfo = item;
-                if (item.getHasFlag().equals("0")) {
-                    showEditDialog(item);
-                } else {
-                    new DetailThread(item).start();
+                if (item == null) {
+                    return;
                 }
-                Log.e("zjy", "PankuActivity.java->onItemClick(): item.detail==" + item.getDetailId());
+                openDetail(item);
             }
         });
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -193,7 +202,12 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 final PankuInfo item = (PankuInfo) parent.getItemAtPosition(position);
                 TextView tv = (TextView) view.findViewById(R.id.chukudan_items_tv);
-                tv.setText(item.toStringDetail());
+                TextView tvMore = (TextView) view.findViewById(R.id.chukudan_items_tvMore);
+                PankuAdapter.CheckClass checkClass = new PankuAdapter.CheckClass(item, "1");
+                tvMore.setTag(checkClass);
+                tvMore.setVisibility(View.GONE);
+                tv.setVisibility(View.VISIBLE);
+                tv.setText(item.toExtraString());
                 return true;
             }
         });
@@ -212,8 +226,40 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
         });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == PankuDetailActivity.ResultCode) {
+            if (currentInfo != null) {
+                edPartNo.setText(currentInfo.getPartNo());
+                edID.setText(currentInfo.getDetailId());
+                getData();
+            }
+            Log.e("zjy", "PankuActivity->onActivityResult(): backFromPanKu==");
+        } else {
+            Log.e("zjy", "PankuActivity->onActivityResult(): backFromPanKu==" + resultCode);
+        }
+    }
+
+    public void openDetail(PankuInfo mInfo) {
+        Intent mIntent = new Intent(this, PankuDetailActivity.class);
+        mIntent.putExtra(PankuDetailActivity.extra_DATA, com.alibaba.fastjson.JSONObject.toJSONString(mInfo));
+        startActivityForResult(mIntent, PankuDetailActivity.ResultCode);
+    }
+
+    @Override
+    public String setTitle() {
+        return "盘库";
+    }
+
+    private void openPrintPage(String mid) {
+        Intent mINten = new Intent(this, RukuTagPrintAcitivity.class);
+        mINten.putExtra(RukuTagPrintAcitivity.extra_DPID, mid);
+        startActivity(mINten);
+    }
+
     private void getData() {
-        SoftKeyboardUtils.closeInputMethod(edID, PankuActivity.this);
+        SoftKeyboardUtils.closeInputMethod(edID, mContext);
         final String id = edID.getText().toString().trim();
         final String partno = edPartNo.getText().toString().trim();
         pkData.clear();
@@ -224,12 +270,12 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
             public void run() {
                 try {
                     List<PankuInfo> pankuList = getPankuList(id, partno);
-                    pkData.addAll(pankuList);
-                    mHandler.sendEmptyMessage(GET_DATA);
+                    mHandler.obtainMessage(GET_DATA_New, pankuList).sendToTarget();
                 } catch (IOException e) {
                     mHandler.sendEmptyMessage(GET_FAIL);
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
+                    mHandler.sendEmptyMessage(GET_FAIL);
                     e.printStackTrace();
                 } catch (JSONException e) {
                     mHandler.sendEmptyMessage(GET_NUll);
@@ -249,61 +295,59 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
             Integer.parseInt(result);
             getData();
         } catch (NumberFormatException e) {
-            showMsgToast( getString(R.string.error_numberformate));
+            showMsgToast(getString(R.string.error_numberformate));
             e.printStackTrace();
         }
     }
 
 
+    public <T extends View> T getViewIn(View mView, int id) {
+        T retView;
+        retView = (T) mView.findViewById(id);
+        return retView;
+    }
     @Override
     public void getCameraScanResult(String result, int code) {
         Log.e("zjy", "PankuActivity->getCameraScanResult(): ==" + result + "\tcode=" + code);
         super.getCameraScanResult(result, code);
         if (code == reqScan) {
             final PankuInfo info = currentInfo;
-            final TextView detailId = (TextView) nowViwe.findViewById(R.id.panku_dialog_id);
-            final EditText dialogPartno = (EditText) nowViwe.findViewById(R.id.panku_dialog_partno);
-            final EditText dialogCounts = (EditText) nowViwe.findViewById(R.id.panku_dialog_counts);
-            final EditText dialogFactory = (EditText) nowViwe.findViewById(R.id.panku_dialog_factory);
-            final EditText dialogDescription = (EditText) nowViwe.findViewById(R.id.panku_dialog_description);
-            final EditText dialogFengzhuang = (EditText) nowViwe.findViewById(R.id.panku_dialog_fengzhuang);
-            final EditText dialogPihao = (EditText) nowViwe.findViewById(R.id.panku_dialog_pihao);
-            final EditText dialogPlace = (EditText) nowViwe.findViewById(R.id.panku_dialog_place);
-            final EditText dialogBz = (EditText) nowViwe.findViewById(R.id.panku_dialog_minbz);
-            final EditText dialogMark = (EditText) nowViwe.findViewById(R.id.panku_dialog_mark);
-            final Button dialogPanku = (Button) nowViwe.findViewById(R.id.panku_dialog_panku);
-            final Button dialogTakePic = (Button) nowViwe.findViewById(R.id.panku_dialog_takepic);
-            final Button dialogScanPlace = (Button) nowViwe.findViewById(R.id.panku_dialog_scan);
-            dialogPlace.setText(result);
-            dialogScanPlace.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startScanActivity(reqScan);
-                }
-            });
+            final TextView detailId = (TextView)getViewIn(nowViwe,R.id.panku_dialog_id );
+            final EditText dialogPartno = (EditText)getViewIn(nowViwe,R.id.panku_dialog_partno);
+            final EditText dialogCounts = (EditText)getViewIn(nowViwe,R.id.panku_dialog_counts);
+            final EditText dialogFactory = (EditText)getViewIn(nowViwe,R.id.panku_dialog_factory);
+            final EditText dialogDescription = (EditText)getViewIn(nowViwe,R.id.panku_dialog_description);
+            final EditText dialogFengzhuang = (EditText)getViewIn(nowViwe,R.id.panku_dialog_fengzhuang);
+            final EditText dialogPihao = (EditText)getViewIn(nowViwe,R.id.panku_dialog_pihao);
+            final EditText dialogPlace = (EditText)getViewIn(nowViwe,R.id.panku_dialog_place);
+            final EditText dialogBz = (EditText)getViewIn(nowViwe,R.id.panku_dialog_minbz);
+            final EditText dialogMark = (EditText)getViewIn(nowViwe,R.id.panku_dialog_mark);
+            final Button dialogPanku = (Button)getViewIn(nowViwe,R.id.panku_dialog_panku);
             btnPk = dialogPanku;
-            final Button dialogReset = (Button) nowViwe.findViewById(R.id.panku_dialog_reset);
+            final Button dialogReset = (Button)getViewIn(nowViwe,R.id.panku_dialog_reset);
             btnReset = dialogReset;
-            final Button dialogCancel = (Button) nowViwe.findViewById(R.id.panku_dialog_cancel);
+            final Button dialogCancel = (Button)getViewIn(nowViwe,R.id.panku_dialog_cancel);
+            final String pkPartNo = dialogPartno.getText().toString().trim();
+            final String PKQuantity = dialogCounts.getText().toString().trim();
+            final String PKmfc = dialogFactory.getText().toString().trim();
+            final String PKDescription = dialogDescription.getText().toString().trim();
+            final String PKPack = dialogFengzhuang.getText().toString().trim();
+            final String PKBatchNo = dialogPihao.getText().toString().trim();
+            final String minpack = dialogBz.getText().toString().trim();
+            final String Note = dialogMark.getText().toString().trim();
+            final String PKPlace =result;
+            //startPk(pkPartNo, info, minpack, PKQuantity, PKmfc, PKDescription, PKPack, pkPartNo, Note,
+            // PKPlace);
             Runnable panKuRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    String pkPartNo = dialogPartno.getText().toString().trim();
-                    String PKQuantity = dialogCounts.getText().toString().trim();
-                    String PKmfc = dialogFactory.getText().toString().trim();
-                    String PKDescription = dialogDescription.getText().toString().trim();
-                    String PKPack = dialogFengzhuang.getText().toString().trim();
-                    String PKBatchNo = dialogPihao.getText().toString().trim();
-                    String minpack = dialogBz.getText().toString().trim();
                     int MinPack = 0;
                     if (!minpack.equals("")) {
                         MinPack = Integer.valueOf(minpack);
                     }
                     int OperID = Integer.valueOf(loginID);
                     String OperName = pfInfo.getString("oprName", "");
-                    String DiskID = "";
-                    String Note = dialogMark.getText().toString().trim();
-                    String PKPlace = dialogPlace.getText().toString().trim();
+                    String DiskID = getDiskId(OperID);
                     try {
                         int result = insertPankuInfo(Integer.parseInt(info.getDetailId()), info.getPartNo()
                                 , Integer
@@ -314,32 +358,10 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
                             mHandler.sendEmptyMessage(INSERT_FAIL);
                         } else if (result == 1) {
                             final String id = info.getDetailId();
-                            //                                Message message = mHandler.obtainMessage
-                            // (INSERT_SUCCESS);
-                            //                                message.obj = id;
-                            //                                message.sendToTarget();
-                            mHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    showMsgToast("插入成功");
-                                    btnPk.setVisibility(View.INVISIBLE);
-                                    btnReset.setVisibility(View.VISIBLE);
-                                }
-                            });
-                            try {
-                                List<PankuInfo> pankuList = getPankuList(id, "");
-                                pkData.clear();
-                                pkData.addAll(pankuList);
-                                mHandler.sendEmptyMessage(GET_DATA);
-                            } catch (IOException e) {
-                                mHandler.sendEmptyMessage(GET_FAIL);
-                                e.printStackTrace();
-                            } catch (XmlPullParserException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                mHandler.sendEmptyMessage(GET_NUll);
-                                e.printStackTrace();
-                            }
+                                                            Message message = mHandler.obtainMessage
+                             (INSERT_SUCCESS);
+                                                            message.obj = id;
+                                                            message.sendToTarget();
 
                         }
                     } catch (IOException e) {
@@ -357,12 +379,35 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
                 Integer.parseInt(result);
                 getData();
             } catch (NumberFormatException e) {
-                showMsgToast( "扫码结果有误");
+                showMsgToast("扫码结果有误");
                 e.printStackTrace();
             }
         }
     }
 
+
+    public void asyncGetData(final String dtId, final String partno) {
+        Runnable getResultRun = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    List<PankuInfo> pankuList = getPankuList(dtId, partno);
+                    //                            pkData.addAll(pankuList);
+                    //                            mHandler.sendEmptyMessage(GET_DATA);
+                    mHandler.obtainMessage(GET_DATA_New, pankuList).sendToTarget();
+                } catch (IOException e) {
+                    mHandler.sendEmptyMessage(GET_FAIL);
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    mHandler.sendEmptyMessage(GET_NUll);
+                    e.printStackTrace();
+                }
+            }
+        };
+        TaskManager.getInstance().execute(getResultRun);
+    }
 
     //    string GetDataListForPanKu(string id, string part);
     //
@@ -395,114 +440,85 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
         return tempList;
     }
 
+    public void openPicView(String viewId) {
+        Intent mIntent = new Intent(this, ViewPicByPidActivity.class);
+        mIntent.putExtra(IntentKeys.key_pid, viewId);
+        startActivity(mIntent);
+    }
     void showEditDialog(final PankuInfo info) {
-        View v = LayoutInflater.from(PankuActivity.this).inflate(R.layout.panku_dialog, null);
+        View v = LayoutInflater.from(mContext).inflate(R.layout.panku_dialog, null);
         nowViwe = v;
-        final TextView detailId = (TextView) v.findViewById(R.id.panku_dialog_id);
-        final EditText dialogPartno = (EditText) v.findViewById(R.id.panku_dialog_partno);
-        final EditText dialogCounts = (EditText) v.findViewById(R.id.panku_dialog_counts);
-        final EditText dialogFactory = (EditText) v.findViewById(R.id.panku_dialog_factory);
-        final EditText dialogDescription = (EditText) v.findViewById(R.id.panku_dialog_description);
-        final EditText dialogFengzhuang = (EditText) v.findViewById(R.id.panku_dialog_fengzhuang);
-        final EditText dialogPihao = (EditText) v.findViewById(R.id.panku_dialog_pihao);
-        final EditText dialogPlace = (EditText) v.findViewById(R.id.panku_dialog_place);
-        final EditText dialogBz = (EditText) v.findViewById(R.id.panku_dialog_minbz);
-        final EditText dialogMark = (EditText) v.findViewById(R.id.panku_dialog_mark);
-        final Button dialogPanku = (Button) v.findViewById(R.id.panku_dialog_panku);
-        final Button dialogTakePic = (Button) v.findViewById(R.id.panku_dialog_takepic);
-        final Button dialogScanPlace = (Button) v.findViewById(R.id.panku_dialog_scan);
-        dialogScanPlace.setOnClickListener(new View.OnClickListener() {
+        final TextView detailId = (TextView) getViewIn(v,R.id.panku_dialog_id);
+        final EditText dialogPartno = (EditText) getViewIn(v,R.id.panku_dialog_partno);
+        final EditText dialogCounts = (EditText) getViewIn(v,R.id.panku_dialog_counts);
+        final EditText dialogFactory = (EditText) getViewIn(v,R.id.panku_dialog_factory);
+        final EditText dialogDescription = (EditText) getViewIn(v,R.id.panku_dialog_description);
+        final EditText dialogFengzhuang = (EditText) getViewIn(v,R.id.panku_dialog_fengzhuang);
+        final EditText dialogPihao = (EditText) getViewIn(v,R.id.panku_dialog_pihao);
+        final EditText dialogPlace = (EditText) getViewIn(v,R.id.panku_dialog_place);
+        final EditText dialogBz = (EditText) getViewIn(v,R.id.panku_dialog_minbz);
+        final EditText dialogMark = (EditText) getViewIn(v,R.id.panku_dialog_mark);
+        final Button dialogPanku = (Button) getViewIn(v,R.id.panku_dialog_panku);
+        final Button dialogScanPlace = (Button) getViewIn(v,R.id.panku_dialog_scan);
+        final Button btnCaidan = getViewIn(v,R.id.panku_dialog_chaidan);
+        final Button btnViewPic = getViewIn(v, R.id.panku_dialog_viewpic);
+        final ItemClickWrapper itemListener = new ItemClickWrapper<PankuInfo>(info) {
             @Override
-            public void onClick(View v) {
-                startScanActivity(reqScan);
-                //                startActivityForResult(new Intent(PankuActivity.this, CaptureActivity
-                // .class),reqScan);
-            }
-        });
-        dialogTakePic.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final String detailID = info.getDetailId();
-                if (choiceMethodDialog != null && !choiceMethodDialog.isShowing()) {
-                    choiceMethodDialog.show();
-                    return;
-                }
-                AlertDialog.Builder builder = new AlertDialog.Builder(PankuActivity.this);
-                builder.setTitle("上传方式选择");
-                builder.setItems(new String[]{"拍照", "从手机选择"}, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        MyApp.myLogger.writeInfo("菜单拍照：" + which);
-                        Intent intent = new Intent();
-                        intent.putExtra("pid", detailID);
-                        switch (which) {
-                            case 0:
-                                intent.setClass(PankuActivity.this, TakePicChildPanku.class);
-                                MyApp.myLogger.writeInfo("takepic_panku");
-                                break;
-                            case 1:
-                                intent.setClass(PankuActivity.this, ObtainPicPanku.class);
-                                MyApp.myLogger.writeInfo("obtain_panku");
-                                break;
-                            case 2:
-                                break;
-                        }
-                        startActivity(intent);
-                    }
-                });
-                choiceMethodDialog = builder.show();
-            }
-        });
-        btnPk = dialogPanku;
-        final Button dialogReset = (Button) v.findViewById(R.id.panku_dialog_reset);
-        btnReset = dialogReset;
-        final Button dialogCancel = (Button) v.findViewById(R.id.panku_dialog_cancel);
-        dialogReset.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Runnable cancelRun = new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            int ok = cancelPk(Integer.parseInt(info.getDetailId()));
-                            Log.e("zjy", "PankuActivity.java->run(): cancel==" + ok);
-                            if (ok == 0) {
-                                mHandler.sendEmptyMessage(CHANGEFLAG_ERROR);
-                            } else if (ok == 1) {
-                                info.setHasFlag("0");
-                                Message msg = mHandler.obtainMessage(CHANGEFLAG_SUCCESS, info.getDetailId());
-                                msg.sendToTarget();
+            public void allClick(View v, final PankuInfo data) {
+                switch (v.getId()) {
+                    case R.id.panku_dialog_viewpic:
+                        openPicView(data.getDetailId());
+                        break;
+                    case R.id.panku_dialog_chaidan:
+                        Intent cdIntent = new Intent(mContext, PankuChaidanActivity.class);
+                        String dataJson = com.alibaba.fastjson.JSONObject.toJSONString(data);
+                        //                        Log.e("zjy", "PankuActivity->allClick(): sendData==" +
+                        //                        data.toStringDetail());
+                        cdIntent.putExtra(PankuChaidanActivity.mIntent_Data_key, dataJson);
+                        startActivity(cdIntent);
+                    case R.id.panku_dialog_cancel:
+                        editDialog.dismiss();
+                        break;
+                    case R.id.panku_dialog_reset:
+                        Runnable cancelRun = new Runnable() {
+                            @Override
+                            public void run() {
+                                String errMsg = "";
+                                String tempDpid = data.getDetailId();
+                                try {
+                                    String res = ChuKuServer.CancelPanKuFlag(Integer.parseInt(tempDpid));
+                                    if("1".equals(res)){
+                                        info.setHasFlag("0");
+                                        Message msg = mHandler.obtainMessage(CHANGEFLAG_SUCCESS,
+                                                info.getDetailId());
+                                        msg.sendToTarget();
+                                        return;
+                                    }else {
+                                        errMsg = "返回异常,ret="+res;
+                                    }
+                                } catch (NumberFormatException e) {
+                                    e.printStackTrace();
+                                    errMsg = "明细id必须为纯数字," + tempDpid + "," + e.getMessage();
+                                } catch (IOException e) {
+                                    errMsg = "IO," + e.getMessage();
+                                    e.printStackTrace();
+                                } catch (XmlPullParserException e) {
+                                    e.printStackTrace();
+                                    errMsg = "接口异常xml," + e.getMessage();
+                                }
+                                mHandler.obtainMessage(CHANGEFLAG_ERROR, errMsg).sendToTarget();
                             }
-                        } catch (IOException e) {
-                            mHandler.sendEmptyMessage(CHANGEFLAG_ERROR);
-                            e.printStackTrace();
-                        } catch (XmlPullParserException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                };
-                TaskManager.getInstance().execute(cancelRun);
-            }
-        });
-        dialogCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                editDialog.dismiss();
-            }
-        });
-        if (info.getHasFlag().equals("0")) {
-            dialogReset.setVisibility(View.INVISIBLE);
-            dialogPanku.setVisibility(View.VISIBLE);
-        } else {
-            dialogPanku.setVisibility(View.INVISIBLE);
-            dialogReset.setVisibility(View.VISIBLE);
-        }
-        dialogPanku.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Runnable panKuRunnable = new Runnable() {
-                    @Override
-                    public void run() {
+                        };
+                        TaskManager.getInstance().execute(cancelRun);
+                        break;
+                    case R.id.panku_dialog_scan:
+                       /* if (!"0".equals(data.getHasFlag())) {
+                            showMsgToast("请先解锁再修改位置");
+                            return;
+                        }*/
+                        startScanActivity(reqScan);
+                        break;
+                    case R.id.panku_dialog_panku:
                         String pkPartNo = dialogPartno.getText().toString().trim();
                         String PKQuantity = dialogCounts.getText().toString().trim();
                         String PKmfc = dialogFactory.getText().toString().trim();
@@ -510,41 +526,30 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
                         String PKPack = dialogFengzhuang.getText().toString().trim();
                         String PKBatchNo = dialogPihao.getText().toString().trim();
                         String minpack = dialogBz.getText().toString().trim();
-                        int MinPack = 0;
-                        if (!minpack.equals("")) {
-                            MinPack = Integer.valueOf(minpack);
-                        }
-                        int OperID = Integer.valueOf(loginID);
-                        String OperName = pfInfo.getString("oprName", "");
-                        String DiskID = "";
                         String Note = dialogMark.getText().toString().trim();
                         String PKPlace = dialogPlace.getText().toString().trim();
-                        try {
-                            int result = insertPankuInfo(Integer.parseInt(info.getDetailId()), info
-                                            .getPartNo(), Integer
-                                            .parseInt(info.getLeftCounts()), pkPartNo, PKQuantity, PKmfc,
-                                    PKDescription, PKPack,
-                                    PKBatchNo, MinPack, OperID, OperName, DiskID, Note, PKPlace);
-                            if (result == 0) {
-                                mHandler.sendEmptyMessage(INSERT_FAIL);
-                            } else if (result == 1) {
-                                String id = info.getDetailId();
-                                Message message = mHandler.obtainMessage(INSERT_SUCCESS);
-                                message.obj = id;
-                                message.sendToTarget();
-                            }
-                        } catch (IOException e) {
-                            mHandler.sendEmptyMessage(INSERT_FAIL);
-                            e.printStackTrace();
-                        } catch (XmlPullParserException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                };
-                TaskManager.getInstance().execute(panKuRunnable);
+                        startPk(pkPartNo, info, minpack, PKQuantity, PKmfc, PKDescription, PKPack,
+                                PKBatchNo, Note, PKPlace);
+                        break;
+                }
             }
-        });
-        detailId.setText("明细id是" + info.getDetailId());
+        };
+        btnViewPic.setOnClickListener(itemListener);
+        btnCaidan.setOnClickListener(itemListener);
+        dialogScanPlace.setOnClickListener(itemListener);
+        btnPk = dialogPanku;
+        final Button dialogReset = (Button) getViewIn(v,R.id.panku_dialog_reset);
+        btnReset = dialogReset;
+        final Button dialogCancel = (Button) getViewIn(v,R.id.panku_dialog_cancel);
+        dialogReset.setOnClickListener(itemListener);
+        dialogCancel.setOnClickListener(itemListener);
+        if (info.getHasFlag().equals("0")) {
+            showHide(dialogPanku, dialogReset, true);
+        } else {
+            showHide(dialogPanku, dialogReset, false);
+        }
+        dialogPanku.setOnClickListener(itemListener);
+        detailId.setText(info.getDetailId());
         dialogPartno.setText(info.getPartNo());
         dialogCounts.setText(info.getLeftCounts());
         dialogFactory.setText(info.getFactory());
@@ -562,14 +567,125 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
         }
         dialogBz.setText(minBz);
         dialogPlace.setText(info.getPlaceId());
-        AlertDialog.Builder builder = new AlertDialog.Builder(PankuActivity.this);
-        editDialog = builder.create();
-        if (editDialog != null && !editDialog.isShowing()) {
-            editDialog.show();
-            editDialog.setContentView(v);
-            editDialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-            detailId.requestFocus();
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        if (editDialog == null) {
+            editDialog = builder.create();
         }
+        if (editDialog != null && !editDialog.isShowing()) {
+                editDialog.show();
+                LinearLayout.LayoutParams layoutParams =
+                        new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT);
+                int w = (int) getResources().getDimension(R.dimen.panku_dialog_root_margin_vetical);
+                int h = (int) getResources().getDimension(R.dimen.panku_dialog_root_margin_horizontal);
+                layoutParams.setMargins(w, h, w, h);
+                editDialog.setContentView(v, layoutParams);
+                editDialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+                dialogPlace.requestFocus();
+//                detailId.requestFocus();
+            }
+    }
+
+    void showHide(View v1, View v2, boolean flag) {
+        if (flag) {
+            v1.setVisibility(View.VISIBLE);
+            v2.setVisibility(View.INVISIBLE);
+        }else {
+            v1.setVisibility(View.INVISIBLE );
+            v2.setVisibility(View.VISIBLE);
+        }
+//关闭解锁功能
+        v1.setVisibility(View.VISIBLE);
+        v2.setVisibility(View.GONE);
+    }
+    void startTakePic(final String detailID) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setTitle("上传方式选择");
+        builder.setItems(new String[]{"拍照", "从手机选择"}, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                MyApp.myLogger.writeInfo("菜单拍照：" + which);
+                Intent intent = new Intent();
+                intent.putExtra(IntentKeys.key_pid, detailID);
+                switch (which) {
+                    case 0:
+                        intent.setClass(mContext, TakePicChildPanku.class);
+                        MyApp.myLogger.writeInfo("takepic_panku");
+                        break;
+                    case 1:
+                        intent.setClass(mContext, ObtainPicPanku.class);
+                        MyApp.myLogger.writeInfo("obtain_panku");
+                        break;
+                    case 2:
+                        break;
+                }
+                startActivity(intent);
+            }
+        });
+        if (choiceMethodDialog != null && choiceMethodDialog.isShowing()) {
+            choiceMethodDialog.cancel();
+        }
+        choiceMethodDialog = builder.show();
+    }
+
+    public void startPk(final String pkPartNo, final PankuInfo info, final String minpack,
+                        final String PKQuantity, final String PKmfc, final String PKDescription,
+                        final String PKPack, final String PKBatchNo, final String Note,
+                        final String PKPlace) {
+        Runnable panKuRunnable = new Runnable() {
+            @Override
+            public void run() {
+
+                int MinPack = 0;
+                if (!minpack.equals("")) {
+                    MinPack = Integer.valueOf(minpack);
+                }
+                int OperID = Integer.valueOf(loginID);
+                String OperName = pfInfo.getString("oprName", "");
+                String tempDisk = getDiskId(OperID);
+                String DiskID =tempDisk ;
+                String detailId = info.getDetailId();
+                try {
+                    int result = insertPankuInfo(Integer.parseInt(detailId), info
+                                    .getPartNo(), Integer
+                                    .parseInt(info.getLeftCounts()), pkPartNo, PKQuantity, PKmfc,
+                            PKDescription, PKPack,
+                            PKBatchNo, MinPack, OperID, OperName, DiskID, Note, PKPlace);
+                    if (result == 0) {
+                        mHandler.sendEmptyMessage(INSERT_FAIL);
+                    } else if (result == 1) {
+                        String id = detailId;
+                        Message message = mHandler.obtainMessage(INSERT_SUCCESS);
+                        message.obj = id;
+                        message.sendToTarget();
+                    }
+                } catch (NumberFormatException e) {
+                    mHandler.sendEmptyMessage(INSERT_FAIL);
+                } catch (IOException e) {
+                    mHandler.sendEmptyMessage(INSERT_FAIL);
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                    mHandler.sendEmptyMessage(INSERT_FAIL);
+                }
+            }
+        };
+        TaskManager.getInstance().execute(panKuRunnable);
+    }
+
+    private String getDiskId(int operID) {
+        String tempDisk = pfInfo.getString("nowDevicesId", "");
+        String nowDevId =  UploadUtils.getDeviceID(mContext);
+        if (tempDisk.equals("")) {
+            tempDisk = nowDevId;
+            pfInfo.edit().putString("nowDevicesId", tempDisk).commit();
+        } else if (!tempDisk.equals(nowDevId)) {
+            tempDisk = nowDevId;
+            pfInfo.edit().putString("nowDevicesId", tempDisk).commit();
+            MyApp.myLogger.writeBug("use newDeviceId " + tempDisk + ",LoginId=" + operID);
+        }
+        return tempDisk;
     }
 
     /**
@@ -611,10 +727,6 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
         return Integer.parseInt(res);
     }
 
-    //    GetPauKuDataInfoByID
-    public String getUpdateInfo(String detailId) throws IOException, XmlPullParserException {
-        return ChuKuServer.GetPauKuDataInfoByID(detailId);
-    }
 
     class DetailThread extends Thread {
         PankuInfo item;
@@ -625,12 +737,15 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
 
         @Override
         public void run() {
+            PankuInfo info = null;
+            String errMsg = "未知错误";
             try {
-                String s = getUpdateInfo(item.getHasFlag());
+                String s = ChuKuServer.GetPauKuDataInfoByID(item.getHasFlag());
+                String tempPid = item.getPid();
                 JSONObject root = new JSONObject(s);
                 JSONArray jsonArray = root.getJSONArray("表");
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject tempJ = jsonArray.getJSONObject(i);
+                if (jsonArray.length() > 0) {
+                    JSONObject tempJ = jsonArray.getJSONObject(0);
                     String detailId = tempJ.getString("InstorageDetailID");
                     String PKPartNo = tempJ.getString("PKPartNo");
                     String PKQuantity = tempJ.getString("PKQuantity");
@@ -642,21 +757,31 @@ public class PankuActivity extends SunmiScanActivity implements NoLeakHandler.No
                     String Mark = tempJ.getString("Note");
                     String PKPlace = tempJ.getString("PKPlace");
                     String flag = tempJ.getString("ID");
-                    PankuInfo info = new PankuInfo("", detailId, PKPartNo, PKQuantity, PKmfc,
+                    info = new PankuInfo(tempPid, detailId, PKPartNo, PKQuantity, PKmfc,
                             PKDescription, PKPack, PKBatchNo,
                             PKPlace, "", "", flag);
                     info.setMinBz(MinPack);
                     info.setMark(Mark);
                     Message message = mHandler.obtainMessage(GET_PANKUINFO, info);
                     mHandler.sendMessage(message);
+                    return;
+                }else {
+                    errMsg = "返回数据为空";
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                errMsg = "IO," + e.getMessage();
             } catch (XmlPullParserException e) {
                 e.printStackTrace();
+                errMsg = "xml," + e.getMessage();
             } catch (JSONException e) {
                 e.printStackTrace();
+                errMsg = "返回json异常," + e.getMessage();
             }
+            int errCode =GET_PANKUINFO_ERROR;
+            Message message = mHandler.obtainMessage(GET_PANKUINFO, errCode, errCode
+                    , errMsg);
+            mHandler.sendMessage(message);
         }
 
     }

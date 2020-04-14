@@ -5,6 +5,7 @@ import android.os.Bundle;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
 import utils.common.UploadUtils;
+import utils.net.ftp.FTPUtils;
 
 public class TakePicChildPanku extends TakePicBaseActivity {
 
@@ -23,6 +24,10 @@ public class TakePicChildPanku extends TakePicBaseActivity {
         return remotePath;
     }
 
+    @Override
+    public void initUploadInfos() {
+        mUrl = FTPUtils.mainAddress;
+    }
     @Override
     public String getUploadFlag() {
         return "PK";

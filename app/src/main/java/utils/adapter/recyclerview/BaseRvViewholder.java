@@ -27,6 +27,8 @@ public  class BaseRvViewholder extends RecyclerView.ViewHolder implements IHolde
     int viewType;
     Context mContext;
     int layoutId;
+    public int position;
+
 
     public static BaseRvViewholder getViewHolder(ViewGroup parent, int viewType, int layoutId,
                                                  Context mContext) {

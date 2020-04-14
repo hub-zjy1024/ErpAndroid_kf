@@ -106,21 +106,6 @@ public class ImageLoader {
     }
 
     private void init(int threadCount, Type type) {
-        // loop thread
-        mPoolThread = new Thread() {
-            @Override
-            public void run() {
-                Looper.prepare();
-                Log.e("zjy", "ImageLoader->run(): Prepare==");
-                mPoolThreadHander = new THandler(mThreadPool, mPoolSemaphore, ImageLoader.this);
-                // 释放一个信号量
-                Log.e("zjy", "ImageLoader->run(): new Handler==");
-                mSemaphore.release();
-                Looper.loop();
-            }
-        };
-        mPoolThread.start();
-
         // 获取应用程序最大可用内存
         int maxMemory = (int) Runtime.getRuntime().maxMemory();
         int cacheSize = maxMemory / 8;
@@ -135,7 +120,20 @@ public class ImageLoader {
         mPoolSemaphore = new Semaphore(threadCount);
         mTasks = new LinkedList<Runnable>();
         mType = type == null ? Type.LIFO : type;
-
+        // loop thread
+        mPoolThread = new Thread() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                Log.e("zjy", "ImageLoader->run(): Prepare==");
+                mPoolThreadHander = new THandler(mThreadPool, mPoolSemaphore, ImageLoader.this);
+                // 释放一个信号量
+                Log.e("zjy", "ImageLoader->run(): new Handler==");
+                mSemaphore.release();
+                Looper.loop();
+            }
+        };
+        mPoolThread.start();
     }
 
     /**

@@ -40,7 +40,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="bad_connection">连接服务器失败！！！</string>
     <string name="error_soapobject">getProperty  null！！！</string>
-    <string name="error_numberformate">扫码结果转换int失败</string>
+    <string name="error_numberformate">扫码结果必须为纯数字</string>
     <string name="express_sf">顺丰</string>
     <string name="express_ky">跨越</string>
     <string name="upload_continue">连拍(连续多张时较快)</string>
@@ -66,5 +66,6 @@
     <string name="main_menu_settings">设置</string>
     <string name="main_menu_pic_reupload">图片重传</string>
     <string name="about_contact_qq">851280963</string>
+    <string name="title_panku_chaidan">盘库拆单</string>
 
 </resources>

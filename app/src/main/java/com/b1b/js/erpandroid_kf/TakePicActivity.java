@@ -33,6 +33,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.ReuseFtpRunnable;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -174,7 +175,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
         });
         builder.setView(v);
         inputDialog = builder.create();
-        pid = getIntent().getStringExtra("pid");
+        pid = getIntent().getStringExtra(IntentKeys.key_pid);
         flag = getIntent().getStringExtra("flag");
         if (pid != null) {
             tvPid.setText(pid);

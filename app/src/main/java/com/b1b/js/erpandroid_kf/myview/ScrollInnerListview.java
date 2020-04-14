@@ -31,7 +31,6 @@ public class ScrollInnerListview extends ListView {
         mParent = view;
     }
 
-
     //重写该方法 在按下的时候让父容器不处理滑动事件
     @Override
     public boolean onTouchEvent(MotionEvent ev) {

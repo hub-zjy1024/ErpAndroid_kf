@@ -46,15 +46,15 @@ public class PicDetailActivity extends BaseMActivity {
     public static final String ex_Path = "path";
     public static final String ex_Paths = "paths";
     int pos;
-    TextView tv;
+    TextView tvPageNo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pic_detail);
         zoomIv = (ZoomImageView) findViewById(R.id.activity_pic_detail_iv);
         mViewPager = (ViewPager) findViewById(R.id.activity_pic_detail_viewpager);
-        tv = (TextView) findViewById(R.id.activity_pic_detail_tv);
-        String path = getIntent().getStringExtra(ex_Path);
+        tvPageNo = (TextView) findViewById(R.id.activity_pic_detail_tv);
+        final String path = getIntent().getStringExtra(ex_Path);
         paths = getPaths();
         pos = getIntent().getIntExtra("pos", 0);
         adapter = getPagerAdapter(paths);
@@ -67,7 +67,7 @@ public class PicDetailActivity extends BaseMActivity {
 
             @Override
             public void onPageSelected(int position) {
-                tv.setText((position + 1) + "/" + paths.size());
+                chagePageTitle(position);
             }
 
             @Override
@@ -75,8 +75,21 @@ public class PicDetailActivity extends BaseMActivity {
 
             }
         });
-        tv.setText(("1/" + paths.size()));
+        int position = pos;
+        chagePageTitle(position);
         mViewPager.setCurrentItem(pos);
+    }
+
+    void chagePageTitle(int position) {
+        tvPageNo.setText((position + 1) + "/" + paths.size());
+        TextView viewInContent = getViewInContent(R.id.activity_pic_detail_fname);
+        if (position < paths.size()) {
+            String tempPath = paths.get(position);
+            String fname = tempPath.substring(tempPath.lastIndexOf("/") + 1);
+            viewInContent.setText(fname);
+        }else {
+            viewInContent.setText("");
+        }
     }
 
     @Override
@@ -248,6 +261,11 @@ public class PicDetailActivity extends BaseMActivity {
                 Log.d("zjy", "initView->onCreateView():noParent ==" + tag);
             }
             mImgView = (ImageView) itemView.findViewById(R.id.frag_pic_detail_iv);
+           /* TextView tvTitle = (TextView) itemView.findViewById(R.id.frag_pic_detail_title);
+            if (imgPath != null) {
+                String fName = imgPath.substring(imgPath.lastIndexOf("/") + 1);
+                tvTitle.setText(fName);
+            }*/
             DisplayMetrics displayMetrics = getActivity().getResources().getDisplayMetrics();
             heightPixels = displayMetrics.heightPixels;
             widthPixels = displayMetrics.widthPixels;
@@ -277,6 +295,12 @@ public class PicDetailActivity extends BaseMActivity {
                                     }
                                 });
                             } else {
+                                mHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mImgView.setImageResource( R.drawable.ic_pic_placeholder);
+                                    }
+                                });
                                 Log.d("zjy", "-load bitmap Failed ,key=" + tag);
                                 MyApp.myLogger.writeBug("load bitmap Failed ,key=" + imgPath);
                             }
@@ -319,16 +343,12 @@ public class PicDetailActivity extends BaseMActivity {
                 }
                 return mBitmap;
             } else {
-                Bitmap mBitmap;
+                Bitmap mBitmap = null;
                 try {
                     //                    long memoSize = MyImageUtls.getMemoSize(imgPath, widthPixels, heightPixels);
                     mBitmap = MyImageUtls.getSmallBitmap(imgPath, widthPixels, heightPixels);
-                    BitmapFactory.decodeResource(getActivity().getResources(),
-                            R.drawable.ic_pic_placeholder);
                 } catch (Throwable e) {
                     e.printStackTrace();
-                    mBitmap = BitmapFactory.decodeResource(getActivity().getResources(),
-                            R.drawable.ic_pic_placeholder);
                 }
                 if (mBitmap != null) {
                     Log.d("zjy",

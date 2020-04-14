@@ -173,10 +173,17 @@
     <style name="new_ck_btn_color">
         <item name="android:textColor">@drawable/bg_button_newchuku</item>
     </style>
-    <style name="dialog_button" parent="AppTheme">
+    <style name="dialog_button" parent="button.transparent">
     <!--    <item name="android:borderlessButtonStyle">?android:borderlessButtonStyle</item>-->
-        <item name="android:background">@android:color/transparent</item>
         <item name="android:textColor">@color/bijia_title_background</item>
+    </style>
+    <style name="button.transparent" parent="AppTheme">
+        <!--    <item name="android:borderlessButtonStyle">?android:borderlessButtonStyle</item>-->
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+    <style name="button.transparent.light" parent="button.transparent">
+        <!--    <item name="android:borderlessButtonStyle">?android:borderlessButtonStyle</item>-->
+        <item name="android:textColor">@android:color/white</item>
     </style>
 <!--    app:met_clearButton="true"-->
 <!--    app:met_primaryColor="@color/colorPrimary"-->
@@ -195,5 +202,93 @@
     <style name="style_about_text">
         <item name="android:textSize">@dimen/def_text_size</item>
         <item name="android:textColor">@color/color_lv_divider_end</item>
+    </style>
+    <style name="style_pk_dialog_w1">
+        <item name="android:layout_width">100dp</item>
+    </style>
+    <style name="style_pk_detail_w1">
+        <item name="android:layout_width">120dp</item>
+    </style>
+    <style name="style_pk_detail_w1_with_margin" parent="style_pk_detail_w1">
+        <item name="android:layout_marginLeft">@dimen/panku_detail_min_margin_left</item>
+    </style>
+    <style name="style_pk_dialog_w2_with_margin" parent="style_pk_dialog_w2">
+        <item name="android:layout_marginLeft">@dimen/panku_detail_min_margin_left</item>
+    </style>
+    <style name="style_pk_dialog_w2">
+        <item name="android:layout_width">180dp</item>
+    </style>
+    <style name="style_pk_dialog_col_margin">
+        <item name="android:layout_marginLeft">10dp</item>
+    </style>
+    <style name="style_pk_dialog_content_margin" parent="style_pk_dialog_content_title_font">
+        <item name="android:layout_marginLeft">3dp</item>
+    </style>
+    <style name="style_pk_dialog_content_title_font">
+        <item name="android:textSize">18sp</item>
+    </style>
+    <style name="style_pk_dialog_op_container">
+       <!-- <item name="android:layout_marginBottom">@dimen/activity_vertical_margin</item>-->
+        <item name="android:padding">8dp</item>
+    </style>
+    <style name="style_pk_dialog_panel_divider">
+        <item name="android:layout_marginBottom">@dimen/panku_dialog_divider_half</item>
+        <item name="android:layout_marginTop">@dimen/panku_dialog_divider_half</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">@color/dialog_divider</item>
+    </style>
+    <style name="style_pk_chaidan_subtitle">
+        <item name="android:textColor">@color/title_background</item>
+        <item name="android:textSize">19sp</item>
+        <item name="android:layout_marginBottom">10dp</item>
+    </style>
+    <style name="style_pk_chaidan_label_content">
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/black_de</item>
+    </style>
+    <style name="style_pk_chaidan_detail_item_container">
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
+    <style name="style_pk_chaidan_label">
+        <item name="android:layout_marginLeft">15dp</item>
+        <item name="android:layout_marginRight">10dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_width">80dp</item>
+        <item name="android:gravity">end</item>
+    </style>
+    <style name="style_pk_item_label_container">
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_marginBottom">5dp</item>
+    </style>
+    <style name="style_pk_item_label">
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_width">60dp</item>
+    </style>
+    <style name="style_pk_item_value">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/black_de</item>
+    </style>
+    <style name="style_pk_item_label_toleft" parent="style_pk_item_label">
+        <item name="android:layout_marginLeft">10dp</item>
+    </style>
+
+    <style name="style_pk_item_conten_marginLeft">
+        <item name="android:layout_marginLeft">10dp</item>
+    </style>
+    <style name="style_pk_chaidan_new_item_label">
+        <item name="android:layout_marginLeft">17sp</item>
+    </style>
+    <style name="app_title_style" parent="AppTheme">
+    <!--    android:layout_height="?attr/actionBarSize"
+        app:titleTextColor="@color/color_white"
+        app:subtitleTextColor="@color/color_tb_subtitle"
+        android:background="@color/title_background"-->
+        <item name="android:layout_height">?attr/actionBarSize</item>
+        <item name="titleTextColor">@color/color_white</item>
+        <item name="subtitleTextColor">@color/color_tb_subtitle</item>
+        <item name="android:background">@color/title_background</item>
+    </style>
+    <style name="panku_detail_label">
+        <item name="android:textSize">17sp</item>
     </style>
 </resources>

@@ -1,5 +1,6 @@
 package com.b1b.js.erpandroid_kf.activity.base;
 
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -116,6 +117,21 @@ public abstract class BaseMActivity extends AppCompatActivity {
         v.setOnClickListener(listener);
     }
 
+    public void showMsgDialogWithCallback(final String msg, final Dialog.OnClickListener listener) {
+        if(isStoped){
+            Log.w(getClass().getName()+" ", "isStop when showMsgDialog ,msg= "+msg );
+            return;
+        }
+        if (mdialog != null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mdialog.showMsgDialogWithCallback(msg, listener);
+                }
+            });
+        }
+    }
+
     public void showMsgDialog(final String msg) {
         if(isStoped){
             Log.w(getClass().getName()+" ", "isStop when showMsgDialog ,msg= "+msg );
@@ -150,6 +166,10 @@ public abstract class BaseMActivity extends AppCompatActivity {
                 DialogUtils.getSpAlert(mContext, fMSg, title).show();
             }
         });
+    }
+
+    public Dialog getDialogById(int id) {
+        return mdialog.getDialogById(id);
     }
 
     public int showProgressWithID(String msg) {

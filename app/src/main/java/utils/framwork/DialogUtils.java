@@ -57,6 +57,25 @@ public class DialogUtils {
         return andIncrement;
     }
 
+    public Dialog getDialogById(int id) {
+        return mPds.get(id);
+    }
+
+    /**
+     * 不可取消的Dialog，只能通过回调按键
+     * @param msg
+     * @param listener
+     * @return
+     */
+    public int showMsgDialogWithCallback(String msg, DialogInterface.OnClickListener listener) {
+        Dialog proDialog =
+                getDialog(mContext).setBtn1L(listener).setBtn1("确认").setMsg(msg).create();
+        proDialog.setCancelable(false);
+        int andIncrement = mit.getAndIncrement();
+        mPds.put(andIncrement, proDialog);
+        return andIncrement;
+    }
+
     public void cancelAll() {
         for (int i = 0; i < mPds.size(); i++) {
             int i1 = mPds.keyAt(i);

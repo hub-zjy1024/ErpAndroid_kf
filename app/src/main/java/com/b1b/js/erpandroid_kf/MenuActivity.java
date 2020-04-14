@@ -21,6 +21,8 @@ import com.b1b.js.erpandroid_kf.activity.base.SlideBackActivity;
 import com.b1b.js.erpandroid_kf.adapter.MenuActivityRvAdapter;
 import com.b1b.js.erpandroid_kf.adapter.MenuGvAdapter;
 import com.b1b.js.erpandroid_kf.entity.MyMenuItem;
+import com.b1b.js.erpandroid_kf.service.GetPankuTask;
+import com.b1b.js.erpandroid_kf.service.ShechduleMgr;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.yundan.SFActivity;
 
@@ -61,6 +63,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
     private final String tag_ScanCheck = "扫码复核";
     private final String tag_newChuku = "新出库";
     private final String tag_Modify = "库存管理";
+    private  final String tag_PankuTask = "待盘库";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +77,8 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         gv.setOnItemClickListener(this);
         addItemGV();
         MyApp.myLogger.writeInfo("user=" +loginID);
+        GetPankuTask mPanku = new GetPankuTask(mContext, loginID);
+        ShechduleMgr.getInstance().executeByDur(mPanku, 10 * 60);
     }
 
     @Override
@@ -109,6 +114,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Print, "顺丰下单并打印功能,以及打印手机接受的文件的功能"));
         data.add(new MyMenuItem(R.mipmap.menu_pic, tag_Viewpic, "查询单据关联的照片"));
         data.add(new MyMenuItem(R.mipmap.menu_panku, tag_Panku, "货物位置管理"));
+        data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_PankuTask, "101"));
         data.add(new MyMenuItem(R.mipmap.menu_shangjia, tag_shangjia, "上架"));
         data.add(new MyMenuItem(R.mipmap.menu_caigou_96, tag_CaigouTakePic, "采购单拍照功能"));
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Ruku, "蓝牙打印，打印入库标签"));
@@ -259,6 +265,10 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
                 break;
             case tag_Modify:
                 intent.setClass(mContext, KucunEditActivity.class);
+                startActivity(intent);
+                break;
+            case tag_PankuTask:
+                intent.setClass(mContext, MyPankuListActivity.class);
                 startActivity(intent);
                 break;
         }

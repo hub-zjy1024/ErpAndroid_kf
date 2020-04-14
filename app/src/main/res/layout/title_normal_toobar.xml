@@ -3,10 +3,9 @@
                                    android:layout_width="match_parent"
                                    xmlns:app="http://schemas.android.com/apk/res-auto"
                                    android:id="@+id/dyjkf_normalTb"
-                                   android:layout_height="?attr/actionBarSize"
-                                   app:titleTextColor="@color/color_white"
-                                   app:subtitleTextColor="@color/color_tb_subtitle"
+    style="@style/app_title_style"
+
                                    app:title="这是菜单"
                                    app:subtitle="这是菜单2"
-                                   android:background="@color/title_background">
+                                   >
 </android.support.v7.widget.Toolbar>

@@ -19,6 +19,7 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuDetialAdapter;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.PreChukuDetailInfo;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
 import com.b1b.js.erpandroid_kf.printer.PrinterStyle;
@@ -266,7 +267,7 @@ public class PreChukuDetailActivity extends SavedLoginInfoActivity implements No
                 super.run();
                 try {
                     Intent intent = getIntent();
-                    String pid = intent.getStringExtra("pid");
+                    String pid = intent.getStringExtra(IntentKeys.key_pid);
                     getPreChukuDetail(Integer.parseInt(pid), Integer.parseInt(loginID));
                 } catch (IOException e) {
                     e.printStackTrace();

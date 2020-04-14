@@ -20,6 +20,7 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.CheckInfoAdapter;
 import com.b1b.js.erpandroid_kf.entity.CheckInfo;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONException;
@@ -126,7 +127,7 @@ public class CheckActivity extends ToolbarHasSunmiActivity implements NoLeakHand
 
     protected void onItemClickMy(CheckInfo minfo) {
         Intent intent = new Intent(CheckActivity.this, SetCheckInfoActivity.class);
-        intent.putExtra("pid", minfo.getPid());
+        intent.putExtra(IntentKeys.key_pid, minfo.getPid());
         startActivity(intent);
     }
 //    @Override
@@ -157,7 +158,7 @@ public class CheckActivity extends ToolbarHasSunmiActivity implements NoLeakHand
 
     public void OnAutoGo(CheckInfo fInfo) {
         final Intent intent = new Intent(CheckActivity.this, SetCheckInfoActivity.class);
-        intent.putExtra("pid", fInfo.getPid());
+        intent.putExtra(IntentKeys.key_pid, fInfo.getPid());
         startActivity(intent);
     }
     public void getData(final int typeId, final String pid, final String partNo, boolean auto) {

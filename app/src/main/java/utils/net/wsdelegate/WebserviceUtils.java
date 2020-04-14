@@ -208,8 +208,9 @@ public class WebserviceUtils {
             throws IOException {
         String ret = "";
         try {
+            String sig = String.format("%s->%s", serviceName, request.getName());
             String debugMsg = String.format("wcf,server=%s,param=%s", serviceName, request.toString());
-            Log.d("zjy", "WebserviceUtils->getResNew(): debug==" + debugMsg);
+            Log.d("zjy", "WebserviceUtils->getResNew(): input==" + debugMsg);
             if (envolopeVesion == VERSION_12) {
                 ht.call(null, envelope);
             } else {
@@ -248,7 +249,7 @@ public class WebserviceUtils {
             if (BuildConfig.DEBUG) {
                 Log.d("zjy", "wcf,cla=" + sob.getClass().getSimpleName() + "->getResNew():"
                         +
-                        "->" + serviceName+
+                        "->" + sig+
                         " ,ret==" + ret);
             }
         } catch (XmlPullParserException e) {

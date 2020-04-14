@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.joanzapata.pdfview.PDFView;
 import com.joanzapata.pdfview.listener.OnLoadCompleteListener;
@@ -157,7 +158,7 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
         final Intent intent = getIntent();
         final String corpID = intent.getStringExtra("corpID");
         final String proID = intent.getStringExtra("providerID");
-        final String pid = intent.getStringExtra("pid");
+        final String pid = intent.getStringExtra(IntentKeys.key_pid);
         tvPid.setText(pid);
         btnTakepic.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -166,7 +167,7 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                 builder.setTitle("上传方式选择");
                 final Intent uploadIntent = new Intent();
                 uploadIntent.putExtra("flag", "caigou");
-                uploadIntent.putExtra("pid", pid);
+                uploadIntent.putExtra(IntentKeys.key_pid, pid);
                 builder.setItems(getResources().getStringArray(R.array.upload_type), new DialogInterface
                         .OnClickListener() {
                     @Override
@@ -338,6 +339,7 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                                 msg10 = "当前单据未生成合同" ;
                             } else if (result.contains("ftp")) {
                                 FTPUtils ftpUtil = FTPUtils.getGlobalFTP();
+                                FileOutputStream fio=null;
                                 try {
                                     ftpUtil.login();
                                     for (int i = 0; true; i++) {
@@ -354,16 +356,23 @@ public class CaigouDetailActivity extends BaseMActivity implements OnPageChangeL
                                     if (!parentFile.exists()) {
                                         parentFile.mkdirs();
                                     }
-                                    FileOutputStream fio = new FileOutputStream
+                                     fio = new FileOutputStream
                                             (file);
                                     ftpUtil.download(fio, remotePath);
                                     filePath = file.getAbsolutePath();
-                                    fio.close();
                                     mHandler.obtainMessage(MSG_GET_PDF, file.getAbsolutePath()).sendToTarget();
                                     return;
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                     msg10 = "下载合同文件失败," + e.getMessage();
+                                }finally {
+                                    if (fio != null) {
+                                        try {
+                                            fio.close();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
                                 }
                             } else {
                                 msg10 = "当前单据未生成合同" ;

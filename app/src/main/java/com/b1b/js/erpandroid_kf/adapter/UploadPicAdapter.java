@@ -2,6 +2,7 @@ package com.b1b.js.erpandroid_kf.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +12,7 @@ import android.widget.ImageView;
 
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
-import com.squareup.picasso.Picasso;
+import com.b1b.js.erpandroid_kf.imagepicker.utils.ImageLoader;
 
 import java.io.File;
 import java.util.List;
@@ -65,8 +66,11 @@ public class UploadPicAdapter extends BaseAdapter {
         }
         if (position < data.size()) {
             UploadPicInfo uploadPicInfo = data.get(position);
-            File file = new File(uploadPicInfo.getPath());
-            Picasso.with(mContext).load(file).resize(200, 200).centerCrop().into(mHolder.iv);
+            String filePath = uploadPicInfo.getPath();
+            File file = new File(filePath);
+            Log.e("zjy", "UploadPicAdapter->getView(): mPath==" + filePath);
+//            Picasso.with(mContext).load(file).placeholder(R.drawable.ic_pic_placeholder).resize(200, 200).into(mHolder.iv);
+            ImageLoader.getInstance().loadImage(filePath, mHolder.iv);
             if (uploadPicInfo.getState().equals("1")) {
                 mHolder.btn.setText("上传完成");
                 mHolder.btn.setTextColor(Color.GREEN);

@@ -114,7 +114,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="#be3232"
+
+        android:lineSpacingMultiplier="1.5"
         android:textIsSelectable="true"
         />
+    <!-- android:lineSpacingExtra="4dp"-->
 
 </LinearLayout>

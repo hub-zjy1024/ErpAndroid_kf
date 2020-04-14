@@ -33,6 +33,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.PicUploadInfo;
 import com.b1b.js.erpandroid_kf.receiver.NetBroadcastReceiver;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
@@ -181,7 +182,7 @@ public class TakePic2Activity extends SavedLoginInfoActivity implements View.OnC
         builder.setNegativeButton("取消", null);
         builder.setView(v);
         inputDialog = builder.create();
-        pid = getIntent().getStringExtra("pid");
+        pid = getIntent().getStringExtra(IntentKeys.key_pid);
         if (pid != null) {
             tvPid.setText(pid);
             dialogPid.setText(pid);

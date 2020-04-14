@@ -62,6 +62,16 @@ public class RKServer{
 		properties.put("loginID", loginID);
 		return WebserviceUtils.getLocalWcf(properties, "ChaiDan", serverName);
 	}
+	public static String BatchChaiDan(int instorageMainID, int instorageDetailID, String json,
+									  String loginID) throws IOException, XmlPullParserException {
+		LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+		properties.put("instorageMainID", instorageMainID);
+		properties.put("instorageDetailID", instorageDetailID);
+		//		BatchNo  Number
+		properties.put("json", json);
+		properties.put("loginID", loginID);
+		return WebserviceUtils.getWcfResult(properties, "BatchChaiDan", serverName);
+	}
 
 	public static String CommitSplit(String data, String pid, String detailId) throws IOException,
 			XmlPullParserException {

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/item_panku_logs_tv_no"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="序号1:"/>
+
+        <TextView
+            android:id="@+id/item_panku_logs_tv_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="35dp"
+            android:text="2018/3/6 11:44:14"
+            android:textSize="@dimen/def_text_size_small"></TextView>
+
+        <TextView
+            android:id="@+id/item_panku_logs_tv_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="35dp"
+            android:textSize="@dimen/def_text_size_small"></TextView>
+
+    </LinearLayout>
+</LinearLayout>

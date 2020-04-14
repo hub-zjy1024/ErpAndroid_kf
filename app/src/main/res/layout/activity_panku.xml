@@ -9,16 +9,6 @@
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.PankuActivity">
 
-    <TextView
-        android:id="@+id/panku_title"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_gravity="center_horizontal"
-        android:background="@color/bijia_title_background"
-        android:gravity="center"
-        android:text="盘库"
-        android:textColor="@color/color_white"
-        android:textSize="20sp"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -31,6 +21,7 @@
             android:layout_height="wrap_content"
             android:hint="请输入明细id"
             style="@style/zjy_metiarial_ed.common"
+            android:maxLines="1"
             android:inputType="number"/>
 
         <com.rengwuxian.materialedittext.MaterialEditText
@@ -39,6 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             style="@style/zjy_metiarial_ed.common"
+            android:maxLines="1"
             android:hint="请输入型号"/>
 
 

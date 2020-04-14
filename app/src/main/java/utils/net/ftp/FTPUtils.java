@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  * Created by 张建宇 on 2017/6/29.
@@ -323,16 +324,17 @@ public class FTPUtils {
      * @throws IOException
      */
     public synchronized boolean upload(InputStream localIn, String remoteFilePath) throws IOException {
-        int last = remoteFilePath.lastIndexOf("/");
+        String enCodePath = getEncodedPath(remoteFilePath);
+        int last = enCodePath.lastIndexOf("/");
         if (last >0) {
-            String path = remoteFilePath.substring(0, last);
+            String path = enCodePath.substring(0, last);
             boolean dirExists = fileExists(path);
             if (!dirExists) {
                 Log.d("zjy", "FTPUtils->upload(): makeDir==" + path);
                 mkDirs(path);
             }
         }
-        return mClient.storeFile(remoteFilePath, localIn);
+        return mClient.storeFile(enCodePath, localIn);
     }
 
     /**
@@ -385,10 +387,21 @@ public class FTPUtils {
      * 下载 * @throws Exception
      */
     public void download(String localFilePath, String remoteFilePath) throws IOException {
-        OutputStream localOut = new
-                FileOutputStream(localFilePath);
-        this.download(localOut, remoteFilePath);
-        localOut.close();
+        File mFile = new File(localFilePath);
+        OutputStream localOut = null;
+        try {
+            localOut=new FileOutputStream(mFile);
+            this.download(localOut, remoteFilePath);
+            localOut.close();
+        } catch (Exception e) {
+            if(mFile.exists()){
+                mFile.delete();
+            }
+        }finally {
+            if (localOut != null) {
+                localOut.close();
+            }
+        }
     }
 
     public synchronized boolean fileExists(String remoteFilePath) {
@@ -414,10 +427,21 @@ public class FTPUtils {
      * Exception
      */
     public void download(OutputStream localOut, String remoteFilePath) throws IOException {
-        boolean result = mClient.retrieveFile(remoteFilePath, localOut);
+        String mPath =getEncodedPath(remoteFilePath);
+        boolean result = mClient.retrieveFile(mPath, localOut);
         if (!result) {
             throw new IOException("文件下载失败!");
         }
+    }
+    public String getEncodedPath(String remoteFilePath){
+        String mPath = null;
+        try {
+            mPath = new String(remoteFilePath.getBytes(), "iso-8859-1");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return remoteFilePath;
+        }
+        return mPath;
     }
 
     /**

@@ -31,6 +31,7 @@ public abstract class BaseRvAdapter<T> extends RecyclerView.Adapter<BaseRvViewho
     @Override
     public void onBindViewHolder(BaseRvViewholder holder, int position) {
         T tData = mData.get(position);
+        holder.position = position;
         convert(holder, tData);
     }
 

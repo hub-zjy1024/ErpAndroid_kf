@@ -6,7 +6,17 @@ public class Myuuid {
 		return s;
 	}
 	public static String create2(int lastLen){
-		String s=String.valueOf(Math.random()).substring(2,2+lastLen);
+		String str = String.valueOf(Math.random());
+		int start = 2;
+		String s = "";
+		if (start + lastLen > str.length()) {
+			int leftLen = str.length() - start - lastLen;
+			String mChar = create2(leftLen);
+			mChar.substring(2,2+lastLen);
+			s += mChar;
+		}else{
+			s += str.substring(start, start + lastLen);
+		}
 		return s;
 	}
 }

@@ -12,6 +12,7 @@ import android.widget.ListView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.adapter.YanhuoAdapter;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.YanhuoInfo;
 
 import org.json.JSONArray;
@@ -58,7 +59,7 @@ public class CaigouYanhuoActivity extends SunmiScanActivity {
                         YanhuoCheckActivity.class);
                 if (yanhuoInfos.size() > position) {
                     YanhuoInfo info = yanhuoInfos.get(position);
-                    intent.putExtra("pid", info.getPid());
+                    intent.putExtra(IntentKeys.key_pid, info.getPid());
                     startActivity(intent);
                 }
             }

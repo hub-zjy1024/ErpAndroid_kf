@@ -17,11 +17,12 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuParentAdapter;
+import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.entity.ChukuDetail;
 import com.b1b.js.erpandroid_kf.entity.ChukuInfo;
 import com.b1b.js.erpandroid_kf.entity.ChukuInfoNew;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.PreChukuItem;
-import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.mvcontract.ParentChukuContract;
 import com.b1b.js.erpandroid_kf.myview.ScrollInnerListview;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
@@ -403,7 +404,7 @@ public class ParentChukuActivity extends ToolbarHasSunmiActivity implements View
 //                break;
             case R.id.activity_parent_chuku_opr_btn_yundan:
                 Intent mIntent = new Intent(this, SFActivity.class);
-                mIntent.putExtra(SettingActivity.extra_PID, tempPid);
+                mIntent.putExtra(IntentKeys.key_pid, tempPid);
                 if ("".equals(tempPid)) {
                     showMsgToast("请先输入单据号");
                     return;
@@ -413,7 +414,7 @@ public class ParentChukuActivity extends ToolbarHasSunmiActivity implements View
                 break;
             case R.id.activity_parent_chuku_opr_btn_viewpic:
                 Intent intent2 = new Intent(mContext, ViewPicByPid2Activity.class);
-                intent2.putExtra(SettingActivity.extra_PID, tempPid);
+                intent2.putExtra( IntentKeys.key_pid, tempPid);
                 intent2.putExtra(ChukuTakePicActivity.ex_Flag, mFlag);
                 if ("".equals(tempPid)) {
                     showMsgToast("请先输入单据号");
@@ -422,8 +423,8 @@ public class ParentChukuActivity extends ToolbarHasSunmiActivity implements View
                 startActivity(intent2);
                 break;
             case R.id.activity_parent_chuku_opr_btn_yundan_takepic:
-                Intent intent = new Intent(this, ChukuTakePicActivity.class);
-                intent.putExtra(SettingActivity.extra_PID, tempPid);
+                Intent intent = new Intent(mContext, ChukuTakePicActivity.class);
+                intent.putExtra( IntentKeys.key_pid, tempPid);
                 intent.putExtra(ChukuTakePicActivity.ex_Flag, mFlag);
                 if ("".equals(tempPid)) {
                     showMsgToast("请先输入单据号");

@@ -200,10 +200,13 @@ public class PickPicActivity extends AppCompatActivity implements ListImageDirPo
                     // 获取图片的路径
                     String path = mCursor.getString(mCursor.getColumnIndex(MediaStore.Images.Media.DATA));
                     // 拿到第一张图片的路径
+                 //   Log.e("zjy", "PickPicActivity->run(): mPath==" + path);
                     if (firstImage == null)
                         firstImage = path;
                     // 获取该图片的父路径名
-                    File parentFile = new File(path).getParentFile();
+                    String parentPath = path.substring(0, path.lastIndexOf("/"));
+                    File parentFile = new File(parentPath);
+//                    File parentFile = new File(path).getParentFile();
                     if (parentFile == null)
                         continue;
                     String dirPath = parentFile.getAbsolutePath();

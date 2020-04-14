@@ -2,34 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.b1b.js.erpandroid_kf">
 
-    <uses-feature android:name="android.hardware.Camera.AutoFocusCallback" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.FLASHLIGHT" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!--添加安装权限8.0-->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <application
         android:name=".MyApp"
         android:allowBackup="true"
         android:icon="@mipmap/launcher_ic_kf"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
-        <activity android:name=".KucunEditActivity"></activity>
+        <activity android:name=".MyPankuListActivity"></activity>
+        <activity android:name=".MyTodoActivity" />
+        <activity android:name=".PankuDetailActivity" />
+        <activity android:name=".PankuChaidanActivity" />
+        <activity android:name=".KucunEditActivity" />
         <activity android:name=".ChukuTakePicActivity" />
-
         <activity
             android:name=".MainActivity"
             android:theme="@style/AppSplash">
@@ -107,6 +91,7 @@
         <activity android:name=".YundanPicActivity" />
         <activity android:name=".ViewPicByPid2Activity" />
         <activity android:name=".PicDetailActivity2" />
+
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -124,6 +109,7 @@
                 <action android:name="deleteNotification" />
             </intent-filter>
         </receiver>
+
         <service
             android:name=".service.PushService"
             android:enabled="true"
@@ -131,5 +117,23 @@
         <service android:name=".service.LogUploadService" />
         <service android:name=".service.ReUploadService" />
     </application>
+
+    <uses-feature android:name="android.hardware.Camera.AutoFocusCallback" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" /> <!-- 添加安装权限8.0 -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
 </manifest>

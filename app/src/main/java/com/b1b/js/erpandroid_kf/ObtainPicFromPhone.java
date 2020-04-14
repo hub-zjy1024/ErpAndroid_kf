@@ -19,8 +19,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.UploadPicAdapter;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.UploadPicInfo;
 import com.b1b.js.erpandroid_kf.imagepicker.PickPicActivity;
 import com.b1b.js.erpandroid_kf.imagepicker.utils.MyAdapter;
@@ -50,7 +51,7 @@ import utils.net.ftp.FTPUtils;
 import utils.net.wsdelegate.ChuKuServer;
 import utils.net.wsdelegate.MartStock;
 
-public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
+public class ObtainPicFromPhone extends ToolbarHasSunmiActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
 
     protected Button btn_commit;
     private Button btn_commitOrigin;
@@ -91,6 +92,11 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
                 solveResult(arg1, arg2, picSize, err);
                 break;
         }
+    }
+
+    @Override
+    public String setTitle() {
+        return "选取图片上传";
     }
 
     private void solveResult(int arg1, int arg2, int picSize, String err) {
@@ -190,7 +196,7 @@ public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeak
         });
         resultDialog.setCanceledOnTouchOutside(true);
         Intent intent = getIntent();
-        pid = intent.getStringExtra("pid");
+        pid = intent.getStringExtra(IntentKeys.key_pid);
         if (pid != null) {
             edPid.setText(pid);
         }

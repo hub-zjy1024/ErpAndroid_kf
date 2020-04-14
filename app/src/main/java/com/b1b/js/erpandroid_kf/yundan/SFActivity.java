@@ -19,6 +19,7 @@ import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
 import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.printer.entity.Yundan;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -88,7 +89,7 @@ public class SFActivity extends SunmiScanActivity {
                 goodInfos = goodInfos.substring(0, goodInfos.lastIndexOf("$"));
                 intent.putExtra("goodInfos", goodInfos);
                 intent.putExtra("client", item.getCustomer());
-                intent.putExtra(SettingActivity.extra_PID , item.getPid());
+                intent.putExtra( IntentKeys.key_pid , item.getPid());
                 intent.putExtra("times", item.getPrint());
                 intent.putExtra("type", item.getType());
             }
@@ -158,7 +159,7 @@ public class SFActivity extends SunmiScanActivity {
             }
         });
 
-        String tempPid = getIntent().getStringExtra(SettingActivity.extra_PID);
+        String tempPid = getIntent().getStringExtra( IntentKeys.key_pid);
         if (tempPid != null) {
             edPid.setText(tempPid);
             getYundanResult();

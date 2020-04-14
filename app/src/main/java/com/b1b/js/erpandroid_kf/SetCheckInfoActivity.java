@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.UserInfoPref;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
@@ -51,7 +52,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
         btnCommit.setOnClickListener(this);
         btnFail.setOnClickListener(this);
         Intent intent = getIntent();
-        pid = intent.getStringExtra("pid");
+        pid = intent.getStringExtra(IntentKeys.key_pid);
         if (pid != null) {
             tv.setText("单据号：" + pid);
         }
@@ -139,7 +140,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
             case R.id.setcheckinfo_photo:
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 final Intent uploadIntent = new Intent();
-                uploadIntent.putExtra("pid", pid);
+                uploadIntent.putExtra(IntentKeys.key_pid, pid);
                 builder.setItems(getResources().getStringArray(R.array.upload_type), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

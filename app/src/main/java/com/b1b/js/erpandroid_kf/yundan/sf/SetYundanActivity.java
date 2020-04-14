@@ -32,6 +32,7 @@ import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
 import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 import com.b1b.js.erpandroid_kf.yundan.sf.entity.Cargo;
@@ -516,7 +517,7 @@ public class SetYundanActivity extends SunmiScanActivity implements NoLeakHandle
             }
         });
         final Intent intent = getIntent();
-        pid = intent.getStringExtra(SettingActivity.extra_PID );
+        pid = intent.getStringExtra(IntentKeys.key_pid);
         tvPid.setText(pid);
         String sendFlag = intent.getStringExtra("type");
         if ("2".equals(sendFlag)) {

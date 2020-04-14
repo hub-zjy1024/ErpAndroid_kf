@@ -150,12 +150,7 @@ public class UploadUtils {
         if (tm == null) {
             return "service is unable:" + getTimeYmdhms();
         }
-        String deviceId = tm.getDeviceId();
-        if(deviceId==null){
-            deviceId = tm.getSubscriberId();
-        }
-        if (deviceId == null) {
-        }
+        String deviceId = getDeviceID(context);
 
         String phoneModel = Build.MODEL;
         String phoneName = Build.BRAND;

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/ItemViewPadding"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:descendantFocusability="blocksDescendants"
+    android:orientation="vertical">
+
+    <LinearLayout
+        style="@style/style_pk_item_label_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/style_pk_item_label"
+            android:layout_height="wrap_content"
+            android:text="单据号:"></TextView>
+
+        <TextView
+            android:id="@+id/item_lv_pk_tv_pid"
+            style="@style/style_pk_item_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="123123123"></TextView>
+
+        <TextView
+             style="@style/style_pk_item_label_toleft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="明细ID:"></TextView>
+        <TextView
+            android:id="@+id/item_lv_pk_tv_detailId"
+            style="@style/style_pk_item_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="123123123"></TextView>
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/style_pk_item_label_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/style_pk_item_label"
+            android:layout_height="wrap_content"
+            android:text="型号:"></TextView>
+
+        <TextView
+            android:id="@+id/item_lv_pk_tv_partno"
+            style="@style/style_pk_item_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="123123123"></TextView>
+    </LinearLayout>
+    <LinearLayout
+        style="@style/style_pk_item_label_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/style_pk_item_label"
+            android:layout_height="wrap_content"
+            android:text="数量:"></TextView>
+
+        <TextView
+            android:id="@+id/item_lv_pk_tv_count"
+            style="@style/style_pk_item_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="123123123"></TextView>
+
+        <TextView
+            style="@style/style_pk_item_label_toleft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="批号:"></TextView>
+
+        <TextView
+            style="@style/style_pk_item_value"
+            android:id="@+id/item_lv_pk_tv_pihao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="123123123"></TextView>
+    </LinearLayout>
+    <LinearLayout
+        style="@style/style_pk_item_label_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/style_pk_item_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="入库时间:"></TextView>
+        <TextView
+            style="@style/style_pk_item_value"
+            android:id="@+id/item_lv_pk_tv_rktime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="123123123"></TextView>
+    </LinearLayout>
+    <TextView
+        android:id="@+id/chukudan_items_tvMore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="长按显示更多..."
+        android:textColor="@color/title_background"
+        android:textSize="@dimen/def_text_size_small" />
+
+    <TextView
+        android:id="@+id/chukudan_items_tv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textSize="@dimen/def_text_size_small"
+        android:visibility="gone" />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/item_pk_btn_rprint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="重打标签"></Button>
+        <!-- <RelativeLayout
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content">
+             <Button
+                 android:id="@+id/item_pk_btn_takepic"
+                 android:layout_width="wrap_content"
+                 android:stateListAnimator="@null"
+                 android:text="拍照"
+                 android:layout_height="wrap_content">
+             </Button>
+             <ImageView
+                 android:layout_width="10dp"
+                 android:layout_height="10dp"
+                 android:layout_alignParentRight="true"
+                 android:layout_alignParentTop="true"
+                 android:scaleType="fitCenter"
+                 android:src="@drawable/upload_net">
+             </ImageView>
+         </RelativeLayout>-->
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/item_pk_btn_takepic"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:stateListAnimator="@null"
+                android:text="拍照"></Button>
+
+            <ImageView
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_gravity="right|top"
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/upload_net"></ImageView>
+        </FrameLayout>
+    </LinearLayout>
+
+
+
+</LinearLayout>

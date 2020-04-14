@@ -13,19 +13,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
+            style="@style/button.transparent.light"
             android:text="取消"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
+            style="@style/button.transparent.light"
             android:text="选取图片"
-            android:textSize="20sp"/>
+            android:textSize="@dimen/activity_title_textsize"/>
 
         <Button
             android:id="@+id/pickpic_finish"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
+            style="@style/button.transparent.light"
             android:text="选取完成"/>
 
     </RelativeLayout>

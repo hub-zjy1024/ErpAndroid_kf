@@ -52,6 +52,8 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
     private Handler mHandler = new NoLeakHandler(this);
     private final static int FLAG_PRINT = 3;
     private String storageID = "";
+    public static String extra_DPID = "detailid";
+
     public static final String storageKey = SpSettings.storageKey;
     private Button btnPreView;
 
@@ -142,10 +144,15 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
         btnPrint = (Button) findViewById(R.id.rukutag_activity_btn_print);
         btnPreView = (Button) findViewById(R.id.ruku_tag_btn_preview);
         if (BuildConfig.DEBUG) {
+            btnPreView.setBackgroundColor(getResources().getColor(R.color.bg_debug));
             btnPreView.setVisibility(View.VISIBLE);
             btnPreView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if (printer2 == null) {
+                        showMsgToast("请先初始化打印机");
+                        return;
+                    }
                     final Bitmap mBit = PreViewprintInfos2(infos);
                     runOnUiThread(new Runnable() {
                         @Override
@@ -279,6 +286,11 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
             printer2 = SPrinter2.getPrinter(this);
 //            printer2.registeBroadCast();
             connectDev(btAddress, devName);
+        }
+        String pid = getIntent().getStringExtra(extra_DPID);
+        if(pid!=null){
+            edPid.setText(pid);
+            getData(pid);
         }
     }
 

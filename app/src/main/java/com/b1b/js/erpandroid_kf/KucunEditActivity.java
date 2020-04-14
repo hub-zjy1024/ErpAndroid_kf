@@ -30,7 +30,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import utils.MyDecoration;
+import utils.framwork.ItemClickWrapper;
 
+/**
+ * 库存管理
+ */
 public class KucunEditActivity extends ToolbarHasSunmiActivity implements KucunEditContract.IView {
 
     KucunEditContract.Presenter presenter;
@@ -105,10 +109,16 @@ public class KucunEditActivity extends ToolbarHasSunmiActivity implements KucunE
             }
         });
         mDatas = new ArrayList<>();
-        rvAdatper = new KuCunEditAdapter(mDatas, R.layout.item_kucun_edit_list, this, new KuCunEditAdapter.OnItemClickListener() {
+      /*  rvAdatper = new KuCunEditAdapter(mDatas, R.layout.item_kucun_edit_list, this, new KuCunEditAdapter.OnItemClickListener() {
             @Override
             public void onClick(XiaopiaoInfo item) {
                 showEditView(item);
+            }
+        });*/
+        rvAdatper = new KuCunEditAdapter(mDatas, R.layout.item_kucun_edit_list, this, new ItemClickWrapper<XiaopiaoInfo>() {
+            @Override
+            public void allClick(View v, XiaopiaoInfo data) {
+                showEditView(data);
             }
         });
         Drawable mDivider =

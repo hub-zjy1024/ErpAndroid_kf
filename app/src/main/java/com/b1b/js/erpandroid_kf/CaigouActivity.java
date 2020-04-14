@@ -15,6 +15,7 @@ import android.widget.ListView;
 
 import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
 import com.b1b.js.erpandroid_kf.entity.Caigoudan;
+import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 
 import org.json.JSONArray;
@@ -99,7 +100,7 @@ public class CaigouActivity extends SunmiScanActivity implements NoLeakHandler.N
                 Intent temp = new Intent(packageContext, com.b1b.js.erpandroid_kf.CaigouDetailActivity.class);
                 temp.putExtra("corpID", item.getCorpID());
                 temp.putExtra("providerID", item.getProviderID());
-                temp.putExtra("pid", item.getPid());
+                temp.putExtra(IntentKeys.key_pid, item.getPid());
                 temp.putExtra("date", item.getCreatedDate());
                 startActivity(temp);
             }

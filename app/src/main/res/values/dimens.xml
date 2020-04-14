@@ -16,4 +16,18 @@
     <dimen name="item_view_padding_vetical">8dp</dimen>
     <integer name="dialog_anim_time">200</integer>
     <dimen name="dimen_menu_item_bg_padding">8dp</dimen>
+    <dimen name="panku_dialog_2w_button_marginLeft">80dp</dimen>
+    <dimen name="panku_dialog_3w_button_marginLeft">30dp</dimen>
+    <dimen name="panku_dialog_divider_half">8dp</dimen>
+    <dimen name="panku_dialog_divider_paddingLeft">2dp</dimen>
+    <dimen name="panku_dialog_root_margin_vetical">12dp</dimen>
+    <dimen name="panku_dialog_root_margin_horizontal">16dp</dimen>
+    <dimen name="pk_dialog_col_margin_left">10dp</dimen>
+    <dimen name="panku_detail_min_margin_left">5dp</dimen>
+    <dimen name="paragraph_indent">20dp</dimen>
+    <dimen name="image_preview_width">150dp</dimen>
+    <dimen name="image_preview_height">150dp</dimen>
+    <dimen name="image_preview_height_w2">90dp</dimen>
+
+    <dimen name="item_t1">17sp</dimen>
 </resources>

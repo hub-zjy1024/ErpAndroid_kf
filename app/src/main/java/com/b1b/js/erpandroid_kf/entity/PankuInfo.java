@@ -1,9 +1,11 @@
 package com.b1b.js.erpandroid_kf.entity;
 
+import java.io.Serializable;
+
 /**
  Created by 张建宇 on 2017/3/16. */
 
-public class PankuInfo {
+public class PankuInfo implements Serializable {
     //    "单据号": "16731",
     //            "明细ID": "429",
     //            "型号": "OPA111AM",
@@ -59,6 +61,15 @@ public class PankuInfo {
                 " 批号=" + pihao + "\n" +
                 " 放置位置=" + placeId + "\n" +
                 " PankuFlag=" + hasFlag;
+    }
+
+    public String toExtraString() {
+        return
+               " 厂家=" + factory + "\n" +
+                        " 描述=" + description + "\t\t" +" 封装=" + fengzhuang + "\n" +
+                        " 放置位置=" + placeId + "\n" +
+                        " 仓库名=" + storageName + "\n" +
+                        " PankuFlag=" + hasFlag;
     }
 
     public String toStringDetail() {
