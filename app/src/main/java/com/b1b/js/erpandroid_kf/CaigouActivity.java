@@ -13,7 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.entity.Caigoudan;
 import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
@@ -31,7 +31,7 @@ import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.MartService;
 
-public class CaigouActivity extends SunmiScanActivity implements NoLeakHandler.NoLeakCallback {
+public class CaigouActivity extends ToolbarHasSunmiActivity implements NoLeakHandler.NoLeakCallback {
 
     private ListView lv;
     private EditText edPid;
@@ -74,6 +74,10 @@ public class CaigouActivity extends SunmiScanActivity implements NoLeakHandler.N
         mHandler.obtainMessage(ERROR_CODE, errMsg).sendToTarget();
     }
 
+    @Override
+    public String setTitle() {
+        return getResString(R.string.title_cai_gou);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -22,6 +22,8 @@
     <color name="color_tv_result_transparent">#63ffffff</color>
     <color name="kucunfb_isfabu">#a60609</color>
     <color name="title_background">#8385f7</color>
+    <color name="toolbar_subtitle">#FF6D00</color>
+    <color name="toolbar_subtitle_light">#CCFFFFFF</color>
     <color name="color_materialed_base">#8385f7</color>
     <color name="color_materialed_unline">#ceceff</color>
     <color name="lv_bg">#f4f4f4</color>
@@ -34,6 +36,11 @@
     <color name="controlTextSelectedColor">@color/black_de</color>
     <color name="controlTextDisabledColor">#969696</color>
     <color name="dialog_divider">#4D969696</color>
+    <color name="new_light_blue">#1296db</color>
     <color name="toast_bg"></color>
     <color name="bg_debug">#ea6969</color>
+    <color name="editor_disable">#BF000000</color>
+    <color name="login_text_log">#990028FF</color>
+    <color name="login_text_alert">#99D50000</color>
+
 </resources>

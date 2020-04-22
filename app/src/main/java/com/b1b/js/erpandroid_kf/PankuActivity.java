@@ -2,7 +2,6 @@ package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -24,6 +23,7 @@ import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.PankuAdapter;
 import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.PankuInfo;
+import com.b1b.js.erpandroid_kf.service.PankuPicChooser;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
@@ -68,7 +68,7 @@ public class PankuActivity extends ToolbarHasSunmiActivity implements NoLeakHand
     private View nowViwe;
     SharedPreferences pfInfo;
     AlertDialog choiceMethodDialog;
-
+    PankuPicChooser mPicChooser;
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
@@ -160,23 +160,23 @@ public class PankuActivity extends ToolbarHasSunmiActivity implements NoLeakHand
         mAdapter = new PankuAdapter(mContext, pkData, R.layout.item_lv_pk
         );
         // lv.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-        mAdapter.addListener(new PankuAdapter.ItemListener() {
+        mAdapter.addListener2(new PankuAdapter.ItemListener2<PankuInfo>() {
             @Override
-            public void itemClick(int id, PankuInfo mInfo) {
+            public void itemClick(View itemView, View nowView, PankuInfo mInfo) {
+                int id = nowView.getId();
                 switch (id) {
                     case R.id.item_pk_btn_rprint:
                         if (mInfo == null) {
                             return;
                         }
-                        openPrintPage(mInfo.getDetailId());
-                        Log.e("zjy", "PankuActivity->itemClick() print: click==" + mInfo.toString());
+                        View shareView = itemView.findViewById(R.id.item_lv_pk_tv_detailId);
+                        mPicChooser.openPrintPageWithShared(mInfo.getDetailId(),shareView );
                         break;
                     case R.id.item_pk_btn_takepic:
                         if (mInfo == null) {
                             return;
                         }
-                        Log.e("zjy", "PankuActivity->itemClick() takepic: click==" + mInfo.toString());
-                        startTakePic(mInfo.getDetailId());
+                        mPicChooser.openTakePic(mInfo.getDetailId());
                         break;
                 }
             }
@@ -211,19 +211,24 @@ public class PankuActivity extends ToolbarHasSunmiActivity implements NoLeakHand
                 return true;
             }
         });
-        btnSearch.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener clickListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getData();
 
+                switch (v.getId()) {
+                    case R.id.panku_scan:
+                        startScanActivity(REQ_CODE);
+                        break;
+                    case R.id.panku_search:
+                        getData();
+                        break;
+                }
             }
-        });
-        btnScan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startScanActivity(REQ_CODE);
-            }
-        });
+        };
+
+        btnSearch.setOnClickListener(clickListener);
+        btnScan.setOnClickListener(clickListener);
+        mPicChooser = new PankuPicChooser(mContext);
     }
 
     @Override
@@ -252,11 +257,6 @@ public class PankuActivity extends ToolbarHasSunmiActivity implements NoLeakHand
         return "盘库";
     }
 
-    private void openPrintPage(String mid) {
-        Intent mINten = new Intent(this, RukuTagPrintAcitivity.class);
-        mINten.putExtra(RukuTagPrintAcitivity.extra_DPID, mid);
-        startActivity(mINten);
-    }
 
     private void getData() {
         SoftKeyboardUtils.closeInputMethod(edID, mContext);
@@ -597,36 +597,6 @@ public class PankuActivity extends ToolbarHasSunmiActivity implements NoLeakHand
 //关闭解锁功能
         v1.setVisibility(View.VISIBLE);
         v2.setVisibility(View.GONE);
-    }
-    void startTakePic(final String detailID) {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        builder.setTitle("上传方式选择");
-        builder.setItems(new String[]{"拍照", "从手机选择"}, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                MyApp.myLogger.writeInfo("菜单拍照：" + which);
-                Intent intent = new Intent();
-                intent.putExtra(IntentKeys.key_pid, detailID);
-                switch (which) {
-                    case 0:
-                        intent.setClass(mContext, TakePicChildPanku.class);
-                        MyApp.myLogger.writeInfo("takepic_panku");
-                        break;
-                    case 1:
-                        intent.setClass(mContext, ObtainPicPanku.class);
-                        MyApp.myLogger.writeInfo("obtain_panku");
-                        break;
-                    case 2:
-                        break;
-                }
-                startActivity(intent);
-            }
-        });
-        if (choiceMethodDialog != null && choiceMethodDialog.isShowing()) {
-            choiceMethodDialog.cancel();
-        }
-        choiceMethodDialog = builder.show();
     }
 
     public void startPk(final String pkPartNo, final PankuInfo info, final String minpack,

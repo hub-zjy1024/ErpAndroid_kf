@@ -67,5 +67,23 @@
     <string name="main_menu_pic_reupload">图片重传</string>
     <string name="about_contact_qq">851280963</string>
     <string name="title_panku_chaidan">盘库拆单</string>
+    <string name="title_yundan">运单打印</string>
+    <string name="title_yundan_sf">顺丰快递</string>
+    <string name="title_yundan_ky">跨越快递</string>
+    <string name="title_kuncun_tag_print">库存余额标签打印</string>
+    <string name="title_cai_gou">采购拍照</string>
+    <string name="title_img_reupload">图片重传</string>
+    <string name="title_kaoqin">考勤</string>
+    <string name="title_shangjia">上架</string>
+    <string name="title_about">关于</string>
+    <string name="title_settings">设置</string>
+    <string name="title_pre_chuku">预出库</string>
+    <string name="title_bt_settting">蓝牙配置</string>
+    <string name="ruku_tag_menu_resetPrinter">重设打印机</string>
+    <string name="panku_detail_menu_viewImage">查看图片</string>
+    <string name="panku_detail_menu_uploadPic">上传图片</string>
+    <string name="transition_ruku_tag_detailPid">detailpid</string>
+    <string name="panku_detail_menu_print_tag">重打标签</string>
+
 
 </resources>

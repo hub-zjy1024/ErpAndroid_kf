@@ -7,12 +7,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
+ <!--   <TextView
         style="@style/zjy_title"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:text="运单打印"
-        />
+        />-->
 
     <LinearLayout
         style="@style/lrPadding"

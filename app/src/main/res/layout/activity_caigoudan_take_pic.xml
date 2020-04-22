@@ -10,17 +10,9 @@
     tools:context="com.b1b.js.erpandroid_kf.CaigouActivity">
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:orientation="vertical">
-        <TextView
-            android:id="@+id/caigouedit_title"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_gravity="center_horizontal"
-            android:background="@color/bijia_title_background"
-            android:gravity="center"
-            android:text="采购拍照"
-            android:textColor="@color/color_white"
-            android:textSize="20sp"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        style="@style/lrPadding">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -30,6 +22,7 @@
                 android:id="@+id/activity_caigoudan_take_pic_ed_pid"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginRight="@dimen/yundan_form_horizontal"
               style="@style/zjy_metiarial_ed.common"
                 android:inputType="number"
                 android:layout_weight="1"
@@ -39,8 +32,10 @@
                 android:id="@+id/activity_caigoudan_take_pic_ed_partno"
                 android:layout_width="0dp"
                 style="@style/zjy_metiarial_ed.common"
+
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:maxLines="1"
                 android:hint="型号"/>
         </LinearLayout>
 

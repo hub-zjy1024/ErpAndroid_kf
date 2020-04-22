@@ -8,10 +8,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.transition.Explode;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -20,7 +24,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.XiaopiaoAdapter;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.printer.PrinterStyle;
@@ -48,7 +52,7 @@ import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.ChuKuServer;
 
-public class RukuTagPrintAcitivity extends SunmiScanActivity {
+public class RukuTagPrintAcitivity extends ToolbarHasSunmiActivity {
     private Handler mHandler = new NoLeakHandler(this);
     private final static int FLAG_PRINT = 3;
     private String storageID = "";
@@ -134,12 +138,17 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            int animTime = 400;
+            getWindow().setEnterTransition(new android.transition.Explode().setDuration(animTime));
+            getWindow().setExitTransition(new Explode().setDuration(animTime));
+        }
         setContentView(R.layout.activity_ruku_tag_print_acitivity);
         ListView lv = (ListView) findViewById(R.id.ruku_lv);
         tvState = (TextView) findViewById(R.id.rukutag_activity_tv_state);
         edPid = (EditText) findViewById(R.id.rukutag_activity_ed_pid);
         btnSetting = (Button) findViewById(R.id.rukutag_activity_btn_setting);
-        tvTitle = (TextView) findViewById(R.id.rukutag_activity_title);
+//        tvTitle = (TextView) findViewById(R.id.rukutag_activity_title);
         btnScan = (Button) findViewById(R.id.rukutag_activity_btn_scancode);
         btnPrint = (Button) findViewById(R.id.rukutag_activity_btn_print);
         btnPreView = (Button) findViewById(R.id.ruku_tag_btn_preview);
@@ -203,7 +212,8 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
         if (MODE_OFFLINE.equals(mode)) {
             btnSearch.setVisibility(View.GONE);
             oboOnlyCode.setVisibility(View.GONE);
-            tvTitle.setText("条码打印");
+//            tvTitle.setText("条码打印");
+            mToobar.setTitle("条码打印");
             isOffline = true;
         }
         btnSetting.setOnClickListener(new View.OnClickListener() {
@@ -299,6 +309,30 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
         startActivityForResult(intent, reqCode);
     }
 
+
+    @Override
+    public String setTitle() {
+        return getResString(R.string.title_kuncun_tag_print);
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        Log.e("zjy", "MenuActivity->onOptionsItemSelected(): mCLick==" + item.getTitle());
+        switch (itemId) {
+            case R.id.action_reset_printer :
+                gotoSettingPage();
+                break;
+            default:
+                break;
+        }
+        return false;
+    }
+    public boolean onCreateOptionsMenu(Menu menu) {
+        //导入菜单布局
+        getMenuInflater().inflate(R.menu.menu_ruku_tag, menu);
+        return true;
+    }
+
     private Bitmap PreViewprintInfos2(List<XiaopiaoInfo> tinfos) {
         if (tinfos.size() > 0) {
             XiaopiaoInfo tInfo = tinfos.get(0);
@@ -349,9 +383,9 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
         SharedPreferences mMode = getSharedPreferences(SettingActivity.PREF_TKPIC, 0);
         String paperType = mMode.getString("paperType", "");
         int realMode = SuoFangPrinter.MODE_LIANXU;
-        if (getResources().getString(R.string.p_mode_continue).equals(paperType)) {
+        if (getResString(R.string.p_mode_continue).equals(paperType)) {
             realMode = SuoFangPrinter.MODE_LIANXU;
-        } else if (getResources().getString(R.string.p_mode_offset).equals(paperType)) {
+        } else if (getResString(R.string.p_mode_offset).equals(paperType)) {
             realMode = SuoFangPrinter.MODE_Dur;
         }
         return realMode;
@@ -560,11 +594,6 @@ public class RukuTagPrintAcitivity extends SunmiScanActivity {
         }
     }
 
-    @Override
-    public void onScanResult(String code) {
-//        super.onScanResult(code);
-        getCameraScanResult(code);
-    }
 
     @Override
     public void getCameraScanResult(String result) {

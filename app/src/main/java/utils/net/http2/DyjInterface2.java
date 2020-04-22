@@ -13,6 +13,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import utils.common.MyFileUtils;
 import utils.net.HttpUtils;
 
 /**
@@ -489,7 +490,7 @@ public class DyjInterface2 {
         for (int i = 0; i < mArray.size(); i++) {
             JSONObject tObj = mArray.getJSONObject(i);
             String imgName = tObj.getString("PicName");
-            if (imgName.endsWith(".jpg") || imgName.endsWith(".png")) {
+            if (MyFileUtils.isImage(imgName)) {
                 picArray.add(tObj);
             }
         }

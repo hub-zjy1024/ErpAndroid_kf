@@ -69,14 +69,16 @@ public class GetPankuTask implements Runnable {
                     JSONObject mObj = JSONObject.parseObject(mTask);
                     JSONArray mArr = mObj.getJSONArray("表");
                     int mCount = mArr.size();
-                    contentText = String.format("还有%s条数据待盘库,点击前往", mCount);
-                    sendPankuTaskMsg(contentText);
+                    if (mCount > 0) {
+                        contentText = String.format("还有%s条数据待盘库,点击前往", mCount);
+                        sendPankuTaskMsg(contentText);
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                     contentText = "";
                 } catch (IOException e) {
                     e.printStackTrace();
-                    sendPankuTaskMsg("待办异常," + e.getMessage());
+               //     sendPankuTaskMsg("待办异常," + e.getMessage());
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 } catch (Throwable e) {

@@ -8,6 +8,7 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.entity.PankuInfo;
 
+import java.util.HashMap;
 import java.util.List;
 
 import utils.adapter.CommonAdapter;
@@ -19,6 +20,8 @@ public class PankuAdapter extends CommonAdapter<PankuInfo> implements TextView.O
     private List<PankuInfo> pkList;
     private Context mContext;
 
+    private HashMap<String, String> checker = new HashMap<>();
+
     public PankuAdapter(List<PankuInfo> pkList, Context mContext) {
         this(mContext, pkList, R.layout.chukudanlist_items);
     }
@@ -27,21 +30,45 @@ public class PankuAdapter extends CommonAdapter<PankuInfo> implements TextView.O
         super(context, mDatas, itemLayoutId);
     }
 
-    static class ClickWrapper implements View.OnClickListener{
-        ItemListener mListener;
-        PankuInfo item;
+    @Override
+    public void notifyDataSetChanged() {
+        checker = new HashMap<>();
+        super.notifyDataSetChanged();
+    }
 
-        public ClickWrapper(ItemListener mListener, PankuInfo item) {
+    static class ClickWrapper<T> implements View.OnClickListener{
+        ItemListener<T> mListener;
+        T item;
+        ItemListener2<T> mListener2;
+        View mItemView;
+
+        public ClickWrapper(T item, ItemListener2<T> mListener2, View mItemView) {
+            this.item = item;
+            this.mListener2 = mListener2;
+            this.mItemView = mItemView;
+        }
+
+        public ClickWrapper(ItemListener<T> mListener, T item, ItemListener2<T> mListener2,
+                            View mItemView) {
+            this.mListener = mListener;
+            this.item = item;
+            this.mListener2 = mListener2;
+            this.mItemView = mItemView;
+        }
+
+        public ClickWrapper(ItemListener<T> mListener, T item) {
             this.mListener = mListener;
             this.item = item;
         }
 
         @Override
         public void onClick(View v) {
-            if (mListener == null) {
-                return;
+            if (mListener != null) {
+                mListener.itemClick(v.getId(), item);
             }
-            mListener.itemClick(v.getId(), item);
+            if (mListener2 != null) {
+                mListener2.itemClick(mItemView, v, item);
+            }
         }
     }
     @Override
@@ -49,11 +76,16 @@ public class PankuAdapter extends CommonAdapter<PankuInfo> implements TextView.O
 
     }
 
-    public interface ItemListener{
-        public void itemClick(int id, PankuInfo mInfo);
+    public interface ItemListener<T>{
+        public void itemClick(int id, T mInfo);
     }
 
-    ItemListener mListener;
+    public interface ItemListener2<T> {
+        public void itemClick(View itemView, View nowView, T mInfo);
+    }
+
+    ItemListener<PankuInfo> mListener;
+    ItemListener2<PankuInfo> mListener2;
 
  /*   @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -78,10 +110,15 @@ public class PankuAdapter extends CommonAdapter<PankuInfo> implements TextView.O
         return convertView;
     }*/
 
- public void addListener( ItemListener mListener){
+ public void addListener( ItemListener<PankuInfo> mListener){
      this.mListener = mListener;
      notifyDataSetChanged();
  }
+
+    public void addListener2(ItemListener2<PankuInfo> mListener) {
+        this.mListener2 = mListener;
+        notifyDataSetChanged();
+    }
  public static class CheckClass{
      public CheckClass(PankuInfo mInfo, String isCheckd) {
          this.mInfo = mInfo;
@@ -96,7 +133,8 @@ public class PankuAdapter extends CommonAdapter<PankuInfo> implements TextView.O
     public void convert(utils.adapter.ViewHolder helper, PankuInfo item) {
         View view1 = helper.getView(R.id.chukudan_items_tv);
         TextView mContent = (TextView) view1;
-        ClickWrapper wrapper = new ClickWrapper(mListener, item);
+        ClickWrapper<PankuInfo> wrapper = new ClickWrapper<>(mListener, item, mListener2,
+                helper.getConvertView());
         View view = helper.getView(R.id.item_pk_btn_rprint);
         View btnTakepic = helper.getView(R.id.item_pk_btn_takepic);
 
@@ -135,6 +173,8 @@ public class PankuAdapter extends CommonAdapter<PankuInfo> implements TextView.O
                 mContent.setVisibility(View.GONE);
             }
         }else{
+            checkClass.mInfo = item;
+            tvMore.setTag(checkClass);
             tvMore.setVisibility(View.VISIBLE);
             mContent.setText("");
             mContent.setVisibility(View.GONE);

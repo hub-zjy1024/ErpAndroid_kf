@@ -9,89 +9,84 @@
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.KaoQinActivity">
 
-    <TextView
-        android:id="@+id/caigouedit_title"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_gravity="center_horizontal"
-        android:background="@color/bijia_title_background"
-        android:gravity="center"
-        android:text="考勤"
-        android:textColor="@color/color_white"
-        android:textSize="20sp"/>
-
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        style="@style/lrPadding">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:weightSum="1">
+            android:layout_marginBottom="8dp"
+            android:orientation="vertical">
 
-            <EditText
-                android:id="@+id/kq_edTime"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.43"
-                android:hint="日期"
-                android:inputType="number"/>
+                android:weightSum="1">
 
-            <TextView
+                <EditText
+                    android:id="@+id/kq_edTime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.43"
+                    android:hint="日期"
+                    android:inputType="number"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="日期格式例如：201705"/>
+            </LinearLayout>
+
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/kq_edId"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="日期格式例如：201705"/>
+                android:hint="请输入查询员工号"
+                android:enabled="true"
+                style="@style/zjy_metiarial_ed.common"
+                android:inputType="number"
+                />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/kq_serach"
+                    style="@style/zjy_button_light"
+                    android:text="查询"/>
+
+                <Button
+                    android:id="@+id/kq_saixuan"
+                    style="@style/zjy_button_light"
+                    android:layout_marginLeft="10dp"
+                    android:text="只看迟到和早退"/>
+            </LinearLayout>
+
         </LinearLayout>
 
-
-        <com.rengwuxian.materialedittext.MaterialEditText
-            android:id="@+id/kq_edId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="请输入查询员工号"
-            android:enabled="true"
-           style="@style/zjy_metiarial_ed.common"
-            android:inputType="number"
-            />
-
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
+            android:layout_height="10dp"
+            android:background="@color/lv_bg"/>
 
-            <Button
-                android:id="@+id/kq_serach"
-                style="@style/zjy_button_light"
-                android:text="查询"/>
+        <ListView
+            android:id="@+id/kq_lv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@drawable/listview_divider"
+            android:dividerHeight="2dp"
+            android:listSelector="@android:color/transparent"
+            >
+        </ListView>
 
-            <Button
-                android:id="@+id/kq_saixuan"
-                style="@style/zjy_button_light"
-                android:layout_marginLeft="10dp"
-                android:text="只看迟到和早退"/>
-        </LinearLayout>
 
     </LinearLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="10dp"
-        android:background="@color/lv_bg"/>
-
-    <ListView
-        android:id="@+id/kq_lv"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:divider="@drawable/listview_divider"
-        android:dividerHeight="2dp"
-        android:listSelector="@android:color/transparent"
-        >
-    </ListView>
-
 
 </LinearLayout>

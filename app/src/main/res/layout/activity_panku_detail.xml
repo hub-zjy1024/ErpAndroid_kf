@@ -32,6 +32,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="明细id:"
+                   android:visibility="gone"
                     style="@style/style_pk_dialog_content_title_font"
                     ></TextView>
 
@@ -42,6 +43,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/title_background"
+                    android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
                     android:text="这是明细id"/>
 
             </LinearLayout>
@@ -63,7 +65,8 @@
                     android:layout_width="200dp"
                     android:layout_height="wrap_content"
                     android:enabled="false"
-                    android:textColor="@color/color_black"
+                    android:textColor="@color/editor_disable"
+                    android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
                     android:maxLines="1"/>
             </LinearLayout>
 
@@ -138,7 +141,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <TextView
@@ -168,15 +171,34 @@
                         android:id="@+id/panku_dialog_minbz"
                         android:layout_width="70dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
                         android:inputType="number"
                         android:maxLines="1"/>
                 </LinearLayout>
             </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/panku_detail_label"
+                    android:text="厂家"/>
+
+                <com.rengwuxian.materialedittext.MaterialAutoCompleteTextView
+                    android:id="@+id/panku_dialog_auto_factory"
+                    android:layout_width="220dp"
+                    style="@style/zjy_metiarial_ed.common.accent"
+                    android:layout_marginLeft="@dimen/panku_detail_min_margin_material_autocompletetextview"
+                    android:layout_height="wrap_content"
+                    android:maxLines="2"/>
+            </LinearLayout>
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:visibility="gone">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -192,7 +214,7 @@
 
             </LinearLayout>
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <TextView
@@ -201,31 +223,68 @@
                     style="@style/panku_detail_label"
                     android:text="盘库备注"/>
 
-                <EditText
+                <com.rengwuxian.materialedittext.MaterialEditText
                     android:id="@+id/panku_dialog_mark"
-                    android:layout_width="150dp"
-                    android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
+                    android:layout_width="match_parent"
+                    android:layout_marginLeft="@dimen/panku_detail_min_margin_material_autocompletetextview"
                     android:layout_height="wrap_content"
-                    android:maxLines="1"/>
+                    style="@style/zjy_metiarial_ed.common.accent"
+                    android:maxLines="3"/>
             </LinearLayout>
+
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:layout_width="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/style_pk_dialog_op_container"
+                >
+                <Button
+                    android:id="@+id/panku_dialog_panku"
+                    style="@style/zjy_button_light"
+                    android:layout_width="80dp"
+                    android:text="盘库"/>
+                <Button
+                    style="@style/zjy_button_light"
+                    android:layout_marginLeft="@dimen/pk_dialog_col_margin_left"
+                    android:id="@+id/panku_dialog_scan"
+                    android:layout_width="80dp"
                     android:layout_height="wrap_content"
-                    style="@style/panku_detail_label"
-                    android:text="厂家测试"/>
+                    android:text="修改位置"/>
 
-                <com.rengwuxian.materialedittext.MaterialAutoCompleteTextView
-                    android:id="@+id/panku_dialog_auto_factory"
-                    android:layout_width="220dp"
-                    android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
-                    style="@style/zjy_metiarial_ed.common"
-                    android:layout_height="wrap_content"
-                    android:maxLines="2"/>
+                <Button
+                    android:id="@+id/panku_dialog_chaidan"
+                    style="@style/zjy_button_light"
+                    android:layout_width="0dp"
+                    android:visibility="gone"
+                    android:layout_marginLeft="@dimen/panku_dialog_3w_button_marginLeft"
+                    android:layout_weight="1"
+                    android:text="拆单"/>
+
+                <Button
+                    android:id="@+id/panku_dialog_cancel"
+                    style="@style/zjy_button_light"
+                    android:layout_width="0dp"
+                    android:layout_marginLeft="@dimen/panku_dialog_3w_button_marginLeft"
+                    android:layout_weight="1"
+                    android:visibility="gone"
+                    android:text="返回"/>
+                <Button
+                    android:id="@+id/panku_dialog_reset"
+                    style="@style/zjy_button_light"
+                    android:visibility="gone"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="@dimen/panku_dialog_2w_button_marginLeft"
+                    android:text="解锁"/>
             </LinearLayout>
+
+            <!-- 分割线-->
+            <TextView
+                style="@style/style_pk_dialog_panel_divider"
+                android:layout_width="match_parent"
+                android:paddingLeft="@dimen/panku_dialog_divider_paddingLeft"
+                android:paddingRight="@dimen/panku_dialog_divider_paddingLeft">
+            </TextView>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -280,55 +339,13 @@
                     />
 
             </LinearLayout>
-            <!-- 分割线-->
-            <TextView
-                style="@style/style_pk_dialog_panel_divider"
-                android:layout_width="match_parent"
-                android:paddingLeft="@dimen/panku_dialog_divider_paddingLeft"
-                android:paddingRight="@dimen/panku_dialog_divider_paddingLeft">
-            </TextView>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="@style/style_pk_dialog_op_container"
-                >
-                <Button
-                    android:id="@+id/panku_dialog_panku"
-                    style="@style/zjy_button_light"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:text="盘库"/>
 
-                <Button
-                    android:id="@+id/panku_dialog_chaidan"
-                    style="@style/zjy_button_light"
-                    android:layout_width="0dp"
-                    android:visibility="gone"
-                    android:layout_marginLeft="@dimen/panku_dialog_3w_button_marginLeft"
-                    android:layout_weight="1"
-                    android:text="拆单"/>
-
-                <Button
-                    android:id="@+id/panku_dialog_cancel"
-                    style="@style/zjy_button_light"
-                    android:layout_width="0dp"
-                    android:layout_marginLeft="@dimen/panku_dialog_3w_button_marginLeft"
-                    android:layout_weight="1"
-                    android:text="返回"/>
-                <Button
-                    android:id="@+id/panku_dialog_reset"
-                    style="@style/zjy_button_light"
-                    android:visibility="gone"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_marginLeft="@dimen/panku_dialog_2w_button_marginLeft"
-                    android:text="解锁"/>
-            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 style="@style/style_pk_dialog_op_container"
                 >
                 <Button
@@ -338,13 +355,6 @@
                     android:layout_height="wrap_content"
                     android:text="查看图片"
                     />
-                <Button
-                    style="@style/zjy_button_light"
-                    android:layout_marginLeft="@dimen/pk_dialog_col_margin_left"
-                    android:id="@+id/panku_dialog_scan"
-                    android:layout_width="80dp"
-                    android:layout_height="wrap_content"
-                    android:text="修改位置"/>
             </LinearLayout>
 
 

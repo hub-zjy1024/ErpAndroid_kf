@@ -7,6 +7,7 @@ import com.b1b.js.erpandroid_kf.entity.FTPImgInfo;
 import com.b1b.js.erpandroid_kf.entity.PankuInfo;
 import com.b1b.js.erpandroid_kf.entity.PankuLog;
 import com.b1b.js.erpandroid_kf.entity.PankuMFC;
+import com.b1b.js.erpandroid_kf.mvcontract.callback.DataObj;
 import com.b1b.js.erpandroid_kf.mvcontract.callback.RetObject;
 import com.b1b.js.erpandroid_kf.picupload.FtpUploader;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -37,6 +38,8 @@ public class PankuDetailContract {
     public interface IView extends BaseView<Presenter> {
 
         public void onImageRet(List<FTPImgInfo> list, int code, String msg);
+
+        public void onImageRet2(DataObj<List<FTPImgInfo>> mObj);
 
         public void onRealInfoRet(PankuInfo minfo, int code, String msg);
 
@@ -128,6 +131,8 @@ public class PankuDetailContract {
                     int code = 1;
                     try {
                         String s = ChuKuServer.GetMFCListInfo(itemName);
+                        Log.e("zjy",
+                                "PankuDetailContract->GetMFCListInfo dataLen==" + (s.getBytes().length / 1024f));
                         com.alibaba.fastjson.JSONObject root = com.alibaba.fastjson.JSONObject.parseObject(s);
                         com.alibaba.fastjson.JSONArray jsonArray = root.getJSONArray("表");
                         if (jsonArray.size() > 0) {
@@ -479,6 +484,7 @@ public class PankuDetailContract {
                             //                            Log.e("zjy", "ViewPicByPidActivity->run(): mfile
                             //                            .Len==" + file.getName() + "," + file.length());
                             if (!file.exists() || file.length() == 0) {
+                                Log.e("zjy", "PankuDetailContract->run(): prepard to DownLoad==" + file);
                                 startDownLoad(imgUrl, localPath);
                             } else {
                                 downloadResult += "第" + (i + 1) + "张,已从手机找到\r\n";
@@ -509,7 +515,12 @@ public class PankuDetailContract {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            mView.onImageRet(finalList1, finalCode, finalDownloadResult);
+                            //mView.onImageRet(finalList1, finalCode, finalDownloadResult);
+                            DataObj<List<FTPImgInfo>> retObj = new DataObj<>();
+                            retObj.mData = finalList1;
+                            retObj.errCode = finalCode;
+                            retObj.errMsg = finalDownloadResult;
+                            mView.onImageRet2(retObj);
                             mView.cancelLoading(pIndex);
                         }
                     });

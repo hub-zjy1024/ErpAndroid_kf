@@ -1,11 +1,16 @@
 package com.b1b.js.erpandroid_kf.activity.base;
 
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 
 import com.b1b.js.erpandroid_kf.R;
+
+import java.lang.reflect.Method;
 
 /**
  * Created by 张建宇 on 2019/5/25.
@@ -32,7 +37,14 @@ public abstract class ToobarSaveWithScanAc extends SavedLoginInfoWithScanActivit
             // 副标题
             mToobar.setSubtitle("");
             //设置点击事件
-            mToobar.setOnMenuItemClickListener(this);
+//            mToobar.setOnMenuItemClickListener(this);
+
+            mToobar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    finish();
+                }
+            });
         }
         //左边的小箭头
         //        mToobar.setNavigationIcon(android.R.drawable.btn_default);
@@ -40,6 +52,35 @@ public abstract class ToobarSaveWithScanAc extends SavedLoginInfoWithScanActivit
         //        mToobar.setLogo(R.mipmap.appicon);
         //设置mToobar
 
+    }
+
+    public void addViewToToolBar(View mView) {
+        int marginRight = getResDimen(R.dimen.activity_horizontal_margin);
+        android.support.v7.widget.Toolbar.LayoutParams mParams =
+                new android.support.v7.widget.Toolbar.LayoutParams(android.widget.Toolbar.LayoutParams.WRAP_CONTENT,
+                        android.widget.Toolbar.LayoutParams.WRAP_CONTENT, Gravity.RIGHT);
+        mParams.rightMargin = marginRight;
+        addViewToToolBar(mView, mParams);
+    }
+
+    public void addViewToToolBar(View mView, android.support.v7.widget.Toolbar.LayoutParams mParams) {
+        mToobar.addView(mView, mParams);
+    }
+
+    @Override
+    public boolean onMenuOpened(int featureId, Menu menu) {
+        if (featureId == Window.FEATURE_ACTION_BAR && menu != null) {
+            if (menu.getClass().getSimpleName().equals("MenuBuilder")) {
+                try {
+                    Method m = menu.getClass().getDeclaredMethod("setOptionalIconsVisible", Boolean.TYPE);
+                    m.setAccessible(true);
+                    m.invoke(menu, true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return super.onMenuOpened(featureId, menu);
     }
 
     @Override

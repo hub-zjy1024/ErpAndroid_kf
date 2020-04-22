@@ -6,14 +6,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.entity.PicUploadInfo;
 import com.b1b.js.erpandroid_kf.mvcontract.ReUploadContract;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReUpLoadPicActivity extends BaseMActivity implements View.OnClickListener, ReUploadContract
+public class ReUpLoadPicActivity extends ToolbarHasSunmiActivity implements View.OnClickListener, ReUploadContract
         .IView {
     TextView tvTotalCount;
     TextView tvStatus;
@@ -31,7 +31,12 @@ public class ReUpLoadPicActivity extends BaseMActivity implements View.OnClickLi
     }
 
     @Override
+    public String setTitle() {
+        return getResString(R.string.title_img_reupload);
+    }
+    @Override
     public void init() {
+        super.init();
         tvTotalCount = getViewInContent(R.id.activity_reupload_tv_totalcount);
         tvProcess = getViewInContent(R.id.activity_reupload_tv_process);
         tvStatus = getViewInContent(R.id.activity_reupload_tv_status);

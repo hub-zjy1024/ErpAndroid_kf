@@ -73,6 +73,22 @@ public abstract class BaseMActivity extends AppCompatActivity {
         }
     }
 
+    public int getResColor(int id) {
+        return getResources().getColor(id);
+    }
+
+    public int getResDimen(int id) {
+        return (int) getResources().getDimension(id);
+    }
+
+    public String getResString(int id) {
+        return getResources().getString(id);
+    }
+
+    public String[] getResStringArray(int id) {
+        return getResources().getStringArray(id);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {

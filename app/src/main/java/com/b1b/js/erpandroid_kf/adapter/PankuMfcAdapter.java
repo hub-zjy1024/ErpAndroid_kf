@@ -47,9 +47,10 @@ public class PankuMfcAdapter extends FilterCommonAdapter<PankuMFC> {
         protected FilterResults performFiltering(CharSequence constraint) {
             FilterResults results = new FilterResults();
             ArrayList<PankuMFC> newData = new ArrayList<>();
-            if (constraint != null && !constraint.toString().contains("@")) {
+            if (constraint != null ) {
                 for (PankuMFC data : mfcAdapter.allData) {
-                    if (data.getFullName().contains(constraint)) {
+                    //模糊匹配，包含就匹配，忽略大小写
+                    if (data.getFullName().toLowerCase().contains(constraint.toString().toLowerCase())) {
                         newData.add(data);
                     }
                 }

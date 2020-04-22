@@ -18,7 +18,7 @@ import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import org.json.JSONArray;
@@ -44,7 +44,7 @@ import utils.framwork.DialogUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.WebserviceUtils;
 
-public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLeakCallback {
+public class SettingActivity extends ToolbarHasSunmiActivity implements NoLeakHandler.NoLeakCallback {
     private static final int MSG_ERROR_DATA_ILLEGAL_JSON = 1;
     private static final int MSG_ERROR_KFINOFAILED = 2;
 
@@ -223,7 +223,10 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
         TaskManager.getInstance().execute(getCofigRun);
 
     }
-
+    @Override
+    public String setTitle() {
+        return getResString(R.string.title_settings);
+    }
     public void loadSaved(Spinner tnameAdapter) {
         int pos=1;
         final String savedName = sp.getString(NAME, "");
@@ -240,7 +243,7 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
     }
     @Override
     public void init() {
-        
+        super.init();
     }
 
     @Override
@@ -259,9 +262,9 @@ public class SettingActivity extends BaseMActivity implements NoLeakHandler.NoLe
         tvSavedKf.setText(String.format("当前存储的库房是：%s", saveKF));
         //        String[] kfNames = new String[]{"深圳", "北京中转库"};
 
-        if (prefExpress.equals(getResources().getString(R.string.express_sf))) {
+        if (prefExpress.equals(getResString(R.string.express_sf))) {
             rdoSF.setChecked(true);
-        } else if (prefExpress.equals(getResources().getString(R.string.express_ky))) {
+        } else if (prefExpress.equals(getResString(R.string.express_ky))) {
             rdoKY.setChecked(true);
         }
         final String diaohuoAccount = sp.getString("diaohuoAccount", "");

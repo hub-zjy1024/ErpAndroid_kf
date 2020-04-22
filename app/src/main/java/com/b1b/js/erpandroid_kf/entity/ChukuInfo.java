@@ -43,6 +43,17 @@ public class ChukuInfo {
                         "备注='" + notes + '\'' + "\n" +
                         "预出库打印='" + preChukuPrint + '\'';
     }
+
+    public String toSmallString() {
+        return
+                "PID='" + PID + '\'' + "\t" + "单据状态='" + pidStat + '\'' + "\n" +
+                        "制单人='" + makeName + '\'' + "\t" + "增值税票='" + kpType + '\'' + "\n" +
+                        "制单日期='" + makePidTime + '\'' + "\n" +
+                        "出库库房='" + ckStorName + '\'' +"\t"+"预出库打印='" + preChukuPrint + '\'' + "\n" +
+                        "运单号='" + yundanID + '\'' + "\n" +
+                        "发货类型='" + fhType + '\''+ "\n"+
+                        "备注='" + notes + '\'' ;
+    }
     //    StateNow: "0",
 //    PID: 1391430,
 //    制单人: "韩亚萌",

@@ -1,7 +1,6 @@
 package com.b1b.js.erpandroid_kf;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -13,10 +12,10 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.PankuAdapter;
-import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.PankuInfo;
 import com.b1b.js.erpandroid_kf.mvcontract.MyPankuListContract;
 import com.b1b.js.erpandroid_kf.mvcontract.callback.RetObject;
+import com.b1b.js.erpandroid_kf.service.PankuPicChooser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +27,8 @@ public class MyPankuListActivity extends ToolbarHasSunmiActivity implements MyPa
     MyPankuListContract.Presenter mPresenter;
     private PankuInfo currentInfo;
     SwipeRefreshLayout mRefresher;
-
+    TextView tvCount;
+    PankuPicChooser mPicChooser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,19 +37,21 @@ public class MyPankuListActivity extends ToolbarHasSunmiActivity implements MyPa
         pkData = new ArrayList<>();
         mAdapter = new PankuAdapter(mContext, pkData, R.layout.item_panku_mylist);
         // lv.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-        mAdapter.addListener(new PankuAdapter.ItemListener() {
+        mAdapter.addListener2(new PankuAdapter.ItemListener2<PankuInfo>() {
             @Override
-            public void itemClick(int id, PankuInfo mInfo) {
+            public void itemClick(View itemView, View nowView, PankuInfo mInfo) {
+                int id = nowView.getId();
                 switch (id) {
                     case R.id.item_pk_btn_rprint:
                         if (mInfo != null) {
-                            openPrintPage(mInfo.getDetailId());
+                            View shareView = itemView.findViewById(R.id.item_lv_pk_tv_detailId);
+                            mPicChooser.openPrintPageWithShared(mInfo.getDetailId(),shareView );
                         }
 
                         break;
                     case R.id.item_pk_btn_takepic:
                         if (mInfo != null) {
-                            startTakePic(mInfo.getDetailId());
+                            mPicChooser.openTakePic(mInfo.getDetailId());
                         }
                         break;
                 }
@@ -83,7 +85,8 @@ public class MyPankuListActivity extends ToolbarHasSunmiActivity implements MyPa
         lv.setAdapter(mAdapter);
         mPresenter = new MyPankuListContract.Presenter(this);
          mRefresher = getViewInContent(R.id.activity_my_panku_list_swipe_refresh);
-        mRefresher.setColorSchemeColors(getResColor(R.color.colorPrimary),getResColor(R.color.color_green),getResColor(R.color.button_light_bg) );
+        mRefresher.setColorSchemeColors(getResColor(R.color.colorAccent), getResColor(R.color.color_green),
+                getResColor(R.color.button_light_bg));
         mRefresher.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -91,6 +94,7 @@ public class MyPankuListActivity extends ToolbarHasSunmiActivity implements MyPa
             }
         });
         mPresenter.getMyList(loginID);
+        mPicChooser = new PankuPicChooser(mContext);
     }
     public void openDetail(PankuInfo mInfo) {
         Intent mIntent = new Intent(this, PankuDetailActivity.class);
@@ -98,14 +102,6 @@ public class MyPankuListActivity extends ToolbarHasSunmiActivity implements MyPa
         startActivityForResult(mIntent, PankuDetailActivity.ResultCode);
     }
 
-    public int getResColor(int id) {
-        return getResources().getColor(id);
-    }
-    private void openPrintPage(String mid) {
-        Intent mINten = new Intent(this, RukuTagPrintAcitivity.class);
-        mINten.putExtra(RukuTagPrintAcitivity.extra_DPID, mid);
-        startActivity(mINten);
-    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -116,36 +112,6 @@ public class MyPankuListActivity extends ToolbarHasSunmiActivity implements MyPa
         } else {
             Log.e("zjy", "MyPankuListActivity->onActivityResult(): backFromPanKu==" + resultCode);
         }
-    }
-    void startTakePic(final String detailID) {
-        if (choiceMethodDialog != null && !choiceMethodDialog.isShowing()) {
-            choiceMethodDialog.show();
-            return;
-        }
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        builder.setTitle("上传方式选择");
-        builder.setItems(new String[]{"拍照", "从手机选择"}, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                MyApp.myLogger.writeInfo("菜单拍照：" + which);
-                Intent intent = new Intent();
-                intent.putExtra(IntentKeys.key_pid, detailID);
-                switch (which) {
-                    case 0:
-                        intent.setClass(mContext, TakePicChildPanku.class);
-                        MyApp.myLogger.writeInfo("takepic_panku");
-                        break;
-                    case 1:
-                        intent.setClass(mContext, ObtainPicPanku.class);
-                        MyApp.myLogger.writeInfo("obtain_panku");
-                        break;
-                    case 2:
-                        break;
-                }
-                startActivity(intent);
-            }
-        });
-        choiceMethodDialog = builder.show();
     }
 
     @Override
@@ -159,6 +125,13 @@ public class MyPankuListActivity extends ToolbarHasSunmiActivity implements MyPa
             pkData.clear();
             pkData.addAll(infos);
             mAdapter.notifyDataSetChanged();
+            if (tvCount == null) {
+                tvCount = new TextView(mContext);
+                tvCount.setTextColor(getResColor(R.color.color_white));
+                addViewToToolBar(tvCount);
+            }
+            tvCount.setText("总数:" + infos.size());
+            showMsgToast("获取到" + infos.size() + "条数据");
         } else {
             showMsgToast(retObj.errMsg);
         }

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
+
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:id="@+id/rukutag_activity_ed_pid"
+            android:transitionName="@string/transition_ruku_tag_detailPid"
+            android:layout_width="@dimen/ruku_tag_detailID"
+
+            style="@style/zjy_metiarial_ed.common"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="输入明细号"/>
+
+        <Button
+            android:id="@+id/rukutag_activity_btn_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
+            android:text="搜索"/>
+
+        <Button
+            android:id="@+id/rukutag_activity_btn_scancode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
+            android:text="扫码"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/panku_detail_label"
+            android:text="状态："/>
+
+        <TextView
+            android:id="@+id/rukutag_activity_tv_state"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            style="@style/panku_detail_label"
+            android:text="等待连接"/>
+
+        <Button
+            android:id="@+id/rukutag_activity_btn_setting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="重设打印机"/>
+
+        <Button
+            android:id="@+id/rukutag_activity_btn_print"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="打印"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/ruku_tag_btn_preview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="预览"
+            android:visibility="gone"></Button>
+    </LinearLayout>
+    <ImageView
+        android:id="@+id/test_iv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <CheckBox
+            android:id="@+id/ruku_cbo_offline"
+            android:layout_width="wrap_content"
+            android:text="仅打印条码"
+            android:layout_height="wrap_content"/>
+        <CheckBox
+            android:layout_marginLeft="10dp"
+            android:id="@+id/ruku_cbo_autoprint"
+            android:layout_width="wrap_content"
+            android:text="扫码完成自动打印"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/ruku_lv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</LinearLayout>

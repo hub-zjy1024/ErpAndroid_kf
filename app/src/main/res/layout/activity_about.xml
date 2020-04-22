@@ -8,12 +8,6 @@
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.AboutActivity">
 
-    <TextView
-        android:id="@+id/title"
-        style="@style/zjy_title"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/activity_title_height"
-        android:text="关于"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,7 +23,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin">
 
             <!--<TextView-->
                 <!--android:layout_width="wrap_content"-->
@@ -41,7 +36,8 @@
                 android:id="@+id/activity_about_tv_version"
                 android:layout_width="match_parent"
                 android:layout_gravity="center"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                style="@style/about_item_tv"/>
         </LinearLayout>
 
         <LinearLayout
@@ -53,12 +49,30 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="最新版本号:"
-                android:textSize="18sp"/>
+                style="@style/about_item_tv"/>
 
             <TextView
                 android:id="@+id/activity_about_tv_newversion"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                style="@style/about_item_tv"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/view_def_margin">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设备号:"
+                style="@style/about_item_tv"/>
+
+            <TextView
+                android:id="@+id/activity_about_tv_deviceId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/about_item_tv"/>
         </LinearLayout>
 
         <LinearLayout
@@ -93,8 +107,8 @@
         <ImageView
             android:layout_marginTop="@dimen/view_def_margin"
             android:id="@+id/iv_about_update_qr"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
+            android:layout_width="@dimen/about_qr_size"
+            android:layout_height="@dimen/about_qr_size"
             android:layout_gravity="center_horizontal"
             android:src="@drawable/download_apk2"/>
 

@@ -12,7 +12,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.UserInfoPref;
@@ -24,7 +24,7 @@ import java.io.IOException;
 
 import utils.net.wsdelegate.ChuKuServer;
 
-public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View.OnClickListener {
+public class SetCheckInfoActivity extends ToolbarHasSunmiActivity implements View.OnClickListener {
 
     private TextView tv;
     private Button btnCommit;
@@ -102,7 +102,8 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                showMsgToast( getResources().getString(R.string.bad_connection));
+//                getResources().getString:""
+                showMsgToast( getResString(R.string.bad_connection));
             }
         });
     }
@@ -141,7 +142,7 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 final Intent uploadIntent = new Intent();
                 uploadIntent.putExtra(IntentKeys.key_pid, pid);
-                builder.setItems(getResources().getStringArray(R.array.upload_type), new DialogInterface.OnClickListener() {
+                builder.setItems(getResStringArray(R.array.upload_type), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
@@ -167,11 +168,11 @@ public class SetCheckInfoActivity extends SavedLoginInfoActivity implements View
                 intent1.putExtra("pid", pid);
                 SharedPreferences spTk = getSharedPreferences(SettingActivity.PREF_TKPIC, MODE_PRIVATE);
                 String style = spTk.getString("style", "");
-                if (style.equals(getResources().getString(R.string.upload_nomarl))) {
+                if (style.equals(getResString(R.string.upload_nomarl))) {
                     intent1.setClass(mContext, TakePicActivity.class);
-                } else if (style.equals(getResources().getString(R.string.upload_fromphone))) {
+                } else if (style.equals(getResString(R.string.upload_fromphone))) {
                     intent1.setClass(mContext, ObtainPicFromPhone.class);
-                } else if (style.equals(getResources().getString(R.string.upload_continue))) {
+                } else if (style.equals(getResString(R.string.upload_continue))) {
                     intent1.setClass(mContext, TakePic2Activity.class);
                 } else {
                     builder.create().show();

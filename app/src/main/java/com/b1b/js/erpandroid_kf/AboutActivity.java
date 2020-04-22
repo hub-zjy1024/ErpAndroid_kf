@@ -20,7 +20,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.picupload.TomcatTransferUploader;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -60,7 +60,10 @@ import utils.common.UploadUtils;
 import utils.common.log.LogUploader;
 import utils.net.wsdelegate.WebserviceUtils;
 
-public class AboutActivity extends BaseMActivity implements View.OnClickListener{
+/**
+ * 关于页面
+ */
+public class AboutActivity extends ToolbarHasSunmiActivity implements View.OnClickListener{
 
     private Handler mHandler = new Handler();
     private Handler logHandler = new Handler(){
@@ -152,11 +155,17 @@ public class AboutActivity extends BaseMActivity implements View.OnClickListener
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
+        String deviceId = UploadUtils.getDeviceID(mContext);
+        TextView tvDevice = getViewInContent(R.id.activity_about_tv_deviceId);
+        tvDevice.setText(deviceId);
     }
 
+    public String setTitle() {
+        return getResString(R.string.title_about);
+    }
     @Override
     public void init() {
-
+        super.init();
     }
 
     @Override
@@ -173,7 +182,7 @@ public class AboutActivity extends BaseMActivity implements View.OnClickListener
         int w = updateIv.getMeasuredWidth();
         int h = updateIv.getMeasuredHeight();
         if (w == 0 || h == 0) {
-            showMsgToast( "获取Iv大小失败");
+            showMsgToast("获取二维码大小失败");
             return;
         }
         Runnable mkQr = new Runnable() {
@@ -396,7 +405,7 @@ public class AboutActivity extends BaseMActivity implements View.OnClickListener
         switch (v.getId()) {
             case R.id.activity_about_btn_clear_sp:
                 SpSettings.clearAllSp(mContext);
-                showMsgDialog("测试animation");
+//                showMsgDialog("测试animation");
                 showMsgToast("应用数据已清空");
                 break;
 
@@ -409,7 +418,7 @@ public class AboutActivity extends BaseMActivity implements View.OnClickListener
                 if (isQQInstall(this)) {
                     String mqq="123";
                     final String qqUrl =
-                            "mqqwpa://im/chat?chat_type=wpa&uin=" + getResources().getString(R.string.about_contact_qq);
+                            "mqqwpa://im/chat?chat_type=wpa&uin=" + getResString(R.string.about_contact_qq);
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(qqUrl)));
                 } else {
                     showMsgToast("请安装QQ客户端,再进行跳转");

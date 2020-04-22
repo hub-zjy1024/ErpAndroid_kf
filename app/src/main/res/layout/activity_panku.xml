@@ -22,13 +22,13 @@
             android:hint="请输入明细id"
             style="@style/zjy_metiarial_ed.common"
             android:maxLines="1"
+            android:layout_marginRight="@dimen/yundan_form_horizontal"
             android:inputType="number"/>
 
         <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/panku_partno"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
             style="@style/zjy_metiarial_ed.common"
             android:maxLines="1"
             android:hint="请输入型号"/>

@@ -8,16 +8,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity">
 
-    <TextView
-        android:id="@+id/rukutag_activity_title"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_gravity="center_horizontal"
-        android:background="@color/bijia_title_background"
-        android:gravity="center"
-        android:text="库存余额标签打印"
-        android:textColor="@color/color_white"
-        android:textSize="20sp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,7 +17,7 @@
 
         <com.rengwuxian.materialedittext.MaterialEditText
             android:id="@+id/rukutag_activity_ed_pid"
-            android:layout_width="150dp"
+            android:layout_width="@dimen/ruku_tag_detailID"
             style="@style/zjy_metiarial_ed.common"
             android:layout_height="wrap_content"
             android:inputType="number"
@@ -37,12 +27,14 @@
             android:id="@+id/rukutag_activity_btn_search"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
             android:text="搜索"/>
 
         <Button
             android:id="@+id/rukutag_activity_btn_scancode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
             android:text="扫码"/>
 
     </LinearLayout>
@@ -56,18 +48,21 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            style="@style/panku_detail_label"
             android:text="状态："/>
 
         <TextView
             android:id="@+id/rukutag_activity_tv_state"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
+            style="@style/panku_detail_label"
             android:text="等待连接"/>
 
         <Button
             android:id="@+id/rukutag_activity_btn_setting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:text="重设打印机"/>
 
         <Button

@@ -39,6 +39,14 @@ public class MyFileUtils {
                 (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
     }
 
+    public static boolean isImage(String filePath) {
+        return filePath.toLowerCase().endsWith(".png") || filePath.toLowerCase().endsWith(".jpg") || filePath.toLowerCase().endsWith(".jpeg");
+    }
+
+    public static boolean isPdf(String filePath) {
+        return filePath.toLowerCase().endsWith(".pdf");
+    }
+
     public static void saveImg(String name, Bitmap bitmap, Context context) {
         File file;
         if (isMonuted()) {

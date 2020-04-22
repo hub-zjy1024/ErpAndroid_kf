@@ -8,50 +8,51 @@
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.RukuTagPrintAcitivity">
 
-    <TextView
-        android:id="@+id/shangjia_activity_title"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_gravity="center_horizontal"
-        android:background="@color/bijia_title_background"
-        android:gravity="center"
-        android:text="上架"
-        android:textColor="@color/color_white"
-        android:textSize="20sp"/>
-
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp">
+        android:layout_height="match_parent"
+        style="@style/lrPadding"
+        android:orientation="vertical">
 
-        <com.rengwuxian.materialedittext.MaterialEditText
-            android:id="@+id/shangjia_activity_ed_pid"
-            android:layout_width="150dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="输入明细号"
-            android:inputType="number"
-         style="@style/zjy_metiarial_ed.common"/>
+            android:layout_marginTop="@dimen/shangjia_marginTop"
+            >
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/shangjia_activity_ed_pid"
+                android:layout_width="@dimen/ruku_tag_detailID"
+                android:layout_height="wrap_content"
+                android:hint="输入明细号"
+                android:inputType="number"
+                style="@style/zjy_metiarial_ed.common"/>
 
 
-        <Button
-            android:id="@+id/shangjia_activity_btn_search"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="搜索"/>
+            <Button
+                android:id="@+id/shangjia_activity_btn_search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
+                android:text="搜索"/>
 
-        <Button
-            android:id="@+id/shangjia_activity_btn_scancode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="扫码"/>
+            <Button
+                android:id="@+id/shangjia_activity_btn_scancode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
+                android:text="扫码"/>
+
+        </LinearLayout>
+
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/activity_shangjia_rv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
     </LinearLayout>
 
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/activity_shangjia_rv"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="10dp"/>
+
 </LinearLayout>

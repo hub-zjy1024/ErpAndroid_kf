@@ -1,7 +1,7 @@
 <resources  xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -191,6 +191,9 @@
         <item name="met_clearButton">true</item>
         <item name="met_primaryColor">@color/colorPrimary</item>
     </style>
+    <style name="zjy_metiarial_ed.common.accent" parent="zjy_metiarial_ed.common">
+        <item name="met_primaryColor">@color/colorAccent</item>
+    </style>
     <style name="dialog_button.light">
         <item name="android:background">@android:color/transparent</item>
         <item name="android:textColor">@color/colorAccent</item>
@@ -200,7 +203,7 @@
         <item name="android:windowExitAnimation">@anim/dialog_anim_out</item>
     </style>
     <style name="style_about_text">
-        <item name="android:textSize">@dimen/def_text_size</item>
+        <item name="android:textSize">@dimen/def_text_size_small</item>
         <item name="android:textColor">@color/color_lv_divider_end</item>
     </style>
     <style name="style_pk_dialog_w1">
@@ -242,6 +245,9 @@
         <item name="android:textSize">19sp</item>
         <item name="android:layout_marginBottom">10dp</item>
     </style>
+    <style name="panku_detail_bottom_dialog_subtitle" parent="style_pk_chaidan_subtitle">
+        <item name="android:layout_marginBottom">20dp</item>
+    </style>
     <style name="style_pk_chaidan_label_content">
         <item name="android:textSize">17sp</item>
         <item name="android:textColor">@color/black_de</item>
@@ -268,6 +274,9 @@
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/black_de</item>
     </style>
+    <style name="style_pk_item_value_with_margin_left" parent="style_pk_item_value">
+        <item name="android:layout_marginLeft">@dimen/panku_detail_value_margin</item>
+    </style>
     <style name="style_pk_item_label_toleft" parent="style_pk_item_label">
         <item name="android:layout_marginLeft">10dp</item>
     </style>
@@ -285,10 +294,55 @@
         android:background="@color/title_background"-->
         <item name="android:layout_height">?attr/actionBarSize</item>
         <item name="titleTextColor">@color/color_white</item>
-        <item name="subtitleTextColor">@color/color_tb_subtitle</item>
+        <item name="subtitleTextColor">@color/toolbar_subtitle_light</item>
         <item name="android:background">@color/title_background</item>
+        <item name="navigationIcon">@drawable/toolbar_back_thin_light_white</item>
+        <item name="contentInsetStartWithNavigation">10dp</item>
+        <item name="android:dropDownVerticalOffset">20dp</item>
+        <item name="popupTheme">@style/ToolbarPopupTheme</item>
+        <item name="android:textColorSecondary">#ffffff</item>
+<!--        contentInsetStartWithNavigation="0dp"-->
+    </style>
+    <style name="ToolbarPopupTheme" parent="@style/ThemeOverlay.AppCompat.Light">
+        <!--<item name="android:colorBackground">#000000</item> 也可以设置背景色以及menu中的其他属性-->
+        <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle</item>
+    </style>
+    <style name="OverflowMenuStyle" parent="Widget.AppCompat.Light.PopupMenu.Overflow">
+        <item name="overlapAnchor">false</item>  <!--设置不覆盖锚点-->
     </style>
     <style name="panku_detail_label">
         <item name="android:textSize">17sp</item>
+    </style>
+    <style name="content_paragraph_title">
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/title_background</item>
+        <item name="android:layout_marginBottom">@dimen/yundan_form_horizontal</item>
+    </style>
+    <style name="chuku_tablayout">
+        <item name="tabIndicatorColor">@color/colorAccent</item>
+        <item name="tabSelectedTextColor">@color/colorAccent</item>
+        <item name="android:background">@color/title_background</item>
+        <item name="tabTextColor">@color/color_white</item>
+    </style>
+    <style name="share_animation" parent="android:Animation">
+        <item name="android:windowEnterAnimation">@anim/dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/dialog_exit</item>
+    </style>
+
+    <!-- 对话框样式 -->
+    <style name="dialog_bottom_full" parent="AppTheme">
+       <!-- <item name="android:windowBackground">@android:color/transparent</item>-->
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:scrollHorizontally">true</item>
+    </style>
+    <style name="transition_ruku" parent="AppTheme">
+        <!-- <item name="android:windowBackground">@android:color/transparent</item>-->
+    </style>
+    <style name="about_item_tv">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/black_de</item>
+        <item name="android:textIsSelectable">true</item>
     </style>
 </resources>

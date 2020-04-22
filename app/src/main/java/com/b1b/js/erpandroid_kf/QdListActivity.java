@@ -16,8 +16,9 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.dtr.zxing.activity.BaseScanActivity;
 import com.b1b.js.erpandroid_kf.entity.QdInfo;
+import com.b1b.js.erpandroid_kf.fragment.RukuViewModel;
 import com.b1b.js.erpandroid_kf.mvcontract.QdContract;
-import com.b1b.js.erpandroid_kf.task.TaskManager;
+import com.b1b.js.erpandroid_kf.mvcontract.callback.DataObj;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,13 +27,14 @@ import java.util.List;
 import utils.MyDecoration;
 import utils.common.UploadUtils;
 
-public class QdListActivity extends BaseScanActivity implements View.OnClickListener, QdContract.QdView {
+public class QdListActivity extends BaseScanActivity implements View.OnClickListener {
 
     private EditText edPid;
     private Handler mHandler = new Handler();
     private ProgressDialog pd;
     private TextView tv;
     private QdContract.SHQDPresenter presenter;
+    private QdContract.QdView mvpView;
     private List<QdInfo> mdata;
    private RcAdapter adapter;
     @Override
@@ -50,7 +52,35 @@ public class QdListActivity extends BaseScanActivity implements View.OnClickList
         RecyclerView recycleView = (RecyclerView) findViewById(R.id.myRecycle);
         btnSearch.setOnClickListener(this);
         btnScan.setOnClickListener(this);
-        presenter = new QdContract.QdPresenterImpl(this);
+        mvpView = new QdContract.QdView() {
+            @Override
+            public void getDataRet(DataObj<List<QdInfo>> mData) {
+                if (mData.errCode == 0) {
+                    pd.cancel();
+                    mdata.clear();
+                    mdata.addAll(mData.mData);
+                    adapter.notifyDataSetChanged();
+                } else {
+                    pd.cancel();
+                    showMsgToast("查询不到相关信息！！！");
+                }
+            }
+
+            public void startSearch(String pid) {
+                pd = new ProgressDialog(mContext);
+                pd.setTitle(pid);
+                pd.setMessage("正在搜索...");
+                pd.show();
+            }
+
+            @Override
+            public void setPrinter(QdContract.SHQDPresenter shqdPresenter) {
+
+            }
+        };
+        RukuViewModel model = new RukuViewModel();
+        model.startSearch("", "", "");
+        presenter = new QdContract.QdPresenterImpl(mvpView);
         mdata = new ArrayList<>();
         adapter = new RcAdapter(this, mdata, new RcAdapter.ClickListener() {
             @Override
@@ -111,60 +141,6 @@ public class QdListActivity extends BaseScanActivity implements View.OnClickList
         }
     }
 
-    public void startSearch(String pid) {
-        pd = new ProgressDialog(this);
-        pd.setTitle(pid);
-        pd.setMessage("正在搜索...");
-        pd.show();
-    }
-
-    public void getData(String data) {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                // TODO: 2018/10/31
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                boolean isFail = false;
-                if (isFail) {
-                    getDataFailed();
-                } else {
-                    getDataOk();
-                }
-            }
-        };
-        TaskManager.getInstance().execute(runnable);
-    }
-
-    @Override
-    public void getDataOk(List<QdInfo> infos) {
-        pd.cancel();
-        mdata.clear();
-        mdata.addAll(infos);
-        adapter.notifyDataSetChanged();
-    }
-
-    public void getDataOk() {
-    }
-
-    public void getDataFailed() {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                pd.cancel();
-                showMsgToast("查询不到相关信息！！！");
-            }
-        });
-    }
-
-    @Override
-    public void setPrinter(QdContract.SHQDPresenter shqdPresenter) {
-
-    }
-
     /*{"制单月份":"201810","供应商":"北京恒成伟业电子有限公司","供应商ID":"9204","开票公司":"北京北方科讯电子技术有限公司
         ","单数":"2","批注":""}*/
     static class MyHolder extends RecyclerView.ViewHolder {
@@ -214,17 +190,18 @@ public class QdListActivity extends BaseScanActivity implements View.OnClickList
         }
 
         @Override
-        public void onBindViewHolder(MyHolder holder, final int position) {
+        public void onBindViewHolder(MyHolder holder,  int position) {
             holder.tvCounts.setText("单数:"+qdInfos.get(position).getTvCounts());
             holder.tvKpName.setText("开票公司:"+qdInfos.get(position).getTvKpName());
             holder.tvProName.setText("供应商:"+qdInfos.get(position).getTvProName());
             holder.tvDate.setText("制单月份:"+qdInfos.get(position).getTvDate());
             holder.tvProId.setText("供应商ID:"+qdInfos.get(position).getTvProId());
             holder.tvNote.setText("批注:"+qdInfos.get(position).getTvNote());
+            final int tempPosition = holder.getAdapterPosition();
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mListener.itemClick(position);
+                    mListener.itemClick(tempPosition);
                 }
             });
         }

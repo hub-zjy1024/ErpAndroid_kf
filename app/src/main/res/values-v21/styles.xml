@@ -157,4 +157,9 @@
           <item name="android:activityCloseExitAnimation">@anim/anim_activity_slide_out</item>
 <!--         <item name="android:activityCloseEnterAnimation">@anim/anim_activity_slide_in</item>-->
     </style>
+
+    <style name="transition_ruku" parent="AppTheme">
+        <!-- <item name="android:windowBackground">@android:color/transparent</item>-->
+        <item name="android:windowEnterTransition">@transition/ruku_tag</item>
+    </style>
 </resources>

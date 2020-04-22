@@ -20,7 +20,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.entity.ShangJiaInfo;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
@@ -40,7 +40,7 @@ import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.ChuKuServer;
 import utils.net.wsdelegate.RKServer;
 
-public class ShangjiaActivity extends SunmiScanActivity implements NoLeakHandler.NoLeakCallback {
+public class ShangjiaActivity extends ToolbarHasSunmiActivity implements NoLeakHandler.NoLeakCallback {
     private Handler mHandler = new NoLeakHandler(this);
     private List<ShangJiaInfo> sjInfos = new ArrayList<>();
     private SharedPreferences spKf;
@@ -153,6 +153,11 @@ public class ShangjiaActivity extends SunmiScanActivity implements NoLeakHandler
         };
         TaskManager.getInstance().execute(getInfoRun);
 
+    }
+
+    @Override
+    public String setTitle() {
+        return getResString(R.string.title_shangjia);
     }
 
     @Override

@@ -42,7 +42,7 @@ public class PicDetailActivity extends BaseMActivity {
     private ViewPager mViewPager;
     private List<ZoomImageView> mImgs;
     private List<String> paths;
-    private PagerAdapter adapter;
+    protected PagerAdapter adapter;
     public static final String ex_Path = "path";
     public static final String ex_Paths = "paths";
     int pos;
@@ -118,10 +118,12 @@ public class PicDetailActivity extends BaseMActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        try {
-            ((ImgFragmentAdapter) adapter).releasBitmap();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (adapter instanceof ImgFragmentAdapter) {
+            try {
+                ((ImgFragmentAdapter) adapter).releasBitmap();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

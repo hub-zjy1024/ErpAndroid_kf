@@ -30,7 +30,7 @@ public class HonkongChukuCheck extends CheckActivity {
 
     @Override
     public String setTitle() {
-        String tittle = getResources().getString(R.string.menu_hk_check);
+        String tittle = getResString(R.string.menu_hk_check);
         return tittle;
     }
 

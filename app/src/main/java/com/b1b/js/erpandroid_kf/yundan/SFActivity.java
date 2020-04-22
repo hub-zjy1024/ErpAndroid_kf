@@ -8,6 +8,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -17,7 +19,7 @@ import android.widget.TextView;
 import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
-import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.printer.entity.Yundan;
@@ -45,7 +47,10 @@ import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.WebserviceUtils;
 
-public class SFActivity extends SunmiScanActivity {
+/**
+ * 运单打印
+ */
+public class SFActivity extends ToolbarHasSunmiActivity {
     private String storageID = "";
     private List<Yundan> yundanData;
     private EditText edPid;
@@ -166,6 +171,21 @@ public class SFActivity extends SunmiScanActivity {
         }
     }
 
+
+    @Override
+    public String setTitle() {
+        return getResString(R.string.title_yundan);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return false;
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem menuItem) {
+        return true;
+    }
 
     public void myOnclick(View view) {
         switch (view.getId()) {

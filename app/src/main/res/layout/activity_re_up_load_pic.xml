@@ -8,11 +8,6 @@
     android:orientation="vertical"
     tools:context=".ReUpLoadPicActivity">
 
-    <TextView
-        style="@style/zjy_title"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/activity_title_height"
-        android:text="图片重传"/>
 
     <LinearLayout
         style="@style/lrPadding"

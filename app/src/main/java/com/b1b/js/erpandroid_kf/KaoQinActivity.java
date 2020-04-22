@@ -6,7 +6,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.KqAdapter;
 import com.b1b.js.erpandroid_kf.entity.KaoqinInfo;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
@@ -15,28 +15,27 @@ import com.b1b.js.erpandroid_kf.task.WebServicesTask;
 
 import org.json.JSONException;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import utils.common.MyJsonUtils;
+import utils.common.UploadUtils;
 import utils.framwork.SoftKeyboardUtils;
 import utils.net.wsdelegate.WebserviceUtils;
 
-public class KaoQinActivity extends SavedLoginInfoActivity {
+public class KaoQinActivity extends ToolbarHasSunmiActivity {
 
     private List<KaoqinInfo> data = new ArrayList<>();
     private KqAdapter adapter;
     private EditText inputDate;
     private EditText inputId;
 
-    public String getCurrentDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
-        return sdf.format(new Date());
-    }
 
+    @Override
+    public String setTitle() {
+        return getResString(R.string.title_kaoqin);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +46,7 @@ public class KaoQinActivity extends SavedLoginInfoActivity {
         inputDate = (EditText) findViewById(R.id.kq_edTime);
         inputId.requestFocus();
         Button btnSaixuan = (Button) findViewById(R.id.kq_saixuan);
-        String cDate = getCurrentDate();
+        String cDate = UploadUtils.getKaoqinDate();
         inputDate.setText(cDate);
         inputId.setText(loginID);
         if (CheckUtils.isAdmin()) {

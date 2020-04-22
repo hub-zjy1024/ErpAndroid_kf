@@ -12,10 +12,7 @@
         android:id="@+id/tabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#8080c0"
-        app:tabIndicatorColor="@android:color/holo_orange_dark"
-        app:tabSelectedTextColor="@android:color/white"
-        app:tabTextColor="@android:color/black"
+        style="@style/chuku_tablayout"
 
         >
 

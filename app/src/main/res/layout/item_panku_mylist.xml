@@ -20,20 +20,19 @@
 
         <TextView
             android:id="@+id/item_lv_pk_tv_pid"
-            style="@style/style_pk_item_value"
+            style="@style/style_pk_item_value_with_margin_left"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:text="123123123"></TextView>
 
         <TextView
-             style="@style/style_pk_item_label_toleft"
-            android:layout_width="wrap_content"
+             style="@style/style_pk_item_label"
             android:layout_height="wrap_content"
             android:text="明细ID:"></TextView>
         <TextView
             android:id="@+id/item_lv_pk_tv_detailId"
-            style="@style/style_pk_item_value"
+            style="@style/style_pk_item_value_with_margin_left"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="123123123"></TextView>
@@ -53,7 +52,7 @@
 
         <TextView
             android:id="@+id/item_lv_pk_tv_partno"
-            style="@style/style_pk_item_value"
+            style="@style/style_pk_item_value_with_margin_left"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="123123123"></TextView>
@@ -71,9 +70,10 @@
 
         <TextView
             android:id="@+id/item_lv_pk_tv_count"
-            style="@style/style_pk_item_value"
+            style="@style/style_pk_item_value_with_margin_left"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minWidth="@dimen/panku_item_col_1"
             android:text="123123123"></TextView>
 
         <TextView
@@ -83,7 +83,7 @@
             android:text="批号:"></TextView>
 
         <TextView
-            style="@style/style_pk_item_value"
+            style="@style/style_pk_item_value_with_margin_left"
             android:id="@+id/item_lv_pk_tv_pihao"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -100,7 +100,7 @@
             android:layout_height="wrap_content"
             android:text="入库时间:"></TextView>
         <TextView
-            style="@style/style_pk_item_value"
+            style="@style/style_pk_item_value_with_margin_left"
             android:id="@+id/item_lv_pk_tv_rktime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

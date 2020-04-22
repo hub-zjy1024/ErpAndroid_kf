@@ -7,7 +7,8 @@
     <ScrollView
         android:id="@+id/activity_parent_chuku_tv_scroll"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -18,6 +19,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -37,58 +39,67 @@
                     android:id="@+id/activity_parent_chuku_btn_search"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="搜索"/>
+                    android:text="搜索" />
+
                 <Button
                     android:id="@+id/activity_parent_chuku_btn_scan"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="扫码"/>
+                    android:text="扫码" />
             </LinearLayout>
+
             <HorizontalScrollView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
+
                 <LinearLayout
                     android:id="@+id/activity_parent_chuku_oprBar_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
+
                     <Button
                         android:id="@+id/activity_parent_chuku_opr_btn_diaobo"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="调拨完成"/>
+                        android:text="调拨完成" />
+
                     <Button
                         android:id="@+id/activity_parent_chuku_opr_btn_pre_ck"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="预出库"/>
+                        android:text="预出库" />
 
                     <Button
                         android:id="@+id/activity_parent_chuku_opr_btn_check_1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
 
-                        android:text="一次复核"/>
+                        android:text="一次复核" />
+
                     <Button
                         android:id="@+id/activity_parent_chuku_opr_btn_sp_check"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="特殊审批"/>
+                        android:text="特殊审批" />
+
                     <Button
                         android:id="@+id/activity_parent_chuku_opr_btn_check_2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="二次复核"/>
+                        android:text="二次复核" />
+
                     <Button
                         android:id="@+id/activity_parent_chuku_opr_btn_chukufail"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="不通过"/>
+                        android:text="不通过" />
+
                     <Button
                         android:id="@+id/activity_parent_chuku_opr_btn_yundan"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         style="@style/new_ck_btn_color"
-                        android:text="打印运单"/>
+                        android:text="打印运单" />
                     <!-- <Button
                          android:id="@+id/activity_parent_chuku_opr_btn_yd_takepic"
                          android:layout_width="wrap_content"
@@ -100,19 +111,21 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         style="@style/new_ck_btn_color"
-                        android:text="出库完成"/>
+                        android:text="出库完成" />
+
                     <Button
                         android:id="@+id/activity_parent_chuku_opr_btn_yundan_takepic"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         style="@style/new_ck_btn_color"
-                        android:text="拍照"/>
+                        android:text="拍照" />
+
                     <Button
                         android:id="@+id/activity_parent_chuku_opr_btn_viewpic"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         style="@style/new_ck_btn_color"
-                        android:text="查看图片"/>
+                        android:text="查看图片" />
 
                 </LinearLayout>
 
@@ -122,34 +135,54 @@
             <TextView
                 android:id="@+id/activity_parent_chuku_tv_maininfo"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:text="审批信息:"
-                android:textColor="@color/button_light_bg"
-                android:layout_height="wrap_content"/>
-            <EditText
-                android:id="@+id/activity_parent_chuku_tv_ed_res"
+                android:layout_height="wrap_content"
+                android:lineSpacingMultiplier="1.3"
+                android:textSize="@dimen/def_text_size_small"/>
+
+            <LinearLayout
+                android:id="@+id/activity_parent_chuku_container_checkinfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/def_text_size_small"
-                android:lines="3"
-                android:focusableInTouchMode="false"
-                android:background="@drawable/bg_textarea"/>
+                android:orientation="vertical"
+                android:visibility="gone">
 
-            <TextView
-                android:id="@+id/activity_parent_chuku_tv_tagMx"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:text="审批信息:"
+                    style="@style/content_paragraph_title"
+                    android:layout_height="wrap_content" />
+
+                <EditText
+                    android:id="@+id/activity_parent_chuku_tv_ed_res"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/def_text_size_small"
+                    android:maxLines="4"
+                    android:focusableInTouchMode="false"
+                    android:background="@drawable/bg_textarea" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/activity_parent_chuku_container_details"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/button_light_bg"
-                android:text="明细:"/>
+                android:visibility="gone"
+                android:orientation="vertical">
 
-            <com.b1b.js.erpandroid_kf.myview.ScrollInnerListview
-                android:id="@+id/activity_parent_chuku_lv_detail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                <TextView
+                    android:id="@+id/activity_parent_chuku_tv_tagMx"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="@style/content_paragraph_title"
+                    android:text="明细:" />
+
+                <com.b1b.js.erpandroid_kf.myview.ScrollInnerListview
+                    android:id="@+id/activity_parent_chuku_lv_detail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
         </LinearLayout>
-
     </ScrollView>
 
 

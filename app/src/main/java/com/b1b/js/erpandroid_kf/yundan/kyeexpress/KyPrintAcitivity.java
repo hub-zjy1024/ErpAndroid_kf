@@ -25,7 +25,7 @@ import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
-import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -69,7 +69,7 @@ import utils.net.wsdelegate.SF_Server;
 /**
  * 跨越快递下单页
  */
-public class KyPrintAcitivity extends SunmiScanActivity implements NoLeakHandler.NoLeakCallback {
+public class KyPrintAcitivity extends ToolbarHasSunmiActivity implements NoLeakHandler.NoLeakCallback {
 
     private Spinner spiType;
     private String pid;
@@ -199,7 +199,10 @@ public class KyPrintAcitivity extends SunmiScanActivity implements NoLeakHandler
     private Intent reIntent;
     private boolean isDiaohuo = false;
     private Spinner spiDiaohuo;
-
+    @Override
+    public String setTitle() {
+        return getResString(R.string.title_yundan_ky);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1173,7 +1176,7 @@ public class KyPrintAcitivity extends SunmiScanActivity implements NoLeakHandler
                 throw new IOException("关联接口异常，" + e.getMessage());
             }
             if (result.equals("")) {
-                MyApp.myLogger.writeError(KyPrintAcitivity.class, getResources().getString(R.string
+                MyApp.myLogger.writeError(KyPrintAcitivity.class, getResString(R.string
                         .error_soapobject) + pid +
                         "\t" + loginID);
             }

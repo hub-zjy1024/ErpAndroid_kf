@@ -53,6 +53,10 @@ public class UploadUtils {
                 .DAY_OF_MONTH);
         return str;
     }
+    public static String getKaoqinDate() {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
+            return sdf.format(new Date());
+    }
 
     public static String getCurrentYearAndMonth() {
         Calendar calendar = Calendar.getInstance();

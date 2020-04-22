@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@mipmap/bg_main"
     android:orientation="vertical"
-    android:padding="10dp"
+    style="@style/lrPadding"
     tools:context="com.b1b.js.erpandroid_kf.MainActivity">
 
     <ImageView
@@ -15,7 +15,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="@dimen/login_logo_marginTop"
         android:src="@mipmap/app_logo"/>
 
     <EditText
@@ -50,7 +50,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="20dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:layout_marginTop="@dimen/main_login_log_top"
         >
 
         <Button
@@ -65,7 +67,7 @@
             android:id="@+id/login_scancode"
             android:layout_width="wrap_content"
             android:layout_height="35dp"
-            android:layout_marginLeft="50dp"
+            android:layout_marginLeft="120dp"
             android:layout_weight="1"
             android:background="@drawable/btn_click"
             android:text="扫码登录"/>
@@ -74,19 +76,24 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
         android:text="注：只能使用扫码登录"
-        android:textColor="#be3232"
+        android:textColor="@color/login_text_alert"
         />
     <Button
         android:text="条码打印(离线)"
         android:layout_width="wrap_content"
         android:layout_height="35dp"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
         android:background="@drawable/btn_click"
         android:id="@+id/activity_main_btn_code"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="20dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:visibility="gone"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
         >
 
         <CheckBox
@@ -95,8 +102,7 @@
             android:layout_height="wrap_content"
             android:button="@drawable/btn_cbo_style"
             android:paddingLeft="5dp"
-            android:text="记住密码"
-            android:visibility="gone"/>
+            android:text="记住密码" />
 
         <CheckBox
             android:id="@+id/login_autol"
@@ -105,19 +111,47 @@
             android:layout_marginLeft="20dp"
             android:button="@drawable/btn_cbo_style"
             android:paddingLeft="5dp"
-            android:text="自动登录"
-            android:visibility="gone"/>
+            android:text="自动登录" />
     </LinearLayout>
 
     <TextView
-        android:id="@+id/main_version"
+        android:id="@+id/activity_main_localversion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#be3232"
-
-        android:lineSpacingMultiplier="1.5"
+        android:textColor="@color/login_text_log"
+        android:layout_marginTop="@dimen/main_login_log_margin2"
+        android:text="12312312"
         android:textIsSelectable="true"
+        android:textSize="16sp"
         />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#800028FF"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:text="更新说明:"
+        android:lineSpacingMultiplier="1.2"
+        android:textIsSelectable="true"
+        android:textSize="17sp"
+        >
+
+    </TextView>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin">
+        <TextView
+            android:id="@+id/main_version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/login_text_log"
+            android:text="123123123123"
+            android:lineSpacingMultiplier="1.2"
+            android:textIsSelectable="true"
+            android:textSize="16sp"
+            />
+    </ScrollView>
+
     <!-- android:lineSpacingExtra="4dp"-->
 
 </LinearLayout>

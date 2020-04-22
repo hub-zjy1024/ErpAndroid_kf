@@ -184,8 +184,9 @@ public class MainActivity extends SunmiScanActivity implements View.OnClickListe
                     code = info.versionCode;
                     versionName = info.versionName;
                     String devId = UploadUtils.getDeviceID(mContext);
+                    TextView mView = getViewInContent(R.id.activity_main_localversion);
 
-                    tvVersion.setText("当前版本为：" + versionName + "\t设备ID=" + devId);
+                    mView.setText(String.format("当前版本为：%s,设备ID:%s", versionName, devId));
                 } catch (PackageManager.NameNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -215,10 +216,8 @@ public class MainActivity extends SunmiScanActivity implements View.OnClickListe
                         zHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                String info = tvVersion.getText().toString().trim();
-                                info = info + "，更新说明:\n";
-                                info += "更新时间:" + sDate + "\n";
-                                info += "更新内容:" + sContent;
+                                String info = "更新时间:" + sDate + "\n";
+                                info += "更新内容:\r\n" + sContent;
                                 tvVersion.setText(info);
                             }
                         });

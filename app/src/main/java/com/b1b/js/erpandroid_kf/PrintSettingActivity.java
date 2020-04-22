@@ -15,7 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
-import com.b1b.js.erpandroid_kf.activity.base.BaseMActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import utils.btprint.SPrinter;
 import utils.btprint.SPrinter2;
 import utils.handler.NoLeakHandler;
 
-public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler.NoLeakCallback {
+public class PrintSettingActivity extends ToolbarHasSunmiActivity implements NoLeakHandler.NoLeakCallback {
     
     private String TAG = "BtSetting";
     private Button bt_scan;
@@ -249,7 +249,12 @@ public class PrintSettingActivity extends BaseMActivity implements NoLeakHandler
     }
     @Override
     public void init() {
-        
+        super.init();
+    }
+
+    @Override
+    public String setTitle() {
+        return getResString(R.string.title_bt_settting);
     }
 
     @Override

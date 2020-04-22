@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_panku_deatil_viewPic"
+        android:orderInCategory="100"
+        app:showAsAction="always"
+        android:icon="@drawable/toolbar_menu_image_white"
+        android:title="@string/panku_detail_menu_viewImage"/>
+    <item
+        android:id="@+id/action_panku_deatil_takePic"
+        android:orderInCategory="100"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/toolbar_menu_takepic_white_medium"
+        android:title="@string/panku_detail_menu_uploadPic"/>
+    <item
+        android:id="@+id/action_panku_deatil_print_tag"
+        android:orderInCategory="100"
+        app:showAsAction="collapseActionView"
+        android:icon="@drawable/toolbar_menu_print_white"
+        android:title="@string/panku_detail_menu_print_tag"/>
+</menu>

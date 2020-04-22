@@ -31,7 +31,7 @@ import com.b1b.js.erpandroid_kf.MyApp;
 import com.b1b.js.erpandroid_kf.PreChukuDetailActivity;
 import com.b1b.js.erpandroid_kf.R;
 import com.b1b.js.erpandroid_kf.SettingActivity;
-import com.b1b.js.erpandroid_kf.activity.base.SunmiScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -74,7 +74,7 @@ import utils.net.wsdelegate.SF_Server;
 /**
  * 顺丰快递下单页
  */
-public class SetYundanActivity extends SunmiScanActivity implements NoLeakHandler.NoLeakCallback{
+public class SetYundanActivity extends ToolbarHasSunmiActivity implements NoLeakHandler.NoLeakCallback{
     private List<Province> provinces;
     String jAddress;
     String payByWho;
@@ -345,6 +345,11 @@ public class SetYundanActivity extends SunmiScanActivity implements NoLeakHandle
             mDiaog.dismiss();
         }
     }
+    @Override
+    public String setTitle() {
+        return getResString(R.string.title_yundan_sf);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

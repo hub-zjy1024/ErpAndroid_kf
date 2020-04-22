@@ -1,0 +1,9 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_reset_printer"
+        android:orderInCategory="100"
+        app:showAsAction="always"
+        android:icon="@drawable/toolbar_menu_setting_white"
+        android:title="@string/ruku_tag_menu_resetPrinter"/>
+</menu>

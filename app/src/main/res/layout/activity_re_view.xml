@@ -10,24 +10,28 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        style="@style/lrPadding"
         android:orientation="horizontal">
 
         <EditText
             android:id="@+id/review_pid"
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:hint="输入单据号"
             android:inputType="number"/>
 
         <EditText
             android:id="@+id/review_name"
-            android:layout_width="wrap_content"
+            android:layout_width="120dp"
             android:layout_height="wrap_content"
-            android:hint="输入图片备注"/>
+            android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
+            android:maxLines="1"
+            android:hint="图片备注"/>
 
         <Button
             android:id="@+id/review_getFromPhone"
             style="@style/myButton"
+            android:layout_marginLeft="@dimen/panku_detail_min_margin_left"
             android:text="从相册选取"/>
 
     </LinearLayout>

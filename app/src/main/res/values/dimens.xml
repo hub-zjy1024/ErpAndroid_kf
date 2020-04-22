@@ -24,10 +24,24 @@
     <dimen name="panku_dialog_root_margin_horizontal">16dp</dimen>
     <dimen name="pk_dialog_col_margin_left">10dp</dimen>
     <dimen name="panku_detail_min_margin_left">5dp</dimen>
+    <dimen name="panku_detail_min_margin_material_autocompletetextview">8dp</dimen>
+    <dimen name="panku_detail_value_margin">10dp</dimen>
     <dimen name="paragraph_indent">20dp</dimen>
     <dimen name="image_preview_width">150dp</dimen>
     <dimen name="image_preview_height">150dp</dimen>
     <dimen name="image_preview_height_w2">90dp</dimen>
+    <dimen name="panku_item_pihao_toleft">90dp</dimen>
+    <dimen name="panku_item_col_1">120dp</dimen>
+    <dimen name="toolbar_panku_detail_margin">10dp</dimen>
+    <dimen name="main_login_log_top">32dp</dimen>
+    <dimen name="main_login_log_margin2">32dp</dimen>
+    <dimen name="about_qr_size">150dp</dimen>
+    <dimen name="bg_button_raduis">5dp</dimen>
+    <dimen name="bg_button_pading_vetical">3dp</dimen>
+    <dimen name="bg_button_pading_horizontal">6dp</dimen>
+    <dimen name="login_logo_marginTop">58dp</dimen>
+    <dimen name="ruku_tag_detailID">125dp</dimen>
+    <dimen name="shangjia_marginTop">8dp</dimen>
 
     <dimen name="item_t1">17sp</dimen>
 </resources>

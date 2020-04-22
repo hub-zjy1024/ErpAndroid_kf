@@ -55,7 +55,8 @@ public class MyPankuListContract {
                             for (int i = 0; i < mArr.size(); i++) {
                                 JSONObject tobj = mArr.getJSONObject(i);
                                 String detailId = tobj.getString("InstorageDetailID");
-                                String panKuData = tobj.getString("PanKuData");
+                                String panKuData = tobj.getString("入库日期");
+//                                String panKuData = tobj.getString("PanKuData");
                                 String PartNo = tobj.getString("PartNo");
                                 String Quentity = tobj.getString("Quentity");
                                 String MFC = tobj.getString("MFC");
@@ -64,8 +65,11 @@ public class MyPankuListContract {
                                 String Place = tobj.getString("Place");
                                 String UserID = tobj.getString("UserID");
                                 String UserName = tobj.getString("UserName");
-                                PankuInfo minfo = new PankuInfo("", detailId, PartNo, Quentity, MFC, "",
-                                        Pack, BatchNo, Place, panKuData, "", "0");
+                                String storagename= tobj.getString("仓库");
+                                String description = tobj.getString("描述");
+//                                "入库日期":"2020/4/3 11:27:59","描述":"++","仓库":"深圳赛格"
+                                PankuInfo minfo = new PankuInfo("", detailId, PartNo, Quentity, MFC, description,
+                                        Pack, BatchNo, Place, panKuData, storagename, "0");
                                 minfo.setMark("");
                                 list.add(minfo);
                             }

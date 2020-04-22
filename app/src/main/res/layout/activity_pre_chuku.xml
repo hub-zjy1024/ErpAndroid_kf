@@ -9,106 +9,98 @@
     android:orientation="vertical"
     tools:context="com.b1b.js.erpandroid_kf.PreChukuActivity">
 
-    <TextView
-        android:id="@+id/caigouedit_title"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_gravity="center_horizontal"
-        android:background="@color/bijia_title_background"
-        android:gravity="center"
-        android:text="预出库"
-        android:textColor="@color/color_white"
-        android:textSize="20sp"/>
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_height="wrap_content">
-
-        <com.rengwuxian.materialedittext.MaterialEditText
-            android:id="@+id/prechuku_ed"
-            android:layout_width="150dp"
-            android:layout_height="wrap_content"
-            android:hint="请输入单据号"
-            style="@style/zjy_metiarial_ed.common"
-            android:inputType="number"/>
-
-        <CheckBox
-            android:id="@+id/prechuku_cbo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="只搜索未打印过的"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        >
-
-        <Button
-            android:id="@+id/prechuku_search"
-            style="@style/zjy_button_nomarl_alpha100"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_marginLeft="10dp"
-            android:text="搜索"/>
-
-        <Button
-            android:id="@+id/prechuku_scan"
-            style="@style/zjy_button_nomarl_alpha100"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:text="扫码"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_gravity="center_vertical"
-        >
-
-        <Button
-            android:id="@+id/prechuku_sdate"
-            style="@style/zjy_button_nomarl_alpha100"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:text="起始时间"
-            />
-
-        <Button
-            android:id="@+id/prechuku_edate"
-            style="@style/zjy_button_nomarl_alpha100"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:text="终止时间"/>
-
-        <Button
-            android:id="@+id/prechuku_cleartime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_marginLeft="10dp"
-            style="@style/zjy_button_nomarl_alpha100"
-            android:drawableLeft="@drawable/btn_clear"
-            android:text="清除时间"/>
-    </LinearLayout>
-
-    <ListView
-        android:id="@+id/prechuku_lv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="@dimen/padding_lv_def"
-        android:divider="#bcbcbc"
-        android:dividerHeight="2dp"
-        />
+        style="@style/lrPadding"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/prechuku_ed"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:hint="请输入单据号"
+                style="@style/zjy_metiarial_ed.common"
+                android:inputType="number"/>
+
+            <CheckBox
+                android:id="@+id/prechuku_cbo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="只搜索未打印过的"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            >
+
+            <Button
+                android:id="@+id/prechuku_search"
+                style="@style/zjy_button_nomarl_alpha100"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_marginLeft="10dp"
+                android:text="搜索"/>
+
+            <Button
+                android:id="@+id/prechuku_scan"
+                style="@style/zjy_button_nomarl_alpha100"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:text="扫码"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            >
+
+            <Button
+                android:id="@+id/prechuku_sdate"
+                style="@style/zjy_button_nomarl_alpha100"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:text="起始时间"
+                />
+
+            <Button
+                android:id="@+id/prechuku_edate"
+                style="@style/zjy_button_nomarl_alpha100"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:text="终止时间"/>
+
+            <Button
+                android:id="@+id/prechuku_cleartime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_marginLeft="10dp"
+                style="@style/zjy_button_nomarl_alpha100"
+                android:drawableLeft="@drawable/btn_clear"
+                android:text="清除时间"/>
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/prechuku_lv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="#bcbcbc"
+            android:dividerHeight="2dp"
+            />
+
+    </LinearLayout>
+
 </LinearLayout>

@@ -10,6 +10,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.b1b.js.erpandroid_kf.entity.ChukuDetail;
 import com.b1b.js.erpandroid_kf.entity.ChukuInfo;
 import com.b1b.js.erpandroid_kf.entity.ChukuInfoNew;
+import com.b1b.js.erpandroid_kf.mvcontract.callback.DataObj;
 import com.b1b.js.erpandroid_kf.mvcontract.callback.IBoolCallback;
 import com.b1b.js.erpandroid_kf.mvcontract.callback.IObjCallback;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -31,6 +32,7 @@ public class ParentChukuContract {
         void fillList(List<ChukuInfoNew> infos);
 
         void onPreCkInfoCb(ChukuInfo info);
+        void onPreCkInfoRet(DataObj<ChukuInfo> info);
 
         void onChangeSuccess(String flag);
 
@@ -116,17 +118,24 @@ public class ParentChukuContract {
                 iView.alert("还未获取到ip");
                 return;
             }
-            mProvider.getDataNewByIp(pid, ip, new IObjCallback<ChukuInfo>() {
+//            mProvider.getDataNewByIp(pid, ip, new IObjCallback<ChukuInfo>() {
+//                @Override
+//                public void callback(ChukuInfo result) {
+//                    iView.cancelLoading2(loadId);
+//                    iView.onPreCkInfoCb(result);
+//                }
+//
+//                @Override
+//                public void onError(final String msg) {
+//                    iView.cancelLoading2(loadId);
+//                    iView.alert("查询'" + pid + "'信息失败，" + msg);
+//                }
+//            });
+            mProvider.getDataNewByIpWithCallBack(pid, ip, new QdContract.IDataCallBack<DataObj<ChukuInfo>>() {
                 @Override
-                public void callback(ChukuInfo result) {
+                public void onCallback(DataObj<ChukuInfo> data) {
                     iView.cancelLoading2(loadId);
-                    iView.onPreCkInfoCb(result);
-                }
-
-                @Override
-                public void onError(final String msg) {
-                    iView.cancelLoading2(loadId);
-                    iView.alert("查询'" + pid + "'信息失败，" + msg);
+                    iView.onPreCkInfoRet(data);
                 }
             });
         }
@@ -405,6 +414,82 @@ public class ParentChukuContract {
                         @Override
                         public void run() {
                             callback.onError(finalErrMsg);
+                        }
+                    });
+                }
+            };
+            TaskManager.getInstance().execute(mRun);
+        }
+
+        void getDataNewByIpWithCallBack(final String pid, final String ip,
+                                        final QdContract.IDataCallBack<DataObj<ChukuInfo>> callback) {
+
+            Runnable mRun = new Runnable() {
+                @Override
+                public void run() {
+                    String errMsg = "";
+                    final DataObj<ChukuInfo> mRet = new DataObj<>();
+
+                    try {
+                        String dataJson = DyjInterface2.GetChuKuTongZhiInfoToString2ByIP(pid, ip);
+                        JSONObject listObj = JSONObject.parseObject(dataJson);
+                        JSONArray mobjJSONArray = listObj.getJSONArray("data");
+                        if (mobjJSONArray.size() == 0) {
+                            throw new IOException("查询不到结果");
+                        }
+                        JSONObject pidObj = mobjJSONArray.getJSONObject(0);
+                        final ChukuInfo cInfo = new ChukuInfo();
+                        String tempResult = pidObj.getString("出库结果");
+                        cInfo.chukuResult = tempResult.replaceAll("\\r", "\n");
+                        cInfo.PID = pidObj.getString("PID");
+                        cInfo.makeName = pidObj.getString("制单人");
+                        cInfo.pidStat = pidObj.getString("单据状态");
+                        cInfo.StateNow = pidObj.getString("StateNow");
+                        cInfo.flag = pidObj.getString("flag");
+                        cInfo.ckStorName = pidObj.getString("出库库房");
+                        cInfo.makePidTime = pidObj.getString("制单日期");
+                        cInfo.kpType = pidObj.getString("开票类型");
+                        cInfo.fhKuqu = pidObj.getString("FaHuoKuQu");
+                        cInfo.isDiaobo = pidObj.getIntValue("需要调拨");
+                        cInfo.kpCompany = pidObj.getString("开票公司");
+                        cInfo.fhType = pidObj.getString("发货类型");
+                        cInfo.comp = pidObj.getString("公司");
+                        cInfo.partName = pidObj.getString("部门");
+                        cInfo.notes = pidObj.getString("备注");
+                        cInfo.preChukuPrint = pidObj.getString("预出库打印");
+                        cInfo.yundanID = pidObj.getString("运单号");
+                        List<ChukuDetail> mDetail = new ArrayList<>();
+                        com.alibaba.fastjson.JSONArray mArray = listObj.getJSONArray("list");
+                        for (int i = 0; i < mArray.size(); i++) {
+                            JSONObject tobj = mArray.getJSONObject(i);
+                            ChukuDetail tDetail = new ChukuDetail();
+                            tDetail.setPartNo(tobj.getString("型号"));
+                            tDetail.setFactory(tobj.getString("厂家"));
+                            tDetail.setDescription(tobj.getString("描述"));
+                            tDetail.setdNotes(tobj.getString("明细备注"));
+                            tDetail.setFengzhuang(tobj.getString("封装"));
+                            tDetail.setCounts(tobj.getIntValue("数量"));
+                            mDetail.add(tDetail);
+                        }
+                        cInfo.details = mDetail;
+                        mRet.mData = cInfo;
+                        mRet.errCode = 0;
+                        mRet.errMsg = "成功";
+                    } catch (DyjInterface2.DyjException e) {
+                        e.printStackTrace();
+                        errMsg = e.getMessage();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        errMsg = e.getMessage();
+                    }
+                    final String finalErrMsg = errMsg;
+                    if(mRet.errCode!=0){
+                        mRet.errMsg=  "查询'" + pid + "'信息失败，" + errMsg;
+                    }
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onCallback(mRet);
                         }
                     });
                 }

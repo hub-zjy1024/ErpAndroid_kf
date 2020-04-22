@@ -9,6 +9,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -73,6 +74,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         tb.setTitle("菜单");
         tb.setSubtitle("登陆人:" + loginID);
         setSupportActionBar(tb);
+        tb.setNavigationIcon(null);
         gv = (GridView) findViewById(R.id.menu_gv);
         gv.setOnItemClickListener(this);
         addItemGV();
@@ -81,6 +83,24 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         ShechduleMgr.getInstance().executeByDur(mPanku, 10 * 60);
     }
 
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        Log.e("zjy", "MenuActivity->onOptionsItemSelected(): mCLick==" + item.getTitle());
+        switch (itemId) {
+            case R.id.action_settings:
+                showMsgToast("点击了setting OnActivity");
+                break;
+            default:
+                break;
+        }
+        return false;
+    }
+
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        //导入菜单布局
+//        getMenuInflater().inflate(R.menu.main, menu);
+//        return true;
+//    }
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -114,7 +134,7 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Print, "顺丰下单并打印功能,以及打印手机接受的文件的功能"));
         data.add(new MyMenuItem(R.mipmap.menu_pic, tag_Viewpic, "查询单据关联的照片"));
         data.add(new MyMenuItem(R.mipmap.menu_panku, tag_Panku, "货物位置管理"));
-        data.add(new MyMenuItem(R.mipmap.menu_chuku, tag_PankuTask, "101"));
+        data.add(new MyMenuItem(R.drawable.menu_panku_task_light, tag_PankuTask, "101"));
         data.add(new MyMenuItem(R.mipmap.menu_shangjia, tag_shangjia, "上架"));
         data.add(new MyMenuItem(R.mipmap.menu_caigou_96, tag_CaigouTakePic, "采购单拍照功能"));
         data.add(new MyMenuItem(R.mipmap.menu_print, tag_Ruku, "蓝牙打印，打印入库标签"));
@@ -124,12 +144,19 @@ public class MenuActivity extends SavedLoginInfoActivity implements OnItemClickL
         data.add(new MyMenuItem(R.mipmap.menu_kaoqin, tag_Kaoqin, "查询考勤状态"));
         data.add(new MyMenuItem(R.mipmap.menu_setting_press, tag_Setting, "设置"));
         RecyclerView mView = getViewInContent(R.id.activity_menu_dataview);
-        MenuActivityRvAdapter adap = new MenuActivityRvAdapter(data, R.layout.item_menu_rv, mContext, new BaseItemClickListener<MyMenuItem>() {
+//        mView.setBackground(getResources().getDrawable(R.drawable.item_recycler_view_bg));
+        int itemlayout = R.layout.item_menu_rv;
+        int cols = 3;
+        if (true) {
+            itemlayout = R.layout.item_menu_rv_2;
+            cols = 4;
+        }
+        MenuActivityRvAdapter adap = new MenuActivityRvAdapter(data, itemlayout, mContext, new BaseItemClickListener<MyMenuItem>() {
             public void onItemClick(BaseRvViewholder holder, MyMenuItem item) {
                 MenuActivity.this.onItemClick(item);
             }
         });
-        GridLayoutManager gridLayoutMgr = new GridLayoutManager(mContext, 3);
+        GridLayoutManager gridLayoutMgr = new GridLayoutManager(mContext, cols);
         mView.setLayoutManager(gridLayoutMgr );
         mView.setAdapter(adap);
         MenuGvAdapter adapter = new MenuGvAdapter(this, data, R.layout.item_menu_gv);

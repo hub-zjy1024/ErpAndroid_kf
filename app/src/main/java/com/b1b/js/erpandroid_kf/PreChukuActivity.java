@@ -15,7 +15,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.b1b.js.erpandroid_kf.activity.base.SavedLoginInfoWithScanActivity;
+import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuAdapter2;
 import com.b1b.js.erpandroid_kf.entity.PreChukuInfo;
 import com.b1b.js.erpandroid_kf.task.CheckUtils;
@@ -35,7 +35,7 @@ import utils.framwork.SoftKeyboardUtils;
 import utils.handler.NoLeakHandler;
 import utils.net.wsdelegate.ChuKuServer;
 
-public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements View.OnClickListener {
+public class PreChukuActivity extends ToolbarHasSunmiActivity implements View.OnClickListener {
 
     private Button btnSearch;
     private Button btnSTime;
@@ -101,6 +101,11 @@ public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements 
 
 
     @Override
+    public String setTitle() {
+        return getResString(R.string.title_pre_chuku);
+    }
+
+    @Override
     public void resultBack(String result) {
         if (!CheckUtils.checkUID(PreChukuActivity.this)) {
             return;
@@ -151,22 +156,6 @@ public class PreChukuActivity extends SavedLoginInfoWithScanActivity implements 
         }
     }
 
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == 300 && resultCode == RESULT_OK) {
-//            final String pid = data.getStringExtra("result");
-//                edPid.setText(pid);
-//            this.data.clear();
-//            adapter.notifyDataSetChanged();
-//            try {
-//                getPreChukuList("", "", Integer.parseInt(pid));
-//            } catch (NumberFormatException e) {
-//                e.printStackTrace();
-//                showMsgToast( "扫码结果不是数字");
-//            }
-//        }
-//    }
 
     @Override
     public void onClick(View v) {

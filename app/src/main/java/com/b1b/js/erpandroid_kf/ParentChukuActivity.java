@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_kf.activity.base.ToolbarHasSunmiActivity;
 import com.b1b.js.erpandroid_kf.adapter.PreChukuParentAdapter;
+import com.b1b.js.erpandroid_kf.bussiness.NewChukuPicViewer;
 import com.b1b.js.erpandroid_kf.config.SpSettings;
 import com.b1b.js.erpandroid_kf.entity.ChukuDetail;
 import com.b1b.js.erpandroid_kf.entity.ChukuInfo;
@@ -24,6 +25,7 @@ import com.b1b.js.erpandroid_kf.entity.ChukuInfoNew;
 import com.b1b.js.erpandroid_kf.entity.IntentKeys;
 import com.b1b.js.erpandroid_kf.entity.PreChukuItem;
 import com.b1b.js.erpandroid_kf.mvcontract.ParentChukuContract;
+import com.b1b.js.erpandroid_kf.mvcontract.callback.DataObj;
 import com.b1b.js.erpandroid_kf.myview.ScrollInnerListview;
 import com.b1b.js.erpandroid_kf.task.StorageUtils;
 import com.b1b.js.erpandroid_kf.task.TaskManager;
@@ -58,6 +60,7 @@ public class ParentChukuActivity extends ToolbarHasSunmiActivity implements View
 
     private String mFlag;
     private String ip;
+    private NewChukuPicViewer newChukuPicViewer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -290,6 +293,8 @@ public class ParentChukuActivity extends ToolbarHasSunmiActivity implements View
             }
         };
         TaskManager.getInstance().execute(ipRun);
+        newChukuPicViewer = new NewChukuPicViewer(mContext);
+        newChukuPicViewer.init();
     }
 
     @Override
@@ -316,11 +321,49 @@ public class ParentChukuActivity extends ToolbarHasSunmiActivity implements View
         tvMxTag.setText("明细(" +
                 "" + info.details.size() +
                 "):");
-        tvMinfo.setText(info.toString());
+        tvMinfo.setText(info.toSmallString());
         edChukuInfo.setText(info.chukuResult);
         mAdapter.notifyDataSetChanged();
         tvMxTag.setVisibility(View.VISIBLE);
         showToolbar2(stateNow);
+    }
+
+    @Override
+    public void onPreCkInfoRet(DataObj<ChukuInfo> retObj) {
+        showOrHide(retObj.errCode);
+        if (retObj.errCode == 0) {
+            //                        iView.onPreCkInfoCb(data.mData);
+            ChukuInfo info = retObj.mData;
+            SoftKeyboardUtils.closeInputMethod(editTextPid, mContext);
+            String stateNow = info.StateNow;
+            String flag = info.flag;
+            mFlag = flag;
+            //        mFlag = "6";
+            mListData.clear();
+            mListData.addAll(info.details);
+            tvMxTag.setText("明细(" +
+                    "" + info.details.size() +
+                    "):");
+            tvMinfo.setText(info.toSmallString());
+            edChukuInfo.setText(info.chukuResult);
+            mAdapter.notifyDataSetChanged();
+            tvMxTag.setVisibility(View.VISIBLE);
+            showToolbar2(stateNow);
+        } else {
+            alert(retObj.errMsg);
+        }
+    }
+
+    public void showOrHide(int code) {
+        View View1 = getViewInContent(R.id.activity_parent_chuku_container_details);
+        View View2 = getViewInContent(R.id.activity_parent_chuku_container_checkinfo);
+        int visible = View.VISIBLE;
+        if (code == 0) {
+        }else {
+            visible = View.GONE;
+        }
+        View1.setVisibility(visible);
+        View2.setVisibility(visible);
     }
 
     private String testAlert = "";
@@ -420,7 +463,8 @@ public class ParentChukuActivity extends ToolbarHasSunmiActivity implements View
                     showMsgToast("请先输入单据号");
                     return;
                 }
-                startActivity(intent2);
+//                startActivity(intent2);
+                newChukuPicViewer.viewPic(tempPid);
                 break;
             case R.id.activity_parent_chuku_opr_btn_yundan_takepic:
                 Intent intent = new Intent(mContext, ChukuTakePicActivity.class);
